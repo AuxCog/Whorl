@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Whorl", "Whorl\Whorl.csproj", "{C599D5D0-D087-4945-80C2-3276836A3483}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParserEngine", "ParserEngine\ParserEngine.csproj", "{62386B99-9F7C-4D80-A171-8753DE6D1879}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C599D5D0-D087-4945-80C2-3276836A3483}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C599D5D0-D087-4945-80C2-3276836A3483}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C599D5D0-D087-4945-80C2-3276836A3483}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C599D5D0-D087-4945-80C2-3276836A3483}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

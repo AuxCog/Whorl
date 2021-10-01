@@ -1,0 +1,497 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C599D5D0-D087-4945-80C2-3276836A3483}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Whorl</RootNamespace>
+    <AssemblyName>Whorl</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>C:\WhorlDeploy\Whorl\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>WhorlIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>9361081668D57A17EF20E08A52AB3FD6FBF1EFCB</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>Whorl_1_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BaseObject.cs" />
+    <Compile Include="BaseParameterDisplay.cs" />
+    <Compile Include="BasePattern.cs" />
+    <Compile Include="BasicOutline.cs" />
+    <Compile Include="BitmapTools.cs" />
+    <Compile Include="BlendedImage.cs" />
+    <Compile Include="BooleanItem.cs" />
+    <Compile Include="ChangeTracker.cs" />
+    <Compile Include="ColorGradient.cs" />
+    <Compile Include="ColorGradientFormComponent.cs" />
+    <Compile Include="ColorNode.cs" />
+    <Compile Include="ColorNodeList.cs" />
+    <Compile Include="ColorTransparencyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ColorTransparencyForm.Designer.cs">
+      <DependentUpon>ColorTransparencyForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CSharpPreprocessor.cs" />
+    <Compile Include="CubicSpline.cs" />
+    <Compile Include="CustomAttributes.cs" />
+    <Compile Include="CustomParseAttribute.cs" />
+    <Compile Include="CustomPicturebox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CustomPicturebox.Designer.cs">
+      <DependentUpon>CustomPicturebox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomException.cs" />
+    <Compile Include="DesignLayer.cs" />
+    <Compile Include="DesignLayerChangedEventArgs.cs" />
+    <Compile Include="DesignLayerList.cs" />
+    <Compile Include="DesignLayersForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DesignLayersForm.Designer.cs">
+      <DependentUpon>DesignLayersForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DrawDesign.cs" />
+    <Compile Include="FillInfo.cs" />
+    <Compile Include="FormulaEntry.cs" />
+    <Compile Include="FormulaEntryList.cs" />
+    <Compile Include="FormulaSettings.cs" />
+    <Compile Include="FormulaTools.cs" />
+    <Compile Include="FractalInfo.cs" />
+    <Compile Include="frmBlendImages.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmBlendImages.Designer.cs">
+      <DependentUpon>frmBlendImages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmColorGradient.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmColorGradient.Designer.cs">
+      <DependentUpon>frmColorGradient.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmFormulaEntries.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmFormulaEntries.Designer.cs">
+      <DependentUpon>frmFormulaEntries.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmFormulaInsert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmFormulaInsert.Designer.cs">
+      <DependentUpon>frmFormulaInsert.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmInfluenceLink.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmInfluenceLink.Designer.cs">
+      <DependentUpon>frmInfluenceLink.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmInfluencePoint.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmInfluencePoint.Designer.cs">
+      <DependentUpon>frmInfluencePoint.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmInitialSetup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmInitialSetup.Designer.cs">
+      <DependentUpon>FrmInitialSetup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmMessage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMessage.Designer.cs">
+      <DependentUpon>frmMessage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmTextEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmTextEditor.Designer.cs">
+      <DependentUpon>frmTextEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmVaryProperties.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmVaryProperties.Designer.cs">
+      <DependentUpon>frmVaryProperties.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IColorNodeList.cs" />
+    <Compile Include="IFillInfo.cs" />
+    <Compile Include="IFormulaForm.cs" />
+    <Compile Include="ImprovConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ImprovConfigForm.Designer.cs">
+      <DependentUpon>ImprovConfigForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ImproviseConfig.cs" />
+    <Compile Include="ImproviseFlags.cs" />
+    <Compile Include="InfluenceLinkParentCollection.cs" />
+    <Compile Include="InfluencePointInfo.cs" />
+    <Compile Include="InfluencePointLink.cs" />
+    <Compile Include="InitialSetup.cs" />
+    <Compile Include="IntColor.cs" />
+    <Compile Include="IRenderCaller.cs" />
+    <Compile Include="MemberItemInfo.cs" />
+    <Compile Include="NamedRandomSeed.cs" />
+    <Compile Include="NamedRandomSeedForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NamedRandomSeedForm.Designer.cs">
+      <DependentUpon>NamedRandomSeedForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OutlineFormulaForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OutlineFormulaForm.Designer.cs">
+      <DependentUpon>OutlineFormulaForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GradientColors.cs" />
+    <Compile Include="BackgroundForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BackgroundForm.Designer.cs">
+      <DependentUpon>BackgroundForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ImageSizeForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ImageSizeForm.Designer.cs">
+      <DependentUpon>ImageSizeForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IColor.cs" />
+    <Compile Include="IXml.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ParameterDisplay.cs" />
+    <Compile Include="ParameterImproviseConfig.cs" />
+    <Compile Include="ParserErrorsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ParserErrorsForm.Designer.cs">
+      <DependentUpon>ParserErrorsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PathOutline.cs" />
+    <Compile Include="PathPattern.cs" />
+    <Compile Include="PatternGroupList.cs" />
+    <Compile Include="PatternImprovConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PatternImprovConfigForm.Designer.cs">
+      <DependentUpon>PatternImprovConfigForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PatternImproviseConfig.cs" />
+    <Compile Include="PatternLayer.cs" />
+    <Compile Include="PatternLayerList.cs" />
+    <Compile Include="PatternList.cs" />
+    <Compile Include="PatternTransform.cs" />
+    <Compile Include="PatternZOrderForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PatternZOrderForm.Designer.cs">
+      <DependentUpon>PatternZOrderForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PixelRenderInfo.cs" />
+    <Compile Include="PolarCoord.cs" />
+    <Compile Include="PropertyAction.cs" />
+    <Compile Include="PropertyActionAttribute.cs" />
+    <Compile Include="PropertyInfoPath.cs" />
+    <Compile Include="RenderCaller.cs" />
+    <Compile Include="RenderDesignForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RenderDesignForm.Designer.cs">
+      <DependentUpon>RenderDesignForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Ribbon.cs" />
+    <Compile Include="CSharpCompiler.cs" />
+    <Compile Include="CSharpParameter.cs" />
+    <Compile Include="CSharpParameterDisplay.cs" />
+    <Compile Include="SettingsXML.cs" />
+    <Compile Include="StandardFormulaText.cs" />
+    <Compile Include="StandardFormulaTextList.cs" />
+    <Compile Include="StringPattern.cs" />
+    <Compile Include="TestCSharpFormula.cs" />
+    <Compile Include="TriDiagonalMatrix.cs" />
+    <Compile Include="UndoOperation.cs" />
+    <Compile Include="Pattern.cs" />
+    <Compile Include="PatternForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PatternForm.Designer.cs">
+      <DependentUpon>PatternForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RepeatSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RepeatSettingsForm.Designer.cs">
+      <DependentUpon>RepeatSettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SelectPatternForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectPatternForm.Designer.cs">
+      <DependentUpon>SelectPatternForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsForm.Designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Tools.cs" />
+    <Compile Include="UndoOperations.cs" />
+    <Compile Include="ValueTextItem.cs" />
+    <Compile Include="WhorlBaseObject.cs" />
+    <Compile Include="WhorlDesign.cs" />
+    <Compile Include="WhorlSettings.cs" />
+    <Compile Include="XmlTools.cs" />
+    <Compile Include="ZoomFactorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ZoomFactorForm.Designer.cs">
+      <DependentUpon>ZoomFactorForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="ColorTransparencyForm.resx">
+      <DependentUpon>ColorTransparencyForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DesignLayersForm.resx">
+      <DependentUpon>DesignLayersForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmBlendImages.resx">
+      <DependentUpon>frmBlendImages.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmColorGradient.resx">
+      <DependentUpon>frmColorGradient.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmFormulaEntries.resx">
+      <DependentUpon>frmFormulaEntries.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmFormulaInsert.resx">
+      <DependentUpon>frmFormulaInsert.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmInfluenceLink.resx">
+      <DependentUpon>frmInfluenceLink.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmInfluencePoint.resx">
+      <DependentUpon>frmInfluencePoint.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmInitialSetup.resx">
+      <DependentUpon>FrmInitialSetup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMessage.resx">
+      <DependentUpon>frmMessage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmTextEditor.resx">
+      <DependentUpon>frmTextEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmVaryProperties.resx">
+      <DependentUpon>frmVaryProperties.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ImprovConfigForm.resx">
+      <DependentUpon>ImprovConfigForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NamedRandomSeedForm.resx">
+      <DependentUpon>NamedRandomSeedForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OutlineFormulaForm.resx">
+      <DependentUpon>OutlineFormulaForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BackgroundForm.resx">
+      <DependentUpon>BackgroundForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ImageSizeForm.resx">
+      <DependentUpon>ImageSizeForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ParserErrorsForm.resx">
+      <DependentUpon>ParserErrorsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PatternForm.resx">
+      <DependentUpon>PatternForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PatternImprovConfigForm.resx">
+      <DependentUpon>PatternImprovConfigForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PatternZOrderForm.resx">
+      <DependentUpon>PatternZOrderForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="RenderDesignForm.resx">
+      <DependentUpon>RenderDesignForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RepeatSettingsForm.resx">
+      <DependentUpon>RepeatSettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectPatternForm.resx">
+      <DependentUpon>SelectPatternForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PatternChoices\PatternChoices.config" />
+    <EmbeddedResource Include="ZoomFactorForm.resx">
+      <DependentUpon>ZoomFactorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\DesignLayer.datasource" />
+    <None Include="Properties\DataSources\MemberItemInfo.datasource" />
+    <None Include="Properties\DataSources\Pattern.PatternRecursionInfo.datasource" />
+    <None Include="Properties\DataSources\PatternTransform.datasource" />
+    <None Include="Properties\DataSources\StandardFormulaText.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="WhorlFiles\WhorlFiles.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Whorl_1_TemporaryKey.pfx" />
+    <None Include="Whorl_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ParserEngine\ParserEngine.csproj">
+      <Project>{62386b99-9f7c-4d80-a171-8753de6d1879}</Project>
+      <Name>ParserEngine</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Icons\WhorlIcon.ico" />
+    <Content Include="WhorlIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
