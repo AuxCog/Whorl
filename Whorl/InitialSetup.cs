@@ -50,56 +50,65 @@ namespace Whorl
 
         public static bool PerformInitialSetup()
         {
-            if (WhorlSettings.Instance.FilesFolder == null)
-                throw new NullReferenceException("WhorlSettings.Instance.FilesFolder cannot be null.");
-            if (!Directory.Exists(WhorlSettings.Instance.FilesFolder))
+            var cursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+            try
             {
-                Directory.CreateDirectory(WhorlSettings.Instance.FilesFolder);
-            }
-            string choicesXmlFileName = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.PatternChoicesFileName);
-            if (!File.Exists(choicesXmlFileName))
-            {
-                string zipFileName = Path.Combine(Application.StartupPath, "WhorlFiles", "WhorlFiles.zip");
-                if (!File.Exists(zipFileName))
+                if (WhorlSettings.Instance.FilesFolder == null)
+                    throw new NullReferenceException("WhorlSettings.Instance.FilesFolder cannot be null.");
+                if (!Directory.Exists(WhorlSettings.Instance.FilesFolder))
                 {
-                    MessageBox.Show($"The required installation file {zipFileName} was not found.");
-                    return false;
+                    Directory.CreateDirectory(WhorlSettings.Instance.FilesFolder);
                 }
-                //ZipFile.ExtractToDirectory(zipFileName, WhorlSettings.Instance.FilesFolder);
-                using (ZipArchive archive = ZipFile.OpenRead(zipFileName))
+                string choicesXmlFileName = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.PatternChoicesFileName);
+                if (!File.Exists(choicesXmlFileName))
                 {
-                    foreach (var entry in archive.Entries)
+                    string zipFileName = Path.Combine(Application.StartupPath, "WhorlFiles", "WhorlFiles.zip");
+                    if (!File.Exists(zipFileName))
                     {
-                        if (!entry.FullName.EndsWith("/"))  //Not a folder.
+                        MessageBox.Show($"The required installation file {zipFileName} was not found.");
+                        return false;
+                    }
+                    //ZipFile.ExtractToDirectory(zipFileName, WhorlSettings.Instance.FilesFolder);
+                    using (ZipArchive archive = ZipFile.OpenRead(zipFileName))
+                    {
+                        foreach (var entry in archive.Entries)
                         {
-                            int pos = entry.FullName.IndexOf('/');
-                            string entryName = pos >= 0 ? entry.FullName.Substring(pos + 1) : entry.FullName;
-                            string fileName = Path.Combine(WhorlSettings.Instance.FilesFolder, entryName);
-                            string folder = Path.GetDirectoryName(fileName);
-                            if (!Directory.Exists(folder))
-                                Directory.CreateDirectory(folder);
-                            if (!File.Exists(fileName))
+                            if (!entry.FullName.EndsWith("/"))  //Not a folder.
                             {
-                                try
+                                int pos = entry.FullName.IndexOf('/');
+                                string entryName = pos >= 0 ? entry.FullName.Substring(pos + 1) : entry.FullName;
+                                string fileName = Path.Combine(WhorlSettings.Instance.FilesFolder, entryName);
+                                string folder = Path.GetDirectoryName(fileName);
+                                if (!Directory.Exists(folder))
+                                    Directory.CreateDirectory(folder);
+                                if (!File.Exists(fileName))
                                 {
-                                    entry.ExtractToFile(fileName);
-                                }
-                                catch (Exception ex)
-                                {
-                                    throw new Exception($"Error extracting file {fileName}", ex);
+                                    try
+                                    {
+                                        entry.ExtractToFile(fileName);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new Exception($"Error extracting file {fileName}", ex);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                CreateThumbnailsFolder(WhorlSettings.Instance.FilesFolder);
+                foreach (string folder in Directory.EnumerateDirectories(Path.Combine(WhorlSettings.Instance.FilesFolder,
+                                                                                      WhorlSettings.Instance.CustomDesignParentFolder)))
+                {
+                    CreateThumbnailsFolder(folder);
+                }
+                return true;
             }
-            CreateThumbnailsFolder(WhorlSettings.Instance.FilesFolder);
-            foreach (string folder in Directory.EnumerateDirectories(Path.Combine(WhorlSettings.Instance.FilesFolder, 
-                                                                                  WhorlSettings.Instance.CustomDesignParentFolder)))
+            finally
             {
-                CreateThumbnailsFolder(folder);
+                Cursor.Current = cursor;
             }
-            return true;
         }
 
         private static void CreateThumbnailsFolder(string baseFolder)
