@@ -149,6 +149,7 @@
             this.fixDesignsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showSelectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showRenderingPanelsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editInfluencePointsModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -231,7 +232,6 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.showRenderingPanelsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1241,6 +1241,16 @@
             this.showSelectionsToolStripMenuItem.Text = "Show Selections";
             this.showSelectionsToolStripMenuItem.Click += new System.EventHandler(this.showSelectionsToolStripMenuItem_Click);
             // 
+            // showRenderingPanelsToolStripMenuItem
+            // 
+            this.showRenderingPanelsToolStripMenuItem.Checked = true;
+            this.showRenderingPanelsToolStripMenuItem.CheckOnClick = true;
+            this.showRenderingPanelsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showRenderingPanelsToolStripMenuItem.Name = "showRenderingPanelsToolStripMenuItem";
+            this.showRenderingPanelsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.showRenderingPanelsToolStripMenuItem.Text = "Show Rendering Panels";
+            this.showRenderingPanelsToolStripMenuItem.Click += new System.EventHandler(this.showRenderingPanelsToolStripMenuItem_Click);
+            // 
             // showInfluencePointsToolStripMenuItem
             // 
             this.showInfluencePointsToolStripMenuItem.CheckOnClick = true;
@@ -1877,10 +1887,10 @@
             this.influenceContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addInfluencePointToolStripMenuItem,
             this.editInfluencePointToolStripMenuItem,
-            this.deleteInfluencePointToolStripMenuItem,
-            this.moveInfluencePointToolStripMenuItem});
+            this.moveInfluencePointToolStripMenuItem,
+            this.deleteInfluencePointToolStripMenuItem});
             this.influenceContextMenuStrip.Name = "influenceContextMenuStrip";
-            this.influenceContextMenuStrip.Size = new System.Drawing.Size(191, 92);
+            this.influenceContextMenuStrip.Size = new System.Drawing.Size(191, 114);
             // 
             // addInfluencePointToolStripMenuItem
             // 
@@ -1924,16 +1934,6 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
-            // 
-            // showRenderingPanelsToolStripMenuItem
-            // 
-            this.showRenderingPanelsToolStripMenuItem.Checked = true;
-            this.showRenderingPanelsToolStripMenuItem.CheckOnClick = true;
-            this.showRenderingPanelsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.showRenderingPanelsToolStripMenuItem.Name = "showRenderingPanelsToolStripMenuItem";
-            this.showRenderingPanelsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.showRenderingPanelsToolStripMenuItem.Text = "Show Rendering Panels";
-            this.showRenderingPanelsToolStripMenuItem.Click += new System.EventHandler(this.showRenderingPanelsToolStripMenuItem_Click);
             // 
             // MainForm
             // 

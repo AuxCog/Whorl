@@ -7435,7 +7435,10 @@ namespace Whorl
             {
                 if (nearestInfluencePoint == null || influencePointsPattern == null) 
                     return;
-                //INFMOD
+                if (MessageBox.Show("Delete Influence Point?", "Confirm", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                {
+                    return;
+                }
                 influencePointsPattern.InfluencePointInfoList.RemoveInfluencePointInfo(nearestInfluencePoint);
                 design.IsDirty = true;
                 RedrawInfluencePattern();
