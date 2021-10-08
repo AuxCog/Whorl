@@ -232,6 +232,7 @@
             this.moveInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewUserManualToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -252,7 +253,8 @@
             this.imageToolStripMenuItem,
             this.editToolStripMenuItem,
             this.toolsToolStripMenuItem,
-            this.viewToolStripMenuItem});
+            this.viewToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(889, 24);
@@ -1093,17 +1095,17 @@
             this.saveImagesAsJpegFilesToolStripMenuItem,
             this.saveAllDesignThumbnailsToolStripMenuItem,
             this.setPatternsToHighResolutionToolStripMenuItem,
-            this.testStringPatternToolStripMenuItem,
             this.timeRedrawsToolStripMenuItem,
+            this.erasePictureToolStripMenuItem,
+            this.showAppPathToolStripMenuItem,
             this.scanForPatternsToolStripMenuItem,
             this.fixPatternsToolStripMenuItem,
             this.inferFormulaTypesToolStripMenuItem,
             this.createSettingsXMLToolStripMenuItem,
             this.createSettingsCSharpCodeToolStripMenuItem,
             this.setImageSizesToolStripMenuItem,
-            this.showAppPathToolStripMenuItem,
-            this.erasePictureToolStripMenuItem,
-            this.fixDesignsToolStripMenuItem});
+            this.fixDesignsToolStripMenuItem,
+            this.testStringPatternToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -1140,6 +1142,7 @@
             // 
             // testStringPatternToolStripMenuItem
             // 
+            this.testStringPatternToolStripMenuItem.Enabled = false;
             this.testStringPatternToolStripMenuItem.Name = "testStringPatternToolStripMenuItem";
             this.testStringPatternToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.testStringPatternToolStripMenuItem.Text = "Test String Pattern";
@@ -1162,6 +1165,7 @@
             // 
             // fixPatternsToolStripMenuItem
             // 
+            this.fixPatternsToolStripMenuItem.Enabled = false;
             this.fixPatternsToolStripMenuItem.Name = "fixPatternsToolStripMenuItem";
             this.fixPatternsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.fixPatternsToolStripMenuItem.Text = "Fix Patterns";
@@ -1169,6 +1173,7 @@
             // 
             // inferFormulaTypesToolStripMenuItem
             // 
+            this.inferFormulaTypesToolStripMenuItem.Enabled = false;
             this.inferFormulaTypesToolStripMenuItem.Name = "inferFormulaTypesToolStripMenuItem";
             this.inferFormulaTypesToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.inferFormulaTypesToolStripMenuItem.Text = "Infer Formula Types";
@@ -1176,6 +1181,7 @@
             // 
             // createSettingsXMLToolStripMenuItem
             // 
+            this.createSettingsXMLToolStripMenuItem.Enabled = false;
             this.createSettingsXMLToolStripMenuItem.Name = "createSettingsXMLToolStripMenuItem";
             this.createSettingsXMLToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.createSettingsXMLToolStripMenuItem.Text = "Create Settings XML";
@@ -1183,6 +1189,7 @@
             // 
             // createSettingsCSharpCodeToolStripMenuItem
             // 
+            this.createSettingsCSharpCodeToolStripMenuItem.Enabled = false;
             this.createSettingsCSharpCodeToolStripMenuItem.Name = "createSettingsCSharpCodeToolStripMenuItem";
             this.createSettingsCSharpCodeToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.createSettingsCSharpCodeToolStripMenuItem.Text = "Create Settings CSharp Code";
@@ -1190,6 +1197,7 @@
             // 
             // setImageSizesToolStripMenuItem
             // 
+            this.setImageSizesToolStripMenuItem.Enabled = false;
             this.setImageSizesToolStripMenuItem.Name = "setImageSizesToolStripMenuItem";
             this.setImageSizesToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.setImageSizesToolStripMenuItem.Text = "Set Image Sizes";
@@ -1211,6 +1219,7 @@
             // 
             // fixDesignsToolStripMenuItem
             // 
+            this.fixDesignsToolStripMenuItem.Enabled = false;
             this.fixDesignsToolStripMenuItem.Name = "fixDesignsToolStripMenuItem";
             this.fixDesignsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.fixDesignsToolStripMenuItem.Text = "Fix Designs";
@@ -1219,7 +1228,6 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.viewUserManualToolStripMenuItem,
             this.showSelectionsToolStripMenuItem,
             this.showRenderingPanelsToolStripMenuItem,
             this.showInfluencePointsToolStripMenuItem,
@@ -1937,10 +1945,18 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewUserManualToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
             // viewUserManualToolStripMenuItem
             // 
             this.viewUserManualToolStripMenuItem.Name = "viewUserManualToolStripMenuItem";
-            this.viewUserManualToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.viewUserManualToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.viewUserManualToolStripMenuItem.Text = "View User Manual";
             this.viewUserManualToolStripMenuItem.Click += new System.EventHandler(this.viewUserManualToolStripMenuItem_Click);
             // 
@@ -2179,6 +2195,7 @@
         private System.Windows.Forms.ToolStripMenuItem moveDesignToFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fixDesignsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showRenderingPanelsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewUserManualToolStripMenuItem;
     }
 }
