@@ -7593,5 +7593,23 @@ namespace Whorl
             }
 
         }
+
+        private void viewUserManualToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string fileName = Path.Combine(Application.StartupPath, "WhorlFiles", "WhorlUserManual.pdf");
+                if (!File.Exists(fileName))
+                {
+                    MessageBox.Show("Didn't find the user manual PDF file.");
+                    return;
+                }
+                System.Diagnostics.Process.Start(fileName);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

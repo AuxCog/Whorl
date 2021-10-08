@@ -45,6 +45,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3F65D0E8F72E42769671B69065A3992D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_A9AF803C22AE475A8561C49975D06603"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -65,12 +71,6 @@
         {
         "MsmKey" = "8:_CFB2D637F6CFE45655D85926AF495F12"
         "OwnerKey" = "8:_BE3DACF3ECED494181E734710FDF7026"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_26D196E1ADCAB45F2D79B427A4B6A772"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -107,6 +107,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_1A2A39BAC4F337C2BC2F4C67DB1814B3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_26D196E1ADCAB45F2D79B427A4B6A772"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -166,6 +172,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -351,6 +365,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3F65D0E8F72E42769671B69065A3992D"
+            {
+            "SourcePath" = "8:..\\Whorl\\WhorlFiles\\WhorlUserManual.pdf"
+            "TargetName" = "8:WhorlUserManual.pdf"
+            "Tag" = "8:"
+            "Folder" = "8:_DB267A51C4CB4366A96F8E7CC75D959E"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A9AF803C22AE475A8561C49975D06603"
             {
             "SourcePath" = "8:..\\Whorl\\bin\\Debug\\WhorlSettings.XML"
@@ -490,7 +524,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:WhorlSetup"
         "ProductCode" = "8:{3664962E-9F68-459C-A8F2-1A91F5ED5891}"
-        "PackageCode" = "8:{09C36B04-1AFB-446A-8A9B-DFD24CED8411}"
+        "PackageCode" = "8:{C51FB017-18DF-4268-91CD-7C63987F3CE4}"
         "UpgradeCode" = "8:{1336C87D-F071-4611-B5EA-590BC711DCC4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

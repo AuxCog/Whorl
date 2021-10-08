@@ -229,9 +229,10 @@
             this.influenceContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
+            this.viewUserManualToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1218,6 +1219,7 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewUserManualToolStripMenuItem,
             this.showSelectionsToolStripMenuItem,
             this.showRenderingPanelsToolStripMenuItem,
             this.showInfluencePointsToolStripMenuItem,
@@ -1890,7 +1892,7 @@
             this.moveInfluencePointToolStripMenuItem,
             this.deleteInfluencePointToolStripMenuItem});
             this.influenceContextMenuStrip.Name = "influenceContextMenuStrip";
-            this.influenceContextMenuStrip.Size = new System.Drawing.Size(191, 114);
+            this.influenceContextMenuStrip.Size = new System.Drawing.Size(191, 92);
             // 
             // addInfluencePointToolStripMenuItem
             // 
@@ -1906,19 +1908,19 @@
             this.editInfluencePointToolStripMenuItem.Text = "Edit Influence Point";
             this.editInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.editInfluencePointToolStripMenuItem_Click);
             // 
-            // deleteInfluencePointToolStripMenuItem
-            // 
-            this.deleteInfluencePointToolStripMenuItem.Name = "deleteInfluencePointToolStripMenuItem";
-            this.deleteInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
-            this.deleteInfluencePointToolStripMenuItem.Text = "Delete Influence Point";
-            this.deleteInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.deleteInfluencePointToolStripMenuItem_Click);
-            // 
             // moveInfluencePointToolStripMenuItem
             // 
             this.moveInfluencePointToolStripMenuItem.Name = "moveInfluencePointToolStripMenuItem";
             this.moveInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.moveInfluencePointToolStripMenuItem.Text = "Move Influence Point";
             this.moveInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.moveInfluencePointToolStripMenuItem_Click);
+            // 
+            // deleteInfluencePointToolStripMenuItem
+            // 
+            this.deleteInfluencePointToolStripMenuItem.Name = "deleteInfluencePointToolStripMenuItem";
+            this.deleteInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.deleteInfluencePointToolStripMenuItem.Text = "Delete Influence Point";
+            this.deleteInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.deleteInfluencePointToolStripMenuItem_Click);
             // 
             // picDesign
             // 
@@ -1934,6 +1936,13 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
+            // 
+            // viewUserManualToolStripMenuItem
+            // 
+            this.viewUserManualToolStripMenuItem.Name = "viewUserManualToolStripMenuItem";
+            this.viewUserManualToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.viewUserManualToolStripMenuItem.Text = "View User Manual";
+            this.viewUserManualToolStripMenuItem.Click += new System.EventHandler(this.viewUserManualToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2170,6 +2179,7 @@
         private System.Windows.Forms.ToolStripMenuItem moveDesignToFolderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fixDesignsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showRenderingPanelsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem viewUserManualToolStripMenuItem;
     }
 }
 
