@@ -524,7 +524,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:WhorlSetup"
         "ProductCode" = "8:{3664962E-9F68-459C-A8F2-1A91F5ED5891}"
-        "PackageCode" = "8:{C51FB017-18DF-4268-91CD-7C63987F3CE4}"
+        "PackageCode" = "8:{297F9064-DA1B-4CF8-9650-1240E983B3F0}"
         "UpgradeCode" = "8:{1336C87D-F071-4611-B5EA-590BC711DCC4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
