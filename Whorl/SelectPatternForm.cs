@@ -332,17 +332,33 @@ namespace Whorl
                 txt.Tag = patternGroup;
                 txt.BackColor = Color.White;
                 txt.Enabled = patternGroup != null;
+                //DisplayPattern(pic, patternGroup);
                 DisplayPatternAsync(pic, patternGroup).ContinueWith(
                     Tools.AsyncTaskFailed, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 
+        //private void DisplayPattern(PictureBox pic, PatternList patternGroup)
+        //{
+        //    if (patternGroup != null)
+        //    {
+        //        patternGroup.CheckCreateThumbnailImage();
+        //        pic.Image = patternGroup.ThumbnailImage;
+        //    }
+        //    else
+        //    {
+        //        pic.Image = null;
+        //    }
+        //    if (pic.Image == null)
+        //        //Display patternGroup if not null, else blank picturebox:
+        //        pic.Invalidate();
+        //}
+
         private async Task DisplayPatternAsync(PictureBox pic, PatternList patternGroup)
         {
-            pic.Image?.Dispose();
             if (patternGroup != null)
             {
-                await patternGroup.CheckCreateThumbnailImage();
+                await patternGroup.CheckCreateThumbnailImageAsync();
                 pic.Image = patternGroup.ThumbnailImage;
             }
             else
@@ -730,8 +746,10 @@ namespace Whorl
             SelectedPatternGroup.SetForPreview(new Size(pictureBoxWidth, pictureBoxWidth));
             PatternChoices.SetPatternGroup(SelectedPatternGroup, index);
             selectedPictureBox.Tag = SelectedPatternGroup;
-            Task.Run(async () => {
-                await SelectedPatternGroup.CheckCreateThumbnailImage();
+            //SelectedPatternGroup.CheckCreateThumbnailImage();
+            Task.Run(async () =>
+            {
+                await SelectedPatternGroup.CheckCreateThumbnailImageAsync();
                 selectedPictureBox.Image = SelectedPatternGroup.ThumbnailImage;  //Could be null.
             });
             if (selectedPictureBox.Image == null)

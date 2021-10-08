@@ -173,7 +173,20 @@ namespace Whorl
             ThumbnailImage = null;
         }
 
-        public async Task CheckCreateThumbnailImage()
+        //public void CheckCreateThumbnailImage()
+        //{
+        //    if (ThumbnailImage == null && (HasSurroundColors() || HasPixelRendering()))
+        //    {
+        //        int width = SelectPatternForm.ThumbnailImageWidth;
+        //        ThumbnailImage = new Bitmap(width, width);
+        //        using (Graphics g = Graphics.FromImage(ThumbnailImage))
+        //        {
+        //            DrawFilled(g, null, ThumbnailImage.Size, computeRandom: false, enableCache: false);
+        //        }
+        //    }
+        //}
+
+        public async Task CheckCreateThumbnailImageAsync()
         {
             if (ThumbnailImage != null)
                 return;
@@ -191,9 +204,14 @@ namespace Whorl
 
         private void DrawForThumbnail(Graphics g, Size imgSize)
         {
-            DrawFilled(g, null, imgSize, computeRandom: false, enableCache: false);
-            //foreach (Pattern pattern in PatternsList)
-            //    pattern.DrawFilled(g, computeRandom: false);
+            try
+            {
+                DrawFilled(g, null, imgSize, computeRandom: false, enableCache: false);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         public void DrawOutlines(Graphics g, Color color)
