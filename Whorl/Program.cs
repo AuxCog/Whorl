@@ -16,15 +16,17 @@ namespace Whorl
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            InitialSetup.InitializeSettings(out bool loadErrors);
+            if (!InitialSetup.InitializeSettings(out bool loadErrors))
+            {
+                return;
+            }
             MainForm.LoadErrors = loadErrors;
             if (InitialSetup.InitialSetupNeeded())
             {
                 var frm = new FrmInitialSetup();
                 if (frm.ShowDialog() != DialogResult.OK)
                 {
-                    Application.Exit();
+                   return;
                 }
             }
             string designFileName = args.FirstOrDefault();

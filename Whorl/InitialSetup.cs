@@ -14,7 +14,7 @@ namespace Whorl
         public const string SettingFilesFolder = "SettingsFiles";
         public static string StandardTextsFileName { get; } = Path.Combine(SettingFilesFolder, "StandardFormulaTexts.xml");
 
-        public static void InitializeSettings(out bool loadErrors)
+        public static bool InitializeSettings(out bool loadErrors)
         {
             loadErrors = false;
             try
@@ -25,6 +25,14 @@ namespace Whorl
                     loadErrors = true;
                     MessageBox.Show(string.Join(Environment.NewLine, errors), "Errors reading settings.");
                 }
+            }
+            catch (Exception ex1)
+            {
+                MessageBox.Show(ex1.Message);
+                return false;   //Terminate program if exception reading settings XML file.
+            }
+            try 
+            { 
                 var standardFormulaTexts = new StandardFormulaTextList();
                 string filePath = Path.Combine(WhorlSettings.Instance.FilesFolder, StandardTextsFileName);
                 if (File.Exists(filePath))
@@ -38,6 +46,7 @@ namespace Whorl
                 loadErrors = true;
                 Tools.HandleException(ex);
             }
+            return true;
         }
 
         public static bool InitialSetupNeeded()

@@ -75,6 +75,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_FEB79D10CFEE4F879F5E14E734EFA7D6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_BE3DACF3ECED494181E734710FDF7026"
         "MsmSig" = "8:_UNDEFINED"
@@ -456,6 +462,26 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FEB79D10CFEE4F879F5E14E734EFA7D6"
+            {
+            "SourcePath" = "8:..\\Whorl\\WhorlIcon.ico"
+            "TargetName" = "8:WhorlIcon.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_903EC45B06C747D4BF8BD3097BDF7898"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -646,7 +672,7 @@
         {
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5E3D4BE813ED483BADBD64E0FC92B34E"
             {
-            "Name" = "8:Whorl Shortcut"
+            "Name" = "8:Whorl"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -655,12 +681,12 @@
             "Target" = "8:_BE3DACF3ECED494181E734710FDF7026"
             "Folder" = "8:_9AD944BFA4104CC6BBE6D1999ABD7B50"
             "WorkingFolder" = "8:_903EC45B06C747D4BF8BD3097BDF7898"
-            "Icon" = "8:"
+            "Icon" = "8:_FEB79D10CFEE4F879F5E14E734EFA7D6"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_E9BA6A46B15D4AFB8318B727E006E57B"
             {
-            "Name" = "8:Whorl Shortcut"
+            "Name" = "8:Whorl"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -669,7 +695,7 @@
             "Target" = "8:_BE3DACF3ECED494181E734710FDF7026"
             "Folder" = "8:_CB43F3C34BC844E3B432D0A3B94595C8"
             "WorkingFolder" = "8:_903EC45B06C747D4BF8BD3097BDF7898"
-            "Icon" = "8:"
+            "Icon" = "8:_FEB79D10CFEE4F879F5E14E734EFA7D6"
             "Feature" = "8:"
             }
         }
