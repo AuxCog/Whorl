@@ -11,6 +11,7 @@ namespace Whorl
 {
     public class PathPattern: Pattern, ICloneable, IXml
     {
+        public const float DefaultPenWidth = 2F;
         public PathPattern(WhorlDesign design, XmlNode node): base(design)
         {
             FromXml(node);
@@ -19,14 +20,17 @@ namespace Whorl
         public PathPattern(Pattern sourcePattern, bool copySharedPatternID = true) 
                : base(sourcePattern.Design, FillInfo.FillTypes.Path)
         {
-            if (sourcePattern != null)
-                this.CopyProperties(sourcePattern, copySharedPatternID: copySharedPatternID);
+            this.CopyProperties(sourcePattern, copySharedPatternID: copySharedPatternID);
+        }
+
+        public PathPattern(WhorlDesign design): base(design, FillInfo.FillTypes.Path)
+        {
         }
 
         public Ribbon PathRibbon { get; set; }
         public PathOutline CartesianPathOutline { get; set; }
         public int[] CurveVertexIndices { get; private set; }
-        public float PenWidth { get; set; } = 2F;
+        public float PenWidth { get; set; } = DefaultPenWidth;
         public bool InterpolatePoints { get; set; }
 
         public override Ribbon GetRibbon()
@@ -170,18 +174,15 @@ namespace Whorl
         {
             if (ComputeCurvePoints(zVector))
             {
+                bool disposePen = pen == null;
                 if (pen == null)
                 {
-                    InitializeFillInfo(FillInfo, CurvePoints, checkLinearGradient: false);
-                    using (pen = new Pen(FillInfo.FillBrush, PenWidth))
-                    {
-                        Tools.DrawCurve(g, pen, CurvePoints);
-                    }
+                    var linearGradientBrush = InitializeFillInfo(FillInfo, CurvePoints, checkLinearGradient: true);
+                    pen = new Pen(linearGradientBrush ?? FillInfo.FillBrush, PenWidth);
                 }
-                else
-                {
-                    Tools.DrawCurve(g, pen, CurvePoints);
-                }
+                Tools.DrawCurve(g, pen, CurvePoints);
+                if (disposePen)
+                    pen.Dispose();
             }
         }
 
@@ -201,7 +202,24 @@ namespace Whorl
         {
             if (xmlNodeName == null)
                 xmlNodeName = nameof(PathPattern);
-            return base.ToXml(parentNode, xmlTools, xmlNodeName);
+            var xmlNode = base.ToXml(parentNode, xmlTools, xmlNodeName);
+            if (PenWidth != DefaultPenWidth)
+            {
+                xmlTools.AppendXmlAttribute(xmlNode, nameof(PenWidth), PenWidth);
+            }
+            if (InterpolatePoints)
+            {
+                xmlTools.AppendXmlAttribute(xmlNode, nameof(InterpolatePoints), InterpolatePoints);
+            }
+            return xmlNode;
+        }
+
+        public override void FromXml(XmlNode node)
+        {
+            base.FromXml(node);
+            PenWidth = Tools.GetXmlAttribute<float>(node, defaultValue: DefaultPenWidth, nameof(PenWidth));
+            if (node.Attributes[nameof(InterpolatePoints)] != null)
+                InterpolatePoints = Tools.GetXmlAttribute<bool>(node, nameof(InterpolatePoints));
         }
 
         protected override void ExtraXml(XmlNode parentNode, XmlTools xmlTools)
@@ -210,7 +228,7 @@ namespace Whorl
                 PathRibbon.ToXml(parentNode, xmlTools, nameof(PathRibbon));
             if (CartesianPathOutline != null)
                 CartesianPathOutline.ToXml(parentNode, xmlTools, nameof(CartesianPathOutline));
-            xmlTools.AppendAttributeChildNode(parentNode, nameof(InterpolatePoints), InterpolatePoints);
+            //xmlTools.AppendAttributeChildNode(parentNode, nameof(InterpolatePoints), InterpolatePoints);
         }
 
         protected override bool FromExtraXml(XmlNode node)
@@ -225,7 +243,7 @@ namespace Whorl
                     CartesianPathOutline = new PathOutline();
                     CartesianPathOutline.FromXml(node);
                     break;
-                case nameof(InterpolatePoints):
+                case nameof(InterpolatePoints):  //Legacy code.
                     InterpolatePoints = Tools.GetXmlAttribute<bool>(node);
                     break;
                 default:

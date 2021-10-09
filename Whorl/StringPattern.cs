@@ -181,7 +181,7 @@ namespace Whorl
         protected override void ExtraXml(XmlNode parentNode, XmlTools xmlTools)
         {
             base.ExtraXml(parentNode, xmlTools);
-            xmlTools.AppendAttributeChildNode(parentNode, "Text", Text);
+            xmlTools.AppendAttributeChildNode(parentNode, "Text", Text, attrName: "Value");
             xmlTools.AppendAttributeChildNode(parentNode, "KeepRightAngle", KeepRightAngle);
             XmlNode fontNode = xmlTools.CreateXmlNode("Font");
             xmlTools.AppendXmlAttribute(fontNode, "FontName", Font.FontFamily.Name);
@@ -196,7 +196,7 @@ namespace Whorl
             switch (node.Name)
             {
                 case "Text":
-                    Text = Tools.GetXmlAttribute<string>(node);
+                    Text = Tools.GetXmlAttribute<string>(node, "Value");
                     break;
                 case "KeepRightAngle":
                     KeepRightAngle = Tools.GetXmlAttribute<bool>(node);

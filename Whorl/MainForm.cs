@@ -909,13 +909,13 @@ namespace Whorl
 
         private void FinishDrawnPolygon(PointF center)
         {
-            if (polygonOutline != null && polygonOutline.SegmentVertices.Count() >= 3)
+            if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count() >= 3)
             {
                 polygonOutline.SegmentVerticesCenter = center;
                 polygonOutline.SetClosedVertices(polygonOutline.SegmentVertices,
                                                  drawClosedCurveToolStripMenuItem.Checked);
                 Complex zVector = polygonOutline.NormalizePathVertices();
-                PathPattern ptn = new PathPattern(sourcePattern: null);
+                PathPattern ptn = new PathPattern(design);
                 ptn.BoundaryColor = Color.Red;
                 ptn.ZVector = zVector;
                 ptn.Center = center;
