@@ -2033,12 +2033,22 @@ namespace Whorl
             PreviewChanges();
         }
 
+        /// <summary>
+        /// Change type of edited pattern.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cboPatternType_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (!handleControlEvents)
                 return;
             try
             {
+                if (!initialized)
+                    return;
+                List<Pattern> editedPatterns = EditedPatternGroup.PatternsList;
+                if (EditedPatternIndex >= editedPatterns.Count)
+                    return;
                 handleControlEvents = false;
                 string patternTypeName = (string)cboPatternType.SelectedItem;
                 string typeName = patternTypeName == "Path" ?
@@ -2046,12 +2056,6 @@ namespace Whorl
                                   patternTypeName == "Text" ?
                                   nameof(StringPattern) :
                                   patternTypeName;
-                tabRibbon.Enabled = tabRibbonFormula.Enabled = typeName == nameof(Ribbon);
-                if (!initialized)
-                    return;
-                List<Pattern> editedPatterns = EditedPatternGroup.PatternsList;
-                if (EditedPatternIndex >= editedPatterns.Count)
-                    return;
                 if (editedPatterns.Count != 1)
                 {
                     if (typeName != nameof(Pattern))
@@ -2063,43 +2067,48 @@ namespace Whorl
                     return;
                 }
                 Pattern pattern1 = editedPatterns[EditedPatternIndex];
+                Pattern newPattern = null;
+                Ribbon newRibbon = null;
                 switch (typeName)
                 {
                     case nameof(Pattern):
                         if (pattern1.GetType() != typeof(Pattern))
                         {
-                            Pattern pattern = new Pattern(pattern1, isRecursivePattern: false);
-                            //pattern.CopyProperties(pattern1);
-                            editedPatterns[EditedPatternIndex] = pattern;
+                            newPattern = new Pattern(pattern1, isRecursivePattern: false);
                         }
                         break;
                     case nameof(Ribbon):
-                        Ribbon ribbon = pattern1 as Ribbon;
-                        if (ribbon == null)
+                        if (!(pattern1 is Ribbon))
                         {
-                            ribbon = new Ribbon(pattern1);
-                            editedPatterns[EditedPatternIndex] = ribbon;
+                            newRibbon = new Ribbon(pattern1);
+                            newPattern = newRibbon;
                         }
-                        PopulateRibbonControls(ribbon);
                         break;
                     case nameof(PathPattern):
                         if (!(pattern1 is PathPattern))
                         {
                             PathPattern pathPattern = new PathPattern(pattern1);
                             pathPattern.ComputeSeedPoints();
-                            editedPatterns[EditedPatternIndex] = pathPattern;
-                            EditedPatternGroup.SetProperties();
+                            newPattern = pathPattern;
                         }
                         break;
                     case nameof(StringPattern):
                         if (!(pattern1 is StringPattern))
                         {
-                            StringPattern stringPattern = new StringPattern(pattern1);
-                            editedPatterns[EditedPatternIndex] = stringPattern;
-                            EditedPatternGroup.SetProperties();
+                            newPattern = new StringPattern(pattern1);
                         }
                         break;
                 }
+                if (newPattern == null)
+                    return;
+                editedPatterns[EditedPatternIndex] = newPattern;
+                if (newRibbon != null)
+                    PopulateRibbonControls(newRibbon);
+                else if (newPattern is PathPattern || newPattern is StringPattern)
+                {
+                    EditedPatternGroup.SetProperties();
+                }
+                tabRibbon.Enabled = tabRibbonFormula.Enabled = newRibbon != null;
                 PopulateControls();
                 PreviewChanges();
             }
