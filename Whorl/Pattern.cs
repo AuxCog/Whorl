@@ -742,7 +742,7 @@ namespace Whorl
             private SizeF distanceSquareSize { get; set; }
             //private PointF[] distPathPoints { get; set; }
             private double distanceFactor { get; set; }
-            private InfluenceLinkParentCollection parentCollection { get; set; }
+            private InfluenceLinkParentCollection influenceParentCollection { get; set; }
             public Pattern SeedPattern { get; private set; }
             public WhorlDesign Design { get; }
 
@@ -917,7 +917,7 @@ namespace Whorl
                     ClearCache();
                     isCSharpFormula = FormulaSettings.IsCSharpFormula;
                 }
-                parentCollection = FormulaSettings?.InfluenceLinkParentCollection;
+                influenceParentCollection = FormulaSettings?.InfluenceLinkParentCollection;
                 Info.SetDraftSize(draftMode ? DraftSize : 1);
                 if (cachedPositions != null && zVector != drawnZVector)
                     ClearCache();
@@ -944,9 +944,9 @@ namespace Whorl
                         GetPosition = Info.DefaultGetPosition;
                     }
                 }
-                if (parentCollection != null)
+                if (influenceParentCollection != null)
                 {
-                    parentCollection.Initialize();
+                    influenceParentCollection.Initialize();
                 }
                 try
                 {
@@ -961,9 +961,9 @@ namespace Whorl
                 }
                 finally
                 {
-                    if (parentCollection != null)
+                    if (influenceParentCollection != null)
                     {
-                        parentCollection.FinalizeSettings();
+                        influenceParentCollection.FinalizeSettings();
                     }
                 }
             }
@@ -1408,10 +1408,10 @@ namespace Whorl
                         Info.SetXY(TransformPoint(x, y));
                         if (distanceSquaresArray != null)
                             SetDistancesToPaths(x, y);
-                        if (parentCollection != null)
+                        if (influenceParentCollection != null)
                         {
                             var patternPoint = new DoublePoint((double)x - patternCenter.X, (double)y - patternCenter.Y);
-                            parentCollection.SetParameterValues(patternPoint);
+                            influenceParentCollection.SetParameterValues(patternPoint);
                         }
                         position = ColorNodeList.NormalizePosition(GetPosition.Invoke());
                         if (setCachedPositions)

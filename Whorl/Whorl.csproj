@@ -203,6 +203,7 @@
     <Compile Include="ImproviseConfig.cs" />
     <Compile Include="ImproviseFlags.cs" />
     <Compile Include="InfluenceLinkParentCollection.cs" />
+    <Compile Include="InfluenceParameter.cs" />
     <Compile Include="InfluencePointInfo.cs" />
     <Compile Include="InfluencePointLink.cs" />
     <Compile Include="InitialSetup.cs" />

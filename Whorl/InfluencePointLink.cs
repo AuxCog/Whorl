@@ -110,7 +110,7 @@ namespace Whorl
             return copy;
         }
 
-        public virtual bool ResolveReferences(StringBuilder sbErrors)
+        public bool ResolveReferences(StringBuilder sbErrors)
         {
             string errMessage = SetTargetParameter(ParameterName, throwException: false);
             bool retVal = errMessage == null;
@@ -146,7 +146,7 @@ namespace Whorl
         {
         }
 
-        protected abstract string SetTargetParameter(string parameterName, bool throwException = true);
+        protected abstract string SetTargetParameter(string parameterName, int index = -1, bool throwException = true);
 
         //public void Initialize()
         //{
@@ -232,7 +232,7 @@ namespace Whorl
             TargetParameter.SetUsedValue(value);
         }
 
-        protected override string SetTargetParameter(string parameterName, bool throwException = true)
+        protected override string SetTargetParameter(string parameterName, int index = -1, bool throwException = true)
         {
             string errMessage = null;
             Parameter parameter = null;
@@ -258,9 +258,10 @@ namespace Whorl
 
     public class PropertyInfluenceLinkParent : BaseInfluenceLinkParent
     {
-        public PropertyInfo TargetPropertyInfo { get; private set; }
-        public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
-        private object paramsObject { get; set; }
+        public BaseInfluenceParameter InfluenceParameter { get; private set; }
+        //public PropertyInfo TargetPropertyInfo { get; private set; }
+        //public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
+        //private object paramsObject { get; set; }
 
         public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName)
                : base(parentCollection, parameterName)
@@ -280,13 +281,11 @@ namespace Whorl
             if (HaveReferences)
             {
                 var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
-                paramsObject = evalInstance?.ParamsObj;
-                if (paramsObject == null)
-                    HaveReferences = false;
-                else
-                {
-                    OrigValue = (double)TargetPropertyInfo.GetValue(paramsObject);
-                }
+                object paramsObject = evalInstance?.ParamsObj;
+                InfluenceParameter.Initialize(paramsObject);
+                HaveReferences = InfluenceParameter.HaveReferences;
+                if (HaveReferences)
+                    OrigValue = InfluenceParameter.ParameterValue;
             }
         }
 
@@ -298,7 +297,7 @@ namespace Whorl
             base.FinalizeSettings();
             if (HaveReferences)
             {
-                TargetPropertyInfo.SetValue(paramsObject, OrigValue);
+                InfluenceParameter.ParameterValue = OrigValue;
             }
         }
 
@@ -307,10 +306,10 @@ namespace Whorl
             return new PropertyInfluenceLinkParent(parentCollection, ParameterName);
         }
 
-        protected override string SetTargetParameter(string parameterName, bool throwException = true)
+        protected override string SetTargetParameter(string parameterName, int index = -1, bool throwException = true)
         {
             string errMessage = null;
-            TargetPropertyInfo = null;
+            //TargetPropertyInfo = null;
             var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
             if (evalInstance == null)
                 errMessage = $"C# formula named {ParentCollection.FormulaSettings.FormulaName} is invalid.";
@@ -321,23 +320,51 @@ namespace Whorl
                     errMessage = "Formula has no parameters.";
                 else
                 {
-                    PropertyInfo prpInfo = paramsObject.GetType().GetProperty(ParameterName, BindingFlags.Public | BindingFlags.Instance);
-                    if (prpInfo == null)
-                    {
-                        errMessage = $"Didn't find parameter property named {ParameterName}.";
+                    if (index == -1)
+                    {   //Parameter is not an array element.
+                        var paramInfo = InfluenceParameter as InfluenceParameter;
+                        if (paramInfo == null)
+                        {
+                            paramInfo = new InfluenceParameter();
+                            InfluenceParameter = paramInfo;
+                        }
                     }
-                    else if (prpInfo.PropertyType != typeof(double))
+                    else if (index < 0)
                     {
-                        errMessage = $"Parameter property named {ParameterName} is not of type double.";
+                        errMessage = "Parameter array index cannot be negative.";
                     }
                     else
-                    {
-                        TargetPropertyInfo = prpInfo;
-                        ParameterInfoAttribute = TargetPropertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                    {   //Parameter is an array element.
+                        var arrayParamInfo = InfluenceParameter as InfluenceArrayParameter;
+                        if (arrayParamInfo == null)
+                        {
+                            arrayParamInfo = new InfluenceArrayParameter();
+                            InfluenceParameter = arrayParamInfo;
+                        }
+                        arrayParamInfo.Index = index;
                     }
+                    if (errMessage == null)
+                    {
+                        InfluenceParameter.PropertyName = parameterName;
+                        errMessage = InfluenceParameter.Initialize(paramsObject);
+                    }
+                    //PropertyInfo prpInfo = paramsObject.GetType().GetProperty(ParameterName, BindingFlags.Public | BindingFlags.Instance);
+                    //if (prpInfo == null)
+                    //{
+                    //    errMessage = $"Didn't find parameter property named {ParameterName}.";
+                    //}
+                    //else if (prpInfo.PropertyType != typeof(double))
+                    //{
+                    //    errMessage = $"Parameter property named {ParameterName} is not of type double.";
+                    //}
+                    //else
+                    //{
+                    //    TargetPropertyInfo = prpInfo;
+                    //    ParameterInfoAttribute = TargetPropertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                    //}
                 }
             }
-            HaveReferences = TargetPropertyInfo != null;
+            HaveReferences = InfluenceParameter != null && InfluenceParameter.HaveReferences;
             if (throwException && errMessage != null)
                 throw new Exception(errMessage);
             return errMessage;
@@ -345,16 +372,109 @@ namespace Whorl
 
         protected override void _SetParameterValue(double value)
         {
-            if (ParameterInfoAttribute != null)
-            {
-                if (value < ParameterInfoAttribute.MinValue)
-                    value = ParameterInfoAttribute.MinValue;
-                else if (value > ParameterInfoAttribute.MaxValue)
-                    value = ParameterInfoAttribute.MaxValue;
-            }
-            TargetPropertyInfo.SetValue(paramsObject, value);
+            InfluenceParameter.ParameterValue = value;
         }
     }
+
+    //public class PropertyInfluenceLinkParent : BaseInfluenceLinkParent
+    //{
+    //    public PropertyInfo TargetPropertyInfo { get; private set; }
+    //    public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
+    //    private object paramsObject { get; set; }
+
+    //    public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName)
+    //           : base(parentCollection, parameterName)
+    //    {
+    //        if (!parentCollection.FormulaSettings.IsCSharpFormula)
+    //            throw new Exception("Formula must be in C#.");
+    //    }
+
+    //    public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, XmlNode node) //, bool forLegacy = false)
+    //           : base(parentCollection)
+    //    {
+    //        FromXml(node); //, forLegacy);
+    //    }
+
+    //    public override void Initialize()
+    //    {
+    //        if (HaveReferences)
+    //        {
+    //            var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
+    //            paramsObject = evalInstance?.ParamsObj;
+    //            if (paramsObject == null)
+    //                HaveReferences = false;
+    //            else
+    //            {
+    //                OrigValue = (double)TargetPropertyInfo.GetValue(paramsObject);
+    //            }
+    //        }
+    //    }
+
+    //    /// <summary>
+    //    /// Reset the C# formula's parameter property to its original value, after processing has finished.
+    //    /// </summary>
+    //    public override void FinalizeSettings()
+    //    {
+    //        base.FinalizeSettings();
+    //        if (HaveReferences)
+    //        {
+    //            TargetPropertyInfo.SetValue(paramsObject, OrigValue);
+    //        }
+    //    }
+
+    //    protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection)
+    //    {
+    //        return new PropertyInfluenceLinkParent(parentCollection, ParameterName);
+    //    }
+
+    //    protected override string SetTargetParameter(string parameterName, bool throwException = true)
+    //    {
+    //        string errMessage = null;
+    //        TargetPropertyInfo = null;
+    //        var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
+    //        if (evalInstance == null)
+    //            errMessage = $"C# formula named {ParentCollection.FormulaSettings.FormulaName} is invalid.";
+    //        else
+    //        {
+    //            var paramsObject = evalInstance.ParamsObj;
+    //            if (paramsObject == null)
+    //                errMessage = "Formula has no parameters.";
+    //            else
+    //            {
+    //                PropertyInfo prpInfo = paramsObject.GetType().GetProperty(ParameterName, BindingFlags.Public | BindingFlags.Instance);
+    //                if (prpInfo == null)
+    //                {
+    //                    errMessage = $"Didn't find parameter property named {ParameterName}.";
+    //                }
+    //                else if (prpInfo.PropertyType != typeof(double))
+    //                {
+    //                    errMessage = $"Parameter property named {ParameterName} is not of type double.";
+    //                }
+    //                else
+    //                {
+    //                    TargetPropertyInfo = prpInfo;
+    //                    ParameterInfoAttribute = TargetPropertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+    //                }
+    //            }
+    //        }
+    //        HaveReferences = TargetPropertyInfo != null;
+    //        if (throwException && errMessage != null)
+    //            throw new Exception(errMessage);
+    //        return errMessage;
+    //    }
+
+    //    protected override void _SetParameterValue(double value)
+    //    {
+    //        if (ParameterInfoAttribute != null)
+    //        {
+    //            if (value < ParameterInfoAttribute.MinValue)
+    //                value = ParameterInfoAttribute.MinValue;
+    //            else if (value > ParameterInfoAttribute.MaxValue)
+    //                value = ParameterInfoAttribute.MaxValue;
+    //        }
+    //        TargetPropertyInfo.SetValue(paramsObject, value);
+    //    }
+    //}
 
     public class InfluenceLink
     {
