@@ -1166,11 +1166,11 @@ namespace Whorl
                 {
                     foreach (var influencePointInfo in ParentPattern.InfluencePointInfoList.InfluencePointInfos)
                     {
-                        PointF pt = new PointF((float)influencePointInfo.OrigInfluencePoint.X * floatScaleFactor, 
-                                               (float)influencePointInfo.OrigInfluencePoint.Y * floatScaleFactor);
+                        PointF pt = new PointF((float)influencePointInfo.InfluencePoint.X * floatScaleFactor, 
+                                               (float)influencePointInfo.InfluencePoint.Y * floatScaleFactor);
                         if (pointRotation != 0)
                             pt = Tools.RotatePoint(pt, rotationVector);
-                        influencePointInfo.SetInfluencePoint(new DoublePoint(pt.X, pt.Y), setOrigPoint: false);
+                        influencePointInfo.TransformedInfluencePoint = new DoublePoint(pt.X, pt.Y);
                     }
                 }
             }
