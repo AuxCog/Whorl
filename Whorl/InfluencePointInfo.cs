@@ -47,6 +47,8 @@ namespace Whorl
             set => _offset = Math.Max(0.0001, value);
         }
 
+        public double FunctionOffset { get; set; }
+
         public double Power { get; set; } = 1.0;
 
         private Func<double, double> TransformFunc { get; set; }
@@ -119,6 +121,76 @@ namespace Whorl
             Id = source.Id;
         }
 
+        public void CopyInfluenceLinks(InfluencePointInfo source)
+        {
+            if (ParentPattern == null)
+                throw new NullReferenceException("ParentPattern cannot be null.");
+            var influenceLinks = new List<InfluenceLink>();
+            foreach (var transform in ParentPattern.Transforms.Where(t => t.Enabled))
+            {
+                AddInfluenceLinks(influenceLinks, transform.TransformSettings, source);
+            }
+            if (ParentPattern.HasPixelRendering)
+            {
+                AddInfluenceLinks(influenceLinks, ParentPattern.PixelRendering.FormulaSettings, source);
+            }
+            foreach (InfluenceLink influenceLink in influenceLinks)
+            {
+                var newLink = influenceLink.GetCopy(influenceLink.Parent);
+                newLink.SetInfluencePointInfo(this);
+                influenceLink.Parent.AddInfluenceLink(newLink);
+            }
+        }
+
+        private void AddInfluenceLinks(List<InfluenceLink> influenceLinks, FormulaSettings formulaSettings, InfluencePointInfo source)
+        {
+            var parentCollection = formulaSettings?.InfluenceLinkParentCollection;
+            if (parentCollection != null)
+            {
+                influenceLinks.AddRange(parentCollection.InfluenceLinkParentsByParameterName.Values
+                                        .SelectMany(lp => lp.InfluenceLinks)
+                                        .Where(il => il.InfluencePointInfo == source));
+            }
+        }
+
+        public bool CopyRadially()
+        {
+            var frm = new GetValueForm("Number of New Copies:", ValidateCopies);
+            if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                return false;  //User cancelled.
+            int copies = int.Parse(frm.ValueText);
+            CopyRadially(copies);
+            return true;
+        }
+
+        private string ValidateCopies(string valText)
+        {
+            valText = valText ?? string.Empty;
+            if (int.TryParse(valText, out int copies))
+            {
+                if (copies > 0)
+                    return null;
+            }
+            return "Please enter a positive integer for Number of New Copies.";
+        }
+
+        public void CopyRadially(int copies)
+        {
+            if (copies < 1)
+                throw new Exception("copies must be a positive integer.");
+            double rotation = 2.0 * Math.PI / (1.0 + copies);
+            Complex zRotation = Complex.CreateFromModulusAndArgument(1.0, rotation);
+            Complex zVector = new Complex(OrigInfluencePoint.X, OrigInfluencePoint.Y);
+            for (int i = 0; i < copies; i++)
+            {
+                zVector *= zRotation;
+                var copy = new InfluencePointInfo(this, ParentPattern);
+                copy.InfluencePoint = new DoublePoint(zVector.Re, zVector.Im);
+                copy.AddToPattern(ParentPattern);
+                copy.CopyInfluenceLinks(this);
+            }
+        }
+
         public void AddToPattern(Pattern pattern)
         {
             if (pattern == null)
@@ -161,7 +233,7 @@ namespace Whorl
             double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
             if (Power != 1.0)
                 divisor = Math.Pow(divisor, Power);
-            return InfluenceFactor * TransformFunc(1.0 / divisor);
+            return InfluenceFactor * TransformFunc(1.0 / divisor + FunctionOffset);
         }
 
         //public static DoublePoint GetDoublePoint(PolarPoint polarPoint, PointF center)

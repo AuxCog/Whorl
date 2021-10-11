@@ -191,6 +191,12 @@
     <Compile Include="frmVaryProperties.Designer.cs">
       <DependentUpon>frmVaryProperties.cs</DependentUpon>
     </Compile>
+    <Compile Include="GetValueForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GetValueForm.Designer.cs">
+      <DependentUpon>GetValueForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="IColorNodeList.cs" />
     <Compile Include="IFillInfo.cs" />
     <Compile Include="IFormulaForm.cs" />
@@ -375,6 +381,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmVaryProperties.resx">
       <DependentUpon>frmVaryProperties.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GetValueForm.resx">
+      <DependentUpon>GetValueForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ImprovConfigForm.resx">
       <DependentUpon>ImprovConfigForm.cs</DependentUpon>

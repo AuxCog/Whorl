@@ -44,6 +44,8 @@ namespace Whorl
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.cboTransformFunction = new System.Windows.Forms.ComboBox();
+            this.txtFunctionOffset = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -114,7 +116,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(91, 153);
+            this.BtnOK.Location = new System.Drawing.Point(105, 168);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 8;
@@ -124,7 +126,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(163, 153);
+            this.BtnCancel.Location = new System.Drawing.Point(177, 168);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 9;
@@ -176,11 +178,29 @@ namespace Whorl
             this.cboTransformFunction.Size = new System.Drawing.Size(135, 21);
             this.cboTransformFunction.TabIndex = 14;
             // 
+            // txtFunctionOffset
+            // 
+            this.txtFunctionOffset.Location = new System.Drawing.Point(108, 142);
+            this.txtFunctionOffset.Name = "txtFunctionOffset";
+            this.txtFunctionOffset.Size = new System.Drawing.Size(58, 20);
+            this.txtFunctionOffset.TabIndex = 16;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(20, 145);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(82, 13);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "Function Offset:";
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(314, 186);
+            this.ClientSize = new System.Drawing.Size(314, 228);
+            this.Controls.Add(this.txtFunctionOffset);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.cboTransformFunction);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.txtPower);
@@ -221,5 +241,7 @@ namespace Whorl
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox cboTransformFunction;
+        private System.Windows.Forms.TextBox txtFunctionOffset;
+        private System.Windows.Forms.Label label7;
     }
 }

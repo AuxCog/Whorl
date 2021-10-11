@@ -7449,6 +7449,25 @@ namespace Whorl
             }
         }
 
+        private void repeatInfluencePointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (nearestInfluencePoint == null || influencePointsPattern == null)
+                    return;
+                if (nearestInfluencePoint.CopyRadially())
+                {
+                    design.IsDirty = true;
+                    RedrawInfluencePattern();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+
         private bool moveInfluencePoint { get; set; }
 
         private void moveInfluencePointToolStripMenuItem_Click(object sender, EventArgs e)
@@ -7611,5 +7630,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

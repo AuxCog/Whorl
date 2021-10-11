@@ -582,6 +582,26 @@ namespace Whorl
             return copy;
         }
 
+        /// <summary>
+        /// Set point without modifying parent dictionary.
+        /// </summary>
+        /// <param name="influencePointInfo"></param>
+        public void SetInfluencePointInfo(InfluencePointInfo influencePointInfo)
+        {
+            if (_influencePointInfo == influencePointInfo)
+                return;
+            if (_influencePointInfo != null)
+            {
+                _influencePointInfo.RemovedFromList -= InfluencePointInfo_RemovedFromList;
+            }
+            _influencePointInfo = influencePointInfo;
+            if (_influencePointInfo != null)
+            {
+                InfluencePointId = _influencePointInfo.Id;
+                _influencePointInfo.RemovedFromList += InfluencePointInfo_RemovedFromList;
+            }
+        }
+
         public string ResolveReferences()
         {
             if (InfluencePointInfo == null || InfluencePointInfo.Id != InfluencePointId)

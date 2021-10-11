@@ -46,6 +46,7 @@ namespace Whorl
                 txtDivisor.Text = (1.0 / editedInfluencePointInfo.DivFactor).ToString("0.00");
                 txtOffset.Text = editedInfluencePointInfo.Offset.ToString("0.####");
                 txtPower.Text = editedInfluencePointInfo.Power.ToString("0.####");
+                txtFunctionOffset.Text = editedInfluencePointInfo.FunctionOffset.ToString("0.####");
             }
             catch (Exception ex)
             {
@@ -80,6 +81,10 @@ namespace Whorl
                 editedInfluencePointInfo.Power = val;
             else
                 errMessages.Add("Power must be a number.");
+            if (double.TryParse(txtFunctionOffset.Text, out val))
+                editedInfluencePointInfo.FunctionOffset = val;
+            else
+                errMessages.Add("Function Offset must be a number.");
             editedInfluencePointInfo.TransformFunctionName = (string)cboTransformFunction.SelectedItem;
             return errMessages.Any() ? string.Join(Environment.NewLine, errMessages) : null;
         }
