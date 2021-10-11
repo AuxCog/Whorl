@@ -22,8 +22,14 @@ namespace Whorl
         public DoublePoint InfluencePoint
         {
             get => _influencePoint;
-            set => _influencePoint = AdjustInfluencePoint(value);
+            set
+            {
+                _influencePoint = AdjustInfluencePoint(value);
+                OrigInfluencePoint = _influencePoint;
+            }
         }
+
+        public DoublePoint OrigInfluencePoint { get; private set; }
 
         public double InfluenceFactor { get; set; }
 
@@ -46,7 +52,7 @@ namespace Whorl
         private Func<double, double> TransformFunc { get; set; }
 
         private string _transformFunctionName;
-        public string TransformFunctionName 
+        public string TransformFunctionName
         {
             get => _transformFunctionName;
             set
@@ -95,6 +101,18 @@ namespace Whorl
             ParentPattern = pattern;
         }
 
+        /// <summary>
+        /// Set InfluencePoint without setting OrigInfluencePoint.
+        /// </summary>
+        /// <param name="doublePoint"></param>
+        public void SetInfluencePoint(DoublePoint doublePoint, bool setOrigPoint)
+        {
+            if (setOrigPoint)
+                InfluencePoint = doublePoint;
+            else
+                _influencePoint = doublePoint;
+        }
+
         public void CopyProperties(InfluencePointInfo source)
         {
             Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(Id) });
@@ -125,16 +143,20 @@ namespace Whorl
         //    return ComputeValue(GetDoublePoint(polarPoint));
         //}
 
-        public double ComputeValue(DoublePoint patternPoint)
+        public double ComputeValue(DoublePoint patternPoint, bool forRendering)
         {
             if (!Enabled)
                 return 0.0;
-            double xDiff = patternPoint.X - InfluencePoint.X;
-            double yDiff = patternPoint.Y - InfluencePoint.Y;
-            if (ParentPattern != null && ParentPattern.InfluenceScaleFactor != 1.0)
+            DoublePoint point = forRendering ? InfluencePoint : OrigInfluencePoint;
+            double xDiff = patternPoint.X - point.X;
+            double yDiff = patternPoint.Y - point.Y;
+            if (ParentPattern != null)
             {
-                xDiff *= ParentPattern.InfluenceScaleFactor;
-                yDiff *= ParentPattern.InfluenceScaleFactor;
+                double scale = ParentPattern.InfluenceScaleFactor;
+                if (forRendering)
+                    scale *= ParentPattern.RenderingScaleFactor;
+                xDiff *= scale;
+                yDiff *= scale;
             }
             double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
             if (Power != 1.0)
@@ -156,7 +178,7 @@ namespace Whorl
             const float rectWidth = 2F;
             if (ParentPattern == null)
                 throw new NullReferenceException("ParentPattern cannot be null.");
-            PointF p = new PointF((float)InfluencePoint.X + ParentPattern.Center.X, (float)InfluencePoint.Y + ParentPattern.Center.Y);
+            PointF p = new PointF((float)OrigInfluencePoint.X + ParentPattern.Center.X, (float)OrigInfluencePoint.Y + ParentPattern.Center.Y);
             Color penColor = Color.Black;
             if (designBitmap != null)
             {
@@ -203,7 +225,7 @@ namespace Whorl
         {
             if (ParentPattern != null)
             {
-                while (ParentPattern.InfluencePointInfoList.InfluencePointInfos.Any(ip => ip != this && ip.InfluencePoint.IntegerEquals(influencePoint)))
+                while (ParentPattern.InfluencePointInfoList.InfluencePointInfos.Any(ip => ip != this && ip.OrigInfluencePoint.IntegerEquals(influencePoint)))
                 {
                     influencePoint.X += 1;
                 }
@@ -216,10 +238,10 @@ namespace Whorl
             if (xmlNodeName == null)
                 xmlNodeName = nameof(InfluencePointInfo);
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-            xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointX", InfluencePoint.X);
-            xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointY", InfluencePoint.Y);
+            xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointX", OrigInfluencePoint.X);
+            xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointY", OrigInfluencePoint.Y);
             xmlTools.AppendXmlAttributesExcept(xmlNode, this, 
-                     nameof(ParentPattern), nameof(InfluencePoint), nameof(TransformFunc), nameof(Selected));
+                     nameof(ParentPattern), nameof(InfluencePoint), nameof(OrigInfluencePoint), nameof(TransformFunc), nameof(Selected));
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
@@ -228,7 +250,7 @@ namespace Whorl
             Tools.GetXmlAttributesExcept(this, node, new string[] { "InfluencePointX", "InfluencePointY" });
             double x = Tools.GetXmlAttribute<double>(node, "InfluencePointX");
             double y = Tools.GetXmlAttribute<double>(node, "InfluencePointY");
-            _influencePoint = new DoublePoint(x, y);
+            OrigInfluencePoint = _influencePoint = new DoublePoint(x, y);
         }
 
         public override string ToString()
@@ -237,7 +259,7 @@ namespace Whorl
         }
     }
 
-    public class InfluencePointInfoList: IXml
+    public class InfluencePointInfoList : IXml
     {
         public Pattern ParentPattern { get; }
         private List<InfluencePointInfo> influencePointInfoList { get; } =
@@ -281,6 +303,21 @@ namespace Whorl
         {
             influencePointInfoList.Clear();
         }
+
+        public void TransformInfluencePoints(Complex zFactor)
+        {
+            foreach (InfluencePointInfo pointInfo in InfluencePointInfos)
+            {
+                Complex zP = zFactor * new Complex(pointInfo.OrigInfluencePoint.X, pointInfo.OrigInfluencePoint.Y);
+                pointInfo.InfluencePoint = new DoublePoint(zP.Re, zP.Im);
+            }
+        }
+
+        //public void TransformInfluencePoints(double scale, double rotation, bool setOrigPoints = false)
+        //{
+        //    var zFactor = Complex.CreateFromModulusAndArgument(scale, rotation);
+        //    TransformInfluencePoints(zFactor, setOrigPoints);
+        //}
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {

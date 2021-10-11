@@ -212,9 +212,9 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
-        public static RectangleF RectangleFromVertices(PointF p1, PointF p2)
+        public static RectangleF RectangleFromVertices(PointF topLeft, PointF bottomRight)
         {
-            return new RectangleF(p1, new SizeF(p2.X - p1.X, p2.Y - p1.Y));
+            return new RectangleF(topLeft, new SizeF(bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y));
         }
 
         public static RectangleF GetBoundingRectangle(IEnumerable<PointF> points)

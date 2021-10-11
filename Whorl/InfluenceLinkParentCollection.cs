@@ -106,13 +106,13 @@ namespace Whorl
             }
         }
 
-        public void SetParameterValues(DoublePoint patternPoint)
+        public void SetParameterValues(DoublePoint patternPoint, bool forRendering)
         {
             if (!Enabled)
                 return;
             foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
             {
-                linkParent.SetParameterValue(patternPoint);
+                linkParent.SetParameterValue(patternPoint, forRendering);
             }
         }
 

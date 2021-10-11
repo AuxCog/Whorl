@@ -744,7 +744,7 @@ namespace Whorl
             private double distanceFactor { get; set; }
             private InfluenceLinkParentCollection influenceParentCollection { get; set; }
             public Pattern SeedPattern { get; private set; }
-            public WhorlDesign Design { get; }
+            //public WhorlDesign Design { get; }
 
             //private InstanceInfo[] parallelInfo { get; } = new InstanceInfo[Environment.ProcessorCount];
 
@@ -758,14 +758,14 @@ namespace Whorl
                 ExpressionParser.DeclareExternType(typeof(PixelRenderInfo));
             }
 
-            public RenderingInfo(Pattern pattern, WhorlDesign design, bool createColorNodes = true)
+            public RenderingInfo(Pattern pattern, bool createColorNodes = true)
             {
                 if (pattern == null)
                     throw new NullReferenceException("pattern cannot be null.");
-                if (design == null)
-                    throw new NullReferenceException("design cannot be null.");
+                //if (design == null)
+                //    throw new NullReferenceException("design cannot be null.");
                 ParentPattern = pattern;
-                Design = design;
+                //Design = pattern.Design;
                 Info = new InfoExt(this);
                 if (createColorNodes)
                 {
@@ -774,7 +774,7 @@ namespace Whorl
                 }
             }
 
-            public RenderingInfo(RenderingInfo source, Pattern pattern): this(pattern, source.Design, createColorNodes: false)
+            public RenderingInfo(RenderingInfo source, Pattern pattern): this(pattern, createColorNodes: false)
             {
                 ColorNodes = source.ColorNodes?.GetCopy();
                 Enabled = source.Enabled;
@@ -1162,9 +1162,20 @@ namespace Whorl
                                                 .Select(pf => new PointF(pf.X - Info.Center.X, pf.Y - Info.Center.Y));
                 double maxModulus = transformedCorners.Select(pf => Tools.GetModulus(pf)).Max();
                 Info.SetMaxModulus(maxModulus);
+                if (influenceParentCollection != null)
+                {
+                    foreach (var influencePointInfo in ParentPattern.InfluencePointInfoList.InfluencePointInfos)
+                    {
+                        PointF pt = new PointF((float)influencePointInfo.OrigInfluencePoint.X * floatScaleFactor, 
+                                               (float)influencePointInfo.OrigInfluencePoint.Y * floatScaleFactor);
+                        if (pointRotation != 0)
+                            pt = Tools.RotatePoint(pt, rotationVector);
+                        influencePointInfo.SetInfluencePoint(new DoublePoint(pt.X, pt.Y), setOrigPoint: false);
+                    }
+                }
             }
 
-            private PointF TransformPoint(int x, int y)
+            private PointF TransformPoint(float x, float y)
             {
                 float fX = transformedPanXY.X + x;
                 float fY = transformedPanXY.Y + y;
@@ -1410,8 +1421,9 @@ namespace Whorl
                             SetDistancesToPaths(x, y);
                         if (influenceParentCollection != null)
                         {
-                            var patternPoint = new DoublePoint((double)x - patternCenter.X, (double)y - patternCenter.Y);
-                            influenceParentCollection.SetParameterValues(patternPoint);
+                            var patternPoint = new DoublePoint(Info.X, Info.Y);
+                            //var patternPoint = new DoublePoint((double)x - patternCenter.X, (double)y - patternCenter.Y);
+                            influenceParentCollection.SetParameterValues(patternPoint, forRendering: true);
                         }
                         position = ColorNodeList.NormalizePosition(GetPosition.Invoke());
                         if (setCachedPositions)
@@ -1509,6 +1521,7 @@ namespace Whorl
                     Info.DistanceRows = 10;
                     Info.SegmentLength = 1.0;
                     Info.SetDistanceToPath(0D);
+                    floatScaleFactor = 1F;
                     if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
                     {
                         FormulaSettings.InitializeGlobals();
@@ -1526,6 +1539,7 @@ namespace Whorl
                             distanceFactor = 1D / maxSize;
                         }
                     }
+                    ParentPattern.RenderingScaleFactor = 1.0 / floatScaleFactor;
                     if (enableCache)
                         cachedPositions = new ushort[cacheLength];
                     else
@@ -1606,17 +1620,17 @@ namespace Whorl
                             PanXY = Tools.GetPointFFromXml(childNode);
                             break;
                         case "DistancePatternInfo":
-                            DistancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(Design, childNode));
+                            DistancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design, childNode));
                             break;
                         case "SeedPattern":
-                            var seedPattern = Pattern.CreatePatternFromXml(Design, childNode.FirstChild,
+                            var seedPattern = Pattern.CreatePatternFromXml(ParentPattern.Design, childNode.FirstChild,
                                               throwOnError: true);
                             if (seedPattern.ComputeSeedPoints())
                                 SeedPattern = seedPattern;
                             break;
                         //Legacy code:
                         case "DistanceOutlinePattern":
-                            distancePattern = Pattern.CreatePatternFromXml(Design, childNode.FirstChild);
+                            distancePattern = Pattern.CreatePatternFromXml(ParentPattern.Design, childNode.FirstChild);
                             break;
                         case "DistanceOrigZVector":
                             origZVector = XmlTools.GetComplexFromXml(childNode);
@@ -1632,7 +1646,7 @@ namespace Whorl
                 if (distancePattern != null)
                 {
                     //Legacy code:
-                    DistancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(Design,
+                    DistancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design,
                                              distancePattern, origZVector, origCenter));
                 }
                 if (ColorNodes == null)
@@ -1920,6 +1934,7 @@ namespace Whorl
         public InfluencePointInfoList InfluencePointInfoList { get; private set; }
 
         public double InfluenceScaleFactor { get; private set; } = 1.0;
+        public double RenderingScaleFactor { get; set; } = 1.0;
 
         public InfluenceLink LastEditedInfluenceLink { get; set; }
         public InfluenceLink CopiedLastEditedInfluenceLink { get; set; }
@@ -2003,7 +2018,7 @@ namespace Whorl
                 return $"Pixel rendering is not supported for a {this.GetType().Name}.";
             }
             if (PixelRendering == null)
-                PixelRendering = new RenderingInfo(this, Design);
+                PixelRendering = new RenderingInfo(this);
             return null;
         }
 
@@ -2140,7 +2155,7 @@ namespace Whorl
                 var influenceParent = transform.TransformSettings.InfluenceLinkParentCollection;
                 if (influenceParent != null)
                 {
-                    influenceParent.SetParameterValues(doublePoint);
+                    influenceParent.SetParameterValues(doublePoint, forRendering: false);
                 }
                 transform.TransformPoint(ref modulus, ref angle);
             }
@@ -2439,11 +2454,7 @@ namespace Whorl
                 return;
             Complex zFactor = ZVector / prevZVector;
             InfluenceScaleFactor *= prevZVector.GetModulus() / ZVector.GetModulus();
-            foreach (InfluencePointInfo pointInfo in InfluencePointInfoList.InfluencePointInfos)
-            {
-                Complex zP = zFactor * new Complex(pointInfo.InfluencePoint.X, pointInfo.InfluencePoint.Y);
-                pointInfo.InfluencePoint = new DoublePoint(zP.Re, zP.Im);
-            }
+            InfluencePointInfoList.TransformInfluencePoints(zFactor);
         }
 
         private struct IndexedPolarCoord
@@ -3908,7 +3919,7 @@ namespace Whorl
                         PatternTileInfo.FromXml(childNode);
                         break;
                     case "PixelRendering":
-                        PixelRendering = new RenderingInfo(this, Design, createColorNodes: false);
+                        PixelRendering = new RenderingInfo(this, createColorNodes: false);
                         PixelRendering.FromXml(childNode);
                         break;
                     case "PatternRecursion":

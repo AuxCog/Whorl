@@ -1010,8 +1010,8 @@ namespace Whorl
         private void MoveInfluencePoint(double xDiff, double yDiff)
         {
             nearestInfluencePoint.InfluencePoint = new DoublePoint(
-                                  nearestInfluencePoint.InfluencePoint.X + xDiff,
-                                  nearestInfluencePoint.InfluencePoint.Y + yDiff);
+                                  nearestInfluencePoint.OrigInfluencePoint.X + xDiff,
+                                  nearestInfluencePoint.OrigInfluencePoint.Y + yDiff);
         }
 
         private void continueRibbonToolStripMenuItem_Click(object sender, EventArgs e)
@@ -7381,7 +7381,7 @@ namespace Whorl
             DoublePoint doublePoint = new DoublePoint(point.X - influencePointsPattern.Center.X, point.Y - influencePointsPattern.Center.Y);
             //INFMOD
             var sortedList = influencePointsPattern.InfluencePointInfoList.InfluencePointInfos.Select(
-                             ip => new Tuple<InfluencePointInfo, double>(ip, doublePoint.DistanceSquared(ip.InfluencePoint)))
+                             ip => new Tuple<InfluencePointInfo, double>(ip, doublePoint.DistanceSquared(ip.OrigInfluencePoint)))
                              .Where(tpl => tpl.Item2 <= bufferSize)
                              .OrderBy(tpl => tpl.Item2);
             var tuple = sortedList.FirstOrDefault();

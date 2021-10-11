@@ -16,6 +16,8 @@ namespace Whorl
 
         public string ParameterName { get; protected set; }
 
+        public virtual string ParameterKey => ParameterName;
+
         //INFL Legacy
         //public int InfluencePointId { get; private set; }
 
@@ -130,11 +132,11 @@ namespace Whorl
             return retVal;
         }
 
-        public void SetParameterValue(DoublePoint patternPoint)
+        public void SetParameterValue(DoublePoint patternPoint, bool forRendering)
         {
             if (HaveReferences)
             {
-                double value = InfluenceLinks.Select(l => l.GetParameterValue(patternPoint)).Sum();
+                double value = InfluenceLinks.Select(l => l.GetParameterValue(patternPoint, forRendering)).Sum();
                 _SetParameterValue(OrigValue + value);
             }
         }
@@ -146,7 +148,7 @@ namespace Whorl
         {
         }
 
-        protected abstract string SetTargetParameter(string parameterName, int index = -1, bool throwException = true);
+        protected abstract string SetTargetParameter(string parameterName, bool throwException = true);
 
         //public void Initialize()
         //{
@@ -232,7 +234,7 @@ namespace Whorl
             TargetParameter.SetUsedValue(value);
         }
 
-        protected override string SetTargetParameter(string parameterName, int index = -1, bool throwException = true)
+        protected override string SetTargetParameter(string parameterName, bool throwException = true)
         {
             string errMessage = null;
             Parameter parameter = null;
@@ -258,16 +260,31 @@ namespace Whorl
 
     public class PropertyInfluenceLinkParent : BaseInfluenceLinkParent
     {
+        private int _arrayIndex;
+        public int ArrayIndex 
+        {
+            get => _arrayIndex;
+            private set
+            {
+                if (value < -1)
+                {
+                    throw new Exception("ArrayIndex cannot be less than -1.");
+                }
+                _arrayIndex = value;
+            }
+        }
         public BaseInfluenceParameter InfluenceParameter { get; private set; }
         //public PropertyInfo TargetPropertyInfo { get; private set; }
         //public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
         //private object paramsObject { get; set; }
+        public override string ParameterKey => InfluenceParameter == null ? base.ParameterKey : InfluenceParameter.ToString();
 
-        public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName)
+        public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName, int arrayIndex = -1)
                : base(parentCollection, parameterName)
         {
             if (!parentCollection.FormulaSettings.IsCSharpFormula)
                 throw new Exception("Formula must be in C#.");
+            ArrayIndex = arrayIndex;
         }
 
         public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, XmlNode node) //, bool forLegacy = false)
@@ -306,10 +323,9 @@ namespace Whorl
             return new PropertyInfluenceLinkParent(parentCollection, ParameterName);
         }
 
-        protected override string SetTargetParameter(string parameterName, int index = -1, bool throwException = true)
+        protected override string SetTargetParameter(string parameterName, bool throwException = true)
         {
             string errMessage = null;
-            //TargetPropertyInfo = null;
             var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
             if (evalInstance == null)
                 errMessage = $"C# formula named {ParentCollection.FormulaSettings.FormulaName} is invalid.";
@@ -320,7 +336,7 @@ namespace Whorl
                     errMessage = "Formula has no parameters.";
                 else
                 {
-                    if (index == -1)
+                    if (ArrayIndex == -1)
                     {   //Parameter is not an array element.
                         var paramInfo = InfluenceParameter as InfluenceParameter;
                         if (paramInfo == null)
@@ -328,10 +344,6 @@ namespace Whorl
                             paramInfo = new InfluenceParameter();
                             InfluenceParameter = paramInfo;
                         }
-                    }
-                    else if (index < 0)
-                    {
-                        errMessage = "Parameter array index cannot be negative.";
                     }
                     else
                     {   //Parameter is an array element.
@@ -341,29 +353,14 @@ namespace Whorl
                             arrayParamInfo = new InfluenceArrayParameter();
                             InfluenceParameter = arrayParamInfo;
                         }
-                        arrayParamInfo.Index = index;
+                        arrayParamInfo.Index = ArrayIndex;
                     }
-                    if (errMessage == null)
-                    {
-                        InfluenceParameter.PropertyName = parameterName;
-                        errMessage = InfluenceParameter.Initialize(paramsObject);
-                    }
-                    //PropertyInfo prpInfo = paramsObject.GetType().GetProperty(ParameterName, BindingFlags.Public | BindingFlags.Instance);
-                    //if (prpInfo == null)
-                    //{
-                    //    errMessage = $"Didn't find parameter property named {ParameterName}.";
-                    //}
-                    //else if (prpInfo.PropertyType != typeof(double))
-                    //{
-                    //    errMessage = $"Parameter property named {ParameterName} is not of type double.";
-                    //}
-                    //else
-                    //{
-                    //    TargetPropertyInfo = prpInfo;
-                    //    ParameterInfoAttribute = TargetPropertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
-                    //}
+                    InfluenceParameter.PropertyName = parameterName;
+                    errMessage = InfluenceParameter.Initialize(paramsObject);
                 }
             }
+            if (errMessage != null)
+                InfluenceParameter = null;
             HaveReferences = InfluenceParameter != null && InfluenceParameter.HaveReferences;
             if (throwException && errMessage != null)
                 throw new Exception(errMessage);
@@ -373,6 +370,21 @@ namespace Whorl
         protected override void _SetParameterValue(double value)
         {
             InfluenceParameter.ParameterValue = value;
+        }
+
+        protected override void AddXml(XmlNode xmlNode, XmlTools xmlTools)
+        {
+            base.AddXml(xmlNode, xmlTools);
+            if (ArrayIndex != -1)
+            {
+                xmlTools.AppendXmlAttribute(xmlNode, nameof(ArrayIndex), ArrayIndex);
+            }
+        }
+
+        protected override void FromAddedXml(XmlNode xmlNode)
+        {
+            base.FromAddedXml(xmlNode);
+            ArrayIndex = Tools.GetXmlAttribute<int>(xmlNode, defaultValue: -1, nameof(ArrayIndex));
         }
     }
 
@@ -581,11 +593,11 @@ namespace Whorl
             return null;
         }
 
-        public double GetParameterValue(DoublePoint patternPoint)
+        public double GetParameterValue(DoublePoint patternPoint, bool forRendering)
         {
             if (InfluencePointInfo == null)
                 return 0.0;
-            double influenceValue = InfluencePointInfo.ComputeValue(patternPoint);
+            double influenceValue = InfluencePointInfo.ComputeValue(patternPoint, forRendering);
             double value = LinkFactor * influenceValue;
             if (Multiply)
                 value *= Parent.OrigValue;
