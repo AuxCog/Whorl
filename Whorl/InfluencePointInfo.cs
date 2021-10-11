@@ -191,18 +191,21 @@ namespace Whorl
             }
         }
 
-        public void AddToPattern(Pattern pattern)
+        public void AddToPattern(Pattern pattern, bool setId = true)
         {
             if (pattern == null)
                 throw new NullReferenceException("pattern cannot be null.");
             ParentPattern = pattern;
             ParentPattern.InfluencePointInfoList.AddInfluencePointInfo(this);
-            Id = ParentPattern.InfluencePointInfoList.Count;
-            while (ParentPattern.InfluencePointInfoList.InfluencePointInfos.Any(p => p != this && p.Id == Id))
+            if (setId)
             {
-                Id++;
+                Id = ParentPattern.InfluencePointInfoList.Count;
+                while (ParentPattern.InfluencePointInfoList.InfluencePointInfos.Any(p => p != this && p.Id == Id))
+                {
+                    Id++;
+                }
+                InfluencePoint = AdjustInfluencePoint(InfluencePoint);
             }
-            InfluencePoint = AdjustInfluencePoint(InfluencePoint);
         }
 
         public void OnRemoved()
@@ -411,7 +414,7 @@ namespace Whorl
                     throw new Exception("Invalid XML.");
                 var influencePointInfo = new InfluencePointInfo();
                 influencePointInfo.FromXml(childNode);
-                influencePointInfo.AddToPattern(ParentPattern);
+                influencePointInfo.AddToPattern(ParentPattern, setId: false);
             }
         }
     }
