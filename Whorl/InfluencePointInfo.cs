@@ -135,8 +135,8 @@ namespace Whorl
             }
             foreach (InfluenceLink influenceLink in influenceLinks)
             {
-                var newLink = influenceLink.GetCopy(influenceLink.Parent);
-                newLink.SetInfluencePointInfo(this);
+                var newLink = influenceLink.GetCopy(influenceLink.Parent, setInfluencePoint: false);
+                newLink.InfluencePointInfo = this;
                 influenceLink.Parent.AddInfluenceLink(newLink);
             }
         }

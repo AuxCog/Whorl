@@ -107,7 +107,9 @@ namespace Whorl
             var copy = _GetCopy(parentCollection);
             foreach (var influenceLink in InfluenceLinks)
             {
-                copy.AddInfluenceLink(influenceLink.GetCopy(copy));
+                var linkCopy = influenceLink.GetCopy(copy);
+                if (linkCopy.InfluencePointInfo != null)
+                    copy.AddInfluenceLink(linkCopy);
             }
             return copy;
         }
@@ -570,9 +572,11 @@ namespace Whorl
             }
         }
 
-        public InfluenceLink GetCopy(BaseInfluenceLinkParent parent)
+        public InfluenceLink GetCopy(BaseInfluenceLinkParent parent, bool setInfluencePoint = true)
         {
-            InfluenceLink copy = new InfluenceLink(parent, GetInfluencePointInfo(parent.ParentCollection));
+            InfluenceLink copy = new InfluenceLink(parent);
+            if (setInfluencePoint)
+                copy.InfluencePointInfo = GetInfluencePointInfo(parent.ParentCollection);
             copy.LinkFactor = LinkFactor;
             copy.Multiply = Multiply;
             if (Parent.ParentCollection.ParentPattern.LastEditedInfluenceLink == this)
