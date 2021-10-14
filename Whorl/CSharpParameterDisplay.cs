@@ -188,7 +188,9 @@ namespace Whorl
                         }
                     }
                     else
+                    {
                         AddParameterControls(oParam, ref parameterIndex, propertyInfo);
+                    }
                 }
             }
             finally
@@ -203,6 +205,10 @@ namespace Whorl
             if (oParam == null)
                 return;
             IOptionsParameter iOptParam = oParam as IOptionsParameter;
+            if (iOptParam != null)
+            {
+                FormulaSettings.ConfigureCSharpInfluenceParameter(oParam);
+            }
             string labelText = GetCSharpParameterLabel(propertyInfo, arrayInfo == null ? -1 : arrayInfo.Index);
             int labelSpan, editSpan;
             var label = new Label();
@@ -220,7 +226,7 @@ namespace Whorl
             else
                 labelSpan = 1;
             int comboboxWidth;
-            if (iOptParam == null)
+            if (iOptParam?.OptionTexts == null || !iOptParam.OptionTexts.Any())
                 comboboxWidth = 0;
             else
             {

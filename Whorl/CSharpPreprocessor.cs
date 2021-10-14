@@ -20,6 +20,7 @@ namespace Whorl
             Function,
             ArrayLength,
             Random,
+            InfluencePoint
         }
 
         public enum ReservedWords
@@ -27,6 +28,7 @@ namespace Whorl
             Function,
             Enum,
             Params,
+            Influence,
             From,
             ArrayLength,
             Random,
@@ -145,9 +147,13 @@ namespace Whorl
                             arg = $"{TypeName}.{DefaultValue}";
                         Initializer = $"new {DecTypeName}({arg})";
                         break;
+                    case ParamCategories.InfluencePoint:
+                        DecTypeName = "OptionsParameter<InfluencePointInfo>";
+                        Initializer = $"new {DecTypeName}(\"(none)\")";
+                        break;
                     case ParamCategories.Random:
-                        DecTypeName = "RandomParameter";
-                        Initializer = "new RandomParameter()";
+                        DecTypeName = nameof(RandomParameter);
+                        Initializer = $"new {DecTypeName}()";
                         break;
                 }
             }
@@ -1318,6 +1324,7 @@ $@"public void {methodName}()
                 ReservedWords.Previous,
                 ReservedWords.Enum,
                 ReservedWords.Function,
+                ReservedWords.Influence,
                 ReservedWords.Random,
                 ReservedWords.Min,
                 ReservedWords.Max,
@@ -1425,9 +1432,11 @@ $@"public void {methodName}()
                     case ReservedWords.Enum:
                     case ReservedWords.Function:
                     case ReservedWords.Random:
+                    case ReservedWords.Influence:
                         allowMinMax = false;
                         validWords.RemoveWhere(w => w == ReservedWords.Enum || 
                                                     w == ReservedWords.Function || 
+                                                    w == ReservedWords.Influence ||
                                                     w == ReservedWords.Random);
                         switch (reservedWord)
                         {
@@ -1443,6 +1452,9 @@ $@"public void {methodName}()
                                 paramInfo = ParseFunctionParam(nameTok, ref tokenIndex, typeName, directiveToken);
                                 if (paramInfo == null)
                                     return false;
+                                break;
+                            case ReservedWords.Influence:
+                                paramCategory = ParamCategories.InfluencePoint;
                                 break;
                             case ReservedWords.Random:
                                 isValid = typeName == null;
@@ -1849,7 +1861,7 @@ $@"public void {methodName}()
             {
                 if (paramInfo.Category == ParamCategories.Function)
                     refCode += ".Function";
-                else if (paramInfo.Category == ParamCategories.Enumerated)
+                else if (paramInfo.Category == ParamCategories.Enumerated || paramInfo.Category == ParamCategories.InfluencePoint)
                     refCode += ".SelectedValue";
                 else if (paramInfo.Category == ParamCategories.Random)
                     refCode += ".Value";

@@ -702,9 +702,13 @@ namespace Whorl
                 var iTargetOptionsParam = targetParam as IOptionsParameter;
                 if (iTargetOptionsParam != null)
                 {
-                    object selOption = iTargetOptionsParam.GetOptionByText(iOptionsParam.SelectedText);
-                    if (selOption != null)
-                        iTargetOptionsParam.SelectedOptionObject = selOption;
+                    iTargetOptionsParam.SelectedText = iOptionsParam.SelectedText;
+                    if (!ConfigureCSharpInfluenceParameter(targetParam))
+                    {
+                        object selOption = iTargetOptionsParam.GetOptionByText(iOptionsParam.SelectedText);
+                        if (selOption != null)
+                            iTargetOptionsParam.SelectedOptionObject = selOption;
+                    }
                 }
             }
             else
@@ -899,6 +903,52 @@ namespace Whorl
             return influenceParam != null;
         }
 
+        public bool ConfigureCSharpInfluenceParameter(object csharpParameter, bool setValue = true)
+        {
+            var influenceParam = csharpParameter as OptionsParameter<InfluencePointInfo>;
+            if (influenceParam != null)
+            {
+                var items = new List<InfluencePointInfo>() { null };
+                if (ParentPattern != null)
+                {
+                    items.AddRange(ParentPattern.InfluencePointInfoList.InfluencePointInfos);
+                }
+                influenceParam.SetOptions(items, setSelected: false);
+                if (setValue && influenceParam.SelectedText != null)
+                {
+                    var item = influenceParam.GetOptionByText(influenceParam.SelectedText);
+                    if (item != null)
+                    {
+                        influenceParam.SelectedOptionObject = item;
+                    }
+                }
+            }
+            return influenceParam != null;
+        }
+
+        public void ConfigureAllInfluenceParameters()
+        {
+            if (IsCSharpFormula)
+            {
+                if (EvalInstance?.ParamsObj != null)
+                {
+                    foreach (var propInfo in EvalInstance.ParamsObj.GetType().GetProperties())
+                    {
+                        object oParam = propInfo.GetValue(EvalInstance.ParamsObj);
+                        if (oParam != null)
+                            ConfigureCSharpInfluenceParameter(oParam);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var parm in BaseParameters)
+                {
+                    ConfigureInfluenceParameter(parm);
+                }
+            }
+        }
+
         private void ParseParametersXml(XmlNode node)
         {
             if (FormulaExpression == null)
@@ -1052,10 +1102,14 @@ namespace Whorl
             {
                 try
                 {
-                    object prevVal = iOptionsParam.SelectedOptionObject;
-                    iOptionsParam.SelectedOptionObject = iOptionsParam.GetOptionByText(sVal);
-                    if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
-                        updateParams = true;
+                    iOptionsParam.SelectedText = sVal;
+                    if (!(oParam is OptionsParameter<InfluencePointInfo>))
+                    {
+                        object prevVal = iOptionsParam.SelectedOptionObject;
+                        iOptionsParam.SelectedOptionObject = iOptionsParam.GetOptionByText(sVal);
+                        if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
+                            updateParams = true;
+                    }
                 }
                 catch { }
             }
@@ -1141,10 +1195,11 @@ namespace Whorl
             var iOptionsParam = oVal as IOptionsParameter;
             if (iOptionsParam != null)
             {
-                object selOption = iOptionsParam.SelectedOptionObject;
-                if (selOption == null)
-                    return;
-                sValue = selOption.ToString();
+                sValue = iOptionsParam.SelectedText;
+                //object selOption = iOptionsParam.SelectedOptionObject;
+                //if (selOption == null)
+                //    return;
+                //sValue = selOption.ToString();
             }
             else
                 sValue = oVal.ToString();

@@ -32,7 +32,7 @@ namespace Whorl
     {
         List<string> OptionTexts { get; }
         object SelectedOptionObject { get; set; }
-        string SelectedText { get; }
+        string SelectedText { get; set; }
         object GetOptionByText(string text);
     }
 
@@ -68,6 +68,7 @@ namespace Whorl
                 if (!object.Equals(_selectedOption, value))
                 {
                     _selectedOption = value;
+                    SelectedText = _selectedOption.Text;
                     SelectedOptionChanged();
                 }
             }
@@ -83,21 +84,18 @@ namespace Whorl
             }
         }
 
-        public string SelectedText
-        {
-            get { return SelectedOption.Text; }
-        }
+        public string SelectedText { get; set; }
 
         public List<string> OptionTexts { get; private set; }
 
-        protected void FinishOptions()
+        protected void FinishOptions(bool setSelected = true)
         {
             if (Options.Count == 0)
                 throw new Exception("Options list is empty.");
             OptionTexts = Options.Select(opt => opt.Text).ToList();
             if (SortOptionsByText)
                 OptionTexts.Sort();
-            if (SelectedOption == null)
+            if (setSelected && SelectedOption == null)
                 SelectedOption = Options.First();
         }
 
@@ -112,7 +110,7 @@ namespace Whorl
 
         public object GetOptionByText(string text)
         {
-            return Options.Find(opt => opt.Text == text);
+            return Options?.Find(opt => opt.Text == text);
         }
 
         private string _defaultOptionText;
@@ -144,24 +142,32 @@ namespace Whorl
         }
     }
 
-    public class OptionsParameter<TValue>: BaseOptionsParameter<TValue>
+    public class OptionsParameter<TValue>: BaseOptionsParameter<TValue> where TValue: class
     {
+        public string NullText { get; }
 
-        public OptionsParameter(): base(sortOptionsByText: false)
+        public OptionsParameter(string nullText = null) : base(sortOptionsByText: false)
         {
+            NullText = nullText;
+            if (NullText != null)
+            {
+                Options = new List<ParamOption<TValue>>() { new ParamOption<TValue>(null, NullText) };
+                FinishOptions();
+            }
         }
 
-        public void SetOptions(IEnumerable<TValue> options, string defaultText = null, string nullText = null)
+        public void SetOptions(IEnumerable<TValue> options, string defaultText = null, bool setSelected = true)
         {
-            SetOptions(options.Select(v => new ParamOption<TValue>(v, v == null ? nullText : v.ToString())), 
-                       defaultText);
+            SetOptions(options.Select(v => new ParamOption<TValue>(v, v == null ? NullText : v.ToString())), 
+                       defaultText, setSelected);
         }
 
-        public void SetOptions(IEnumerable<ParamOption<TValue>> options, string defaultText = null, bool sortOptionsByText = false)
+        public void SetOptions(IEnumerable<ParamOption<TValue>> options, string defaultText = null, bool sortOptionsByText = false, bool setSelected = true)
         {
             Options = options.ToList();
-            DefaultOptionText = defaultText;
-            FinishOptions();
+            if (defaultText != null)
+                DefaultOptionText = defaultText;
+            FinishOptions(setSelected);
         }
 
     }

@@ -3951,18 +3951,17 @@ namespace Whorl
             }
             foreach (PatternTransform transform in Transforms)
             {
-                foreach (var parm in transform.TransformSettings.BaseParameters)
-                {
-                    transform.TransformSettings.ConfigureInfluenceParameter(parm);
-                }
+                transform.TransformSettings.ConfigureAllInfluenceParameters();
                 if (transform.TransformSettings.InfluenceLinkParentCollection != null)
                 {
                     transform.TransformSettings.InfluenceLinkParentCollection.ResolveReferences();
                 }
             }
-            if (PixelRendering?.FormulaSettings != null && PixelRendering.FormulaSettings.InfluenceLinkParentCollection != null)
+            if (PixelRendering?.FormulaSettings != null)
             {
-                PixelRendering.FormulaSettings.InfluenceLinkParentCollection.ResolveReferences();
+                PixelRendering.FormulaSettings.ConfigureAllInfluenceParameters();
+                if (PixelRendering.FormulaSettings.InfluenceLinkParentCollection != null)
+                    PixelRendering.FormulaSettings.InfluenceLinkParentCollection.ResolveReferences();
             }
             if (textureFillNode != null)
             {
