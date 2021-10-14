@@ -114,7 +114,7 @@ namespace Whorl
             CopyRibbonPath(source);
             if (source.FormulaSettings != null)
             {
-                FormulaSettings = source.FormulaSettings.GetCopy(ConfigureParser);
+                FormulaSettings = source.FormulaSettings.GetCopy(ConfigureParser, pattern: this);
             }
         }
 
@@ -188,7 +188,7 @@ namespace Whorl
         {
             if (FormulaSettings == null)
             {
-                FormulaSettings = new FormulaSettings(FormulaTypes.Ribbon);
+                FormulaSettings = new FormulaSettings(FormulaTypes.Ribbon, pattern: this);
                 ConfigureParser(FormulaSettings.Parser);
                 //stepRatioIdent = parser.GetVariableIdentifier(GlobalVarNames.StepRatio.ToString());
                 //stepRatioIdent.IsReadOnly = true;

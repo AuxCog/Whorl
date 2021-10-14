@@ -11,8 +11,13 @@ namespace ParserEngine
     {
         public static void WriteDebug(string format, params object[] vals)
         {
-            string message = vals == null ? format : string.Format(format, vals);
-            DebugMessages.sbMessages.AppendLine(message);
+            //string message = vals == null ? format : string.Format(format, vals);
+            DebugMessages.sbMessages.AppendLine(string.Format(format, vals));
+        }
+
+        public static bool IsNull(object val)
+        {
+            return val == null;
         }
     }
 }

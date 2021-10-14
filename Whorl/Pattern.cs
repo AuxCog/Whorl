@@ -790,7 +790,7 @@ namespace Whorl
                     SetSeedPattern(source.SeedPattern);
                 if (source.FormulaSettings != null)
                 {
-                    FormulaSettings = source.FormulaSettings.GetCopy(ConfigureParser);
+                    FormulaSettings = source.FormulaSettings.GetCopy(ConfigureParser, pattern: ParentPattern);
                     if (source.FormulaSettings.InfluenceLinkParentCollection != null)
                     {
                         FormulaSettings.InfluenceLinkParentCollection = 
@@ -868,7 +868,7 @@ namespace Whorl
             {
                 if (FormulaSettings == null)
                 {
-                    FormulaSettings = new FormulaSettings(FormulaTypes.PixelRender);
+                    FormulaSettings = new FormulaSettings(FormulaTypes.PixelRender, pattern: ParentPattern);
                     ConfigureParser(FormulaSettings.Parser);
                 }
             }
@@ -1611,7 +1611,7 @@ namespace Whorl
                             ColorNodes.FromXml(childNode);
                             break;
                         case nameof(FormulaSettings):
-                            FormulaSettings = new FormulaSettings(FormulaTypes.PixelRender);
+                            FormulaSettings = new FormulaSettings(FormulaTypes.PixelRender, pattern: ParentPattern);
                             ConfigureParser(FormulaSettings.Parser);
                             FormulaSettings.FromXml(childNode);
                             isCSharpFormula = FormulaSettings.IsCSharpFormula;
@@ -3951,6 +3951,10 @@ namespace Whorl
             }
             foreach (PatternTransform transform in Transforms)
             {
+                foreach (var parm in transform.TransformSettings.BaseParameters)
+                {
+                    transform.TransformSettings.ConfigureInfluenceParameter(parm);
+                }
                 if (transform.TransformSettings.InfluenceLinkParentCollection != null)
                 {
                     transform.TransformSettings.InfluenceLinkParentCollection.ResolveReferences();

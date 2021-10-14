@@ -73,6 +73,7 @@ namespace Whorl
                     var customParam = parameter as CustomParameter;
                     if (customParam != null && customParam.CustomType != CustomParameterTypes.RandomRange)
                         continue;
+                    formulaSettings.ConfigureInfluenceParameter(parameter);
                     string paramLabel = GetParameterLabel(parameter);
                     int textWidth = TextRenderer.MeasureText(paramLabel, label.Font).Width;
                     int labelSpan;
@@ -113,8 +114,8 @@ namespace Whorl
                 if (cbo != null)
                 {
                     var baseParameter = ctl.Tag as BaseParameter;
-                    if (baseParameter != null)
-                        cbo.SelectedItem = baseParameter.GetValueChoice(baseParameter.Value);
+                    if (baseParameter != null && baseParameter.HasChoices)
+                        cbo.SelectedItem = baseParameter.GetValueChoice(baseParameter.SelectedChoice?.ParentObject);
                 }
             }
         }
@@ -174,10 +175,10 @@ namespace Whorl
                 {
                     cbo = new ComboBox();
                     cbo.DropDownStyle = ComboBoxStyle.DropDownList;
-                    cbo.DataSource = baseParameter.ValueChoices.ToList();
+                    cbo.DataSource = baseParameter.ParameterChoices.ToList();
                     ctl = cbo;
                     ctl.Width = critControlWidth;
-                    selectedItem = baseParameter.GetValueChoice(baseParameter.Value);
+                    selectedItem = baseParameter.GetParameterChoice(baseParameter.SelectedText);
                 }
                 else
                 {

@@ -22,6 +22,9 @@ namespace ParserEngine
         public string Label { get; internal set; }
         public bool IsOutputParameter { get; internal set; }
         public bool Visible { get; internal set; } = true;
+        public ParameterChoice SelectedChoice { get; private set; }
+        public string SelectedText { get; set; }
+
         protected List<ParameterChoice> parameterChoices { get; set; }
 
         private object oValue;
@@ -30,7 +33,7 @@ namespace ParserEngine
             get { return oValue; }
             set
             {
-                if (value != null && !(value.GetType() == ValueType || value.GetType().IsSubclassOf(ValueType)))
+                if (value != null && !ValueType.IsAssignableFrom(value.GetType()))
                 {
                     throw new Exception($"Parameter value's type is invalid: {value}");
                 }
@@ -51,20 +54,12 @@ namespace ParserEngine
 
         public bool HasChoices
         {
-            get { return ValueChoices != null; }
+            get { return ParameterChoices != null; }
         }
 
-        public virtual IEnumerable<ParameterChoice> ValueChoices
+        public virtual IEnumerable<ParameterChoice> ParameterChoices
         {
             get { return parameterChoices; }
-        }
-
-        public ParameterChoice GetValueChoice(object value)
-        {
-            if (ValueChoices == null)
-                return null;
-            else
-                return ValueChoices.Where(pc => object.Equals(value, pc.Value)).FirstOrDefault();
         }
 
         public virtual string ValueString
@@ -108,9 +103,16 @@ namespace ParserEngine
             ParentExpression = parentExpression;
         }
 
-        internal virtual ParameterChoice AddParameterChoice(object value, string text)
+        internal virtual ParameterChoice AddParameterChoice(object value, string text = null)
         {
-            if (value != null && value.GetType() != ValueType)
+            if (text == null)
+            {
+                if (value != null)
+                    text = value.ToString();
+                else
+                    throw new NullReferenceException("value cannot be null if text is null.");
+            }
+            if (value != null && !ValueType.IsAssignableFrom(value.GetType()))
             {
                 throw new Exception("Invalid value type for AddParameterChoice.");
             }
@@ -120,7 +122,7 @@ namespace ParserEngine
             {
                 throw new Exception($"Duplicate parameter choice: {text}");
             }
-            ParameterChoice parameterChoice = new ParameterChoice() { Value = value, Text = text };
+            ParameterChoice parameterChoice = new ParameterChoice(value, text);
             parameterChoices.Add(parameterChoice);
             return parameterChoice;
         }
@@ -130,12 +132,31 @@ namespace ParserEngine
             return AddParameterChoice(null, text);
         }
 
+
+        public void SetParameterChoices(IEnumerable<object> items, string nullText = null, Func<object, object> getValueFunc = null)
+        {
+            if (items.Any(i => i != null && !ValueType.IsAssignableFrom(getValueFunc == null ? i.GetType() : getValueFunc(i).GetType())))
+                throw new Exception("Invalid type of item.");
+            parameterChoices = items.Select(i => new ParameterChoice(i, text: i == null ? nullText : null, getValueFunc)).ToList();
+        }
+
+        public ParameterChoice GetValueChoice(object value)
+        {
+            if (ParameterChoices == null)
+                return null;
+            else
+                return ParameterChoices.Where(pc => object.Equals(value, pc.ParentObject)).FirstOrDefault();
+        }
+
         public bool SetValueFromParameterChoice(ParameterChoice choice)
         {
-            bool changed = !object.Equals(Value, choice.Value);
-            if (changed)
+            object choiceValue = choice.Value;
+            bool changed = !object.Equals(Value, choiceValue);
+            if (changed || SelectedChoice != choice)
             {
-                Value = choice.Value;
+                Value = choiceValue;
+                SelectedChoice = choice;
+                SelectedText = choice.Text;
             }
             return changed;
         }
@@ -150,11 +171,11 @@ namespace ParserEngine
             yield return this;
         }
 
-        internal ParameterChoice GetParameterChoice(string text)
+        public ParameterChoice GetParameterChoice(string text)
         {
-            if (ValueChoices == null)
+            if (ParameterChoices == null || text == null)
                 return null;
-            return ValueChoices.Where(pc => text.Equals(pc.Text, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            return ParameterChoices.Where(pc => text.Equals(pc.Text, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
         
         internal virtual void FinalizeParameter()
@@ -164,11 +185,11 @@ namespace ParserEngine
         protected virtual object ValidateValue(object value, string propertyName,
                                                bool forValueProperty = true)
         {
-            if (ValueChoices != null)
+            if (ParameterChoices != null)
             {
-                if (!ValueChoices.Where(pc => object.Equals(value, pc.Value)).Any())
+                if (!ParameterChoices.Where(pc => object.Equals(value, pc.Value)).Any())
                 {
-                    var firstChoice = ValueChoices.FirstOrDefault();
+                    var firstChoice = ParameterChoices.FirstOrDefault();
                     if (firstChoice != null)
                     {
                         value = firstChoice.Value;
@@ -739,12 +760,13 @@ namespace ParserEngine
             if (parameterChoices == null)
             {
                 parameterChoices = methodsDict.Values.OrderBy(mi => mi.Name)
-                                                     .Select(mi => new ParameterChoice() { Value = mi, Text = mi.Name }).ToList();
+                                                     .Select(mi => new ParameterChoice(mi, mi.Name)).ToList();
             }
             else
             {
-                foreach (var paramChoice in parameterChoices)
+                for (int i = 0; i < parameterChoices.Count; i++)
                 {
+                    var paramChoice = parameterChoices[i];
                     MethodInfo functionMethod = GetFunctionMethod(paramChoice.Text, throwException: false);
                     if (functionMethod == null)
                     {
@@ -752,8 +774,7 @@ namespace ParserEngine
                     }
                     else
                     {
-                        paramChoice.Value = functionMethod;
-                        paramChoice.Text = functionMethod.Name;
+                        parameterChoices[i] = new ParameterChoice(functionMethod, functionMethod.Name);
                     }
                 }
                 if (DefaultValue == null || GetValueChoice(DefaultValue) == null)
@@ -777,6 +798,30 @@ namespace ParserEngine
             if (fnMethod == null && throwException)
                 throw new Exception($"Invalid VarFunctionParameter method name: {fnName}");
             return fnMethod;
+        }
+    }
+
+    public class GenericParameter<TValue>: BaseParameter
+    {
+        public enum Categories
+        {
+            None,
+            InfluencePoint
+        }
+        public override Type ValueType => typeof(TValue);
+        public override bool IsArray => false;
+        public Categories Category { get; }
+
+        public override object UsedValue 
+        { 
+            get => SelectedChoice == null ? base.UsedValue : SelectedChoice.Value; 
+            protected set => base.UsedValue = value; 
+        }
+
+        public GenericParameter(string parameterName, Expression parentExpression, Categories category = Categories.None)
+               : base(parameterName, parentExpression)
+        {
+            Category = category;
         }
 
     }

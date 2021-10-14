@@ -31,7 +31,7 @@ namespace Whorl
 
     public class FormulaSettings : BaseObject, IXml
     {
-        //public Pattern ParentPattern { get; }
+        public Pattern ParentPattern { get; }
 
         public string Formula { get; private set; }
 
@@ -216,9 +216,10 @@ namespace Whorl
         //    ParentPattern = parentPattern;
         //}
 
-        public FormulaSettings(FormulaTypes formulaType, ExpressionParser parser = null)
+        public FormulaSettings(FormulaTypes formulaType, ExpressionParser parser = null, Pattern pattern = null)
         {
             FormulaType = formulaType;
+            ParentPattern = pattern;
             cSharpCompiledInfo = new CSharpCompiledInfo();
             if (parser == null)
                 parser = CreateExpressionParser();
@@ -226,10 +227,11 @@ namespace Whorl
         }
 
         public FormulaSettings(FormulaSettings source, configureDelegate configureParser = null, 
-                               ExpressionParser parser = null)
+                               ExpressionParser parser = null, Pattern pattern = null)
         {
             FormulaType = source.FormulaType;
             FormulaName = source.FormulaName;
+            ParentPattern = pattern;
             LegacyFormula = source.LegacyFormula;
             IsCSharpFormula = source.IsCSharpFormula;
             cSharpCompiledInfo = source.cSharpCompiledInfo;
@@ -260,9 +262,9 @@ namespace Whorl
             }
         }
 
-        public FormulaSettings GetCopy(configureDelegate configureParser = null, ExpressionParser parser = null)
+        public FormulaSettings GetCopy(configureDelegate configureParser = null, ExpressionParser parser = null, Pattern pattern = null)
         {
-            return new FormulaSettings(this, configureParser, parser);
+            return new FormulaSettings(this, configureParser, parser, pattern);
         }
         
         static FormulaSettings()
@@ -781,6 +783,7 @@ namespace Whorl
                 BaseParameter copyPrm = FormulaExpression.GetParameter(prm.ParameterName);
                 if (copyPrm != null && copyPrm.GetType() == prm.GetType())
                 {
+                    copyPrm.SelectedText = prm.SelectedText;
                     CustomParameter cprm = prm as CustomParameter;
                     if (cprm != null)
                     {
@@ -800,8 +803,20 @@ namespace Whorl
                         if (copyPrm is Parameter)
                         {
                             ((Parameter)copyPrm).Guid = ((Parameter)prm).Guid;
+                            SetParameterOrCustomValue(copyPrm, prm.Value);
                         }
-                        SetParameterOrCustomValue(copyPrm, prm.Value);
+                        else
+                        {
+                            if (!ConfigureInfluenceParameter(copyPrm))
+                            {
+                                if (copyPrm.HasChoices && prm.SelectedChoice != null)
+                                {
+                                    copyPrm.SetValueFromParameterChoice(prm.SelectedChoice);
+                                }
+                                else
+                                    SetParameterOrCustomValue(copyPrm, prm.Value);
+                            }
+                        }
                     }
                 }
             }
@@ -856,6 +871,34 @@ namespace Whorl
             return isValid;
         }
 
+        public bool ConfigureInfluenceParameter(BaseParameter parameter, bool setValue = true)
+        {
+            var influenceParam = parameter as GenericParameter<DoublePoint>;
+            if (influenceParam != null)
+            {
+                if (influenceParam.Category != GenericParameter<DoublePoint>.Categories.InfluencePoint)
+                    influenceParam = null;
+                else
+                {
+                    var items = new List<InfluencePointInfo>() { null };
+                    if (ParentPattern != null)
+                    {
+                        items.AddRange(ParentPattern.InfluencePointInfoList.InfluencePointInfos);
+                    }
+                    influenceParam.SetParameterChoices(items, nullText: "(none)", ip => ((InfluencePointInfo)ip).InfluencePoint);
+                    if (setValue && influenceParam.SelectedText != null)
+                    {
+                        var choice = influenceParam.GetParameterChoice(influenceParam.SelectedText);
+                        if (choice != null)
+                        {
+                            influenceParam.SetValueFromParameterChoice(choice);
+                        }
+                    }
+                }
+            }
+            return influenceParam != null;
+        }
+
         private void ParseParametersXml(XmlNode node)
         {
             if (FormulaExpression == null)
@@ -873,6 +916,8 @@ namespace Whorl
                     {
                         throw new Exception("Invalid parameter type read from XML file.");
                     }
+                    //ConfigureInfluenceParameter(prm);
+                    bool haveSetValue = false;
                     object val;
                     if (prm is DoubleParameter)
                     {
@@ -887,9 +932,28 @@ namespace Whorl
                         else
                             val = (double)Tools.GetXmlAttribute("Value", typeof(double), childNode);
                     }
-                    else if (prm is VarFunctionParameter)
+                    else if (prm.HasChoices || prm is GenericParameter<DoublePoint>)
                     {
-                        val = (string)Tools.GetXmlAttribute("Value", typeof(string), childNode);
+                        string valText = (string)Tools.GetXmlAttribute("Value", typeof(string), childNode);
+                        prm.SelectedText = valText;
+                        val = valText;
+                        if (prm.HasChoices)
+                        {
+                            var choice = prm.GetParameterChoice(valText);
+                            if (choice == null)
+                            {
+                                var fnParam = prm as VarFunctionParameter;
+                                if (fnParam?.DefaultValue != null)
+                                {
+                                    choice = fnParam.GetParameterChoice(fnParam.DefaultValue);
+                                }
+                            }
+                            if (choice != null)
+                            {
+                                prm.SetValueFromParameterChoice(choice);
+                            }
+                        }
+                        haveSetValue = true;
                     }
                     else if (prm is BooleanParameter)
                     {
@@ -910,7 +974,8 @@ namespace Whorl
                     {
                         continue;
                     }
-                    SetParameterOrCustomValue(prm, val);
+                    if (!haveSetValue)
+                        SetParameterOrCustomValue(prm, val);
                     Parameter parameter = prm as Parameter;
                     if (parameter != null)
                     {
@@ -1142,6 +1207,11 @@ namespace Whorl
                             Complex z = (Complex)complexParam.Value;
                             xmlTools.AppendXmlAttribute(subNode, "Re", z.Re);
                             xmlTools.AppendXmlAttribute(subNode, "Im", z.Im);
+                        }
+                        else if (prm.HasChoices)
+                        {
+                            string text = prm.SelectedChoice?.Text;
+                            xmlTools.AppendXmlAttribute(subNode, "Value", text ?? string.Empty);
                         }
                         else
                         {

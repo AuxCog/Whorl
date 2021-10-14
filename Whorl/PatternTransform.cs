@@ -62,7 +62,7 @@ namespace Whorl
             if (parentPattern == null)
                 throw new NullReferenceException("parentPattern cannot be null.");
             ParentPattern = parentPattern;
-            TransformSettings = new FormulaSettings(FormulaTypes.Transform);
+            TransformSettings = new FormulaSettings(FormulaTypes.Transform, pattern: ParentPattern);
             TransformSettings.TokensTransformInfo = new TokensTransformInfo(
                               nameof(Info), Enum.GetNames(typeof(GlobalVarNames)));
             ConfigureParser(TransformSettings.Parser);
@@ -76,7 +76,7 @@ namespace Whorl
             TransformName = source.TransformName;
             SequenceNumber = source.SequenceNumber;
             Enabled = source.Enabled;
-            TransformSettings = source.TransformSettings.GetCopy(ConfigureParser);
+            TransformSettings = source.TransformSettings.GetCopy(ConfigureParser, pattern: ParentPattern);
             if (source.TransformSettings.InfluenceLinkParentCollection != null)
             {
                 TransformSettings.InfluenceLinkParentCollection =

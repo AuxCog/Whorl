@@ -315,11 +315,9 @@ namespace ParserEngine
             //{
             //    DeclareFunction(fnMeth.Name, fnMeth.ReturnType, fnMeth);
             //}
-            MethodInfo customMeth = typeof(CustomEvalMethods).GetMethod(nameof(CustomEvalMethods.WriteDebug),
-                                                                        BindingFlags.Public | BindingFlags.Static);
-            if (customMeth != null)
+            foreach (MethodInfo customMeth in typeof(CustomEvalMethods).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                DeclareFunction(customMeth.Name, customMeth.ReturnType, 
+                DeclareFunction(customMeth.Name, customMeth.ReturnType,
                                 customMeth, functionCategory: FunctionCategories.Custom);
             }
         }
@@ -2118,6 +2116,7 @@ namespace ParserEngine
             @double,
             boolean,
             complex,
+            influencepoint,
             choices,
             label,
             domain,
@@ -2132,6 +2131,7 @@ namespace ParserEngine
             ParameterAttributeNames.random,
             ParameterAttributeNames.boolean,
             ParameterAttributeNames.complex,
+            ParameterAttributeNames.influencepoint,
             ParameterAttributeNames.varfunction
         };
 
@@ -2265,15 +2265,15 @@ namespace ParserEngine
                 string attrNameText = token.Text;
                 if (IgnoreCase)
                     attrNameText = attrNameText.ToLower();
-                ParameterAttributeNames? attribName = ParseParamAttr(attrNameText);
-                if (attribName == null)
+                ParameterAttributeNames? attrNameOrNull = ParseParamAttr(attrNameText);
+                if (attrNameOrNull == null)
                 {
                     string attrList = string.Join(", ", 
                         Enum.GetNames(typeof(ParameterAttributeNames)));
                     AddErrorMessage($"Expecting parameter attribute, one of: {attrList}.", token);
                     return false;
                 }
-                ParameterAttributeNames attrName = (ParameterAttributeNames)attribName;
+                ParameterAttributeNames attrName = (ParameterAttributeNames)attrNameOrNull;
                 tokenIndex++;
                 if (parameterTypeNames.Contains(attrName))
                 {
@@ -2520,6 +2520,10 @@ namespace ParserEngine
                     complexParam.DefaultValue = (Complex)defaultValue;
                 baseParameter = complexParam;
             }
+            else if (paramClass == ParameterAttributeNames.influencepoint)
+            {
+                baseParameter = new GenericParameter<DoublePoint>(parameterName, Expression, GenericParameter<DoublePoint>.Categories.InfluencePoint);
+            }
             else
                 throw new Exception($"Unhandled paramClass value: {paramClass}.");
             if (label != null)
@@ -2597,7 +2601,7 @@ namespace ParserEngine
                         {
                             AddErrorMessage($"The choice {choiceText} is a duplicate.", token);
                         }
-                        choices.Add(new ParameterChoice() { Value = choiceValue, Text = choiceText });
+                        choices.Add(new ParameterChoice(choiceValue, choiceText));
                     }
                     token = GetToken(tokenIndex);
                 }

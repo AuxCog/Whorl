@@ -296,7 +296,7 @@ namespace ParserEngine
                     else
                     {
                         retVal = operandTok.BaseParameter.UsedValue;
-                        if (retVal == null)
+                        if (retVal == null && operandTok.BaseParameter is DoubleParameter)
                         {
                             ErrorMessages.Add(
                                 $"The parameter {operandTok.Text} has no value.");

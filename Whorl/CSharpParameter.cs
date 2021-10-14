@@ -65,12 +65,15 @@ namespace Whorl
             {
                 if (value == null)
                     throw new NullReferenceException("SelectedOption cannot be null.");
-                _selectedOption = value;
-                SelectedOptionChanged();
+                if (!object.Equals(_selectedOption, value))
+                {
+                    _selectedOption = value;
+                    SelectedOptionChanged();
+                }
             }
         }
 
-        public bool SortOptionsByText { get; }
+        public bool SortOptionsByText { get; set; }
 
         public TValue SelectedValue
         {
@@ -116,7 +119,7 @@ namespace Whorl
         public string DefaultOptionText
         {
             get { return _defaultOptionText; }
-            protected set
+            set
             {
                 _defaultOptionText = value;
                 ParamOption<TValue> option;
@@ -143,21 +146,24 @@ namespace Whorl
 
     public class OptionsParameter<TValue>: BaseOptionsParameter<TValue>
     {
-        public OptionsParameter(IEnumerable<ParamOption<TValue>> options, string defaultText = null, bool sortOptionsByText = false) : 
-               base(sortOptionsByText)
+
+        public OptionsParameter(): base(sortOptionsByText: false)
+        {
+        }
+
+        public void SetOptions(IEnumerable<TValue> options, string defaultText = null, string nullText = null)
+        {
+            SetOptions(options.Select(v => new ParamOption<TValue>(v, v == null ? nullText : v.ToString())), 
+                       defaultText);
+        }
+
+        public void SetOptions(IEnumerable<ParamOption<TValue>> options, string defaultText = null, bool sortOptionsByText = false)
         {
             Options = options.ToList();
             DefaultOptionText = defaultText;
             FinishOptions();
         }
 
-        public OptionsParameter(IEnumerable<TValue> options, string defaultText = null,  bool sortOptionsByText = false): 
-               base(sortOptionsByText)
-        {
-            Options = options.Select(v => new ParamOption<TValue>(v, v.ToString())).ToList();
-            DefaultOptionText = defaultText;
-            FinishOptions();
-        }
     }
 
     public class EnumValuesParameter<TEnum>: BaseOptionsParameter<TEnum> where TEnum: struct

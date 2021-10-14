@@ -50,10 +50,14 @@ namespace ParserEngine
             if (varFnParameter == null)
             {
                 this.OperandClass = IdentifierClasses.Parameter;
-                if (baseParameter is BooleanParameter || baseParameter is ComplexParameter)
+                if (!(baseParameter is ArrayParameter))
                 {
                     ReturnType = baseParameter.ValueType;
                 }
+                //if (baseParameter is BooleanParameter || baseParameter is ComplexParameter)
+                //{
+                //    ReturnType = baseParameter.ValueType;
+                //}
             }
         }
 
