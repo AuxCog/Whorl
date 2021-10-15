@@ -46,6 +46,8 @@ namespace Whorl
             this.cboTransformFunction = new System.Windows.Forms.ComboBox();
             this.txtFunctionOffset = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.txtAverageWeight = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -84,7 +86,7 @@ namespace Whorl
             // 
             // txtDivisor
             // 
-            this.txtDivisor.Location = new System.Drawing.Point(243, 47);
+            this.txtDivisor.Location = new System.Drawing.Point(108, 73);
             this.txtDivisor.Name = "txtDivisor";
             this.txtDivisor.Size = new System.Drawing.Size(58, 20);
             this.txtDivisor.TabIndex = 5;
@@ -92,7 +94,7 @@ namespace Whorl
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(195, 50);
+            this.label3.Location = new System.Drawing.Point(60, 76);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(42, 13);
             this.label3.TabIndex = 4;
@@ -100,7 +102,7 @@ namespace Whorl
             // 
             // txtOffset
             // 
-            this.txtOffset.Location = new System.Drawing.Point(108, 82);
+            this.txtOffset.Location = new System.Drawing.Point(108, 101);
             this.txtOffset.Name = "txtOffset";
             this.txtOffset.Size = new System.Drawing.Size(58, 20);
             this.txtOffset.TabIndex = 7;
@@ -108,7 +110,7 @@ namespace Whorl
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(60, 85);
+            this.label4.Location = new System.Drawing.Point(60, 104);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(38, 13);
             this.label4.TabIndex = 6;
@@ -116,7 +118,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(105, 168);
+            this.BtnOK.Location = new System.Drawing.Point(108, 170);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 8;
@@ -126,7 +128,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(177, 168);
+            this.BtnCancel.Location = new System.Drawing.Point(180, 170);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 9;
@@ -139,14 +141,14 @@ namespace Whorl
             this.chkEnabled.AutoSize = true;
             this.chkEnabled.Location = new System.Drawing.Point(108, 13);
             this.chkEnabled.Name = "chkEnabled";
-            this.chkEnabled.Size = new System.Drawing.Size(65, 17);
+            this.chkEnabled.Size = new System.Drawing.Size(91, 17);
             this.chkEnabled.TabIndex = 10;
-            this.chkEnabled.Text = "Enabled";
+            this.chkEnabled.Text = "Enable Single";
             this.chkEnabled.UseVisualStyleBackColor = true;
             // 
             // txtPower
             // 
-            this.txtPower.Location = new System.Drawing.Point(243, 82);
+            this.txtPower.Location = new System.Drawing.Point(270, 73);
             this.txtPower.Name = "txtPower";
             this.txtPower.Size = new System.Drawing.Size(58, 20);
             this.txtPower.TabIndex = 12;
@@ -154,7 +156,7 @@ namespace Whorl
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(195, 85);
+            this.label5.Location = new System.Drawing.Point(222, 76);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(40, 13);
             this.label5.TabIndex = 11;
@@ -163,7 +165,7 @@ namespace Whorl
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(5, 116);
+            this.label6.Location = new System.Drawing.Point(5, 135);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(101, 13);
             this.label6.TabIndex = 13;
@@ -173,14 +175,14 @@ namespace Whorl
             // 
             this.cboTransformFunction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboTransformFunction.FormattingEnabled = true;
-            this.cboTransformFunction.Location = new System.Drawing.Point(108, 113);
+            this.cboTransformFunction.Location = new System.Drawing.Point(108, 132);
             this.cboTransformFunction.Name = "cboTransformFunction";
             this.cboTransformFunction.Size = new System.Drawing.Size(135, 21);
             this.cboTransformFunction.TabIndex = 14;
             // 
             // txtFunctionOffset
             // 
-            this.txtFunctionOffset.Location = new System.Drawing.Point(108, 142);
+            this.txtFunctionOffset.Location = new System.Drawing.Point(270, 101);
             this.txtFunctionOffset.Name = "txtFunctionOffset";
             this.txtFunctionOffset.Size = new System.Drawing.Size(58, 20);
             this.txtFunctionOffset.TabIndex = 16;
@@ -188,17 +190,35 @@ namespace Whorl
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(20, 145);
+            this.label7.Location = new System.Drawing.Point(182, 104);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(82, 13);
             this.label7.TabIndex = 15;
             this.label7.Text = "Function Offset:";
             // 
+            // txtAverageWeight
+            // 
+            this.txtAverageWeight.Location = new System.Drawing.Point(270, 47);
+            this.txtAverageWeight.Name = "txtAverageWeight";
+            this.txtAverageWeight.Size = new System.Drawing.Size(58, 20);
+            this.txtAverageWeight.TabIndex = 18;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(177, 50);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(87, 13);
+            this.label8.TabIndex = 17;
+            this.label8.Text = "Average Weight:";
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(314, 228);
+            this.ClientSize = new System.Drawing.Size(346, 204);
+            this.Controls.Add(this.txtAverageWeight);
+            this.Controls.Add(this.label8);
             this.Controls.Add(this.txtFunctionOffset);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.cboTransformFunction);
@@ -243,5 +263,7 @@ namespace Whorl
         private System.Windows.Forms.ComboBox cboTransformFunction;
         private System.Windows.Forms.TextBox txtFunctionOffset;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtAverageWeight;
+        private System.Windows.Forms.Label label8;
     }
 }

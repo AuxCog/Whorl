@@ -31,6 +31,7 @@ namespace Whorl
         }
 
         public double InfluenceFactor { get; set; }
+        public double AverageWeight { get; set; }
 
         private double _divFactor = 0.01;
         public double DivFactor
@@ -217,9 +218,14 @@ namespace Whorl
         //    return ComputeValue(GetDoublePoint(polarPoint));
         //}
 
-        public double ComputeValue(DoublePoint patternPoint, bool forRendering)
+        public double ComputeValue(DoublePoint patternPoint, bool forRendering, bool forAverage = false)
         {
-            if (!Enabled)
+            double factor;
+            if (forAverage)
+                factor = AverageWeight;
+            else
+                factor = Enabled ? InfluenceFactor : 0.0;
+            if (factor == 0.0)
                 return 0.0;
             DoublePoint point = forRendering ? TransformedPoint : InfluencePoint;
             double xDiff = patternPoint.X - point.X;
@@ -235,7 +241,7 @@ namespace Whorl
             double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
             if (Power != 1.0)
                 divisor = Math.Pow(divisor, Power);
-            return InfluenceFactor * TransformFunc(1.0 / divisor + FunctionOffset);
+            return factor * TransformFunc(1.0 / divisor + FunctionOffset);
         }
 
         //public static DoublePoint GetDoublePoint(PolarPoint polarPoint, PointF center)
@@ -325,6 +331,10 @@ namespace Whorl
             double x = Tools.GetXmlAttribute<double>(node, "InfluencePointX");
             double y = Tools.GetXmlAttribute<double>(node, "InfluencePointY");
             InfluencePoint = new DoublePoint(x, y);
+            if (node.Attributes[nameof(AverageWeight)] == null)
+            {
+                AverageWeight = InfluenceFactor;  //Legacy code.
+            }
         }
 
         public override string ToString()
@@ -376,7 +386,7 @@ namespace Whorl
         public double ComputeAverage(DoublePoint patternPoint, bool forRendering)
         {
             if (influencePointInfoList.Any())
-                return influencePointInfoList.Select(ip => ip.ComputeValue(patternPoint, forRendering)).Average();
+                return influencePointInfoList.Select(ip => ip.ComputeValue(patternPoint, forRendering, forAverage: true)).Average();
             else
                 return 0;
         }

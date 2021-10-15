@@ -43,6 +43,7 @@ namespace Whorl
                 lblPointID.Text = influencePointInfo.Id.ToString();
                 chkEnabled.Checked = editedInfluencePointInfo.Enabled;
                 txtInfluenceFactor.Text = editedInfluencePointInfo.InfluenceFactor.ToString("0.####");
+                txtAverageWeight.Text = editedInfluencePointInfo.AverageWeight.ToString("0.######");
                 txtDivisor.Text = (1.0 / editedInfluencePointInfo.DivFactor).ToString("0.00");
                 txtOffset.Text = editedInfluencePointInfo.Offset.ToString("0.####");
                 txtPower.Text = editedInfluencePointInfo.Power.ToString("0.####");
@@ -65,6 +66,10 @@ namespace Whorl
                 editedInfluencePointInfo.InfluenceFactor = val;
             else
                 errMessages.Add("Influence Factor must be a number.");
+            if (double.TryParse(txtAverageWeight.Text, out val))
+                editedInfluencePointInfo.AverageWeight = val;
+            else
+                errMessages.Add("Average Weight must be a number.");
             if (!double.TryParse(txtDivisor.Text, out val))
                 val = -1.0;
             if (val >= 0.01)
