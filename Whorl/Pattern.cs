@@ -1170,7 +1170,7 @@ namespace Whorl
                                                (float)influencePointInfo.InfluencePoint.Y * floatScaleFactor);
                         if (pointRotation != 0)
                             pt = Tools.RotatePoint(pt, rotationVector);
-                        influencePointInfo.TransformedInfluencePoint = new DoublePoint(pt.X, pt.Y);
+                        influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
                     }
                 }
             }
@@ -1402,9 +1402,9 @@ namespace Whorl
                         int remX = draftX % DraftSize;
                         if (remY != 0 || remX != 0)
                         {
-                            draftY -= remY;
-                            draftX -= remX;
-                            int pixVal = patternPixels[draftY * boundsSize.Width + draftX];
+                            //draftY -= remY;
+                            //draftX -= remX;
+                            int pixVal = patternPixels[(draftY - remY) * boundsSize.Width + draftX - remX];
                             patternPixels[pixInd] = pixVal;
                             return inBounds;
                         }
@@ -1415,13 +1415,17 @@ namespace Whorl
                     }
                     else
                     {
+                        var patternPoint = new DoublePoint(Info.X, Info.Y);
+                        if (Info.ComputeInfluence)
+                        {
+                            Info.InfluenceValue = ParentPattern.InfluencePointInfoList.ComputeAverage(patternPoint, forRendering: true);
+                        }
                         Info.SetIntXY(new Point(x, y));
                         Info.SetXY(TransformPoint(x, y));
                         if (distanceSquaresArray != null)
                             SetDistancesToPaths(x, y);
                         if (influenceParentCollection != null)
                         {
-                            var patternPoint = new DoublePoint(Info.X, Info.Y);
                             //var patternPoint = new DoublePoint((double)x - patternCenter.X, (double)y - patternCenter.Y);
                             influenceParentCollection.SetParameterValues(patternPoint, forRendering: true);
                         }

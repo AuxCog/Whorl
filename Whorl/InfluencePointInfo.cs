@@ -18,7 +18,7 @@ namespace Whorl
         public Pattern ParentPattern { get; private set; }
         public int Id { get; private set; }
 
-        public DoublePoint TransformedInfluencePoint { get; set; }
+        public DoublePoint TransformedPoint { get; set; }
 
         private DoublePoint _influencePoint;
         public DoublePoint InfluencePoint
@@ -221,7 +221,7 @@ namespace Whorl
         {
             if (!Enabled)
                 return 0.0;
-            DoublePoint point = forRendering ? TransformedInfluencePoint : InfluencePoint;
+            DoublePoint point = forRendering ? TransformedPoint : InfluencePoint;
             double xDiff = patternPoint.X - point.X;
             double yDiff = patternPoint.Y - point.Y;
             if (ParentPattern != null)
@@ -315,7 +315,7 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointX", InfluencePoint.X);
             xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointY", InfluencePoint.Y);
             xmlTools.AppendXmlAttributesExcept(xmlNode, this, 
-                     nameof(ParentPattern), nameof(TransformedInfluencePoint), nameof(InfluencePoint), nameof(TransformFunc), nameof(Selected));
+                     nameof(ParentPattern), nameof(TransformedPoint), nameof(InfluencePoint), nameof(TransformFunc), nameof(Selected));
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
@@ -371,6 +371,14 @@ namespace Whorl
                 influencePointInfo.OnRemoved();  //Raises event.
             }
             return removed;
+        }
+
+        public double ComputeAverage(DoublePoint patternPoint, bool forRendering)
+        {
+            if (influencePointInfoList.Any())
+                return influencePointInfoList.Select(ip => ip.ComputeValue(patternPoint, forRendering)).Average();
+            else
+                return 0;
         }
 
         public void Clear()

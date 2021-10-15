@@ -22,6 +22,8 @@ namespace Whorl
         public bool Normalize { get; set; }
         public bool NormalizeAngle { get; set; }
         public bool ComputeDistance { get; set; }
+        public bool ComputeInfluence { get; set; }
+        public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
         public double SegmentLength { get; set; } = 0;
