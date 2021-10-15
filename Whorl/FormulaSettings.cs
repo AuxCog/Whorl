@@ -188,8 +188,7 @@ namespace Whorl
         {
             get
             {
-                return BaseParameters.Where(prm => prm is Parameter)
-                                     .Select(prm => (Parameter)prm);
+                return BaseParameters.Select(prm => prm as Parameter).Where(p => p != null);
             }
         }
 
@@ -504,7 +503,9 @@ namespace Whorl
                 }
                 if (!IsCSharpFormula)
                 {
-                    InfluenceValueParameter = Parameters.FirstOrDefault(p => p.ForInfluenceValue);
+                    //InfluenceParameters are not visible, so this.Parameters property does not include them.
+                    InfluenceValueParameter = FormulaExpression.Parameters.Select(p => p as Parameter)
+                                             .FirstOrDefault(p => p != null && p.ForInfluenceValue);
                 }
             }
             else if (preprocessorErrors)
@@ -750,9 +751,9 @@ namespace Whorl
                 return;
             foreach (BaseParameter prm in baseParameters)
             {
-                var inflParam = prm as Parameter;
-                if (inflParam != null && inflParam.ForInfluenceValue)
-                    continue;
+                //var inflParam = prm as Parameter;
+                //if (inflParam != null && inflParam.ForInfluenceValue)
+                //    continue;
                 var targetPropInfo = evalInstance.ParamsObj.GetType().GetProperty(prm.ParameterName);
                 if (targetPropInfo != null)
                 {
@@ -795,9 +796,9 @@ namespace Whorl
                 //{
                 //    Debug.WriteLine(prm.Value);
                 //}
-                var inflParam = prm as Parameter;
-                if (inflParam != null && inflParam.ForInfluenceValue)
-                    continue;
+                //var inflParam = prm as Parameter;
+                //if (inflParam != null && inflParam.ForInfluenceValue)
+                //    continue;
                 BaseParameter copyPrm = FormulaExpression.GetParameter(prm.ParameterName);
                 if (copyPrm != null && copyPrm.GetType() == prm.GetType())
                 {
@@ -1242,8 +1243,8 @@ namespace Whorl
                 foreach (BaseParameter prm in parameters)
                 {
                     var parameter = prm as Parameter;
-                    if (parameter != null && parameter.ForInfluenceValue)
-                        continue;
+                    //if (parameter != null && parameter.ForInfluenceValue)
+                    //    continue;
                     var randomRangeParam = prm as CustomParameter;
                     var complexParam = prm as ComplexParameter;
                     if (randomRangeParam != null)

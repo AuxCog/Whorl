@@ -73,9 +73,9 @@ namespace Whorl
                     var customParam = baseParam as CustomParameter;
                     if (customParam != null && customParam.CustomType != CustomParameterTypes.RandomRange)
                         continue;
-                    var param = baseParam as Parameter;
-                    if (param != null && param.ForInfluenceValue)
-                        continue;
+                    //var param = baseParam as Parameter;
+                    //if (param != null && param.ForInfluenceValue)
+                    //    continue;
                     formulaSettings.ConfigureInfluenceParameter(baseParam);
                     string paramLabel = GetParameterLabel(baseParam);
                     int textWidth = TextRenderer.MeasureText(paramLabel, label.Font).Width;

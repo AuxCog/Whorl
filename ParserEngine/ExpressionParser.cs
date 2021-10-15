@@ -2505,6 +2505,8 @@ namespace ParserEngine
                     }
                 }
                 parameter.ForInfluenceValue = forInfluenceValue;
+                if (forInfluenceValue)
+                    visible = false;
                 baseParameter = parameter;
             }
             else if (paramClass == ParameterAttributeNames.array)
