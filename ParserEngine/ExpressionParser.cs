@@ -2114,6 +2114,7 @@ namespace ParserEngine
             varfunction,
             parameters,
             @double,
+            influence,
             boolean,
             complex,
             influencepoint,
@@ -2131,6 +2132,7 @@ namespace ParserEngine
             ParameterAttributeNames.random,
             ParameterAttributeNames.boolean,
             ParameterAttributeNames.complex,
+            ParameterAttributeNames.influence,
             ParameterAttributeNames.influencepoint,
             ParameterAttributeNames.varfunction
         };
@@ -2256,6 +2258,7 @@ namespace ParserEngine
                 { ParameterAttributeNames.@default, ParameterAttributeNames.visible, ParameterAttributeNames.label };
             Parameter parameter = null;
             bool visible = outputParamClass == null;  //Output parameters are hidden by default.
+            bool forInfluenceValue = false;
             while (Success)
             {
                 token = GetToken(tokenIndex);
@@ -2268,7 +2271,7 @@ namespace ParserEngine
                 ParameterAttributeNames? attrNameOrNull = ParseParamAttr(attrNameText);
                 if (attrNameOrNull == null)
                 {
-                    string attrList = string.Join(", ", 
+                    string attrList = string.Join(", ",
                         Enum.GetNames(typeof(ParameterAttributeNames)));
                     AddErrorMessage($"Expecting parameter attribute, one of: {attrList}.", token);
                     return false;
@@ -2279,7 +2282,7 @@ namespace ParserEngine
                 {
                     if (paramClass != ParameterAttributeNames.@double || hasAttributes || outputParamClass != null)
                     {
-                        AddErrorMessage($"The attribute {attributeToken.Text} of parameter @{parameterName} is not valid here.", 
+                        AddErrorMessage($"The attribute {attributeToken.Text} of parameter @{parameterName} is not valid here.",
                                         token);
                         return false;
                     }
@@ -2287,6 +2290,17 @@ namespace ParserEngine
                     {
                         paramClass = attrName;
                         validAttrs = GetValidParamAttrs(paramClass);
+                        if (paramClass == ParameterAttributeNames.influence)
+                        {
+                            if (parameterDict.Values.Any(p => p is Parameter && ((Parameter)p).ForInfluenceValue))
+                            {
+                                AddErrorMessage($"The parameter @{parameterName} is a duplicate Influence parameter.",
+                                                token);
+                                return false;
+                            }
+                            forInfluenceValue = true;
+                            paramClass = ParameterAttributeNames.@double;
+                        }
                         if (paramClass == ParameterAttributeNames.random)
                         {
                             paramClass = ParameterAttributeNames.custom;
@@ -2356,8 +2370,8 @@ namespace ParserEngine
                     //    AddErrorMessage($"Choices are not valid for {paramClass} parameters.", attributeToken);
                     //    break;
                     //}
-                    Type valueType = paramClass == ParameterAttributeNames.@double ? typeof(double) : 
-                                     paramClass == ParameterAttributeNames.varfunction ? typeof(string) : 
+                    Type valueType = paramClass == ParameterAttributeNames.@double ? typeof(double) :
+                                     paramClass == ParameterAttributeNames.varfunction ? typeof(string) :
                                      typeof(Complex);
                     choices = ParseParameterChoices(valueType);
                 }
@@ -2371,7 +2385,7 @@ namespace ParserEngine
                         AddErrorMessage($"Expecting = after {attrNameText} for parameter.", token);
                         break;
                     }
-                    Type dataType = attrName == ParameterAttributeNames.label ? typeof(string) : 
+                    Type dataType = attrName == ParameterAttributeNames.label ? typeof(string) :
                                     attrName == ParameterAttributeNames.visible ? typeof(bool) :
                                     typeof(double);
                     if (attrName == ParameterAttributeNames.@default)
@@ -2425,8 +2439,11 @@ namespace ParserEngine
                             visible = (bool)oAttrVal;
                     }
                 }
-                if (paramClass == ParameterAttributeNames.@double && parameter == null)
-                    parameter = new Parameter(parameterName, Expression);
+                if (paramClass == ParameterAttributeNames.@double)
+                {
+                    if (parameter == null)
+                        parameter = new Parameter(parameterName, Expression);
+                }
                 switch (attrName)
                 {
                     case ParameterAttributeNames.@default:
@@ -2487,6 +2504,7 @@ namespace ParserEngine
                         AddErrorMessage(ex.Message, defaultValueToken);
                     }
                 }
+                parameter.ForInfluenceValue = forInfluenceValue;
                 baseParameter = parameter;
             }
             else if (paramClass == ParameterAttributeNames.array)

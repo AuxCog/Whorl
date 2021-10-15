@@ -96,6 +96,9 @@ namespace Whorl
 
         public ExpressionParser Parser { get; }
         public Expression FormulaExpression { get; private set; }
+
+        public Parameter InfluenceValueParameter { get; private set; }
+
         //public bool FormulaChanged { get; private set; }
         //public bool ParseOnChanges { get; set; }
         public bool IsValid
@@ -363,6 +366,7 @@ namespace Whorl
         {
             if (ifChanged && !isModule && IsValid && formula == Formula)
                 return ParseStatusValues.Success;
+            InfluenceValueParameter = null;
             ParseStatusValues parseStatus;
             bool isValid;
             bool preprocessorErrors = false;
@@ -497,6 +501,10 @@ namespace Whorl
                     {
                         InfluenceLinkParentCollection.ResolveReferences(throwException: false);
                     }
+                }
+                if (!IsCSharpFormula)
+                {
+                    InfluenceValueParameter = Parameters.FirstOrDefault(p => p.ForInfluenceValue);
                 }
             }
             else if (preprocessorErrors)
@@ -742,6 +750,9 @@ namespace Whorl
                 return;
             foreach (BaseParameter prm in baseParameters)
             {
+                var inflParam = prm as Parameter;
+                if (inflParam != null && inflParam.ForInfluenceValue)
+                    continue;
                 var targetPropInfo = evalInstance.ParamsObj.GetType().GetProperty(prm.ParameterName);
                 if (targetPropInfo != null)
                 {
@@ -784,6 +795,9 @@ namespace Whorl
                 //{
                 //    Debug.WriteLine(prm.Value);
                 //}
+                var inflParam = prm as Parameter;
+                if (inflParam != null && inflParam.ForInfluenceValue)
+                    continue;
                 BaseParameter copyPrm = FormulaExpression.GetParameter(prm.ParameterName);
                 if (copyPrm != null && copyPrm.GetType() == prm.GetType())
                 {
@@ -1212,6 +1226,11 @@ namespace Whorl
             childNode.AppendChild(subNode);
         }
 
+        /// <summary>
+        /// Note: Most parameter attributes are parsed from the formula, not saved in the xml node.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="xmlTools"></param>
         private void AppendParsedParametersToXml(XmlNode node, XmlTools xmlTools)
         {
             var parameters = BaseParameters; //.Where(p => 
@@ -1222,6 +1241,9 @@ namespace Whorl
                 childNode = xmlTools.CreateXmlNode("Parameters");
                 foreach (BaseParameter prm in parameters)
                 {
+                    var parameter = prm as Parameter;
+                    if (parameter != null && parameter.ForInfluenceValue)
+                        continue;
                     var randomRangeParam = prm as CustomParameter;
                     var complexParam = prm as ComplexParameter;
                     if (randomRangeParam != null)
@@ -1241,7 +1263,6 @@ namespace Whorl
                     subNode = xmlTools.CreateXmlNode(nameof(Parameter));
                     xmlTools.AppendXmlAttribute(subNode, "Name", prm.ParameterName);
                     xmlTools.AppendXmlAttribute(subNode, "TypeName", prm.GetType().Name);
-                    var parameter = prm as Parameter;
                     if (parameter != null)
                     {
                         xmlTools.AppendXmlAttribute(subNode, "Value", parameter.ValueString);

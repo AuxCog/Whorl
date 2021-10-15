@@ -2161,6 +2161,11 @@ namespace Whorl
                 {
                     influenceParent.SetParameterValues(doublePoint, forRendering: false);
                 }
+                if (transform.TransformSettings.InfluenceValueParameter != null)
+                {
+                    transform.TransformSettings.InfluenceValueParameter.SetInfluenceValue(
+                              InfluencePointInfoList.ComputeAverage(doublePoint, forRendering: false));
+                }
                 transform.TransformPoint(ref modulus, ref angle);
             }
             return modulus;

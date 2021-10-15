@@ -335,6 +335,10 @@ namespace ParserEngine
         public double? ImprovMaxValue { get; set; }
         public bool Locked { get; set; }  //Locked to changes by improvisation.
         public Guid Guid { get; set; }
+        /// <summary>
+        /// True if parameter will be set to influence value on execution.
+        /// </summary>
+        public bool ForInfluenceValue { get; internal set; }
 
         private List<Token[]> DependentExpressions { get; set; }
 
@@ -381,6 +385,11 @@ namespace ParserEngine
             if (DecimalPlaces != null)
                 usedValue = Math.Round(usedValue, (int)DecimalPlaces);
             UsedValue = usedValue;
+        }
+
+        public void SetInfluenceValue(double value)
+        {
+            UsedValue = value;
         }
 
         protected override object ValidateValue(object value, string propertyName,

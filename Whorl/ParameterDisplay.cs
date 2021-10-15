@@ -68,13 +68,16 @@ namespace Whorl
                 int parameterIndex = 0;
                 AddActionComboBox(ref parameterIndex);
                 var label = new Label();
-                foreach (BaseParameter parameter in formulaSettings.BaseParameters)
+                foreach (BaseParameter baseParam in formulaSettings.BaseParameters)
                 {
-                    var customParam = parameter as CustomParameter;
+                    var customParam = baseParam as CustomParameter;
                     if (customParam != null && customParam.CustomType != CustomParameterTypes.RandomRange)
                         continue;
-                    formulaSettings.ConfigureInfluenceParameter(parameter);
-                    string paramLabel = GetParameterLabel(parameter);
+                    var param = baseParam as Parameter;
+                    if (param != null && param.ForInfluenceValue)
+                        continue;
+                    formulaSettings.ConfigureInfluenceParameter(baseParam);
+                    string paramLabel = GetParameterLabel(baseParam);
                     int textWidth = TextRenderer.MeasureText(paramLabel, label.Font).Width;
                     int labelSpan;
                     if (textWidth > critControlWidth - critLeftMargin)
@@ -96,7 +99,7 @@ namespace Whorl
                     {
                         parameterIndex += columnsRemaining;  //Start new row.
                     }
-                    if (AddParameterControls(ParametersPanel, parameter, parameterIndex, labelSpan))
+                    if (AddParameterControls(ParametersPanel, baseParam, parameterIndex, labelSpan))
                         parameterIndex += columnsRequired;
                 }
             }

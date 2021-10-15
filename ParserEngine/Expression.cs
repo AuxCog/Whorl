@@ -54,10 +54,7 @@ namespace ParserEngine
                    tok => TokenHasValidIdentifier(tok, validIdentifier));
         }
 
-        public IEnumerable<BaseParameter> Parameters
-        {
-            get { return parameterDict.Values.AsEnumerable(); }
-        }
+        public IEnumerable<BaseParameter> Parameters => parameterDict.Values.AsEnumerable();
 
         public BaseParameter GetParameter(string parameterName)
         {
