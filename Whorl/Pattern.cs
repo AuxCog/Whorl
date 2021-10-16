@@ -1162,16 +1162,13 @@ namespace Whorl
                                                 .Select(pf => new PointF(pf.X - Info.Center.X, pf.Y - Info.Center.Y));
                 double maxModulus = transformedCorners.Select(pf => Tools.GetModulus(pf)).Max();
                 Info.SetMaxModulus(maxModulus);
-                if (influenceParentCollection != null)
+                foreach (var influencePointInfo in ParentPattern.InfluencePointInfoList.InfluencePointInfos)
                 {
-                    foreach (var influencePointInfo in ParentPattern.InfluencePointInfoList.InfluencePointInfos)
-                    {
-                        PointF pt = new PointF((float)influencePointInfo.InfluencePoint.X * floatScaleFactor, 
-                                               (float)influencePointInfo.InfluencePoint.Y * floatScaleFactor);
-                        if (pointRotation != 0)
-                            pt = Tools.RotatePoint(pt, rotationVector);
-                        influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
-                    }
+                    PointF pt = new PointF((float)influencePointInfo.InfluencePoint.X * floatScaleFactor,
+                                           (float)influencePointInfo.InfluencePoint.Y * floatScaleFactor);
+                    if (pointRotation != 0)
+                        pt = Tools.RotatePoint(pt, rotationVector);
+                    influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
                 }
             }
 
