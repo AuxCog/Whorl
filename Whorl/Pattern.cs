@@ -1170,6 +1170,7 @@ namespace Whorl
                         pt = Tools.RotatePoint(pt, rotationVector);
                     influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
                 }
+                Info.InfluenceValue = 0;
             }
 
             private PointF TransformPoint(float x, float y)
