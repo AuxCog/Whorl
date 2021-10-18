@@ -1164,25 +1164,27 @@ namespace Whorl
                 Info.SetMaxModulus(maxModulus);
                 foreach (var influencePointInfo in ParentPattern.InfluencePointInfoList.InfluencePointInfos)
                 {
-                    PointF pt = new PointF((float)influencePointInfo.InfluencePoint.X * floatScaleFactor,
-                                           (float)influencePointInfo.InfluencePoint.Y * floatScaleFactor);
-                    if (pointRotation != 0)
-                        pt = Tools.RotatePoint(pt, rotationVector);
+                    PointF pt = TransformPoint((float)influencePointInfo.InfluencePoint.X, 
+                                               (float)influencePointInfo.InfluencePoint.Y,
+                                               subtractCenter: false);
                     influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
                 }
                 Info.InfluenceValue = 0;
             }
 
-            private PointF TransformPoint(float x, float y)
+            private PointF TransformPoint(float x, float y, bool subtractCenter = true)
             {
                 float fX = transformedPanXY.X + x;
                 float fY = transformedPanXY.Y + y;
                 PointF p;
                 if (Info.Normalize)
                 {
-                    fX = floatScaleFactor * (fX - origCenter.X);
-                    fY = floatScaleFactor * (fY - origCenter.Y);
-                    p = new PointF(fX, fY);
+                    if (subtractCenter)
+                    {
+                        fX -= origCenter.X;
+                        fY -= origCenter.Y;
+                    }
+                    p = new PointF(floatScaleFactor * fX, floatScaleFactor * fY);
                     if (pointRotation != 0)
                         p = Tools.RotatePoint(p, rotationVector);
                 }
