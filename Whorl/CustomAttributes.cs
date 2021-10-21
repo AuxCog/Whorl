@@ -90,12 +90,12 @@ namespace Whorl
     }
 
     [AttributeUsage(AttributeTargets.Enum)]
-    public class KeyedEnumAttribute : Attribute
+    public class KeyEnumAttribute : Attribute
     {
         public string ParamsClassName { get; set; }
         public bool Exclusive { get; set; }
 
-        public KeyedEnumAttribute(string paramsClassName, bool exclusive = true)
+        public KeyEnumAttribute(string paramsClassName, bool exclusive = true)
         {
             ParamsClassName = paramsClassName;
             Exclusive = exclusive;

@@ -39,6 +39,8 @@ namespace Whorl
             Namespace,
             Parameters,
             KeyParameters,
+            KeyEnum,
+            Exclusive,
             Main,
             Update,
             Initialize,
@@ -47,7 +49,9 @@ namespace Whorl
             Min,
             Max,
             Label,
-            DistanceCount
+            DistanceCount,
+            True,
+            False
         }
 
         private enum MethodNames
@@ -1301,7 +1305,7 @@ $@"public void {methodName}()
             bool isValid = atKeyParameters = false;
             if (ParseReservedWord(token.Text, out ReservedWords directive,
                                   vws => AddError(token, "Expecting " + Tools.GetEnglishPhrase(vws.Select(rw => GetDirectiveText(rw)))),
-                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters))
+                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters, ReservedWords.KeyEnum))
             {
                 tokenIndex++;
                 switch (directive)
@@ -1326,6 +1330,46 @@ $@"public void {methodName}()
                         break;
                     case ReservedWords.KeyParameters:
                         isValid = atKeyParameters = true;
+                        break;
+                    case ReservedWords.KeyEnum:
+                        token = GetToken(tokenIndex++);
+                        bool exclusive = true;
+                        if (token.TokenType == Token.TokenTypes.Identifier)
+                        {
+                            string className = token.Text;
+                            token = GetToken(tokenIndex);
+                            if (ParseReservedWord(token.Text, ReservedWords.Exclusive))
+                            {
+                                tokenIndex++;
+                                if (TryParseTokenText(ref tokenIndex, "=") != null)
+                                {
+                                    token = GetToken(tokenIndex++);
+                                    if (ParseReservedWord(token.Text, out var trueOrFalse, ReservedWords.True, ReservedWords.False))
+                                    {
+                                        exclusive = trueOrFalse == ReservedWords.True;
+                                        isValid = true;
+                                    }
+                                    else
+                                    {
+                                        AddError(token, "Expecting True or False following Exclusive = .");
+                                    }
+                                }
+                                else
+                                {
+                                    AddError(token, "Expecting = following Exclusive.");
+                                }
+                            }
+                            else
+                                isValid = true;
+                            if (isValid)
+                            {
+                                newCodeParts.Add($"[KeyEnum(nameof({className}), {exclusive.ToString().ToLower()})]");
+                            }
+                        }
+                        else
+                        {
+                            AddError(token, "Expecting parameters class name following " + GetDirectiveText(directive) + ".");
+                        }
                         break;
                 }
             }

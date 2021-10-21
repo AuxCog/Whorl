@@ -578,7 +578,7 @@ namespace Whorl
             if (!IsCSharpFormula || compiledInfo?.EvalClassType == null)
                 return new Type[] { };
             return compiledInfo.EvalClassType.GetNestedTypes()
-                   .Where(t => t.IsEnum && t.GetCustomAttribute<KeyedEnumAttribute>() != null);
+                   .Where(t => t.IsEnum && t.GetCustomAttribute<KeyEnumAttribute>() != null);
         }
 
         public bool EvalStatements(CSharpCompiledInfo.EvalInstance evalInstance, bool throwException = true)
