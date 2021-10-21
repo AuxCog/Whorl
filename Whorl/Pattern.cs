@@ -3958,20 +3958,28 @@ namespace Whorl
                         break;
                 }
             }
-            foreach (PatternTransform transform in Transforms)
+            foreach (var formulaSettings in GetFormulaSettings())
             {
-                transform.TransformSettings.ConfigureAllInfluenceParameters();
-                if (transform.TransformSettings.InfluenceLinkParentCollection != null)
+                formulaSettings.ConfigureAllInfluenceParameters();
+                if (formulaSettings.InfluenceLinkParentCollection != null)
                 {
-                    transform.TransformSettings.InfluenceLinkParentCollection.ResolveReferences();
+                    formulaSettings.InfluenceLinkParentCollection.ResolveReferences();
                 }
             }
-            if (PixelRendering?.FormulaSettings != null)
-            {
-                PixelRendering.FormulaSettings.ConfigureAllInfluenceParameters();
-                if (PixelRendering.FormulaSettings.InfluenceLinkParentCollection != null)
-                    PixelRendering.FormulaSettings.InfluenceLinkParentCollection.ResolveReferences();
-            }
+            //foreach (PatternTransform transform in Transforms)
+            //{
+            //    transform.TransformSettings.ConfigureAllInfluenceParameters();
+            //    if (transform.TransformSettings.InfluenceLinkParentCollection != null)
+            //    {
+            //        transform.TransformSettings.InfluenceLinkParentCollection.ResolveReferences();
+            //    }
+            //}
+            //if (PixelRendering?.FormulaSettings != null)
+            //{
+            //    PixelRendering.FormulaSettings.ConfigureAllInfluenceParameters();
+            //    if (PixelRendering.FormulaSettings.InfluenceLinkParentCollection != null)
+            //        PixelRendering.FormulaSettings.InfluenceLinkParentCollection.ResolveReferences();
+            //}
             if (textureFillNode != null)
             {
                 fillInfo = new TextureFillInfo(this);
@@ -3994,6 +4002,18 @@ namespace Whorl
                 SetVertexAnglesParameters();
             HasRandomElements = GetHasRandom();
             SetImprovParameters();
+        }
+
+        public IEnumerable<FormulaSettings> GetFormulaSettings()
+        {
+            foreach (var transform in Transforms)
+            {
+                yield return transform.TransformSettings;
+            }
+            if (PixelRendering?.FormulaSettings != null)
+            {
+                yield return PixelRendering.FormulaSettings;
+            }
         }
 
         private void SetImprovParameters()

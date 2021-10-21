@@ -77,6 +77,9 @@ namespace Whorl
             }
         }
 
+        public HashSet<string> FilterKeys { get; } = new HashSet<string>();
+        public Dictionary<string, KeyEnumInfo> FilterKeysDict { get; private set; } = new Dictionary<string, KeyEnumInfo>();
+
         public static IEnumerable<string> TransformFunctionNames => staticMethodsDict.Keys.OrderBy(s => s);
 
         private static Dictionary<string, MethodInfo> staticMethodsDict { get; } = new Dictionary<string, MethodInfo>();
@@ -86,6 +89,8 @@ namespace Whorl
         public bool Selected { get; set; }
 
         public EventHandler RemovedFromList;
+
+        private XmlNode filterKeysDictXmlNode { get; set; }
 
         static InfluencePointInfo()
         {
@@ -117,8 +122,11 @@ namespace Whorl
 
         public void CopyProperties(InfluencePointInfo source)
         {
-            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(Id) });
+            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(Id), nameof(FilterKeysDict) });
             Id = source.Id;
+            FilterKeys.Clear();
+            FilterKeys.UnionWith(source.FilterKeys);
+            FilterKeysDict = new Dictionary<string, KeyEnumInfo>(source.FilterKeysDict);
         }
 
         public void CopyInfluenceLinks(InfluencePointInfo source)
@@ -152,6 +160,14 @@ namespace Whorl
                                         .Where(il => il.InfluencePointInfo == source));
             }
         }
+
+        //public double GetKeyFactor(object key)
+        //{
+        //    double factor;
+        //    if (key == null || !FactorsByKey.TryGetValue(key.ToString(), out factor))
+        //        factor = 0.0;
+        //    return factor;
+        //}
 
         public bool CopyRadially()
         {
@@ -321,7 +337,32 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointX", InfluencePoint.X);
             xmlTools.AppendXmlAttribute(xmlNode, "InfluencePointY", InfluencePoint.Y);
             xmlTools.AppendXmlAttributesExcept(xmlNode, this, 
-                     nameof(ParentPattern), nameof(TransformedPoint), nameof(InfluencePoint), nameof(TransformFunc), nameof(Selected));
+                     nameof(ParentPattern), nameof(TransformedPoint), nameof(InfluencePoint), 
+                     nameof(TransformFunc), nameof(Selected), nameof(FilterKeys));
+            if (FilterKeys.Any())
+            {
+                XmlNode keysNode = xmlTools.CreateXmlNode(nameof(FilterKeys));
+                foreach (string key in FilterKeys)
+                {
+                    var keyNode = xmlTools.CreateXmlNode("Key");
+                    xmlTools.AppendXmlAttribute(keyNode, "Value", key);
+                    keysNode.AppendChild(keyNode);
+                }
+                xmlNode.AppendChild(keysNode);
+            }
+            if (FilterKeysDict.Any())
+            {
+                XmlNode keysDictNode = xmlTools.CreateXmlNode(nameof(FilterKeysDict));
+                foreach (var keyVal in FilterKeysDict)
+                {
+                    var keyValNode = xmlTools.CreateXmlNode("Key");
+                    xmlTools.AppendXmlAttribute(keyValNode, "Value", keyVal.Key);
+                    FormulaSettings.AppendCSharpParametersToXml(keyValNode, xmlTools, keyVal.Value.ParametersObject);
+                    //xmlTools.AppendXmlAttribute(keyValNode, "Value", keyVal.Value);
+                    keysDictNode.AppendChild(keyValNode);
+                }
+                xmlNode.AppendChild(keysDictNode);
+            }
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
@@ -335,6 +376,33 @@ namespace Whorl
             {
                 AverageWeight = InfluenceFactor;  //Legacy code.
             }
+            foreach (XmlNode childNode in node.ChildNodes)
+            {
+                if (childNode.Name == nameof(FilterKeys))
+                {
+                    foreach (XmlNode keyNode in childNode.ChildNodes)
+                    {
+                        FilterKeys.Add(Tools.GetXmlAttribute<string>(keyNode, "Value"));
+                    }
+                }
+                else if (childNode.Name == nameof(FilterKeysDict))
+                {
+                    filterKeysDictXmlNode = childNode;
+                    //foreach (XmlNode keyValNode in childNode.ChildNodes)
+                    //{
+                    //    string key = Tools.GetXmlAttribute<string>(keyValNode, "Key");
+                    //    double factor = Tools.GetXmlAttribute<double>(keyValNode, "Value");
+                    //    FactorsByKey.Add(key, factor);
+                    //}
+                }
+            }
+        }
+
+        public void FinishFromXml()
+        {
+            if (filterKeysDictXmlNode == null)
+                return;
+
         }
 
         public override string ToString()
@@ -363,7 +431,7 @@ namespace Whorl
         /// </summary>
         /// <param name="source"></param>
         /// <param name="pattern"></param>
-        public InfluencePointInfoList(InfluencePointInfoList source, Pattern pattern): this(pattern)
+        public InfluencePointInfoList(InfluencePointInfoList source, Pattern pattern) : this(pattern)
         {
             influencePointInfoList.AddRange(source.InfluencePointInfos.Select(ip => new InfluencePointInfo(ip, pattern)));
         }
@@ -381,6 +449,18 @@ namespace Whorl
                 influencePointInfo.OnRemoved();  //Raises event.
             }
             return removed;
+        }
+
+        public IEnumerable<InfluencePointInfo> GetFilteredInfluencePointInfos(string key)
+        {
+            return InfluencePointInfos.Where(ip => key != null && ip.FilterKeysDict.ContainsKey(key));
+        }
+
+        public IEnumerable<InfluencePointInfo> GetFilteredInfluencePointInfos(IEnumerable<string> keys, bool useOr = false, bool include = true)
+        {
+            return InfluencePointInfos.Where(ip => ip.EvalBool(keys, 
+                                            (_, a) => a != null && ip.FilterKeysDict.ContainsKey(a), useOr)
+                                            == include);
         }
 
         public double ComputeAverage(DoublePoint patternPoint, bool forRendering)

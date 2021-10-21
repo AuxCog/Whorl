@@ -19,6 +19,7 @@ namespace Whorl
 
         private InfluencePointInfo origInfluencePointInfo { get; set; }
         private InfluencePointInfo editedInfluencePointInfo { get; set; }
+        private Pattern parentPattern { get; set; }
 
         private void frmInfluencePoint_Load(object sender, EventArgs e)
         {
@@ -26,6 +27,21 @@ namespace Whorl
             {
                 cboTransformFunction.DataSource = InfluencePointInfo.TransformFunctionNames.ToList();
                 cboTransformFunction.SelectedItem = editedInfluencePointInfo.TransformFunctionName;
+                if (parentPattern != null)
+                {
+                    var keyedEnumTypes = parentPattern.GetFormulaSettings().SelectMany(fs => fs.GetKeyedEnumTypes());
+                    if (keyedEnumTypes.Any())
+                    {
+                        var keys = keyedEnumTypes.SelectMany(t => Enum.GetValues(t).Cast<object>().Select(v => Tools.GetEnumKey(v))).ToArray();
+                        clbEnumKeys.Items.AddRange(keys);
+                        for (int i = 0; i < clbEnumKeys.Items.Count; i++)
+                        {
+                            string key = (string)clbEnumKeys.Items[i];
+                            clbEnumKeys.SetItemChecked(i, editedInfluencePointInfo.FilterKeysDict.ContainsKey(key));
+                        }
+                        cboEnumKey.DataSource = keys;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -38,6 +54,7 @@ namespace Whorl
             try
             {
                 origInfluencePointInfo = influencePointInfo;
+                parentPattern = influencePointInfo.ParentPattern;
                 editedInfluencePointInfo = new InfluencePointInfo();
                 editedInfluencePointInfo.CopyProperties(origInfluencePointInfo);
                 lblPointID.Text = influencePointInfo.Id.ToString();
@@ -91,6 +108,8 @@ namespace Whorl
             else
                 errMessages.Add("Function Offset must be a number.");
             editedInfluencePointInfo.TransformFunctionName = (string)cboTransformFunction.SelectedItem;
+            editedInfluencePointInfo.FilterKeys.Clear();
+            editedInfluencePointInfo.FilterKeys.UnionWith(clbEnumKeys.CheckedItems.Cast<string>());
             return errMessages.Any() ? string.Join(Environment.NewLine, errMessages) : null;
         }
 
@@ -127,5 +146,40 @@ namespace Whorl
             }
         }
 
+        private void cboEnumKey_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                //string key = (string)cboEnumKey.SelectedItem;
+                //if (string.IsNullOrEmpty(key))
+                //    return;
+                //double factor = editedInfluencePointInfo.GetKeyFactor(key);
+                //txtKeyFactor.Text = factor.ToString("0.####");
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void BtnApplyKeyFactor_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                //string key = (string)cboEnumKey.SelectedItem;
+                //if (string.IsNullOrEmpty(key))
+                //    return;
+                //if (!double.TryParse(txtKeyFactor.Text, out double factor))
+                //{
+                //    MessageBox.Show("Please enter a number for Key Factor.");
+                //    return;
+                //}
+                //editedInfluencePointInfo.FactorsByKey[key] = factor;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

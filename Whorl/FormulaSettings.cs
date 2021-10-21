@@ -79,9 +79,14 @@ namespace Whorl
         private CSharpCompiledInfo.EvalInstance _evalInstance;
         private CSharpCompiledInfo.EvalInstance _testEvalInstance;
 
+        private CSharpCompiledInfo.EvalInstance GetEvalInstance()
+        {
+            return TestCSharpEvalType == null ? _evalInstance : _testEvalInstance;
+        }
+
         private void SetEvalInstance()
         {
-            EvalInstance = TestCSharpEvalType == null ? _evalInstance : _testEvalInstance;
+            EvalInstance = GetEvalInstance();
         }
 
         public void SetCSharpInfoInstance(object info)
@@ -228,7 +233,7 @@ namespace Whorl
             Parser = parser;
         }
 
-        public FormulaSettings(FormulaSettings source, configureDelegate configureParser = null, 
+        public FormulaSettings(FormulaSettings source, configureDelegate configureParser = null,
                                ExpressionParser parser = null, Pattern pattern = null)
         {
             FormulaType = source.FormulaType;
@@ -250,7 +255,7 @@ namespace Whorl
                 //Set properties so Parse() will copy parameters:
                 if (IsCSharpFormula)
                 {
-                    SavedParamsObj = source.EvalInstance != null ? 
+                    SavedParamsObj = source.EvalInstance != null ?
                                      source.EvalInstance.ParamsObj : source.SavedParamsObj;
                     _evalInstance = cSharpCompiledInfo.CreateEvalInstance();
                     SetEvalInstance();
@@ -268,11 +273,11 @@ namespace Whorl
         {
             return new FormulaSettings(this, configureParser, parser, pattern);
         }
-        
+
         static FormulaSettings()
         {
             MethodInfo methodInfo = typeof(FormulaSettings).GetMethod(nameof(GetRandomValue),
-                                    BindingFlags.Static | BindingFlags.Public); 
+                                    BindingFlags.Static | BindingFlags.Public);
             if (methodInfo != null)
             {
                 ExpressionParser.DeclareFunction(methodInfo.Name, methodInfo.ReturnType, methodInfo);
@@ -358,8 +363,8 @@ namespace Whorl
         /// <param name="displayWarnings"></param>
         /// <param name="isModule">True if formula is for a module to merge into a regular formula.</param>
         /// <returns></returns>
-        public ParseStatusValues Parse(string formula, bool throwException = true, IFormulaForm formulaForm = null, 
-                          bool ifChanged = true, bool initCSharpParams = true, 
+        public ParseStatusValues Parse(string formula, bool throwException = true, IFormulaForm formulaForm = null,
+                          bool ifChanged = true, bool initCSharpParams = true,
                           bool displayErrors = true, bool displayWarnings = true, bool isModule = false,
                           bool resolveInfluenceReferences = true)
         {
@@ -388,22 +393,29 @@ namespace Whorl
                     compiledInfo.CompileCode(cSharpCode);
                     //compiledInfo = CSharpCompiler.Instance.CompileCode(cSharpCode);
                     if (!isModule)
-                        this.cSharpCompiledInfo = compiledInfo;
+                        cSharpCompiledInfo = compiledInfo;
                     isValid = compiledInfo.EvalClassType != null && !compiledInfo.Errors.Any();
-                    if (isValid && !isModule)
+                    if (!isModule)
                     {
-                        Formula = formula;
-                        _evalInstance = compiledInfo.CreateEvalInstance();
-                        if (_evalInstance?.ParamsObj != null)
+                        if (isValid)
                         {
-                            if (SavedParamsObj == null)
+                            isValid = ValidateKeyedEnums();
+                        }
+                        if (isValid)
+                        {
+                            Formula = formula;
+                            _evalInstance = compiledInfo.CreateEvalInstance();
+                            if (_evalInstance?.ParamsObj != null)
                             {
-                                if (initCSharpParams)
-                                    CopyLegacyParametersToCSharp(BaseParameters, _evalInstance);
+                                if (SavedParamsObj == null)
+                                {
+                                    if (initCSharpParams)
+                                        CopyLegacyParametersToCSharp(BaseParameters, _evalInstance);
+                                }
+                                else
+                                    CopyCSharpParameters(SavedParamsObj, _evalInstance);
+                                SavedParamsObj = _evalInstance.ParamsObj;
                             }
-                            else
-                                CopyCSharpParameters(SavedParamsObj, _evalInstance);
-                            SavedParamsObj = _evalInstance.ParamsObj;
                         }
                     }
                 }
@@ -470,7 +482,7 @@ namespace Whorl
                                 cSharpCode = formula;
                             if (preprocessorErrors || compiledInfo.Errors.Any())
                             {
-                                frm.Initialize(this, formulaForm, preprocessorErrors, 
+                                frm.Initialize(this, formulaForm, preprocessorErrors,
                                                compiledInfo, cSharpCode);
                                 Tools.DisplayForm(frm);
                             }
@@ -532,6 +544,41 @@ namespace Whorl
                 if (FormulaExpression != null)
                     FormulaExpression.InitializeGlobals();
             }
+        }
+
+        /// <summary>
+        /// Ensure keyed enum types don't have duplicate names within pattern.
+        /// </summary>
+        /// <returns></returns>
+        private bool ValidateKeyedEnums()
+        {
+            if (ParentPattern == null)
+                return true;
+            var compiledInfo = CSharpCompiledInfo;
+            var keyedEnumTypes = GetKeyedEnumTypes();
+            bool hasDuplicate = false;
+            foreach (var formulaSettings in ParentPattern.GetFormulaSettings()
+                     .Where(fs => fs != this && fs.IsCSharpFormula && fs.IsValid))
+            {
+                foreach (Type enumType in keyedEnumTypes)
+                {
+                    if (formulaSettings.CSharpCompiledInfo.EvalClassType.GetNestedType(enumType.Name) != null)
+                    {
+                        hasDuplicate = true;
+                        compiledInfo.Errors.Add(new CSharpCompiledInfo.ErrorInfo($"The keyed enum type name {enumType.Name} is a duplicate."));
+                    }
+                }
+            }
+            return !hasDuplicate;
+        }
+
+        public IEnumerable<Type> GetKeyedEnumTypes()
+        {
+            var compiledInfo = CSharpCompiledInfo;
+            if (!IsCSharpFormula || compiledInfo?.EvalClassType == null)
+                return new Type[] { };
+            return compiledInfo.EvalClassType.GetNestedTypes()
+                   .Where(t => t.IsEnum && t.GetCustomAttribute<KeyedEnumAttribute>() != null);
         }
 
         public bool EvalStatements(CSharpCompiledInfo.EvalInstance evalInstance, bool throwException = true)
@@ -648,7 +695,7 @@ namespace Whorl
             if (!typesMatch)
             {
                 var arrayPropsWithAttrs = targetType.GetProperties()
-                                          .Where(pi => pi.PropertyType.IsArray && 
+                                          .Where(pi => pi.PropertyType.IsArray &&
                                           pi.GetCustomAttribute<ArrayBaseNameAttribute>() != null);
                 foreach (PropertyInfo arrayPropInfo in arrayPropsWithAttrs)
                 {
@@ -808,7 +855,7 @@ namespace Whorl
                     {
                         var copyCprm = copyPrm as CustomParameter;
                         copyCprm.SelectedPropertyInfo = cprm.SelectedPropertyInfo;
-                        if (cprm.CustomType == CustomParameterTypes.RandomRange && 
+                        if (cprm.CustomType == CustomParameterTypes.RandomRange &&
                             copyCprm.CustomType == CustomParameterTypes.RandomRange)
                         {
                             foreach (PropertyInfo propInfo in RandomRange.ParameterProperties)
@@ -849,7 +896,7 @@ namespace Whorl
             {
                 MessageBox.Show("You haven't copied parameters yet to paste.");
             }
-            else if  (sourceFormulaSettings == this)
+            else if (sourceFormulaSettings == this)
             {
                 MessageBox.Show("The target parameters are the same as the source.");
             }
@@ -970,12 +1017,12 @@ namespace Whorl
                 return;
             foreach (XmlNode childNode in node.ChildNodes)
             {
-                string parameterName = 
+                string parameterName =
                     (string)Tools.GetXmlAttribute("Name", typeof(string), childNode);
                 BaseParameter prm = FormulaExpression.GetParameter(parameterName);
                 if (prm != null)
                 {
-                    string typeName = Tools.GetXmlAttribute("TypeName", typeof(string), childNode, 
+                    string typeName = Tools.GetXmlAttribute("TypeName", typeof(string), childNode,
                                                             required: false) as string;
                     if (typeName != null && prm.GetType().Name != typeName)
                     {
@@ -1055,22 +1102,30 @@ namespace Whorl
 
         private void ParseCSharpParamsXml(XmlNode node)
         {
-            ParseCSharpParamsXml(node, out bool updateParams, forArrayParams: false);
+            object paramsObj = EvalInstance?.ParamsObj;
+            if (paramsObj == null)
+                return;
+            ParseCSharpParamsXml(node, out bool updateParams, forArrayParams: false, paramsObj);
             if (updateParams)
                 EvalInstance.UpdateParameters();
-            ParseCSharpParamsXml(node, out updateParams, forArrayParams: true);
+            ParseCSharpParamsXml(node, out updateParams, forArrayParams: true, paramsObj);
         }
 
-        private void ParseCSharpParamsXml(XmlNode node, out bool updateParams, bool forArrayParams)
+        public static void ParseCSharpParamsXml(XmlNode node, object paramsObj)
+        {
+            ParseCSharpParamsXml(node, out _, forArrayParams: false, paramsObj);
+        }
+
+        private static void ParseCSharpParamsXml(XmlNode node, out bool updateParams, bool forArrayParams, object paramsObj)
         {
             updateParams = false;
-            if (EvalInstance?.ParamsObj == null)
+            if (paramsObj == null)
                 return;
             foreach (XmlNode subNode in node.ChildNodes)
             {
                 string parameterName =
                     (string)Tools.GetXmlAttribute("Name", typeof(string), subNode);
-                var propInfo = EvalInstance.ParamsObj.GetType().GetProperty(parameterName);
+                var propInfo = paramsObj.GetType().GetProperty(parameterName);
                 if (propInfo == null)
                     continue;
                 if (forArrayParams != propInfo.PropertyType.IsArray)
@@ -1081,17 +1136,18 @@ namespace Whorl
                 {
                     throw new Exception("Invalid parameter type read from XML file.");
                 }
-                object oParam = propInfo.GetValue(EvalInstance.ParamsObj);
+                object oParam = propInfo.GetValue(paramsObj);
                 Array paramArray = null;
                 if (forArrayParams)
                 {
                     paramArray = oParam as Array;
                 }
-                ParseCSharpParamXml(subNode, oParam, propInfo, paramArray, ref updateParams);
+                ParseCSharpParamXml(subNode, oParam, propInfo, paramArray, ref updateParams, paramsObj);
             }
         }
 
-        private void ParseCSharpParamXml(XmlNode subNode, object oParam, PropertyInfo propInfo, Array paramArray, ref bool updateParams)
+        private static void ParseCSharpParamXml(XmlNode subNode, object oParam, PropertyInfo propInfo, 
+                                                Array paramArray, ref bool updateParams, object paramsObj)
         {
             int index = -1;
             Type paramType;
@@ -1145,7 +1201,7 @@ namespace Whorl
                         paramArray.SetValue(oVal, index);
                     else
                     {
-                        propInfo.SetValue(EvalInstance.ParamsObj, oVal);
+                        propInfo.SetValue(paramsObj, oVal);
                         if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(oVal, oParam))
                             updateParams = true;
                     }
@@ -1157,12 +1213,17 @@ namespace Whorl
 
         private void AppendCSharpParametersToXml(XmlNode node, XmlTools xmlTools)
         {
-            if (EvalInstance?.ParamsObj == null)
+            AppendCSharpParametersToXml(node, xmlTools, EvalInstance?.ParamsObj);
+        }
+
+        public static void AppendCSharpParametersToXml(XmlNode node, XmlTools xmlTools, object paramsObject)
+        {
+            if (paramsObject == null)
                 return;
             XmlNode childNode = xmlTools.CreateXmlNode("Parameters");
-            foreach (var propInfo in EvalInstance.ParamsObj.GetType().GetProperties())
+            foreach (var propInfo in paramsObject.GetType().GetProperties())
             {
-                object oVal = propInfo.GetValue(EvalInstance.ParamsObj);
+                object oVal = propInfo.GetValue(paramsObject);
                 if (oVal == null)
                     continue;
                 if (oVal.GetType().IsArray)
@@ -1201,7 +1262,7 @@ namespace Whorl
             node.AppendChild(childNode);
         }
 
-        private void AppendCSharpParameterToXml(XmlNode childNode, object oVal, PropertyInfo propInfo, XmlTools xmlTools, int index = -1)
+        private static void AppendCSharpParameterToXml(XmlNode childNode, object oVal, PropertyInfo propInfo, XmlTools xmlTools, int index = -1)
         {
             if (oVal == null || oVal is RandomParameter)
                 return;

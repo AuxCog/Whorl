@@ -16,9 +16,6 @@ namespace Whorl
 {
     public static class Tools
     {
-        public const string XmlHeader = "<?xml version='1.0' encoding='utf-8' ?>";
-
-
         public static void HandleException(Exception ex)
         {
             try
@@ -937,6 +934,31 @@ namespace Whorl
             txtBox.Text = txtBoxText;
             txtBox.SelectionStart = caretPos + text.Length;
             txtBox.ScrollToCaret();
+        }
+
+        public static bool EvalBool<TVal, TArg>(this TVal val, IEnumerable<TArg> args, Func<TVal, TArg, bool> predicate, bool useOr = false)
+        {
+            return args.Any() && args.Any(a => predicate(val, a) == useOr) == useOr;
+        }
+
+        public static string GetEnumKey(object enumVal)
+        {
+            if (enumVal == null || !enumVal.GetType().IsEnum)
+            {
+                throw new Exception("enumVal must be of Enum type.");
+            }
+            return $"{enumVal.GetType().Name}.{enumVal}";
+        }
+
+        public static string GetEnglishPhrase(IEnumerable<string> texts, bool useOr = true)
+        {
+            var list = texts.ToList();
+            if (list.Count > 1)
+            {
+                list[list.Count - 2] += $" {(useOr ? "or" : "and")} {list[list.Count - 1]}";
+                list.RemoveAt(list.Count - 1);
+            }
+            return string.Join(", ", list);
         }
     }
 }

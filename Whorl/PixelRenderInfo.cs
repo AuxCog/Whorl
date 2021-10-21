@@ -99,6 +99,19 @@ namespace Whorl
             else
                 return parent.SeedPattern.ComputeSeedPoint(angle);
         }
+
+        public IEnumerable<InfluencePointInfo> GetInfluencePoints(object enumVal)
+        {
+            if (enumVal == null || !enumVal.GetType().IsEnum)
+            {
+                throw new Exception("enumVal must be of Enum type.");
+            }
+            if (parent.ParentPattern.InfluencePointInfoList == null)
+                return new InfluencePointInfo[] { };
+            var copiedPointsList = new InfluencePointInfoList(parent.ParentPattern.InfluencePointInfoList, parent.ParentPattern);
+            string key = $"{enumVal.GetType().Name}.{enumVal}";
+            return copiedPointsList.GetFilteredInfluencePointInfos(key);
+        }
     }
 
 }

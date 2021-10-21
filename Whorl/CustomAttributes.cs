@@ -88,4 +88,17 @@ namespace Whorl
             Value = value;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Enum)]
+    public class KeyedEnumAttribute : Attribute
+    {
+        public string ParamsClassName { get; set; }
+        public bool Exclusive { get; set; }
+
+        public KeyedEnumAttribute(string paramsClassName, bool exclusive = true)
+        {
+            ParamsClassName = paramsClassName;
+            Exclusive = exclusive;
+        }
+    }
 }

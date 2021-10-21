@@ -215,6 +215,7 @@
     <Compile Include="InitialSetup.cs" />
     <Compile Include="IntColor.cs" />
     <Compile Include="IRenderCaller.cs" />
+    <Compile Include="KeyEnumInfo.cs" />
     <Compile Include="MemberItemInfo.cs" />
     <Compile Include="NamedRandomSeed.cs" />
     <Compile Include="NamedRandomSeedForm.cs">

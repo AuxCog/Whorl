@@ -48,6 +48,13 @@ namespace Whorl
             this.label7 = new System.Windows.Forms.Label();
             this.txtAverageWeight = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.clbEnumKeys = new System.Windows.Forms.CheckedListBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.cboEnumKey = new System.Windows.Forms.ComboBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.txtKeyFactor = new System.Windows.Forms.TextBox();
+            this.BtnApplyKeyFactor = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -118,7 +125,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(108, 170);
+            this.BtnOK.Location = new System.Drawing.Point(108, 333);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 8;
@@ -128,7 +135,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(180, 170);
+            this.BtnCancel.Location = new System.Drawing.Point(180, 333);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 9;
@@ -212,11 +219,80 @@ namespace Whorl
             this.label8.TabIndex = 17;
             this.label8.Text = "Average Weight:";
             // 
+            // clbEnumKeys
+            // 
+            this.clbEnumKeys.FormattingEnabled = true;
+            this.clbEnumKeys.Location = new System.Drawing.Point(108, 171);
+            this.clbEnumKeys.Name = "clbEnumKeys";
+            this.clbEnumKeys.Size = new System.Drawing.Size(220, 94);
+            this.clbEnumKeys.TabIndex = 19;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(39, 171);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(63, 13);
+            this.label9.TabIndex = 20;
+            this.label9.Text = "Enum Keys:";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(48, 274);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(58, 13);
+            this.label10.TabIndex = 22;
+            this.label10.Text = "Enum Key:";
+            // 
+            // cboEnumKey
+            // 
+            this.cboEnumKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboEnumKey.FormattingEnabled = true;
+            this.cboEnumKey.Location = new System.Drawing.Point(108, 271);
+            this.cboEnumKey.Name = "cboEnumKey";
+            this.cboEnumKey.Size = new System.Drawing.Size(220, 21);
+            this.cboEnumKey.TabIndex = 23;
+            this.cboEnumKey.SelectedIndexChanged += new System.EventHandler(this.cboEnumKey_SelectedIndexChanged);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(44, 304);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(61, 13);
+            this.label11.TabIndex = 24;
+            this.label11.Text = "Key Factor:";
+            // 
+            // txtKeyFactor
+            // 
+            this.txtKeyFactor.Location = new System.Drawing.Point(108, 301);
+            this.txtKeyFactor.Name = "txtKeyFactor";
+            this.txtKeyFactor.Size = new System.Drawing.Size(58, 20);
+            this.txtKeyFactor.TabIndex = 25;
+            // 
+            // BtnApplyKeyFactor
+            // 
+            this.BtnApplyKeyFactor.Location = new System.Drawing.Point(180, 299);
+            this.BtnApplyKeyFactor.Name = "BtnApplyKeyFactor";
+            this.BtnApplyKeyFactor.Size = new System.Drawing.Size(66, 23);
+            this.BtnApplyKeyFactor.TabIndex = 26;
+            this.BtnApplyKeyFactor.Text = "Apply";
+            this.BtnApplyKeyFactor.UseVisualStyleBackColor = true;
+            this.BtnApplyKeyFactor.Click += new System.EventHandler(this.BtnApplyKeyFactor_Click);
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 204);
+            this.ClientSize = new System.Drawing.Size(346, 365);
+            this.Controls.Add(this.BtnApplyKeyFactor);
+            this.Controls.Add(this.txtKeyFactor);
+            this.Controls.Add(this.label11);
+            this.Controls.Add(this.cboEnumKey);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.clbEnumKeys);
             this.Controls.Add(this.txtAverageWeight);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.txtFunctionOffset);
@@ -265,5 +341,12 @@ namespace Whorl
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox txtAverageWeight;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckedListBox clbEnumKeys;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.ComboBox cboEnumKey;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox txtKeyFactor;
+        private System.Windows.Forms.Button BtnApplyKeyFactor;
     }
 }
