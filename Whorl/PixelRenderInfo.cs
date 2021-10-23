@@ -75,6 +75,13 @@ namespace Whorl
             return polarPoint;
         }
 
+        public PolarPoint GetPolar(InfluencePointInfo influencePointInfo)
+        {
+            var doublePoint = new DoublePoint((double)X - influencePointInfo.TransformedPoint.X, 
+                                              (double)Y - influencePointInfo.TransformedPoint.Y);
+            return doublePoint.ToPolar();
+        }
+
         public PolarPoint GetScaledPolar()
         {
             return GetScaledPolar(Center, transformAngle: true);
@@ -100,17 +107,27 @@ namespace Whorl
                 return parent.SeedPattern.ComputeSeedPoint(angle);
         }
 
-        public IEnumerable<InfluencePointInfo> GetInfluencePoints(object enumVal)
+        public InfluencePointInfo[] GetInfluencePoints(object enumVal)
         {
-            if (enumVal == null || !enumVal.GetType().IsEnum)
-            {
-                throw new Exception("enumVal must be of Enum type.");
-            }
             if (parent.ParentPattern.InfluencePointInfoList == null)
                 return new InfluencePointInfo[] { };
+            string enumKey = Tools.GetEnumKey(enumVal);
             var copiedPointsList = new InfluencePointInfoList(parent.ParentPattern.InfluencePointInfoList, parent.ParentPattern);
-            string key = $"{enumVal.GetType().Name}.{enumVal}";
-            return copiedPointsList.GetFilteredInfluencePointInfos(key);
+            return copiedPointsList.GetFilteredInfluencePointInfos(enumKey).ToArray();
+        }
+
+        public T GetKeyParams<T>(object keyEnumValue, InfluencePointInfo influencePointInfo = null) where T: class
+        {
+            T paramsObj;
+            var dict = influencePointInfo != null ? influencePointInfo.KeyEnumParamsDict :
+                       parent.ParentPattern.InfluencePointInfoList.KeyEnumParamsDict;
+            if (dict.TryGetValue(Tools.GetEnumKey(keyEnumValue), out var keyParams))
+            {
+                paramsObj = keyParams.ParametersObject as T;
+            }
+            else
+                paramsObj = null;
+            return paramsObj;
         }
     }
 

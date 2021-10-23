@@ -301,7 +301,7 @@ namespace Whorl
         public delegate void ActionSelectedDelegate(object sender, ParameterActionEventArgs e);
         public event ActionSelectedDelegate ActionSelected;
         public bool SingleColumn { get; }
-
+        public bool UpdateParametersObject { get; set; } = true;
         public Label SelectedLabel { get; set; }
 
         public static void ClearParametersControls(Panel pnlParameters)
@@ -313,7 +313,7 @@ namespace Whorl
             pnlParameters.Controls.Clear();
         }
 
-        public BaseParameterDisplay(Panel pnlParameters, ParamChanged paramChangedFn, 
+        public BaseParameterDisplay(Panel pnlParameters, ParamChanged paramChangedFn = null, 
                                     ActionSelectedDelegate actionSelectedFn = null, 
                                     int controlWidth = defaultControlWidth,
                                     bool singleColumn = false)
@@ -322,7 +322,8 @@ namespace Whorl
             critControlWidth = controlWidth;
             critColumnWidth = controlWidth + critLeftMargin;
             ParametersPanel = pnlParameters;
-            ParameterChanged += paramChangedFn;
+            if (paramChangedFn != null)
+                ParameterChanged += paramChangedFn;
             if (actionSelectedFn != null)
                 ActionSelected += actionSelectedFn;
             if (singleColumn)
@@ -338,7 +339,6 @@ namespace Whorl
         public virtual void SetFormulaSettings(FormulaSettings formulaSettings)
         {
             FormulaSettings = formulaSettings;
-            
         }
 
         public virtual void AddAllParametersControls(FormulaSettings formulaSettings,

@@ -146,7 +146,7 @@ namespace Whorl
             //    previousPointIdent.SetCurrentValue(previousPoint);
             //}
             previousPoint = new PolarPoint(angle, amplitude);
-            if (TransformSettings.EvalStatements())
+            if (TransformSettings.EvalFormula())
             {
                 amplitude = Info.Amplitude;
                 angle = Info.Angle;

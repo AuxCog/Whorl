@@ -18,8 +18,6 @@ namespace Whorl
         public Pattern ParentPattern { get; private set; }
         public int Id { get; private set; }
 
-        public DoublePoint TransformedPoint { get; set; }
-
         private DoublePoint _influencePoint;
         public DoublePoint InfluencePoint
         {
@@ -29,6 +27,8 @@ namespace Whorl
                 _influencePoint = AdjustInfluencePoint(value);
             }
         }
+
+        public DoublePoint TransformedPoint { get; set; }
 
         public double InfluenceFactor { get; set; }
         public double AverageWeight { get; set; }
@@ -78,7 +78,8 @@ namespace Whorl
         }
 
         public HashSet<string> FilterKeys { get; } = new HashSet<string>();
-        public Dictionary<string, KeyEnumInfo> FilterKeysDict { get; private set; } = new Dictionary<string, KeyEnumInfo>();
+
+        public Dictionary<string, KeyEnumParameters> KeyEnumParamsDict { get; } = new Dictionary<string, KeyEnumParameters>();
 
         public static IEnumerable<string> TransformFunctionNames => staticMethodsDict.Keys.OrderBy(s => s);
 
@@ -90,7 +91,7 @@ namespace Whorl
 
         public EventHandler RemovedFromList;
 
-        private XmlNode filterKeysDictXmlNode { get; set; }
+        private XmlNode keyEnumParamsDictXmlNode { get; set; }
 
         static InfluencePointInfo()
         {
@@ -108,25 +109,29 @@ namespace Whorl
             ParentPattern = pattern;
         }
 
-        ///// <summary>
-        ///// Set InfluencePoint without setting OrigInfluencePoint.
-        ///// </summary>
-        ///// <param name="doublePoint"></param>
-        //public void SetInfluencePoint(DoublePoint doublePoint, bool setOrigPoint)
-        //{
-        //    if (setOrigPoint)
-        //        TransformedInfluencePoint = doublePoint;
-        //    else
-        //        _influencePoint = doublePoint;
-        //}
+        public static void CopyKeyParamsDict(Dictionary<string, KeyEnumParameters> copy, Dictionary<string, KeyEnumParameters> source)
+        {
+            copy.Clear();
+            foreach (var kvp in source)
+            {
+                copy.Add(kvp.Key, new KeyEnumParameters(kvp.Value));
+            }
+        }
 
         public void CopyProperties(InfluencePointInfo source)
         {
-            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(Id), nameof(FilterKeysDict) });
-            Id = source.Id;
+            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(KeyEnumParamsDict) });
             FilterKeys.Clear();
             FilterKeys.UnionWith(source.FilterKeys);
-            FilterKeysDict = new Dictionary<string, KeyEnumInfo>(source.FilterKeysDict);
+            CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict);
+        }
+
+        public void SetKeyInfosEnabled()
+        {
+            foreach (var keyInfo in KeyEnumParamsDict.Values)
+            {
+                keyInfo.IsEnabled = FilterKeys.Contains(keyInfo.Parent.EnumKey);
+            }
         }
 
         public void CopyInfluenceLinks(InfluencePointInfo source)
@@ -350,20 +355,25 @@ namespace Whorl
                 }
                 xmlNode.AppendChild(keysNode);
             }
-            if (FilterKeysDict.Any())
+            AppendKeyParamsXml(xmlNode, KeyEnumParamsDict, xmlTools);
+            return xmlTools.AppendToParent(parentNode, xmlNode);
+        }
+
+        public static void AppendKeyParamsXml(XmlNode xmlNode, Dictionary<string, KeyEnumParameters> dict, XmlTools xmlTools)
+        {
+            if (dict.Any())
             {
-                XmlNode keysDictNode = xmlTools.CreateXmlNode(nameof(FilterKeysDict));
-                foreach (var keyVal in FilterKeysDict)
+                XmlNode keysDictNode = xmlTools.CreateXmlNode(nameof(KeyEnumParamsDict));
+                foreach (var keyVal in dict)
                 {
                     var keyValNode = xmlTools.CreateXmlNode("Key");
                     xmlTools.AppendXmlAttribute(keyValNode, "Value", keyVal.Key);
-                    FormulaSettings.AppendCSharpParametersToXml(keyValNode, xmlTools, keyVal.Value.ParametersObject);
-                    //xmlTools.AppendXmlAttribute(keyValNode, "Value", keyVal.Value);
+                    if (keyVal.Value.ParametersObject != null)
+                        FormulaSettings.AppendCSharpParametersToXml(keyValNode, xmlTools, keyVal.Value.ParametersObject);
                     keysDictNode.AppendChild(keyValNode);
                 }
                 xmlNode.AppendChild(keysDictNode);
             }
-            return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
         public void FromXml(XmlNode node)
@@ -385,9 +395,9 @@ namespace Whorl
                         FilterKeys.Add(Tools.GetXmlAttribute<string>(keyNode, "Value"));
                     }
                 }
-                else if (childNode.Name == nameof(FilterKeysDict))
+                else if (childNode.Name == nameof(KeyEnumParamsDict))
                 {
-                    filterKeysDictXmlNode = childNode;
+                    keyEnumParamsDictXmlNode = childNode;
                     //foreach (XmlNode keyValNode in childNode.ChildNodes)
                     //{
                     //    string key = Tools.GetXmlAttribute<string>(keyValNode, "Key");
@@ -400,7 +410,7 @@ namespace Whorl
 
         public void FinishFromXml()
         {
-            if (filterKeysDictXmlNode == null)
+            if (keyEnumParamsDictXmlNode == null)
                 return;
 
         }
@@ -411,108 +421,4 @@ namespace Whorl
         }
     }
 
-    public class InfluencePointInfoList : IXml
-    {
-        public Pattern ParentPattern { get; }
-        private List<InfluencePointInfo> influencePointInfoList { get; } =
-            new List<InfluencePointInfo>();
-        public IEnumerable<InfluencePointInfo> InfluencePointInfos => influencePointInfoList;
-        public int Count => influencePointInfoList.Count;
-
-        public InfluencePointInfoList(Pattern pattern)
-        {
-            if (pattern == null)
-                throw new NullReferenceException("pattern cannot be null.");
-            ParentPattern = pattern;
-        }
-
-        /// <summary>
-        /// Create copy of source.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="pattern"></param>
-        public InfluencePointInfoList(InfluencePointInfoList source, Pattern pattern) : this(pattern)
-        {
-            influencePointInfoList.AddRange(source.InfluencePointInfos.Select(ip => new InfluencePointInfo(ip, pattern)));
-        }
-
-        public void AddInfluencePointInfo(InfluencePointInfo influencePointInfo)
-        {
-            influencePointInfoList.Add(influencePointInfo);
-        }
-
-        public bool RemoveInfluencePointInfo(InfluencePointInfo influencePointInfo)
-        {
-            bool removed = influencePointInfoList.Remove(influencePointInfo);
-            if (removed)
-            {
-                influencePointInfo.OnRemoved();  //Raises event.
-            }
-            return removed;
-        }
-
-        public IEnumerable<InfluencePointInfo> GetFilteredInfluencePointInfos(string key)
-        {
-            return InfluencePointInfos.Where(ip => key != null && ip.FilterKeysDict.ContainsKey(key));
-        }
-
-        public IEnumerable<InfluencePointInfo> GetFilteredInfluencePointInfos(IEnumerable<string> keys, bool useOr = false, bool include = true)
-        {
-            return InfluencePointInfos.Where(ip => ip.EvalBool(keys, 
-                                            (_, a) => a != null && ip.FilterKeysDict.ContainsKey(a), useOr)
-                                            == include);
-        }
-
-        public double ComputeAverage(DoublePoint patternPoint, bool forRendering)
-        {
-            if (influencePointInfoList.Any())
-                return influencePointInfoList.Select(ip => ip.ComputeValue(patternPoint, forRendering, forAverage: true)).Average();
-            else
-                return 0;
-        }
-
-        public void Clear()
-        {
-            influencePointInfoList.Clear();
-        }
-
-        public void TransformInfluencePoints(Complex zFactor)
-        {
-            foreach (InfluencePointInfo pointInfo in InfluencePointInfos)
-            {
-                Complex zP = zFactor * new Complex(pointInfo.InfluencePoint.X, pointInfo.InfluencePoint.Y);
-                pointInfo.InfluencePoint = new DoublePoint(zP.Re, zP.Im);
-            }
-        }
-
-        //public void TransformInfluencePoints(double scale, double rotation, bool setOrigPoints = false)
-        //{
-        //    var zFactor = Complex.CreateFromModulusAndArgument(scale, rotation);
-        //    TransformInfluencePoints(zFactor, setOrigPoints);
-        //}
-
-        public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
-        {
-            if (xmlNodeName == null)
-                xmlNodeName = nameof(InfluencePointInfoList);
-            XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-            foreach (var info in influencePointInfoList)
-            {
-                info.ToXml(xmlNode, xmlTools);
-            }
-            return xmlTools.AppendToParent(parentNode, xmlNode);
-        }
-
-        public void FromXml(XmlNode node)
-        {
-            foreach (XmlNode childNode in node.ChildNodes)
-            {
-                if (childNode.Name != nameof(InfluencePointInfo))
-                    throw new Exception("Invalid XML.");
-                var influencePointInfo = new InfluencePointInfo();
-                influencePointInfo.FromXml(childNode);
-                influencePointInfo.AddToPattern(ParentPattern, setId: false);
-            }
-        }
-    }
 }

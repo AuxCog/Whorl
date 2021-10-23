@@ -59,6 +59,7 @@
             this.sizeRectangleToImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addPatternGroupToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.draftSizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.graphCartesianToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.graphPathVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -288,7 +289,6 @@
             this.label56 = new System.Windows.Forms.Label();
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
-            this.viewInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -581,6 +581,14 @@
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
+            // 
+            // viewInfluencePointsToolStripMenuItem
+            // 
+            this.viewInfluencePointsToolStripMenuItem.CheckOnClick = true;
+            this.viewInfluencePointsToolStripMenuItem.Name = "viewInfluencePointsToolStripMenuItem";
+            this.viewInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(261, 22);
+            this.viewInfluencePointsToolStripMenuItem.Text = "Influence Points";
+            this.viewInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.influencePointsToolStripMenuItem_Click);
             // 
             // draftSizeToolStripMenuItem
             // 
@@ -2855,14 +2863,6 @@
             this.chkSmoothedDraft.UseVisualStyleBackColor = true;
             this.chkSmoothedDraft.CheckedChanged += new System.EventHandler(this.chkSmoothedDraft_CheckedChanged);
             // 
-            // influencePointsToolStripMenuItem
-            // 
-            this.viewInfluencePointsToolStripMenuItem.CheckOnClick = true;
-            this.viewInfluencePointsToolStripMenuItem.Name = "influencePointsToolStripMenuItem";
-            this.viewInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(261, 22);
-            this.viewInfluencePointsToolStripMenuItem.Text = "Influence Points";
-            this.viewInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.influencePointsToolStripMenuItem_Click);
-            // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2902,6 +2902,7 @@
             this.Name = "PatternForm";
             this.Text = "Pattern Form";
             this.Activated += new System.EventHandler(this.PatternForm_Activated);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PatternForm_FormClosing);
             this.VisibleChanged += new System.EventHandler(this.PatternForm_VisibleChanged);
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).EndInit();
             this.colorModeContextMenuStrip.ResumeLayout(false);

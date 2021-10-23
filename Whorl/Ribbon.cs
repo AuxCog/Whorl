@@ -254,7 +254,7 @@ namespace Whorl
                 if (useFormula)
                 {
                     ribbonFormulaInfo.StepRatio = (double)i / (RibbonPath.Count - 2);
-                    if (FormulaSettings.EvalStatements())
+                    if (FormulaSettings.EvalFormula())
                         factors[i] = Math.Abs(ribbonFormulaInfo.TaperFactor); // (double)taperFactorIdent.CurrentValue);
                 }
                 else
@@ -552,11 +552,11 @@ namespace Whorl
                     if (forPoints)
                     {
                         ribbonFormulaInfo.StepRatio = (double)(passes + 1) / (segmentsCount - 1);
-                        if (FormulaSettings.EvalStatements())
+                        if (FormulaSettings.EvalFormula())
                             nextTaperFactor = ribbonFormulaInfo.TaperFactor; // (double)taperFactorIdent.CurrentValue;
                     }
                     ribbonFormulaInfo.StepRatio = (double)passes / (segmentsCount - 1);
-                    if (FormulaSettings.EvalStatements())
+                    if (FormulaSettings.EvalFormula())
                     {
                         if (forPoints)
                         {
@@ -1121,7 +1121,7 @@ namespace Whorl
                         ribbonFormulaInfo.StepRatio = (double)(startI - vertexIndices[vertInd]) / edgeLength;
                     else
                         ribbonFormulaInfo.StepRatio = (double)startI / points.Length;
-                    FormulaSettings.EvalStatements();
+                    FormulaSettings.EvalFormula();
                 }
                 if (SegmentPadding > 0)
                 {

@@ -43,6 +43,15 @@ namespace Whorl
 
         public bool IsCSharpFormula { get; set; }
 
+        public bool HasKeyEnumParameters
+        {
+            get
+            {
+                return IsCSharpFormula && ParentPattern != null &&
+                       ParentPattern.InfluencePointInfoList.KeyEnumParamsDict.Values.Any(v => v.Parent.FormulaSettings == this);
+            }
+        }
+
         public EventHandler<ParsedEventArgs> ParsedEventHandler;
 
         public CSharpCompiledInfo CSharpCompiledInfo
@@ -69,7 +78,7 @@ namespace Whorl
                     testCSharpCompiledInfo.UseCompiledType(_testCSharpEvalType);
                     _testEvalInstance = testCSharpCompiledInfo.CreateEvalInstance();
                     if (_evalInstance != null)
-                        CopyCSharpParameters(_evalInstance.ParamsObj, _testEvalInstance);
+                        CopyCSharpParams(_evalInstance.ParamsObj, _testEvalInstance);
                 }
                 SetEvalInstance();
             }
@@ -259,7 +268,8 @@ namespace Whorl
                                      source.EvalInstance.ParamsObj : source.SavedParamsObj;
                     _evalInstance = cSharpCompiledInfo.CreateEvalInstance();
                     SetEvalInstance();
-                    CopyCSharpParameters(SavedParamsObj);
+                    CopyCSharpParams(SavedParamsObj);
+                    RefreshKeyEnumParams(source);
                 }
                 else
                 {
@@ -267,6 +277,7 @@ namespace Whorl
                     Parse(source.Formula, ifChanged: false, displayWarnings: false);
                 }
             }
+            MainForm.DefaultMainForm.FormulaSettingsHandler.AddNewObject(source, this);
         }
 
         public FormulaSettings GetCopy(configureDelegate configureParser = null, ExpressionParser parser = null, Pattern pattern = null)
@@ -413,7 +424,7 @@ namespace Whorl
                                         CopyLegacyParametersToCSharp(BaseParameters, _evalInstance);
                                 }
                                 else
-                                    CopyCSharpParameters(SavedParamsObj, _evalInstance);
+                                    CopyCSharpParams(SavedParamsObj, _evalInstance);
                                 SavedParamsObj = _evalInstance.ParamsObj;
                             }
                         }
@@ -513,7 +524,11 @@ namespace Whorl
                         InfluenceLinkParentCollection.ResolveReferences(throwException: false);
                     }
                 }
-                if (!IsCSharpFormula)
+                if (IsCSharpFormula)
+                {
+                    PopulateKeyParamDictionary();
+                }
+                else
                 {
                     //InfluenceParameters are not visible, so this.Parameters property does not include them.
                     InfluenceValueParameter = FormulaExpression.Parameters.Select(p => p as Parameter)
@@ -554,23 +569,98 @@ namespace Whorl
         {
             if (ParentPattern == null)
                 return true;
-            var compiledInfo = CSharpCompiledInfo;
             var keyedEnumTypes = GetKeyedEnumTypes();
-            bool hasDuplicate = false;
+            if (!keyedEnumTypes.Any())
+                return true;
+            var errMessages = new List<string>();
+            foreach (Type enumType in keyedEnumTypes)
+            {
+                Type paramsClassType = GetKeyEnumParamsClassType(enumType, out string className);
+                if (paramsClassType == null)
+                {
+                    errMessages.Add($"The parameters class {className} was not found in the main formula class.");
+                }
+                else if (paramsClassType.GetConstructor(Type.EmptyTypes) == null)
+                {
+                    errMessages.Add($"The parameters class {className} does not have a public parameterless constructor.");
+                }
+            }
             foreach (var formulaSettings in ParentPattern.GetFormulaSettings()
                      .Where(fs => fs != this && fs.IsCSharpFormula && fs.IsValid))
             {
                 foreach (Type enumType in keyedEnumTypes)
                 {
-                    if (formulaSettings.CSharpCompiledInfo.EvalClassType.GetNestedType(enumType.Name) != null)
+                    Type enumType2 = formulaSettings.CSharpCompiledInfo.EvalClassType.GetNestedType(enumType.Name);
+                    if (enumType2?.GetCustomAttribute<KeyEnumAttribute>() != null)
                     {
-                        hasDuplicate = true;
-                        compiledInfo.Errors.Add(new CSharpCompiledInfo.ErrorInfo($"The keyed enum type name {enumType.Name} is a duplicate."));
+                        errMessages.Add($"The keyed enum type name {enumType.Name} is a duplicate.");
                     }
                 }
             }
-            return !hasDuplicate;
+            if (errMessages.Any())
+            {
+                CSharpCompiledInfo.Errors.AddRange(errMessages.Select(s => new CSharpCompiledInfo.ErrorInfo(s)));
+            }
+            return errMessages.Count == 0;
         }
+
+        private Type GetKeyEnumParamsClassType(Type enumType, out string className)
+        {
+            var attribute = enumType.GetCustomAttribute<KeyEnumAttribute>();
+            className = attribute?.ParamsClassName;
+            return GetKeyEnumParamsClassType(attribute);
+        }
+
+        private Type GetKeyEnumParamsClassType(KeyEnumAttribute attribute)
+        {
+            if (attribute.ParamsClassName == null)
+                return null;
+            else
+                return CSharpCompiledInfo.EvalClassType.GetNestedType(attribute.ParamsClassName);
+        }
+
+        private void PopulateKeyParamDictionary()
+        {
+            var influencePointList = ParentPattern?.InfluencePointInfoList;
+            if (influencePointList == null)
+                return;
+            var keyedEnumTypes = GetKeyedEnumTypes();
+            foreach (Type enumType in keyedEnumTypes)
+            {
+                var attribute = enumType.GetCustomAttribute<KeyEnumAttribute>();
+                Type paramsClassType = GetKeyEnumParamsClassType(attribute);
+                foreach (object enumValue in Enum.GetValues(enumType))
+                {
+                    var keyEnumInfo = new KeyEnumInfo(enumValue, paramsClassType, attribute.IsGlobal, attribute.Exclusive, this);
+                    var keyParams = new KeyEnumParameters(keyEnumInfo, null, createParamsObject: keyEnumInfo.ParametersAreGlobal);
+                    keyParams.UpdateDictionary(influencePointList.KeyEnumParamsDict);
+                }
+            }
+        }
+
+        private void RefreshKeyEnumParams(Dictionary<string, KeyEnumParameters> dict, FormulaSettings source)
+        {
+            foreach (var keyParams in dict.Values)
+            {
+                if (keyParams.Parent.FormulaSettings == source)
+                {
+                    keyParams.Parent.FormulaSettings = this;
+                }
+            }
+        }
+
+        private void RefreshKeyEnumParams(FormulaSettings source)
+        {
+            var influencePointList = ParentPattern?.InfluencePointInfoList;
+            if (influencePointList == null)
+                return;
+            RefreshKeyEnumParams(influencePointList.KeyEnumParamsDict, source);
+            foreach (var influencePoint in influencePointList.InfluencePointInfos)
+            {
+                RefreshKeyEnumParams(influencePoint.KeyEnumParamsDict, source);
+            }
+        }
+
 
         public IEnumerable<Type> GetKeyedEnumTypes()
         {
@@ -581,11 +671,11 @@ namespace Whorl
                    .Where(t => t.IsEnum && t.GetCustomAttribute<KeyEnumAttribute>() != null);
         }
 
-        public bool EvalStatements(CSharpCompiledInfo.EvalInstance evalInstance, bool throwException = true)
+        public bool EvalFormula(bool throwException = true)
         {
             if (IsCSharpFormula)
             {
-                evalInstance.EvalFormula();
+                EvalInstance.EvalFormula();
             }
             else
             {
@@ -596,20 +686,13 @@ namespace Whorl
                     if (throwException)
                         throw new CustomException(messages);
                     else
+                    {
                         MessageBox.Show(messages);
-                    return false;
+                        return false;
+                    }
                 }
             }
             return true;
-        }
-
-        public bool EvalStatements(bool throwException = true)
-        {
-            //if (IsCSharpFormula && EvalInstance == null)
-            //    throw new NullReferenceException("EvalInstance is null.");
-            //if (!HaveParsedFormula)
-            //    return false;
-            return EvalStatements(EvalInstance, throwException);
         }
 
         //private void CopyProperties(FormulaSettings source)
@@ -682,15 +765,26 @@ namespace Whorl
                 evalInstance.UpdateParameters();
         }
 
-        public void CopyCSharpParameters(object sourceParamsObj, CSharpCompiledInfo.EvalInstance evalInstance = null)
+        public void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj)
+        {
+            CopyCSharpParameters(sourceParamsObj, targetParamsObj, new HashSet<string>());
+        }
+
+        private void CopyCSharpParams(object sourceParamsObj, CSharpCompiledInfo.EvalInstance evalInstance = null)
         {
             evalInstance = evalInstance ?? EvalInstance;
-            if (!IsCSharpFormula || sourceParamsObj == null || evalInstance == null || evalInstance.ParamsObj == null)
+            object targetParamsObj = evalInstance?.ParamsObj;
+            if (!IsCSharpFormula || sourceParamsObj == null || targetParamsObj == null)
                 return;
             HashSet<string> handledPropertyNames = new HashSet<string>();
             CheckUpdateParameters(sourceParamsObj, handledPropertyNames, evalInstance);
+            CopyCSharpParameters(sourceParamsObj, targetParamsObj, handledPropertyNames);
+        }
+
+        private void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj, HashSet<string> handledPropertyNames) 
+        { 
             Type sourceType = sourceParamsObj.GetType();
-            Type targetType = evalInstance.ParamsObj.GetType();
+            Type targetType = targetParamsObj.GetType();
             bool typesMatch = sourceType == targetType;
             if (!typesMatch)
             {
@@ -700,7 +794,7 @@ namespace Whorl
                 foreach (PropertyInfo arrayPropInfo in arrayPropsWithAttrs)
                 {
                     var arrayAttr = arrayPropInfo.GetCustomAttribute<ArrayBaseNameAttribute>();
-                    object targetParam = arrayPropInfo.GetValue(evalInstance.ParamsObj);
+                    object targetParam = arrayPropInfo.GetValue(targetParamsObj);
                     if (targetParam != null)
                     {
                         var targetArray = (Array)targetParam;
@@ -713,7 +807,7 @@ namespace Whorl
                             if (sourcePropInfo != null && Tools.TypesMatch(sourcePropInfo.PropertyType, elemType))
                             {
                                 object sourceElemParam = sourcePropInfo.GetValue(sourceParamsObj);
-                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, evalInstance, targetArray, i);
+                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, targetParamsObj, targetArray, i);
                                 handledPropertyNames.Add(sourcePropInfo.Name);
                             }
                         }
@@ -728,7 +822,7 @@ namespace Whorl
                 if (typesMatch || (targetPropInfo != null && Tools.TypesMatch(targetPropInfo.PropertyType, propInfo.PropertyType)))
                 {
                     object sourceParam = propInfo.GetValue(sourceParamsObj);
-                    object targetParam = targetPropInfo.GetValue(evalInstance.ParamsObj);
+                    object targetParam = targetPropInfo.GetValue(targetParamsObj);
                     if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
                     {
                         var sourceArray = (Array)sourceParam;
@@ -737,20 +831,19 @@ namespace Whorl
                         {
                             object sourceElemParam = sourceArray.GetValue(i);
                             object targetElemParam = targetArray.GetValue(i);
-                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, evalInstance, targetArray, i);
+                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, targetParamsObj, targetArray, i);
                         }
                     }
                     else
                     {
-                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, evalInstance);
+                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, targetParamsObj);
                     }
                 }
             }
         }
 
         private void CopyCSharpParameter(object sourceParam, object targetParam, PropertyInfo targetPropInfo,
-                                          CSharpCompiledInfo.EvalInstance evalInstance,
-                                          Array paramArray = null, int index = 0)
+                                         object targetParamsObj, Array paramArray = null, int index = 0)
         {
             var iOptionsParam = sourceParam as IOptionsParameter;
             if (iOptionsParam != null)
@@ -786,7 +879,7 @@ namespace Whorl
                     if (paramArray != null)
                         paramArray.SetValue(sourceParam, index);
                     else
-                        targetPropInfo.SetValue(evalInstance.ParamsObj, sourceParam);
+                        targetPropInfo.SetValue(targetParamsObj, sourceParam);
                 }
             }
         }
@@ -923,7 +1016,7 @@ namespace Whorl
                         MessageBox.Show("Cannot copy parameters.");
                     }
                     else
-                        CopyCSharpParameters(sourceFormulaSettings.EvalInstance.ParamsObj);
+                        CopyCSharpParams(sourceFormulaSettings.EvalInstance.ParamsObj);
                 }
                 else if (IsCSharpFormula)
                 {
@@ -1102,13 +1195,13 @@ namespace Whorl
 
         private void ParseCSharpParamsXml(XmlNode node)
         {
-            object paramsObj = EvalInstance?.ParamsObj;
-            if (paramsObj == null)
+            object targetParamsObj = EvalInstance?.ParamsObj;
+            if (targetParamsObj == null)
                 return;
-            ParseCSharpParamsXml(node, out bool updateParams, forArrayParams: false, paramsObj);
+            ParseCSharpParamsXml(node, out bool updateParams, forArrayParams: false, targetParamsObj);
             if (updateParams)
                 EvalInstance.UpdateParameters();
-            ParseCSharpParamsXml(node, out updateParams, forArrayParams: true, paramsObj);
+            ParseCSharpParamsXml(node, out updateParams, forArrayParams: true, targetParamsObj);
         }
 
         public static void ParseCSharpParamsXml(XmlNode node, object paramsObj)

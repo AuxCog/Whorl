@@ -143,7 +143,7 @@ namespace Whorl
                 //addDenomIdent.SetCurrentValue(ParentOutline.AddDenom);
                 //rotationSpanIdent.SetCurrentValue(ParentOutline.GetRotationSpan());
                 //petalsIdent.SetCurrentValue(ParentOutline.Petals);
-                if (AmplitudeSettings.EvalStatements())
+                if (AmplitudeSettings.EvalFormula())
                     return CustomInfo.Amplitude;
                 //try
                 //{
@@ -166,7 +166,7 @@ namespace Whorl
                 //addDenomIdent.SetCurrentValue(ParentOutline.AddDenom);
                 //rotationSpanIdent.SetCurrentValue(ParentOutline.GetRotationSpan());
                 MaxAmplitudeSettings.SetCSharpInfoInstance(CustomInfo);
-                if (MaxAmplitudeSettings.EvalStatements())
+                if (MaxAmplitudeSettings.EvalFormula())
                     return CustomInfo.MaxAmplitude;
                 //return (double)maxAmplitudeIdent.CurrentValue;
                 else

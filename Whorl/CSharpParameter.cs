@@ -140,6 +140,11 @@ namespace Whorl
         protected virtual void SelectedOptionChanged()
         {
         }
+
+        public override string ToString()
+        {
+            return SelectedText;
+        }
     }
 
     public class OptionsParameter<TValue>: BaseOptionsParameter<TValue> where TValue: class

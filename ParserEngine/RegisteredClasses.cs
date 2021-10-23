@@ -94,8 +94,12 @@ namespace ParserEngine
 
         public PolarPoint AddVector(PolarPoint v2)
         {
+            return AddVector(v2.ToRectangular());
+        }
+
+        public PolarPoint AddVector(DoublePoint p2)
+        {
             var p1 = ToRectangular();
-            var p2 = v2.ToRectangular();
             return new DoublePoint(p1.X + p2.X, p1.Y + p2.Y).ToPolar();
         }
 

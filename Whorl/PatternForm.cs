@@ -3514,6 +3514,18 @@ namespace Whorl
             }
         }
 
+        private void PatternForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                PreviewPatternGroup = null;  //Disposes if not null.
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         //private void AddAllParametersControls(Panel pnlParameters, FormulaSettings formulaSettings)
         //{
         //    parameterDisplay.AddAllParametersControls(pnlParameters, formulaSettings);

@@ -94,11 +94,13 @@ namespace Whorl
     {
         public string ParamsClassName { get; set; }
         public bool Exclusive { get; set; }
+        public bool IsGlobal { get; set; }
 
-        public KeyEnumAttribute(string paramsClassName, bool exclusive = true)
+        public KeyEnumAttribute(string paramsClassName, bool exclusive = true, bool isGlobal = true)
         {
             ParamsClassName = paramsClassName;
             Exclusive = exclusive;
+            IsGlobal = isGlobal;
         }
     }
 }

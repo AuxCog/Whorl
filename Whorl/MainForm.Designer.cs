@@ -233,8 +233,9 @@
             this.editInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.picDesign = new Whorl.CustomPicturebox();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.picDesign = new Whorl.CustomPicturebox();
+            this.editKeyEnumParametersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1076,7 +1077,7 @@
             this.undoToolStripMenuItem.Enabled = false;
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
             this.undoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z)));
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.undoToolStripMenuItem.Text = "Undo";
             this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
             // 
@@ -1085,7 +1086,7 @@
             this.redoToolStripMenuItem.Enabled = false;
             this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
             this.redoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y)));
-            this.redoToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.redoToolStripMenuItem.Text = "Redo";
             this.redoToolStripMenuItem.Click += new System.EventHandler(this.redoToolStripMenuItem_Click);
             // 
@@ -1413,7 +1414,7 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 312);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 334);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1567,6 +1568,7 @@
             this.contextPatternToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addPatternToChoicesToolStripMenuItem,
             this.editInfluencePointsToolStripMenuItem,
+            this.editKeyEnumParametersToolStripMenuItem,
             this.addPatternToClipboardToolStripMenuItem,
             this.distancePatternToolStripMenuItem,
             this.seedPatternToolStripMenuItem,
@@ -1850,7 +1852,7 @@
             // 
             this.btnCancelRender.Location = new System.Drawing.Point(7, 3);
             this.btnCancelRender.Name = "btnCancelRender";
-            this.btnCancelRender.Size = new System.Drawing.Size(128, 23);
+            this.btnCancelRender.Size = new System.Drawing.Size(112, 23);
             this.btnCancelRender.TabIndex = 6;
             this.btnCancelRender.Text = "Cancel Rendering";
             this.btnCancelRender.UseVisualStyleBackColor = true;
@@ -1917,35 +1919,42 @@
             this.deleteInfluencePointToolStripMenuItem,
             this.repeatInfluencePointToolStripMenuItem});
             this.influenceContextMenuStrip.Name = "influenceContextMenuStrip";
-            this.influenceContextMenuStrip.Size = new System.Drawing.Size(194, 136);
+            this.influenceContextMenuStrip.Size = new System.Drawing.Size(194, 114);
             // 
             // addInfluencePointToolStripMenuItem
             // 
             this.addInfluencePointToolStripMenuItem.Name = "addInfluencePointToolStripMenuItem";
-            this.addInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.addInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.addInfluencePointToolStripMenuItem.Text = "Add Influence Point";
             this.addInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.addInfluencePointToolStripMenuItem_Click);
             // 
             // editInfluencePointToolStripMenuItem
             // 
             this.editInfluencePointToolStripMenuItem.Name = "editInfluencePointToolStripMenuItem";
-            this.editInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.editInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.editInfluencePointToolStripMenuItem.Text = "Edit Influence Point";
             this.editInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.editInfluencePointToolStripMenuItem_Click);
             // 
             // moveInfluencePointToolStripMenuItem
             // 
             this.moveInfluencePointToolStripMenuItem.Name = "moveInfluencePointToolStripMenuItem";
-            this.moveInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.moveInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.moveInfluencePointToolStripMenuItem.Text = "Move Influence Point";
             this.moveInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.moveInfluencePointToolStripMenuItem_Click);
             // 
             // deleteInfluencePointToolStripMenuItem
             // 
             this.deleteInfluencePointToolStripMenuItem.Name = "deleteInfluencePointToolStripMenuItem";
-            this.deleteInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.deleteInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.deleteInfluencePointToolStripMenuItem.Text = "Delete Influence Point";
             this.deleteInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.deleteInfluencePointToolStripMenuItem_Click);
+            // 
+            // repeatInfluencePointToolStripMenuItem
+            // 
+            this.repeatInfluencePointToolStripMenuItem.Name = "repeatInfluencePointToolStripMenuItem";
+            this.repeatInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.repeatInfluencePointToolStripMenuItem.Text = "Repeat Influence Point";
+            this.repeatInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.repeatInfluencePointToolStripMenuItem_Click);
             // 
             // picDesign
             // 
@@ -1962,12 +1971,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // repeatInfluencePointToolStripMenuItem
+            // editKeyEnumParametersToolStripMenuItem
             // 
-            this.repeatInfluencePointToolStripMenuItem.Name = "repeatInfluencePointToolStripMenuItem";
-            this.repeatInfluencePointToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
-            this.repeatInfluencePointToolStripMenuItem.Text = "Repeat Influence Point";
-            this.repeatInfluencePointToolStripMenuItem.Click += new System.EventHandler(this.repeatInfluencePointToolStripMenuItem_Click);
+            this.editKeyEnumParametersToolStripMenuItem.Name = "editKeyEnumParametersToolStripMenuItem";
+            this.editKeyEnumParametersToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.editKeyEnumParametersToolStripMenuItem.Text = "Edit Key Enum Parameters";
+            this.editKeyEnumParametersToolStripMenuItem.Click += new System.EventHandler(this.editKeyEnumParametersToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2207,6 +2216,7 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewUserManualToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem repeatInfluencePointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editKeyEnumParametersToolStripMenuItem;
     }
 }
 

@@ -48,7 +48,7 @@ namespace Whorl
                     string idText = pointInfo.Id.ToString();
                     if (hasLink)
                         idText += "*";
-                    cboPointInfoList.Add(new ValueTextItem<InfluencePointInfo>(pointInfo, idText));
+                    cboPointInfoList.Add(new ValueTextItem(pointInfo, idText));
                 }
                 cboInfluencePointInfo.DataSource = cboPointInfoList;
             }
@@ -117,11 +117,11 @@ namespace Whorl
                     }
                 }
                 influenceLink = link;
-                ValueTextItem<InfluencePointInfo> cboValue = null;
+                ValueTextItem cboValue = null;
                 var pointInfo = influenceLink?.InfluencePointInfo;
                 if (pointInfo != null)
                 {
-                    cboValue = cboPointInfoList.Select(v => v as ValueTextItem<InfluencePointInfo>)
+                    cboValue = cboPointInfoList.Select(v => v as ValueTextItem)
                                                .FirstOrDefault(vti => vti != null && vti.Value == pointInfo);
                 }
                 if (cboValue != null)
@@ -141,8 +141,8 @@ namespace Whorl
 
         private InfluencePointInfo GetSelectedPointInfo()
         {
-            var cboValue = cboInfluencePointInfo.SelectedItem as ValueTextItem<InfluencePointInfo>;
-            return cboValue?.Value;
+            var cboValue = cboInfluencePointInfo.SelectedItem as ValueTextItem;
+            return cboValue?.Value as InfluencePointInfo;
         }
 
         private void cboInfluencePointInfo_SelectedIndexChanged(object sender, EventArgs e)

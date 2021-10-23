@@ -34,10 +34,10 @@ namespace Whorl
                     {
                         var keys = keyedEnumTypes.SelectMany(t => Enum.GetValues(t).Cast<object>().Select(v => Tools.GetEnumKey(v))).ToArray();
                         clbEnumKeys.Items.AddRange(keys);
-                        for (int i = 0; i < clbEnumKeys.Items.Count; i++)
+                        for (int i = 0; i < keys.Length; i++)
                         {
-                            string key = (string)clbEnumKeys.Items[i];
-                            clbEnumKeys.SetItemChecked(i, editedInfluencePointInfo.FilterKeysDict.ContainsKey(key));
+                            if (editedInfluencePointInfo.FilterKeys.Contains(keys[i]))
+                                clbEnumKeys.SetItemChecked(i, true);
                         }
                         cboEnumKey.DataSource = keys;
                     }
@@ -110,6 +110,7 @@ namespace Whorl
             editedInfluencePointInfo.TransformFunctionName = (string)cboTransformFunction.SelectedItem;
             editedInfluencePointInfo.FilterKeys.Clear();
             editedInfluencePointInfo.FilterKeys.UnionWith(clbEnumKeys.CheckedItems.Cast<string>());
+            editedInfluencePointInfo.SetKeyInfosEnabled();
             return errMessages.Any() ? string.Join(Environment.NewLine, errMessages) : null;
         }
 

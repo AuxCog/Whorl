@@ -983,7 +983,7 @@ namespace Whorl
             private float GetColorPosition()
             {
                 float position;
-                if (FormulaSettings.EvalStatements())
+                if (FormulaSettings.EvalFormula())
                     position = (float)positionIdent.CurrentValue;
                 else
                     position = 0;
@@ -3966,20 +3966,7 @@ namespace Whorl
                     formulaSettings.InfluenceLinkParentCollection.ResolveReferences();
                 }
             }
-            //foreach (PatternTransform transform in Transforms)
-            //{
-            //    transform.TransformSettings.ConfigureAllInfluenceParameters();
-            //    if (transform.TransformSettings.InfluenceLinkParentCollection != null)
-            //    {
-            //        transform.TransformSettings.InfluenceLinkParentCollection.ResolveReferences();
-            //    }
-            //}
-            //if (PixelRendering?.FormulaSettings != null)
-            //{
-            //    PixelRendering.FormulaSettings.ConfigureAllInfluenceParameters();
-            //    if (PixelRendering.FormulaSettings.InfluenceLinkParentCollection != null)
-            //        PixelRendering.FormulaSettings.InfluenceLinkParentCollection.ResolveReferences();
-            //}
+            InfluencePointInfoList.FinishFromXml();
             if (textureFillNode != null)
             {
                 fillInfo = new TextureFillInfo(this);
@@ -4097,11 +4084,21 @@ namespace Whorl
             SeedPoints = null;
         }
 
+        private void RemoveHandledObjects()
+        {
+            MainForm.DefaultMainForm.FormulaSettingsHandler.RemoveNewObjects(GetFormulaSettings());
+            var keyParams = InfluencePointInfoList.KeyEnumParamsDict.Values.Concat(
+                            InfluencePointInfoList.InfluencePointInfos.SelectMany(ip => ip.KeyEnumParamsDict.Values));
+            MainForm.DefaultMainForm.ParametersObjectHandler.RemoveNewObjects(
+                            keyParams.Select(p => p.ParametersObject).Where(o => o != null));
+        }
+
         public override void Dispose()
         {
             if (Disposed)
                 return;
             Disposed = true;
+            RemoveHandledObjects();
             if (outlinePen != null)
             {
                 outlinePen.Dispose();

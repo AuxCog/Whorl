@@ -10,7 +10,7 @@ using System.Windows.Markup;
 
 namespace Whorl
 {
-    public class CSharpParameterDisplay: BaseParameterDisplay
+    public class CSharpParameterDisplay : BaseParameterDisplay
     {
         public class ParamSourceInfo
         {
@@ -98,8 +98,8 @@ namespace Whorl
         public object ParametersObject { get; private set; }
         private CSharpCompiledInfo CSharpCompiledInfo { get; set; }
 
-        public CSharpParameterDisplay(Panel pnlParameters, ParamChanged paramChangedFn, 
-                                      ActionSelectedDelegate actionSelectedFn,
+        public CSharpParameterDisplay(Panel pnlParameters, ParamChanged paramChangedFn = null,
+                                      ActionSelectedDelegate actionSelectedFn = null,
                                       bool singleColumn = false,
                                       int controlWidth = defaultControlWidth)
                : base(pnlParameters, paramChangedFn, actionSelectedFn, controlWidth, singleColumn)
@@ -111,7 +111,13 @@ namespace Whorl
         {
             base.SetFormulaSettings(formulaSettings);
             CSharpCompiledInfo = formulaSettings.CSharpCompiledInfo;
-            ParametersObject = formulaSettings.EvalInstance?.ParamsObj;
+            if (UpdateParametersObject)
+                ParametersObject = formulaSettings.EvalInstance?.ParamsObj;
+        }
+
+        public void SetParametersObject(object paramsObj)
+        {
+            ParametersObject = paramsObj;
         }
 
         public void InitializeSources(FormulaSettings formulaSettings, Pattern sourcesPattern)

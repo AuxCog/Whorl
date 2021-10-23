@@ -373,8 +373,13 @@ namespace Whorl
             return true;
         }
 
+        public bool Disposed { get; set; }
+
         public void Dispose()
         {
+            if (Disposed)
+                return;
+            Disposed = true;
             foreach (Pattern pattern in this.PatternsList)
                 pattern.Dispose();
         }

@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Whorl
 {
-    public class ValueTextItem<T>
+    public class ValueTextItem
     {
         public string Text { get; }
-        public T Value { get; }
+        public object Value { get; }
 
-        public ValueTextItem(T value, string text = null)
+        public ValueTextItem(object value, string text = null)
         {
             if (text == null && value == null)
                 throw new Exception("value cannot be null if text is null.");

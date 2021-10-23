@@ -284,7 +284,7 @@ namespace Whorl
                 //petalsIdent.SetCurrentValue(Petals);
                 //angleOffsetIdent.SetCurrentValue(AngleOffset);
                 VerticesSettings.InitializeGlobals();
-                if (VerticesSettings.EvalStatements())
+                if (VerticesSettings.EvalFormula())
                 {
                     if (PathOutlineType == PathOutlineTypes.Cartesian)
                     {

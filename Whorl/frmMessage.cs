@@ -327,7 +327,7 @@ namespace Whorl
             {
                 if (!isFractalToolStripMenuItem.Checked)
                 {
-                    formulaSettings.EvalStatements();
+                    formulaSettings.EvalFormula();
                     DisplayMessages();
                     return;
                 }
@@ -418,7 +418,7 @@ namespace Whorl
                                 var zStart = new Complex(re, im);
                                 zStartIdent.SetCurrentValue(zStart);
                                 iterIdent.SetCurrentValue(0D);
-                                formulaSettings.EvalStatements();
+                                formulaSettings.EvalFormula();
                                 iter = Convert.ToInt32(iterIdent.CurrentValue);
                                 int maxJ = Math.Min(fractalInfo.DraftSize, imgSize.Height - y);
                                 int maxI = Math.Min(fractalInfo.DraftSize, imgSize.Width - x);

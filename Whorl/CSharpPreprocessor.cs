@@ -41,6 +41,7 @@ namespace Whorl
             KeyParameters,
             KeyEnum,
             Exclusive,
+            Global,
             Main,
             Update,
             Initialize,
@@ -1333,12 +1334,14 @@ $@"public void {methodName}()
                         break;
                     case ReservedWords.KeyEnum:
                         token = GetToken(tokenIndex++);
-                        bool exclusive = true;
+                        bool exclusive = true, global = true;
                         if (token.TokenType == Token.TokenTypes.Identifier)
                         {
                             string className = token.Text;
                             token = GetToken(tokenIndex);
-                            if (ParseReservedWord(token.Text, ReservedWords.Exclusive))
+                            isValid = true;
+                            var validWords = new HashSet<ReservedWords>() { ReservedWords.Exclusive, ReservedWords.Global };
+                            while (ParseReservedWordOption(token.Text, out ReservedWords word, validWords))
                             {
                                 tokenIndex++;
                                 if (TryParseTokenText(ref tokenIndex, "=") != null)
@@ -1346,24 +1349,26 @@ $@"public void {methodName}()
                                     token = GetToken(tokenIndex++);
                                     if (ParseReservedWord(token.Text, out var trueOrFalse, ReservedWords.True, ReservedWords.False))
                                     {
-                                        exclusive = trueOrFalse == ReservedWords.True;
-                                        isValid = true;
+                                        if (word == ReservedWords.Exclusive)
+                                            exclusive = trueOrFalse == ReservedWords.True;
+                                        else
+                                            global = trueOrFalse == ReservedWords.True;
                                     }
                                     else
                                     {
-                                        AddError(token, "Expecting True or False following Exclusive = .");
+                                        AddError(token, $"Expecting True or False following {word} = .");
+                                        isValid = false;
                                     }
                                 }
                                 else
                                 {
-                                    AddError(token, "Expecting = following Exclusive.");
+                                    AddError(token, $"Expecting = following {word}.");
+                                    isValid = false;
                                 }
                             }
-                            else
-                                isValid = true;
                             if (isValid)
                             {
-                                newCodeParts.Add($"[KeyEnum(nameof({className}), {exclusive.ToString().ToLower()})]");
+                                newCodeParts.Add($"[KeyEnum(nameof({className}), {exclusive.ToString().ToLower()}, {global.ToString().ToLower()})]");
                             }
                         }
                         else

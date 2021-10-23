@@ -936,9 +936,9 @@ namespace Whorl
             txtBox.ScrollToCaret();
         }
 
-        public static bool EvalBool<TVal, TArg>(this TVal val, IEnumerable<TArg> args, Func<TVal, TArg, bool> predicate, bool useOr = false)
+        public static bool EvalBool<TVal, TArg>(this TVal val, IEnumerable<TArg> args, Func<TArg, bool> predicate, bool useOr = false)
         {
-            return args.Any() && args.Any(a => predicate(val, a) == useOr) == useOr;
+            return args.Any() && args.Any(a => predicate(a) == useOr) == useOr;
         }
 
         public static string GetEnumKey(object enumVal)
