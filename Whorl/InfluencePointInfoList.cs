@@ -32,8 +32,16 @@ namespace Whorl
         /// <param name="pattern"></param>
         public InfluencePointInfoList(InfluencePointInfoList source, Pattern pattern) : this(pattern)
         {
-            influencePointInfoList.AddRange(source.InfluencePointInfos.Select(ip => new InfluencePointInfo(ip, pattern)));
-            InfluencePointInfo.CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict);
+            influencePointInfoList.AddRange(source.InfluencePointInfos.Select(ip => new InfluencePointInfo(ip, pattern, copyKeyParams: false)));
+        }
+
+        public void CopyKeyParams(InfluencePointInfoList source, Pattern pattern)
+        {
+            InfluencePointInfo.CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict, pattern);
+            for (int i = 0; i < source.influencePointInfoList.Count; i++)
+            {
+                influencePointInfoList[i].CopyKeyParams(source.influencePointInfoList[i], pattern);
+            }
         }
 
         public void AddInfluencePointInfo(InfluencePointInfo influencePointInfo)

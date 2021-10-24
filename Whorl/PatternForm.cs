@@ -178,7 +178,7 @@ namespace Whorl
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     PreviewChanges();
-                    lastEditedInfluenceLink = pattern.LastEditedInfluenceLink;
+                    //lastEditedInfluenceLink = pattern.LastEditedInfluenceLink;
                     return true;
                 }
             }
@@ -250,11 +250,11 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
-
+        public PatternTransform EditedTransform { get; private set; }
         private ParameterDisplaysContainer parameterDisplaysContainer { get; }
         private CSharpParameterDisplay renderingParamsDisplay { get; set; }
         private WhorlDesign design { get; set; }
-        private InfluenceLink lastEditedInfluenceLink { get; set; }
+        //private InfluenceLink lastEditedInfluenceLink { get; set; }
         private bool handleControlEvents = false;
         private PatternList editedPatternGroup = null;
         private PatternList previewPatternGroup = null;
@@ -547,6 +547,7 @@ namespace Whorl
                 throw new NullReferenceException("design cannot be null.");
             this.design = design;
             setPatternFromDefaultToolStripMenuItem.Enabled = this.design != null;
+            EditedTransform = null;
             //foreach (Pattern pattern in patternGroup.Patterns)
             //{
             //    pattern.OrigCenterPathPattern = pattern.CenterPathPattern;
@@ -1551,7 +1552,7 @@ namespace Whorl
                 if (UpdatePattern())
                 {
                     //INFMOD
-                    EditedPattern.LastEditedInfluenceLink = lastEditedInfluenceLink;
+                    //EditedPattern.LastEditedInfluenceLink = lastEditedInfluenceLink;
                     this.DialogResult = DialogResult.OK;
                     this.Hide();
                 }
@@ -3519,6 +3520,20 @@ namespace Whorl
             try
             {
                 PreviewPatternGroup = null;  //Disposes if not null.
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void btnEditTransformInMainForm_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (selectedTransform == null)
+                    return;
+                EditedTransform = selectedTransform;
             }
             catch (Exception ex)
             {

@@ -10,6 +10,12 @@ namespace Whorl
 {
     public abstract class PixelRenderInfo
     {
+        public enum PassTypes
+        {
+            FirstPass,
+            Normal,
+            LastPass
+        }
         public PixelRenderInfo(Pattern.RenderingInfo parent)
         {
             this.parent = parent;
@@ -27,7 +33,10 @@ namespace Whorl
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
         public double SegmentLength { get; set; } = 0;
+        public bool FirstPass => PassType == PassTypes.FirstPass;
+        public bool LastPass => PassType == PassTypes.LastPass;
 
+        protected PassTypes PassType { get; set; }
         public double DistanceToPath { get; protected set; }
         public double[] DistancesToPaths { get; protected set; }
         public float X { get; protected set; }

@@ -16,7 +16,12 @@ namespace Whorl
         Ribbon,
         PixelRender
     }
-
+    public enum FormulaUsages
+    {
+        Normal,
+        Module,
+        Include
+    }
     /// <summary>
     /// Class for an entry in list of formula choices, which is saved to XML.
     /// </summary>
@@ -27,7 +32,8 @@ namespace Whorl
         private string formula;
         private string maxAmplitudeFormula;
         private bool isCSharp;
-        private bool isModule;
+        private FormulaUsages formulaUsage = FormulaUsages.Normal;
+        //private bool isModule;
         private bool initialized;
 
         public FormulaEntry(FormulaTypes formulaType)
@@ -91,14 +97,20 @@ namespace Whorl
             }
         }
 
-        public bool IsModule
+        public FormulaUsages FormulaUsage
         {
-            get { return isModule; }
-            set
-            {
-                SetProperty(ref isModule, value);
-            }
+            get => formulaUsage;
+            set => SetProperty(ref formulaUsage, value);
         }
+
+        //public bool IsModule
+        //{
+        //    get { return isModule; }
+        //    set
+        //    {
+        //        SetProperty(ref isModule, value);
+        //    }
+        //}
 
         public override string ToString()
         {
@@ -118,7 +130,8 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(node, "FormulaType", FormulaType);
             xmlTools.AppendXmlAttribute(node, "FormulaName", FormulaName);
             xmlTools.AppendXmlAttribute(node, "IsCSharp", IsCSharp);
-            xmlTools.AppendXmlAttribute(node, "IsModule", IsModule);
+            xmlTools.AppendXmlAttribute(node, nameof(FormulaUsage), FormulaUsage);
+            //xmlTools.AppendXmlAttribute(node, "IsModule", IsModule);
             xmlTools.AppendChildNode(node, "Formula", Formula);
             if (FormulaType == FormulaTypes.Outline)
                 xmlTools.AppendChildNode(node, "MaxAmplitudeFormula", MaxAmplitudeFormula);
@@ -137,7 +150,15 @@ namespace Whorl
                 FormulaType = Tools.GetEnumXmlAttr(node, "FormulaType", FormulaTypes.Unknown);
             FormulaName = (string)Tools.GetXmlAttribute("FormulaName", typeof(string), node);
             IsCSharp = Tools.GetXmlAttribute<bool>(node, false, "IsCSharp");
-            IsModule = Tools.GetXmlAttribute<bool>(node, false, "IsModule");
+            FormulaUsage = FormulaUsages.Normal;
+            if (node.Attributes["IsModule"] != null)
+            {   //Legacy code:
+                bool isModule = Tools.GetXmlAttribute<bool>(node, false, "IsModule");
+                if (isModule)
+                    FormulaUsage = FormulaUsages.Module;
+            }
+            else
+                FormulaUsage = Tools.GetEnumXmlAttr(node, nameof(FormulaUsage), FormulaUsages.Normal);
             foreach (XmlNode childNode in node.ChildNodes)
             {
                 switch (childNode.Name)

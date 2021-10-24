@@ -186,9 +186,9 @@ namespace Whorl
             }
         }
 
-        public override Pattern GetCopy(bool copySharedPatternID = true, bool keepRecursiveParent = false)
+        public override Pattern GetCopy(bool keepRecursiveParent = false)
         {
-            return new PathPattern(this, copySharedPatternID);
+            return new PathPattern(this);
         }
 
         public override object Clone()

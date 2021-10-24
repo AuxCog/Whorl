@@ -27,14 +27,19 @@ namespace Whorl
         }
         private static long currentPatternID = 0;
         public long PatternID { get; }  //Unique ID for patterns in current session.
-        public long SharedPatternID { get; set; }  //ID for pattern or its copies.
+        //public long SharedPatternID { get; set; }  //ID for pattern or its copies.
 
-        public BasePattern()
+        public BasePattern(): base()
         {
             this.PatternID = ++currentPatternID;
-            this.SharedPatternID = this.PatternID;  //Overwritten by CopyProperties if this pattern is a copy.
+            //this.SharedPatternID = this.PatternID;  //Overwritten by CopyProperties if this pattern is a copy.
             //this.Center = new PointF(0, 0);
         }
+
+        public BasePattern(BasePattern source): base(source)
+        {
+        }
+
         public abstract void DrawOutline(Graphics g, Color? color = null);
         //protected virtual void OnCenterChanged() { }
     }

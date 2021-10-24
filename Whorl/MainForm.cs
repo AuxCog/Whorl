@@ -125,9 +125,6 @@ namespace Whorl
             get { return _design; }
         }
 
-        public NewObjectHandler<object> ParametersObjectHandler { get; } = new NewObjectHandler<object>();
-        public NewObjectHandler<FormulaSettings> FormulaSettingsHandler { get; } = new NewObjectHandler<FormulaSettings>();
-
         private void SetDesign(WhorlDesign newDesign)
         {
             if (newDesign == null)
@@ -163,7 +160,7 @@ namespace Whorl
             }
         }
         //Contains patterns, colors, and formulas user can choose from:
-        private static PatternGroupList patternChoices { get; set; }
+        public static PatternGroupList PatternChoices { get; private set; }
         public static PatternGroupList ClipboardPatterns { get; set; }
 
         //private PatternGroupList savedPatternChoices;
@@ -221,12 +218,16 @@ namespace Whorl
 
         public static FormulaEntryList FormulaEntryList
         {
-            get { return patternChoices.FormulaEntryList; }
+            get { return PatternChoices.FormulaEntryList; }
         }
 
         public PatternList LogoPatternGroup { get; set; }
 
         private Pattern influencePointsPattern { get; set; }
+
+        public FormulaSettings EditedFormulaSettings { get; set; }
+        private KeyEnumParameters editedKeyEnumParameters { get; set; }
+        private object editedParametersObject { get; set; }
 
         private bool FilesFolderExists()
         {
@@ -350,24 +351,24 @@ namespace Whorl
                 //picDesign.BackColor = WhorlSettings.Instance.DefaultBackgroundColor;
                 SetDesign(initialDesign);
                 string filePath = PatternChoicesFilePath;
-                patternChoices = new PatternGroupList(Design);
+                PatternChoices = new PatternGroupList(Design);
                 ClipboardPatterns = new PatternGroupList(Design);
                 if (File.Exists(filePath))
                 {
-                    Tools.ReadFromXml(filePath, patternChoices, "PatternChoices");
+                    Tools.ReadFromXml(filePath, PatternChoices, "PatternChoices");
                 }
                 else
                 {
                     Tools.ReadFromXmlResource("Whorl.PatternChoices.PatternChoices.config",
-                        patternChoices, "PatternChoices");
+                        PatternChoices, "PatternChoices");
                 }
-                patternChoices.ClearIsChanged();
+                PatternChoices.ClearIsChanged();
                 filePath = Path.Combine(WhorlSettings.Instance.FilesFolder,
                                         WhorlSettings.Instance.DefaultPatternFileName);
                 if (File.Exists(filePath))
                 {
-                    patternChoices.DefaultPatternGroup = new PatternList(Design);
-                    Tools.ReadFromXml(filePath, patternChoices.DefaultPatternGroup, "DefaultPatternGroup");
+                    PatternChoices.DefaultPatternGroup = new PatternList(Design);
+                    Tools.ReadFromXml(filePath, PatternChoices.DefaultPatternGroup, "DefaultPatternGroup");
                 }
                 if (readDesign)
                     DisplayDesign();
@@ -402,21 +403,21 @@ namespace Whorl
 
         private void InitPatternChoiceSettings()
         {
-            Design.DefaultPatternGroup = patternChoices.DefaultPatternGroup;
+            Design.DefaultPatternGroup = PatternChoices.DefaultPatternGroup;
             //savedPatternChoices = (PatternGroupList)patternChoices.Clone();
             //savedPatternChoices = new PatternGroupList();
             //savedPatternChoices.PatternGroups.AddRange(patternChoices.PatternGroups);
             //savedPatternChoices.ColorChoices.AddRange(patternChoices.ColorChoices);
             //savedPatternChoices.DefaultPatternGroup = patternChoices.DefaultPatternGroup;
             selectPatternForm = new
-                SelectPatternForm(SelectPatternForm.TargetTypes.Pattern, patternChoices);
+                SelectPatternForm(SelectPatternForm.TargetTypes.Pattern, PatternChoices);
             selectPatternForm.Design = Design;
             ClipboardPatternsForm = 
                 new SelectPatternForm(SelectPatternForm.TargetTypes.Pattern, ClipboardPatterns);
             SelectColorForm = new
-                SelectPatternForm(SelectPatternForm.TargetTypes.Color, patternChoices);
+                SelectPatternForm(SelectPatternForm.TargetTypes.Color, PatternChoices);
             SelectPaletteForm = new
-                SelectPatternForm(SelectPatternForm.TargetTypes.Palette, patternChoices);
+                SelectPatternForm(SelectPatternForm.TargetTypes.Palette, PatternChoices);
             if (Design.DefaultPatternGroup == null)
             {   //Create default pattern:
                 Design.DefaultPatternGroup = new PatternList(Design);
@@ -478,17 +479,17 @@ namespace Whorl
                 {
                     //var newPatternChoices = patternChoices;
                     //bool choicesChanged = patternChoices.IsChanged;
-                    patternChoices.FinalizeIsChanged();
-                    if (patternChoices.IsChanged)
+                    PatternChoices.FinalizeIsChanged();
+                    if (PatternChoices.IsChanged)
                     {
                         var changedList = new List<string>();
-                        if (patternChoices.IsPatternChanged)
+                        if (PatternChoices.IsPatternChanged)
                             changedList.Add("pattern");
-                        if (patternChoices.IsColorChanged)
+                        if (PatternChoices.IsColorChanged)
                             changedList.Add("color");
-                        if (patternChoices.IsPaletteChanged)
+                        if (PatternChoices.IsPaletteChanged)
                             changedList.Add("palette");
-                        if (patternChoices.IsFormulaChanged)
+                        if (PatternChoices.IsFormulaChanged)
                             changedList.Add("formula");
                         switch (MessageBox.Show(
                             $"Save changes to {string.Join("/", changedList)} choices?", "Confirm Save",
@@ -511,7 +512,7 @@ namespace Whorl
                     }
                     if (frmColorGradient != null && !frmColorGradient.IsDisposed)
                         frmColorGradient.Close();
-                    if (patternChoices.DefaultPatternGroup != Design.DefaultPatternGroup)
+                    if (PatternChoices.DefaultPatternGroup != Design.DefaultPatternGroup)
                     {
                         //Save Default Pattern Group
                         string filePath = Path.Combine(WhorlSettings.Instance.FilesFolder,
@@ -539,8 +540,8 @@ namespace Whorl
         private void SavePatternChoices()
         {
             string patternChoicesFilePath = PatternChoicesFilePath;
-            XmlTools.WriteToXml(patternChoicesFilePath, patternChoices, "PatternChoices");
-            patternChoices.ClearIsChanged();
+            XmlTools.WriteToXml(patternChoicesFilePath, PatternChoices, "PatternChoices");
+            PatternChoices.ClearIsChanged();
 
         }
 
@@ -724,7 +725,7 @@ namespace Whorl
                             if (!continueRibbonToolStripMenuItem.Checked)
                             {
                                 defaultPatternGroup =
-                                    Design.DefaultPatternGroup.GetCopy(copySharedPatternID: false);
+                                    Design.DefaultPatternGroup.GetCopy(copyKeyGuid: false);
                                 foreach (Pattern pattern in defaultPatternGroup.Patterns)
                                     pattern.OrigRandomSeed = null;
                                 Ribbon ribbon = defaultPatternGroup.GetRibbon();
@@ -890,9 +891,9 @@ namespace Whorl
 
         private void AddLogoPattern(int x, int y)
         {
-            if (patternChoices.LogoPatternGroup == null)
+            if (PatternChoices.LogoPatternGroup == null)
                 return;
-            PatternList logoCopy = patternChoices.LogoPatternGroup.GetCopy();
+            PatternList logoCopy = PatternChoices.LogoPatternGroup.GetCopy();
             Pattern leftMostPattern = logoCopy.Patterns.OrderBy(ptn => ptn.Center.X).FirstOrDefault();
             if (leftMostPattern == null)
                 return;
@@ -1233,10 +1234,10 @@ namespace Whorl
                 return;
             if (pattern == Design.EditedPattern)
             {
-                FormulaSettingsHandler.CurrentObject = formulaSettings;
-                ParametersObjectHandler.CurrentObject = paramsObject;
-                DisplayParameters();
-                //cSharpParamsDisplay.AddAllParametersControls(formulaSettings, pattern);
+                EditedFormulaSettings = formulaSettings;
+                //editedParametersObject = paramsObject;
+                editedKeyEnumParameters = null;
+                EditParameters();
             }
             else
             {
@@ -1244,22 +1245,30 @@ namespace Whorl
             }
         }
 
-        private void DisplayParameters(bool noInfluenceLinkEditing = false)
+        private void EditParameters()
         {
             Pattern pattern = Design.EditedPattern;
-            FormulaSettings formulaSettings = FormulaSettingsHandler.CurrentObject;
+            FormulaSettings formulaSettings = editedKeyEnumParameters == null ? EditedFormulaSettings 
+                                            : editedKeyEnumParameters.Parent.FormulaSettings;
             if (pattern == null || formulaSettings == null)
                 return;
             if (formulaSettings.IsCSharpFormula)
             {
-                object paramsObject = ParametersObjectHandler.CurrentObject;
+                object paramsObject;
+                if (editedKeyEnumParameters != null)
+                {
+                    paramsObject = editedKeyEnumParameters.ParametersObject;
+                    cSharpParamsDisplay.FnEditInfluenceLink = null;
+                }
+                else
+                {
+                    paramsObject = formulaSettings.EvalInstance?.ParamsObj;
+                    cSharpParamsDisplay.FnEditInfluenceLink = EditInfluenceLink;
+                }
                 if (paramsObject == null)
                     return;
+                //editedParametersObject = paramsObject;
                 cSharpParamsDisplay.SetParametersObject(paramsObject);
-                if (noInfluenceLinkEditing)
-                    cSharpParamsDisplay.FnEditInfluenceLink = null;
-                else
-                    cSharpParamsDisplay.FnEditInfluenceLink = EditInfluenceLink;
             }
             ShowRenderingPanels(true);
             parameterDisplaysContainer.AddParametersControls(pnlParameters, formulaSettings, pattern);
@@ -4043,38 +4052,74 @@ namespace Whorl
             {
                 PatternList patternGroup = GetPatternOrGroup(dragStart, "Edit a pattern group?",
                                            checkSingleSelected: true, includeRecursive: true);
-                if (patternGroup != null)
+                if (patternGroup == null)
+                    return;
+                //int editIndex = Design.EditedPattern == null ? -1 : 
+                //                patternGroup.PatternsList.IndexOf(Design.EditedPattern);
+                bool hasEditedPattern = Design.EditedPattern != null && 
+                                        patternGroup.PatternsList.Contains(Design.EditedPattern);
+                if (!EditPatternGroup(patternGroup))
+                    return;  //User cancelled.
+                var ptnsCopy = patternForm.EditedPatternGroup.GetCopy();
+                if (patternGroup.PatternsList.Count != ptnsCopy.PatternsList.Count)
                 {
-                    int editIndex = Design.EditedPattern == null ? -1 : 
-                                    patternGroup.PatternsList.IndexOf(Design.EditedPattern);
-                    if (EditPatternGroup(patternGroup))
+                    Design.RemovePatterns(patternGroup.PatternsList);
+                    Design.AddPatterns(ptnsCopy.PatternsList);
+                }
+                else
+                {
+                    Design.ReplacePatterns(patternGroup.PatternsList, ptnsCopy.PatternsList);
+                    if (patternForm.EditedTransform != null)
                     {
-                        var ptnsCopy = patternForm.EditedPatternGroup.GetCopy();
-                        //INFMOD
-                        if (influencePointsPattern != null)
+                        var editedPattern = patternForm.EditedTransform.ParentPattern.FindByKeyGuid(ptnsCopy.Patterns);
+                        if (editedPattern != null)
                         {
-                            influencePointsPattern.LastEditedInfluenceLink = influencePointsPattern.CopiedLastEditedInfluenceLink;
-                        }
-                        if (patternGroup.PatternsList.Count != ptnsCopy.PatternsList.Count)
-                        {
-                            Design.RemovePatterns(patternGroup.PatternsList);
-                            Design.AddPatterns(ptnsCopy.PatternsList);
-                        }
-                        else
-                        {
-                            Design.ReplacePatterns(patternGroup.PatternsList, ptnsCopy.PatternsList);
-                            if (editIndex != -1)
+                            var transform = patternForm.EditedTransform.FindByKeyGuid(editedPattern.Transforms);
+                            if (transform != null)
                             {
-                                Design.EditedPattern = ptnsCopy.PatternsList[editIndex];
-                                if (Design.EditedPattern.HasPixelRendering)
+                                Design.EditedPattern = editedPattern;
+                                EditedFormulaSettings = transform.TransformSettings;
+                                editedKeyEnumParameters = null;
+                                EditParameters();
+                            }
+                        }
+                    }
+                    if (hasEditedPattern)
+                    {
+                        Design.EditedPattern = Design.EditedPattern.FindByKeyGuid(ptnsCopy.Patterns);
+                        if (Design.EditedPattern != null)
+                        {
+                            if (editedKeyEnumParameters != null)
+                            {
+                                editedKeyEnumParameters = editedKeyEnumParameters.FindByKeyGuid(
+                                    Design.EditedPattern.GetKeyEnumParameters());
+                                if (editedKeyEnumParameters != null)
                                 {
-                                    AddRenderingControls(Design.EditedPattern);
+                                    EditParameters();
+                                    WriteStatus("Redisplayed parameters.");
+                                }
+                            }
+                            else if (Design.EditedPattern.HasPixelRendering && pnlParameters.Visible)
+                            {
+                                AddRenderingControls(Design.EditedPattern);
+                            }
+                            else
+                            {
+                                if (EditedFormulaSettings != null)
+                                {
+                                    EditedFormulaSettings = EditedFormulaSettings.FindByKeyGuid(
+                                        Design.EditedPattern.GetFormulaSettings());
+                                }
+                                if (EditedFormulaSettings != null && pnlParameters.Visible)
+                                {
+                                    EditParameters();
+                                    WriteStatus("Redisplayed parameters.");
                                 }
                             }
                         }
-                        await Task.Run(() => RedrawPatterns());
                     }
                 }
+                await Task.Run(() => RedrawPatterns());
             }
             catch (Exception ex)
             {
@@ -4223,7 +4268,7 @@ namespace Whorl
                 PatternList patternGroup = GetPatternOrGroup(dragStart, "Set a pattern group as default?");
                 if (patternGroup != null)
                 {
-                    Design.DefaultPatternGroup = patternGroup.GetCopy(copySharedPatternID: false);
+                    Design.DefaultPatternGroup = patternGroup.GetCopy(copyKeyGuid: false);
                     Design.DefaultPatternGroup.ClearSelected();
                     //foreach (Pattern ptn in design.DefaultPatternGroup.Patterns)
                     //{
@@ -4261,7 +4306,7 @@ namespace Whorl
                     ((Ribbon)newPattern).CopyRibbonPath((Ribbon)targetPattern);
                 }
             }
-            newPattern.SharedPatternID = targetPattern.SharedPatternID;
+            newPattern.SetKeyGuid(targetPattern);
             return newPattern;
         }
 
@@ -4605,7 +4650,7 @@ namespace Whorl
 
         public static void AddPatternGroupToChoices(PatternList patternGroup, PatternGroupList patternGroupList)
         {
-            PatternList copy = patternGroup.GetCopy(copySharedPatternID: false);
+            PatternList copy = patternGroup.GetCopy(copyKeyGuid: false);
             copy.ClearSelected();
             foreach (Pattern ptn in copy.Patterns)
             {
@@ -4616,7 +4661,7 @@ namespace Whorl
 
         public static void AddPatternGroupToChoices(PatternList patternGroup)
         {
-            AddPatternGroupToChoices(patternGroup, patternChoices);
+            AddPatternGroupToChoices(patternGroup, PatternChoices);
         }
 
         private void addPatternToChoicesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -4667,7 +4712,7 @@ namespace Whorl
             if (ok)
             {
                 this.Design.DefaultPatternGroup =
-                    selectPtnForm.SelectedPatternGroup.GetCopy(copySharedPatternID: false);
+                    selectPtnForm.SelectedPatternGroup.GetCopy(copyKeyGuid: false);
             }
             return ok;
         }
@@ -4951,7 +4996,7 @@ namespace Whorl
                                 else if (i > 0)    //First pattern already drawn.
                                 {
                                     PatternList newPatternGroup = 
-                                        patternGroup.GetCopy(copySharedPatternID: false);
+                                        patternGroup.GetCopy(copyKeyGuid: false);
                                     patternZVector = patternZVector * zRotation;
                                     newPatternGroup.SetZVectors(patternZVector);
                                     newPatternGroup.SetCenters(newCenter);
@@ -5004,7 +5049,7 @@ namespace Whorl
                                 else if (i > 0)    //First pattern already drawn.
                                 {
                                     PatternList newPatternGroup =
-                                        patternGroup.GetCopy(copySharedPatternID: false);
+                                        patternGroup.GetCopy(copyKeyGuid: false);
                                     newPatternGroup.SetCenters(new PointF(picCenter.X + (float)zVec.Re, picCenter.Y + (float)zVec.Im));
                                     foreach (Pattern newPattern in newPatternGroup.Patterns)
                                     {
@@ -5071,7 +5116,7 @@ namespace Whorl
                                 else if (i > 0)    //First pattern already drawn.
                                 {
                                     PatternList newPatternGroup =
-                                        patternGroup.GetCopy(copySharedPatternID: false);
+                                        patternGroup.GetCopy(copyKeyGuid: false);
                                     newPatternGroup.SetCenters(new PointF(x, y));
                                     foreach (Pattern newPattern in newPatternGroup.Patterns)
                                     {
@@ -5138,7 +5183,7 @@ namespace Whorl
                                 else if (i > 0)    //First pattern already drawn.
                                 {
                                     PatternList newPatternGroup =
-                                        patternGroup.GetCopy(copySharedPatternID: false);
+                                        patternGroup.GetCopy(copyKeyGuid: false);
                                     newPatternGroup.SetCenters(new PointF(x, y));
                                     foreach (Pattern newPattern in newPatternGroup.Patterns)
                                     {
@@ -5228,8 +5273,8 @@ namespace Whorl
                 {
                     if (File.Exists(patternChoicesFilePath))
                     {
-                        patternChoices = new PatternGroupList(Design);
-                        Tools.ReadFromXml(patternChoicesFilePath, patternChoices, 
+                        PatternChoices = new PatternGroupList(Design);
+                        Tools.ReadFromXml(patternChoicesFilePath, PatternChoices, 
                                           "PatternChoices");
                         InitPatternChoiceSettings();
                     }
@@ -5685,9 +5730,9 @@ namespace Whorl
             try
             {
                 int changedCount = 0;
-                for (int ind = 0; ind < patternChoices.PatternGroups.Count; ind++)
+                for (int ind = 0; ind < PatternChoices.PatternGroups.Count; ind++)
                 {
-                    var patternList = patternChoices.PatternGroups[ind];
+                    var patternList = PatternChoices.PatternGroups[ind];
                     bool isChanged = false;
                     foreach (Pattern pattern in patternList.Patterns)
                     {
@@ -5700,7 +5745,7 @@ namespace Whorl
                     }
                     if (isChanged)
                     {
-                        patternChoices.SetPatternGroup(patternList, ind);
+                        PatternChoices.SetPatternGroup(patternList, ind);
                     }
                 }
                 MessageBox.Show($"Set Precision to 5000 for {changedCount} patterns.");
@@ -6697,7 +6742,7 @@ namespace Whorl
         {
             try
             {
-                if (patternChoices.LogoPatternGroup == null)
+                if (PatternChoices.LogoPatternGroup == null)
                 {
                     MessageBox.Show("Please set a pattern as the logo.");
                     return;
@@ -6717,7 +6762,7 @@ namespace Whorl
             {
                 PatternList logoPatternGroup = GetPatternOrGroup(dragStart, "Set a pattern group as the logo?");
                 if (logoPatternGroup != null)
-                    patternChoices.LogoPatternGroup = logoPatternGroup;
+                    PatternChoices.LogoPatternGroup = logoPatternGroup;
             }
             catch (Exception ex)
             {
@@ -7589,10 +7634,10 @@ namespace Whorl
                     }
                     if (frmEditKeyEnumParameters.ShouldDisplayParameters)
                     {
-                        FormulaSettingsHandler.CurrentObject = frmEditKeyEnumParameters.FormulaSettings;
-                        ParametersObjectHandler.CurrentObject = frmEditKeyEnumParameters.ParamsObject;
+                        EditedFormulaSettings = frmEditKeyEnumParameters.FormulaSettings;
+                        editedKeyEnumParameters = frmEditKeyEnumParameters.KeyParams;
                         Design.EditedPattern = pattern;
-                        DisplayParameters(noInfluenceLinkEditing: true);
+                        EditParameters();
                     }
                 }
             }
@@ -7639,7 +7684,7 @@ namespace Whorl
         private bool EditInfluenceLink(string parameterName)
         {
             Pattern pattern = Design.EditedPattern;
-            FormulaSettings formulaSettings = FormulaSettingsHandler.CurrentObject;
+            FormulaSettings formulaSettings = EditedFormulaSettings;
             if (pattern == null || formulaSettings == null)
                 return false;
             if (pattern.InfluencePointInfoList.Count == 0)

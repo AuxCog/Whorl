@@ -47,6 +47,7 @@
             this.parseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.insertTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.translateToCSharpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.translateMaxAmplitudeToCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.switchBetweenLegacyAndCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moduleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addModuleToChoicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -60,7 +61,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.chkIsCSharpFormula = new System.Windows.Forms.CheckBox();
             this.lnkSavedFormulas = new System.Windows.Forms.LinkLabel();
-            this.chkIsModule = new System.Windows.Forms.CheckBox();
             this.pnlTransform = new System.Windows.Forms.Panel();
             this.cboSequenceNumber = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -69,7 +69,10 @@
             this.lblParseStatus = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
-            this.translateMaxAmplitudeToCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.copyIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -249,6 +252,14 @@
             this.translateToCSharpToolStripMenuItem.Text = "Translate to C#";
             this.translateToCSharpToolStripMenuItem.Click += new System.EventHandler(this.TranslateToCSharpToolStripMenuItem_Click);
             // 
+            // translateMaxAmplitudeToCToolStripMenuItem
+            // 
+            this.translateMaxAmplitudeToCToolStripMenuItem.Name = "translateMaxAmplitudeToCToolStripMenuItem";
+            this.translateMaxAmplitudeToCToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.translateMaxAmplitudeToCToolStripMenuItem.Text = "Translate Max Amplitude to C#";
+            this.translateMaxAmplitudeToCToolStripMenuItem.Visible = false;
+            this.translateMaxAmplitudeToCToolStripMenuItem.Click += new System.EventHandler(this.translateMaxAmplitudeToCToolStripMenuItem_Click);
+            // 
             // switchBetweenLegacyAndCToolStripMenuItem
             // 
             this.switchBetweenLegacyAndCToolStripMenuItem.Name = "switchBetweenLegacyAndCToolStripMenuItem";
@@ -261,7 +272,9 @@
             this.moduleToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addModuleToChoicesToolStripMenuItem,
             this.mergeModuleToolStripMenuItem,
-            this.copyModuleToolStripMenuItem});
+            this.copyModuleToolStripMenuItem,
+            this.saveIncludeToolStripMenuItem,
+            this.copyIncludeToolStripMenuItem});
             this.moduleToolStripMenuItem.Name = "moduleToolStripMenuItem";
             this.moduleToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
             this.moduleToolStripMenuItem.Text = "Module";
@@ -342,7 +355,7 @@
             // chkIsCSharpFormula
             // 
             this.chkIsCSharpFormula.AutoSize = true;
-            this.chkIsCSharpFormula.Location = new System.Drawing.Point(20, 66);
+            this.chkIsCSharpFormula.Location = new System.Drawing.Point(13, 66);
             this.chkIsCSharpFormula.Name = "chkIsCSharpFormula";
             this.chkIsCSharpFormula.Size = new System.Drawing.Size(113, 21);
             this.chkIsCSharpFormula.TabIndex = 29;
@@ -360,17 +373,6 @@
             this.lnkSavedFormulas.TabStop = true;
             this.lnkSavedFormulas.Text = "Saved Formulas...";
             this.lnkSavedFormulas.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LnkSavedFormulas_LinkClicked);
-            // 
-            // chkIsModule
-            // 
-            this.chkIsModule.AutoSize = true;
-            this.chkIsModule.Enabled = false;
-            this.chkIsModule.Location = new System.Drawing.Point(134, 66);
-            this.chkIsModule.Name = "chkIsModule";
-            this.chkIsModule.Size = new System.Drawing.Size(108, 21);
-            this.chkIsModule.TabIndex = 31;
-            this.chkIsModule.Text = "Is C# Module";
-            this.chkIsModule.UseVisualStyleBackColor = true;
             // 
             // pnlTransform
             // 
@@ -403,7 +405,7 @@
             // chkShowRawCSharp
             // 
             this.chkShowRawCSharp.AutoSize = true;
-            this.chkShowRawCSharp.Location = new System.Drawing.Point(248, 66);
+            this.chkShowRawCSharp.Location = new System.Drawing.Point(364, 66);
             this.chkShowRawCSharp.Name = "chkShowRawCSharp";
             this.chkShowRawCSharp.Size = new System.Drawing.Size(150, 21);
             this.chkShowRawCSharp.TabIndex = 35;
@@ -447,25 +449,49 @@
             this.chkIsMaxAmpCSharp.Text = "Is C# Formula";
             this.chkIsMaxAmpCSharp.UseVisualStyleBackColor = true;
             // 
-            // translateMaxAmplitudeToCToolStripMenuItem
+            // cboFormulaUsage
             // 
-            this.translateMaxAmplitudeToCToolStripMenuItem.Name = "translateMaxAmplitudeToCToolStripMenuItem";
-            this.translateMaxAmplitudeToCToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.translateMaxAmplitudeToCToolStripMenuItem.Text = "Translate Max Amplitude to C#";
-            this.translateMaxAmplitudeToCToolStripMenuItem.Visible = false;
-            this.translateMaxAmplitudeToCToolStripMenuItem.Click += new System.EventHandler(this.translateMaxAmplitudeToCToolStripMenuItem_Click);
+            this.cboFormulaUsage.FormattingEnabled = true;
+            this.cboFormulaUsage.Location = new System.Drawing.Point(205, 64);
+            this.cboFormulaUsage.Name = "cboFormulaUsage";
+            this.cboFormulaUsage.Size = new System.Drawing.Size(140, 25);
+            this.cboFormulaUsage.TabIndex = 39;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(131, 67);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(69, 17);
+            this.label2.TabIndex = 40;
+            this.label2.Text = "Category:";
+            // 
+            // copyIncludeToolStripMenuItem
+            // 
+            this.copyIncludeToolStripMenuItem.Name = "copyIncludeToolStripMenuItem";
+            this.copyIncludeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyIncludeToolStripMenuItem.Text = "Copy Include";
+            this.copyIncludeToolStripMenuItem.Click += new System.EventHandler(this.copyIncludeToolStripMenuItem_Click);
+            // 
+            // saveIncludeToolStripMenuItem
+            // 
+            this.saveIncludeToolStripMenuItem.Name = "saveIncludeToolStripMenuItem";
+            this.saveIncludeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveIncludeToolStripMenuItem.Text = "Save Include";
+            this.saveIncludeToolStripMenuItem.Click += new System.EventHandler(this.saveIncludeToolStripMenuItem_Click);
             // 
             // OutlineFormulaForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(743, 497);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.cboFormulaUsage);
             this.Controls.Add(this.chkIsMaxAmpCSharp);
             this.Controls.Add(this.lblParseStatus);
             this.Controls.Add(this.lnkShowErrors);
             this.Controls.Add(this.chkShowRawCSharp);
             this.Controls.Add(this.pnlTransform);
-            this.Controls.Add(this.chkIsModule);
             this.Controls.Add(this.lnkSavedFormulas);
             this.Controls.Add(this.chkIsCSharpFormula);
             this.Controls.Add(this.cboInsertTokens);
@@ -486,6 +512,7 @@
             this.MinimumSize = new System.Drawing.Size(759, 524);
             this.Name = "OutlineFormulaForm";
             this.Text = "Show Errors";
+            this.Load += new System.EventHandler(this.OutlineFormulaForm_Load);
             this.Resize += new System.EventHandler(this.OutlineFormulaForm_Resize);
             this.pnlPathSettings.ResumeLayout(false);
             this.pnlPathSettings.PerformLayout();
@@ -527,7 +554,6 @@
         private System.Windows.Forms.ToolStripMenuItem moduleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addModuleToChoicesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mergeModuleToolStripMenuItem;
-        private System.Windows.Forms.CheckBox chkIsModule;
         private System.Windows.Forms.ToolStripMenuItem copyModuleToolStripMenuItem;
         private System.Windows.Forms.Panel pnlTransform;
         private System.Windows.Forms.ComboBox cboSequenceNumber;
@@ -541,5 +567,9 @@
         private System.Windows.Forms.CheckBox chkUsePolygonVertices;
         private System.Windows.Forms.CheckBox chkIsMaxAmpCSharp;
         private System.Windows.Forms.ToolStripMenuItem translateMaxAmplitudeToCToolStripMenuItem;
+        private System.Windows.Forms.ComboBox cboFormulaUsage;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ToolStripMenuItem copyIncludeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveIncludeToolStripMenuItem;
     }
 }

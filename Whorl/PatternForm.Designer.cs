@@ -289,6 +289,7 @@
             this.label56 = new System.Windows.Forms.Label();
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
+            this.btnEditTransformInMainForm = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -1213,6 +1214,7 @@
             // 
             // tabTransforms
             // 
+            this.tabTransforms.Controls.Add(this.btnEditTransformInMainForm);
             this.tabTransforms.Controls.Add(this.pnlTransformParameters);
             this.tabTransforms.Controls.Add(this.btnAddTransform);
             this.tabTransforms.Controls.Add(this.dgvTransforms);
@@ -1231,12 +1233,12 @@
             this.pnlTransformParameters.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlTransformParameters.Location = new System.Drawing.Point(6, 160);
             this.pnlTransformParameters.Name = "pnlTransformParameters";
-            this.pnlTransformParameters.Size = new System.Drawing.Size(590, 122);
+            this.pnlTransformParameters.Size = new System.Drawing.Size(615, 122);
             this.pnlTransformParameters.TabIndex = 7;
             // 
             // btnAddTransform
             // 
-            this.btnAddTransform.Location = new System.Drawing.Point(542, 5);
+            this.btnAddTransform.Location = new System.Drawing.Point(520, 5);
             this.btnAddTransform.Name = "btnAddTransform";
             this.btnAddTransform.Size = new System.Drawing.Size(38, 23);
             this.btnAddTransform.TabIndex = 6;
@@ -2863,6 +2865,16 @@
             this.chkSmoothedDraft.UseVisualStyleBackColor = true;
             this.chkSmoothedDraft.CheckedChanged += new System.EventHandler(this.chkSmoothedDraft_CheckedChanged);
             // 
+            // btnEditTransformInMainForm
+            // 
+            this.btnEditTransformInMainForm.Location = new System.Drawing.Point(520, 34);
+            this.btnEditTransformInMainForm.Name = "btnEditTransformInMainForm";
+            this.btnEditTransformInMainForm.Size = new System.Drawing.Size(105, 23);
+            this.btnEditTransformInMainForm.TabIndex = 8;
+            this.btnEditTransformInMainForm.Text = "Edit in Main Form";
+            this.btnEditTransformInMainForm.UseVisualStyleBackColor = true;
+            this.btnEditTransformInMainForm.Click += new System.EventHandler(this.btnEditTransformInMainForm_Click);
+            // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3211,5 +3223,6 @@
         private System.Windows.Forms.ToolStripMenuItem draftSizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addPatternGroupToClipboardToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewInfluencePointsToolStripMenuItem;
+        private System.Windows.Forms.Button btnEditTransformInMainForm;
     }
 }

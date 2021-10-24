@@ -99,17 +99,17 @@ namespace Whorl
             FromXml(node);
         }
 
-        public Ribbon(Pattern pattern, bool copySharedPatternID = true): base(pattern.Design)
+        public Ribbon(Pattern pattern): base(pattern.Design)
         {
             if (pattern.PixelRendering != null && pattern.PixelRendering.Enabled)
             {
                 DrawingMode = RibbonDrawingModes.CopyPattern;
             }
-            base.CopyProperties(pattern, copySharedPatternID: copySharedPatternID);
+            base.CopyProperties(pattern);
             AddToRibbonPath();
         }
 
-        public Ribbon(Ribbon source, bool copySharedPatternID, bool keepRecursiveParent): this(source, copySharedPatternID)
+        public Ribbon(Ribbon source, bool keepRecursiveParent): this(source)
         {
             CopyRibbonPath(source);
             if (source.FormulaSettings != null)
@@ -118,9 +118,9 @@ namespace Whorl
             }
         }
 
-        public override Pattern GetCopy(bool copySharedPatternID = true, bool keepRecursiveParent = false)
+        public override Pattern GetCopy(bool keepRecursiveParent = false)
         {
-            return new Ribbon(this, copySharedPatternID, keepRecursiveParent);
+            return new Ribbon(this, keepRecursiveParent);
             //Ribbon copy = new Ribbon();
             //copy.CopyProperties(this, copySharedPatternID: copySharedPatternID);
             //copy.CopyRibbonPath(this);

@@ -103,27 +103,39 @@ namespace Whorl
             TransformFunctionName = EvalMethods.IdentMethodName;
         }
 
-        public InfluencePointInfo(InfluencePointInfo source, Pattern pattern)
+        public InfluencePointInfo(InfluencePointInfo source, Pattern pattern, bool copyKeyParams = true)
         {
-            CopyProperties(source);
+            CopyProperties(source, pattern, copyKeyParams);
             ParentPattern = pattern;
         }
 
-        public static void CopyKeyParamsDict(Dictionary<string, KeyEnumParameters> copy, Dictionary<string, KeyEnumParameters> source)
+        public static void CopyKeyParamsDict(Dictionary<string, KeyEnumParameters> copy, Dictionary<string, KeyEnumParameters> source,
+                                             Pattern pattern = null)
         {
             copy.Clear();
             foreach (var kvp in source)
             {
-                copy.Add(kvp.Key, new KeyEnumParameters(kvp.Value));
+                FormulaSettings formulaSettings = kvp.Value.Parent.FormulaSettings;
+                if (pattern != null)
+                { 
+                    formulaSettings = formulaSettings.FindByKeyGuid(pattern.GetFormulaSettings(), throwException: true);
+                }
+                copy.Add(kvp.Key, new KeyEnumParameters(kvp.Value, formulaSettings));
             }
         }
 
-        public void CopyProperties(InfluencePointInfo source)
+        public void CopyKeyParams(InfluencePointInfo source, Pattern pattern)
+        {
+            CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict, pattern);
+        }
+
+        public void CopyProperties(InfluencePointInfo source, Pattern pattern = null, bool copyKeyParams = true)
         {
             Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(KeyEnumParamsDict) });
             FilterKeys.Clear();
             FilterKeys.UnionWith(source.FilterKeys);
-            CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict);
+            if (copyKeyParams)
+                CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict, pattern);
         }
 
         public void SetKeyInfosEnabled()

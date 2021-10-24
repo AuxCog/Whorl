@@ -19,15 +19,33 @@ namespace Whorl
 
         private Pattern pattern { get; set; }
         public FormulaSettings FormulaSettings { get; private set; }
-        public object ParamsObject { get; private set; }
+        public KeyEnumParameters KeyParams { get; private set; }
         private CSharpParameterDisplay cSharpParameterDisplay { get; set; }
         public bool ParametersChanged { get; private set; }
         public bool ShouldDisplayParameters { get; private set; }
 
-        private void FrmEditKeyEnumParameters_Load(object sender, EventArgs e)
+        private List<ValueTextItem> categories { get; set; }
+        private string categoryText { get; set; }
+        private string keyParamsText { get; set; }
+        private bool ignoreEvents { get; set; }
+
+        private void FrmEditKeyEnumParameters_Activated(object sender, EventArgs e)
         {
             try
             {
+                if (categories == null || string.IsNullOrEmpty(categoryText))
+                    return;
+                var categoryItem = categories.FirstOrDefault(v => v.Text == categoryText);
+                categoryText = null;  //Prevent further calls.
+                if (categoryItem == null)
+                    return;
+                ignoreEvents = true;
+                cboCategory.SelectedItem = categoryItem;
+                ignoreEvents = false;
+                if (string.IsNullOrEmpty(keyParamsText))
+                    return;
+                var keyParamsItem = OnChangeCategory().FirstOrDefault(o => o.ToString() == keyParamsText) as KeyEnumParameters;
+                cboEnumKey.SelectedItem = keyParamsItem;
             }
             catch (Exception ex)
             {
@@ -49,7 +67,7 @@ namespace Whorl
             BaseParameterDisplay.ClearParametersControls(pnlParameters);
             cboEnumKey.DataSource = null;
             this.pattern = pattern;
-            var categories = new List<ValueTextItem>() { new ValueTextItem(null, string.Empty) };
+            categories = new List<ValueTextItem>() { new ValueTextItem(null, string.Empty) };
             if (pattern.HasPixelRendering
                 && pattern.PixelRendering.FormulaSettings != null
                 && pattern.PixelRendering.FormulaSettings.HasKeyEnumParameters)
@@ -60,21 +78,24 @@ namespace Whorl
                                 .Select(t => new ValueTextItem(t, $"Transform: {t.TransformName}")));
             cboCategory.DataSource = categories;
             ParametersChanged = ShouldDisplayParameters = false;
+            KeyParams = null;
         }
 
-        private void OnChangeCategory()
+        private List<object> OnChangeCategory()
         {
             FormulaSettings = GetFormulaSettings();
             var items = new List<object>() { string.Empty };
             items.AddRange(pattern.InfluencePointInfoList.KeyEnumParamsDict.Values
                                   .Where(v => v.Parent.FormulaSettings == FormulaSettings));
             cboEnumKey.DataSource = items;
+            return items;
         }
 
         private void cboCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
+                if (ignoreEvents) return;
                 OnChangeCategory();
             }
             catch (Exception ex)
@@ -86,7 +107,7 @@ namespace Whorl
         private FormulaSettings GetFormulaSettings()
         {
             var item = cboCategory.SelectedItem as ValueTextItem;
-            if (item == null) return null;
+            if (item?.Value == null) return null;
             var pixelRendering = item.Value as Pattern.RenderingInfo;
             if (pixelRendering != null)
                 return pixelRendering.FormulaSettings;
@@ -98,6 +119,18 @@ namespace Whorl
 
         private void BtnClose_Click(object sender, EventArgs e)
         {
+            try
+            {
+                var item = cboCategory.SelectedItem as ValueTextItem;
+                categoryText = item?.Text;
+                var keyParams = cboEnumKey.SelectedItem as KeyEnumParameters;
+                keyParamsText = keyParams?.ToString();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
             Hide();
         }
 
@@ -133,7 +166,7 @@ namespace Whorl
                     MessageBox.Show("There is no parameters object to edit.");
                     return;
                 }
-                ParamsObject = keyParams.ParametersObject;
+                KeyParams = keyParams;
                 ShouldDisplayParameters = true;
             }
             catch (Exception ex)
@@ -142,5 +175,6 @@ namespace Whorl
             }
 
         }
+
     }
 }

@@ -8,7 +8,7 @@ using System.Xml;
 
 namespace Whorl
 {
-    public class PatternTransform: BaseObject, IXml
+    public class PatternTransform: GuidKey, IXml
     {
         public class FormulaInfo
         {
@@ -68,7 +68,7 @@ namespace Whorl
             ConfigureParser(TransformSettings.Parser);
         }
 
-        public PatternTransform(PatternTransform source, Pattern parentPattern)
+        public PatternTransform(PatternTransform source, Pattern parentPattern): base(source)
         {
             if (parentPattern == null)
                 throw new NullReferenceException("parentPattern cannot be null.");

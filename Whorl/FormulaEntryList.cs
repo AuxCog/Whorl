@@ -219,7 +219,8 @@ namespace Whorl
         //}
 
         public FormulaEntry AddFormulaEntry(FormulaTypes formulaType, string formulaName, string formula, bool isCSharp,
-                                    out AddFormulaStatus status, string maxAmplitudeFormula = null, bool isModule = false)
+                                    out AddFormulaStatus status, string maxAmplitudeFormula = null, 
+                                    FormulaUsages formulaUsage = FormulaUsages.Normal)
         {
             string errorMessage = null;
             if (string.IsNullOrWhiteSpace(formulaName))
@@ -242,7 +243,7 @@ namespace Whorl
                     formula == formulaEntry.Formula &&
                     isCSharp == formulaEntry.IsCSharp &&
                     (formulaType != FormulaTypes.Outline || formulaEntry.MaxAmplitudeFormula == maxAmplitudeFormula) &&
-                    isModule == formulaEntry.IsModule)
+                    formulaUsage == formulaEntry.FormulaUsage)
                 {
                     status = AddFormulaStatus.Unchanged;
                 }
@@ -295,7 +296,7 @@ namespace Whorl
                         formulaEntry.FormulaType = formulaType;
                     formulaEntry.Formula = formula;
                     formulaEntry.IsCSharp = isCSharp;
-                    formulaEntry.IsModule = isModule;
+                    formulaEntry.FormulaUsage = formulaUsage;
                     if (formulaType == FormulaTypes.Outline)
                         formulaEntry.MaxAmplitudeFormula = maxAmplitudeFormula;
                     if (status == AddFormulaStatus.Added)

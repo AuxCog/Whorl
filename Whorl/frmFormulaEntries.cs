@@ -16,7 +16,8 @@ namespace Whorl
         {
             CopyFormula,
             MergeModule,
-            CopyModule
+            CopyModule,
+            CopyInclude
         }
         public FormulaEntry SelectedFormulaEntry { get; private set; }
 
@@ -25,7 +26,7 @@ namespace Whorl
         private FormulaEntryList formulaEntryList { get; }
         private List<FormulaEntry> filteredFormulaEntries { get; set; }
         private List<CheckBox> typeFilterCheckBoxes { get; } = new List<CheckBox>();
-        private bool forModules { get; set; }
+        private FormulaUsages formulaUsage { get; set; } = FormulaUsages.Normal;
 
         public frmFormulaEntries(FormulaEntryList formulaEntryList, IFormulaForm formulaForm)
         {
@@ -51,7 +52,12 @@ namespace Whorl
             try
             {
                 handleEvents = false;
-                this.forModules = copyMode == CopyModes.MergeModule || copyMode == CopyModes.CopyModule;
+                if (copyMode == CopyModes.MergeModule || copyMode == CopyModes.CopyModule)
+                    formulaUsage = FormulaUsages.Module;
+                else if (copyMode == CopyModes.CopyInclude)
+                    formulaUsage = FormulaUsages.Include;
+                else
+                    formulaUsage = FormulaUsages.Normal;
                 btnCopyFormula.Text = copyMode == CopyModes.MergeModule ? "Merge Module" : "Copy Formula";
                 SelectedFormulaEntry = null;
                 foreach (CheckBox chk in typeFilterCheckBoxes)
@@ -96,7 +102,7 @@ namespace Whorl
 
         private bool Matches(FormulaEntry formulaEntry, bool? isCSharp, HashSet<FormulaTypes> formulaTypes)
         {
-            return  formulaEntry.IsModule == forModules &&
+            return  formulaEntry.FormulaUsage == formulaUsage &&
                     (isCSharp == null || formulaEntry.IsCSharp == isCSharp) && 
                     formulaTypes.Contains(formulaEntry.FormulaType);
         }

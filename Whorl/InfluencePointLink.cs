@@ -579,10 +579,10 @@ namespace Whorl
                 copy.InfluencePointInfo = GetInfluencePointInfo(parent.ParentCollection);
             copy.LinkFactor = LinkFactor;
             copy.Multiply = Multiply;
-            if (Parent.ParentCollection.ParentPattern.LastEditedInfluenceLink == this)
-            {
-                Parent.ParentCollection.ParentPattern.CopiedLastEditedInfluenceLink = copy;
-            }
+            //if (Parent.ParentCollection.ParentPattern.LastEditedInfluenceLink == this)
+            //{
+            //    Parent.ParentCollection.ParentPattern.CopiedLastEditedInfluenceLink = copy;
+            //}
             return copy;
         }
 

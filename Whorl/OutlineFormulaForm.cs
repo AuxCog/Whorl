@@ -63,6 +63,14 @@ namespace Whorl
             txtMaxAmplitudeFormula.Enter += txtFormula_Enter;
         }
 
+        private FormulaUsages GetFormulaUsage()
+        {
+            if (cboFormulaUsage.SelectedItem is FormulaUsages)
+                return (FormulaUsages)cboFormulaUsage.SelectedItem;
+            else
+                return FormulaUsages.Normal;
+        }
+
         private void SetOrigFormulaEntry()
         {
             origCSharpCode = txtFormula.Text;
@@ -79,7 +87,7 @@ namespace Whorl
                     Formula = txtFormula.Text,
                     MaxAmplitudeFormula = txtMaxAmplitudeFormula.Text,
                     IsCSharp = chkIsCSharpFormula.Checked,
-                    IsModule = chkIsModule.Checked
+                    FormulaUsage = GetFormulaUsage()
                 };
         }
 
@@ -136,7 +144,7 @@ namespace Whorl
                     UseVerticesChanged();
                 chkUseVertices.Enabled = pathOutline != null;
                 //PopulateSavedFormulaNameComboBox();
-                chkIsModule.Checked = false;
+                cboFormulaUsage.SelectedItem = FormulaUsages.Normal;
                 SetOrigFormulaEntry();
             }
             catch (Exception ex)
@@ -158,7 +166,7 @@ namespace Whorl
             txtFormulaName.Text = formulaName ?? formulaSettings.FormulaName;
             currentFormulaTextBox = txtFormula;
             currentFormulaSettings = formulaSettings;
-            chkIsModule.Checked = false;
+            cboFormulaUsage.SelectedItem = FormulaUsages.Normal;
             SetOrigFormulaEntry();
         }
 
@@ -398,28 +406,50 @@ namespace Whorl
             }
         }
 
+        private void AddFormulaToChoices(FormulaUsages formulaUsage)
+        {
+            if (GetFormulaUsage() != formulaUsage)
+            {
+                MessageBox.Show($"Please select {formulaUsage} as Category first.");
+                return;
+            }
+            if (MessageBox.Show($"Formula will be saved with name {txtFormulaName.Text}.", "Confirm", MessageBoxButtons.OKCancel)
+                != DialogResult.OK)
+            {
+                return;
+            }
+            if (chkShowRawCSharp.Visible)
+            {
+                chkShowRawCSharp.Checked = false;
+            }
+            var newEntry = MainForm.FormulaEntryList.AddFormulaEntry(
+                     formulaType, txtFormulaName.Text, txtFormula.Text, isCSharp: true,
+                     out var status, formulaUsage: formulaUsage);
+            if (status == FormulaEntryList.AddFormulaStatus.Added ||
+                status == FormulaEntryList.AddFormulaStatus.Replaced)
+            {
+                txtFormulaName.Text = newEntry.FormulaName;
+                //PopulateSavedFormulas();
+            }
+        }
+
         private void AddModuleToChoicesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                if (!chkIsModule.Checked)
-                {
-                    MessageBox.Show("Please check Is Module first.");
-                    return;
-                }
-                if (chkShowRawCSharp.Visible)
-                {
-                    chkShowRawCSharp.Checked = false;
-                }
-                var newEntry = MainForm.FormulaEntryList.AddFormulaEntry(
-                         formulaType, txtFormulaName.Text, txtFormula.Text, isCSharp: true,
-                         out var status, isModule: true);
-                if (status == FormulaEntryList.AddFormulaStatus.Added ||
-                    status == FormulaEntryList.AddFormulaStatus.Replaced)
-                {
-                    txtFormulaName.Text = newEntry.FormulaName;
-                    //PopulateSavedFormulas();
-                }
+                AddFormulaToChoices(FormulaUsages.Module);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void saveIncludeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AddFormulaToChoices(FormulaUsages.Include);
             }
             catch (Exception ex)
             {
@@ -463,18 +493,35 @@ namespace Whorl
             }
         }
 
+        private void CopyFormula(frmFormulaEntries.CopyModes copyMode)
+        {
+            using (var frm = new frmFormulaEntries(MainForm.FormulaEntryList, this))
+            {
+                frm.Initialize(formulaType, copyMode);
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    SetFormula(frm.SelectedFormulaEntry);
+                }
+            }
+        }
+
         private void CopyModuleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                using (var frm = new frmFormulaEntries(MainForm.FormulaEntryList, this))
-                {
-                    frm.Initialize(formulaType, frmFormulaEntries.CopyModes.CopyModule);
-                    if (frm.ShowDialog() == DialogResult.OK)
-                    {
-                        SetFormula(frm.SelectedFormulaEntry);
-                    }
-                }
+                CopyFormula(frmFormulaEntries.CopyModes.CopyModule);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void copyIncludeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                CopyFormula(frmFormulaEntries.CopyModes.CopyInclude);
             }
             catch (Exception ex)
             {
@@ -590,7 +637,7 @@ namespace Whorl
             {
                 formulaSettings.IsCSharpFormula = chkIsCSharpFormula.Checked;
             }
-            var status = ParseFormula(formulaSettings, txtFormula, ifChanged, chkIsModule.Checked);
+            var status = ParseFormula(formulaSettings, txtFormula, ifChanged, GetFormulaUsage() == FormulaUsages.Module);
             if (status == ParseStatusValues.Success && basicOutline != null && !UseVertices)
             {
                 basicOutline.customOutline.MaxAmplitudeSettings.IsCSharpFormula = chkIsMaxAmpCSharp.Checked;
@@ -782,7 +829,7 @@ namespace Whorl
             txtMaxAmplitudeFormula.Text = fe.MaxAmplitudeFormula;
             txtFormulaName.Text = fe.FormulaName;
             chkIsCSharpFormula.Checked = fe.IsCSharp;
-            chkIsModule.Checked = fe.IsModule;
+            cboFormulaUsage.SelectedItem = fe.FormulaUsage;
         }
 
         private frmFormulaEntries frmFormulaEntries;
@@ -807,8 +854,8 @@ namespace Whorl
         private void ChkIsCSharpFormula_CheckedChanged(object sender, EventArgs e)
         {
             if (!chkIsCSharpFormula.Checked)
-                chkIsModule.Checked = false;
-            chkIsModule.Enabled = chkIsCSharpFormula.Checked;
+                cboFormulaUsage.SelectedItem = FormulaUsages.Normal;
+            cboFormulaUsage.Enabled = chkIsCSharpFormula.Checked;
             chkShowRawCSharp.Visible = chkIsCSharpFormula.Checked;
         }
 
@@ -833,6 +880,19 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private void OutlineFormulaForm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                cboFormulaUsage.DataSource = Enum.GetValues(typeof(FormulaUsages));
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
         }
 
     }

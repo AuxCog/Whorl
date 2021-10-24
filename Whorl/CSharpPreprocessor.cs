@@ -34,6 +34,7 @@ namespace Whorl
             Random,
             Previous,
             Base0,
+            Include,
             InsertStart,
             InsertEnd,
             Namespace,
@@ -385,9 +386,46 @@ namespace Whorl
         public string Preprocess(string code, Type infoType = null)
         {
             this.infoType = infoType;
+            code = ProcessIncludes(code);
             string newCode = PreprocessCode(code);
             Initialize(initial: false); //Free memory.
             return newCode;
+        }
+
+        private string ProcessIncludes(string code)
+        {
+            ErrorMessages.Clear();
+            Warnings.Clear();
+            int charIndex = 0;
+
+            codeTokens = tokenizer.TokenizeExpression(code);
+            var sbCode = new StringBuilder();
+            int i = 0;
+            while (i < codeTokens.Count)
+            {
+                Token token = codeTokens[i++];
+                if (token.TokenType == Token.TokenTypes.Custom && 
+                    GetTokenDirective(token, i) == TokenDirectives.Directive)
+                {
+                    Token directiveToken = GetToken(i++);
+                    if (ParseReservedWord(directiveToken.Text, ReservedWords.Include))
+                    {
+                        string includeCode = ProcessIncludeDirective(ref i);
+                        if (includeCode != null)
+                        {
+                            sbCode.Append(code.Substring(charIndex, token.CharIndex - charIndex));
+                            sbCode.Append(includeCode);
+                            token = GetToken(i - 1);
+                            charIndex = token.CharIndex + token.Text.Length;
+                        }
+                    }
+                }
+            }
+            if (sbCode.Length == 0)
+                return code;
+            if (charIndex < code.Length)
+                sbCode.Append(code.Substring(charIndex));
+            return sbCode.ToString();
         }
 
         private string PreprocessCode(string code)
@@ -610,7 +648,7 @@ namespace Whorl
             {
                 AddError("Some @@InsertStart directives did not have @@InsertEnd directives.");
             }
-            return string.Join(string.Empty, newCodeParts);
+            return string.Concat(newCodeParts);
         }
 
         private class MergeInsertInfo
@@ -1299,6 +1337,31 @@ $@"public void {methodName}()
             return $"{directivePattern}{directive}";
         }
 
+        private string ProcessIncludeDirective(ref int tokenIndex)
+        {
+            string includeCode = null;
+            Token token = GetToken(tokenIndex++);
+            if (token.TokenType == Token.TokenTypes.String)
+            {
+                string formulaName = ((StringToken)token).Value;
+                var formulaEntry = MainForm.PatternChoices.FormulaEntryList.GetFormulaByName(formulaName);
+                if (formulaEntry != null && formulaEntry.FormulaUsage == FormulaUsages.Include)
+                {
+                    TryParseTokenText(ref tokenIndex, ";");  //Optional semicolon.
+                    includeCode = Environment.NewLine + formulaEntry.Formula + Environment.NewLine;
+                }
+                else
+                {
+                    AddError(token, $"Did not find include formula names {formulaName}.");
+                }
+            }
+            else
+            {
+                AddError(token, $"Expecting quoted formula name following {GetDirectiveText(ReservedWords.Include)}.");
+            }
+            return includeCode;
+        }
+
         private bool ProcessDirective(ref int tokenIndex, out bool atKeyParameters)
         {
             Token directiveToken = GetToken(tokenIndex - 1); //"@@" token.
@@ -1306,7 +1369,8 @@ $@"public void {methodName}()
             bool isValid = atKeyParameters = false;
             if (ParseReservedWord(token.Text, out ReservedWords directive,
                                   vws => AddError(token, "Expecting " + Tools.GetEnglishPhrase(vws.Select(rw => GetDirectiveText(rw)))),
-                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters, ReservedWords.KeyEnum))
+                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters, 
+                                  ReservedWords.KeyEnum))
             {
                 tokenIndex++;
                 switch (directive)

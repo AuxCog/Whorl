@@ -203,6 +203,7 @@
     <Compile Include="GetValueForm.Designer.cs">
       <DependentUpon>GetValueForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GuidKey.cs" />
     <Compile Include="IColorNodeList.cs" />
     <Compile Include="IFillInfo.cs" />
     <Compile Include="IFormulaForm.cs" />
@@ -231,7 +232,6 @@
     <Compile Include="NamedRandomSeedForm.Designer.cs">
       <DependentUpon>NamedRandomSeedForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="NewObjectHandler.cs" />
     <Compile Include="OutlineFormulaForm.cs">
       <SubType>Form</SubType>
     </Compile>

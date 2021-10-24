@@ -10,8 +10,16 @@ namespace Whorl
     /// <summary>
     /// Base class for Pattern and WhorlDesign classes.
     /// </summary>
-    public abstract class WhorlBaseObject: BaseObject, IXml, IDisposable
+    public abstract class WhorlBaseObject: GuidKey, IXml, IDisposable
     {
+        public WhorlBaseObject(): base()
+        {
+        }
+
+        public WhorlBaseObject(WhorlBaseObject source): base(source)
+        {
+        }
+
         public abstract XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null);
 
         public abstract void FromXml(XmlNode node);

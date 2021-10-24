@@ -29,9 +29,9 @@ namespace Whorl
             FormulaSettings = formulaSettings;
         }
 
-        public KeyEnumInfo(KeyEnumInfo source): this(source.EnumValue, source.ParametersClassType, 
-                                                     source.ParametersAreGlobal, source.IsExclusive, 
-                                                     source.FormulaSettings)
+        public KeyEnumInfo(KeyEnumInfo source, FormulaSettings formulaSettings) 
+               : this(source.EnumValue, source.ParametersClassType, 
+                      source.ParametersAreGlobal, source.IsExclusive, formulaSettings)
         {
         }
 
@@ -41,21 +41,17 @@ namespace Whorl
         }
     }
 
-    public class KeyEnumParameters
+    public class KeyEnumParameters: GuidKey
     {
         public KeyEnumInfo Parent { get; }
         public object ParametersObject { get; set; }
         public bool IsEnabled { get; set; } = true;
 
-        private KeyEnumParameters(KeyEnumInfo parent)
+        public KeyEnumParameters(KeyEnumInfo parent, object parametersObject, bool createParamsObject = true)
         {
             if (parent == null)
                 throw new NullReferenceException("parent cannot be null.");
             Parent = parent;
-        }
-
-        public KeyEnumParameters(KeyEnumInfo parent, object parametersObject, bool createParamsObject = true) : this(parent)
-        {
             if (parametersObject == null && createParamsObject)
             {
                 parametersObject = Parent.CreateParametersObject();
@@ -63,14 +59,14 @@ namespace Whorl
             ParametersObject = parametersObject;
         }
 
-        public KeyEnumParameters(KeyEnumParameters source) : this(new KeyEnumInfo(source.Parent))
+        public KeyEnumParameters(KeyEnumParameters source, FormulaSettings formulaSettings) : base(source)
         {
+            Parent = new KeyEnumInfo(source.Parent, formulaSettings);
             IsEnabled = source.IsEnabled;
             if (source.ParametersObject != null)
             {
                 ParametersObject = Parent.CreateParametersObject();
                 Parent.FormulaSettings.CopyCSharpParameters(source.ParametersObject, ParametersObject);
-                MainForm.DefaultMainForm.ParametersObjectHandler.AddNewObject(source.ParametersObject, ParametersObject);
             }
         }
 
@@ -80,11 +76,11 @@ namespace Whorl
             {
                 if (dict.TryGetValue(Parent.EnumKey, out var keyParams))
                 {
+                    SetKeyGuid(keyParams);
                     if (keyParams.ParametersObject != null)
                     {
                         //Copy parameters from keyParams.
                         Parent.FormulaSettings.CopyCSharpParameters(keyParams.ParametersObject, ParametersObject);
-                        MainForm.DefaultMainForm.ParametersObjectHandler.AddNewObject(keyParams.ParametersObject, ParametersObject);
                     }
                 }
             }

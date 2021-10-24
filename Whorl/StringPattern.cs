@@ -122,10 +122,10 @@ namespace Whorl
             return base.Clone();
         }
 
-        public override Pattern GetCopy(bool copySharedPatternID = true, bool keepRecursiveParent = false)
+        public override Pattern GetCopy(bool keepRecursiveParent = false)
         {
             StringPattern copy = new StringPattern(Design);
-            copy.CopyProperties(this, copySharedPatternID: copySharedPatternID);
+            copy.CopyProperties(this);
             return copy;
         }
 

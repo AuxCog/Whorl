@@ -802,7 +802,7 @@ namespace Whorl
                         if (ind == -1)
                             throw new Exception("Pattern to set not found in choices.");
                         SetSelectedPatternGroup(
-                            Design.DefaultPatternGroup.GetCopy(copySharedPatternID: false), ind);
+                            Design.DefaultPatternGroup.GetCopy(), ind);
                     }
                 }
                 else if (TargetType == TargetTypes.Palette && 

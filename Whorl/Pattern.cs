@@ -400,6 +400,10 @@ namespace Whorl
                 {
                     DraftSize = size;
                 }
+                public void SetPassType(PassTypes passType)
+                {
+                    PassType = passType;
+                }
                 public void SetInfo(SizeF boundsSize, PointF center, double maxPosition, 
                                     double scaleFactor, int maxModulusStep)
                 {
@@ -1211,6 +1215,7 @@ namespace Whorl
                 else
                     rowPositions = null;
                 bool success;
+                Info.SetPassType(PixelRenderInfo.PassTypes.FirstPass);
                 if (Info.PolarTraversal)
                     success = TraversePolar(caller, patternPixels);
                 else
@@ -1324,6 +1329,10 @@ namespace Whorl
                     positionAverage = 0D;
                     for (int x = 0; x < boundsSize.Width; x++)
                     {
+                        if (y == yMax - 1 && x == boundsSize.Width - 1)
+                        {
+                            Info.SetPassType(PixelRenderInfo.PassTypes.LastPass);
+                        }
                         if (RenderPoint(x, y, pixInd++, patternPixels))
                             cachedIndex++;
                     }
@@ -1380,6 +1389,10 @@ namespace Whorl
                         Point p = points[i];
                         int pixInd = p.Y * boundsSize.Width + p.X;
                         Info.SetAngleStep(i);
+                        if (i == points.Count - 1 && modulus + modulusFactor > maxModulus)
+                        {
+                            Info.SetPassType(PixelRenderInfo.PassTypes.LastPass);
+                        }
                         if (RenderPoint(p.X, p.Y, pixInd, patternPixels))
                             cachedIndex++;
                     }
@@ -1433,6 +1446,10 @@ namespace Whorl
                         if (setCachedPositions)
                         {
                             cachedPositions[cachedIndex] = (ushort)(ushort.MaxValue * position);
+                        }
+                        if (Info.FirstPass)
+                        {
+                            Info.SetPassType(PixelRenderInfo.PassTypes.Normal);
                         }
                     }
                     patternPixels[pixInd] = GetGradientColor(position).ToArgb();
@@ -1913,7 +1930,7 @@ namespace Whorl
 
         public int? OrigRandomSeed { get; set; } = null;
 
-        public PatternRecursion Recursion { get; }
+        public PatternRecursion Recursion { get; private set; }
 
         //public PathPattern OrigCenterPathPattern { get; set; }
         //public PathPattern CenterPathPattern { get; set; }
@@ -1940,12 +1957,12 @@ namespace Whorl
         public double InfluenceScaleFactor { get; private set; } = 1.0;
         public double RenderingScaleFactor { get; set; } = 1.0;
 
-        public InfluenceLink LastEditedInfluenceLink { get; set; }
-        public InfluenceLink CopiedLastEditedInfluenceLink { get; set; }
+        //public InfluenceLink LastEditedInfluenceLink { get; set; }
+        //public InfluenceLink CopiedLastEditedInfluenceLink { get; set; }
 
-        public WhorlDesign Design { get; }
+        public WhorlDesign Design { get; private set; }
 
-        protected Pattern(WhorlDesign design, Pattern recursiveParent = null)
+        private void Initialize(WhorlDesign design, Pattern recursiveParent)
         {
             if (design == null)
                 throw new NullReferenceException("design cannot be null.");
@@ -1954,14 +1971,21 @@ namespace Whorl
             InfluencePointInfoList = new InfluencePointInfoList(this);
         }
 
-        public Pattern(WhorlDesign design, XmlNode node, Pattern recursiveParent = null) : this(design, recursiveParent)
+        protected Pattern(WhorlDesign design, Pattern recursiveParent = null)
         {
+            Initialize(design, recursiveParent);
+        }
+
+        public Pattern(WhorlDesign design, XmlNode node, Pattern recursiveParent = null)
+        {
+            Initialize(design, recursiveParent);
             FromXml(node);
         }
 
         public Pattern(Pattern sourcePattern, bool isRecursivePattern, Pattern recursiveParent = null,
-                       bool copySharedPatternID = true) : this(sourcePattern.Design, recursiveParent)
+                       bool copySharedPatternID = true): base(sourcePattern)
         {
+            Initialize(sourcePattern.Design, recursiveParent);
             this.CopyProperties(sourcePattern, 
                                 copySharedPatternID: copySharedPatternID, 
                                 setRecursiveParent: recursiveParent == null);
@@ -1983,11 +2007,11 @@ namespace Whorl
             RandomGenerator = new RandomGenerator();
         }
 
-        public virtual Pattern GetCopy(bool copySharedPatternID = true, bool keepRecursiveParent = false)
+        public virtual Pattern GetCopy(bool keepRecursiveParent = false)
         {
             return new Pattern(this, Recursion.IsRecursivePattern, 
                                keepRecursiveParent ? Recursion.ParentPattern : null, 
-                               copySharedPatternID);
+                               copySharedPatternID: true);
         }
 
         public virtual object Clone()
@@ -3641,7 +3665,7 @@ namespace Whorl
             nameof(FillInfo), nameof(CurvePoints), nameof(SeedPoints),
             nameof(Transforms), nameof(Recursion), nameof(MaxPoint),
             nameof(BasicOutlines), nameof(DesignLayer), //nameof(PrevCenter),
-            nameof(SharedPatternID), nameof(RandomGenerator), nameof(PatternLayers),
+            nameof(RandomGenerator), nameof(PatternLayers), nameof(KeyGuid),
             nameof(CenterOffsetVector), // nameof(CenterPathPattern),
             nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList)
         };
@@ -3655,7 +3679,7 @@ namespace Whorl
             InfluencePointInfoList = new InfluencePointInfoList(sourcePattern.InfluencePointInfoList, this);
             Tools.CopyProperties(this, sourcePattern, excludedPropertyNames: excludedCopyProperties);
             if (copySharedPatternID)
-                this.SharedPatternID = sourcePattern.SharedPatternID;
+                SetKeyGuid(sourcePattern);
             //this.PrevCenter = sourcePattern.PrevCenter;
             if (copyFillInfo)
                 this.FillInfo = sourcePattern.FillInfo.GetCopy(this);
@@ -3701,6 +3725,7 @@ namespace Whorl
                 this.CopySeedPoints(sourcePattern);
                 this.HasRandomElements = sourcePattern.HasRandomElements;
             }
+            InfluencePointInfoList.CopyKeyParams(sourcePattern.InfluencePointInfoList, this);
         }
 
         public void SortTransforms()
@@ -3741,7 +3766,7 @@ namespace Whorl
             XmlNode node = xmlTools.CreateXmlNode(xmlNodeName);
             xmlTools.AppendXmlAttributes(node, this, nameof(RotationSteps), nameof(MergeOperation), nameof(DrawCurve),
                                          nameof(RenderMode), nameof(StainBlendType), nameof(StainWidth), 
-                                         nameof(SharedPatternID), nameof(ZoomFactor), nameof(LoopFactor),
+                                         nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid),
                                          nameof(ShrinkPattern), nameof(ShrinkPatternLayers), nameof(ShrinkClipCenterFactor),
                                          nameof(ShrinkPadding), nameof(ShrinkClipFactor),
                                          nameof(IsBackgroundPattern), nameof(AllowRandom), nameof(InfluenceScaleFactor),
@@ -3839,9 +3864,9 @@ namespace Whorl
         {
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: new string[]
                                    { "MergeOperation", "RenderMode", "Selected",
-                                     "DrawingMode", "PathMode", "StainBlendType",
+                                     "DrawingMode", "PathMode", "StainBlendType", "SharedPatternID",
                                      "RandomSeed", "TransformCenterPath", "ClipShrinkCenter",
-                                      nameof(XmlPatternID), "SharedPatternID" });
+                                      nameof(XmlPatternID), nameof(KeyGuid) });
             this.MergeOperation = Tools.GetEnumXmlAttr(
                                     node, nameof(MergeOperation), MergeOperations.Sum);
             this.RenderMode = Tools.GetEnumXmlAttr(
@@ -3854,10 +3879,13 @@ namespace Whorl
                                                            node, required: false);
             if (patternId != null)
                 this.XmlPatternID = (long)patternId;
-            patternId = (long?)Tools.GetXmlAttribute("SharedPatternID", typeof(long),
-                                                     node, required: false);
-            if (patternId != null)
-                this.SharedPatternID = (long)patternId;
+            //patternId = (long?)Tools.GetXmlAttribute("SharedPatternID", typeof(long),
+            //                                         node, required: false);
+            //if (patternId != null)
+            //    this.SharedPatternID = (long)patternId;
+            XmlAttribute guidAttr = node.Attributes[nameof(KeyGuid)];
+            if (guidAttr != null)
+                SetKeyGuid(Guid.Parse(guidAttr.Value));
             this.RandomGenerator = new RandomGenerator(randomSeed);
             BasicOutlines.Clear();
             bool haveUserVertices = false;
@@ -4003,6 +4031,12 @@ namespace Whorl
             }
         }
 
+        public IEnumerable<KeyEnumParameters> GetKeyEnumParameters()
+        {
+            return InfluencePointInfoList.KeyEnumParamsDict.Values
+                   .Concat(InfluencePointInfoList.InfluencePointInfos.SelectMany(ip => ip.KeyEnumParamsDict.Values));
+        }
+
         private void SetImprovParameters()
         {
             if (this.PatternImproviseConfig == null)
@@ -4084,21 +4118,11 @@ namespace Whorl
             SeedPoints = null;
         }
 
-        private void RemoveHandledObjects()
-        {
-            MainForm.DefaultMainForm.FormulaSettingsHandler.RemoveNewObjects(GetFormulaSettings());
-            var keyParams = InfluencePointInfoList.KeyEnumParamsDict.Values.Concat(
-                            InfluencePointInfoList.InfluencePointInfos.SelectMany(ip => ip.KeyEnumParamsDict.Values));
-            MainForm.DefaultMainForm.ParametersObjectHandler.RemoveNewObjects(
-                            keyParams.Select(p => p.ParametersObject).Where(o => o != null));
-        }
-
         public override void Dispose()
         {
             if (Disposed)
                 return;
             Disposed = true;
-            RemoveHandledObjects();
             if (outlinePen != null)
             {
                 outlinePen.Dispose();

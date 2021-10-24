@@ -328,7 +328,7 @@ namespace Whorl
                 influenceLink.InfluencePointInfo = influencePointInfo;
                 influenceLink.LinkFactor = val;
                 influenceLink.Multiply = chkMultiply.Checked;
-                pattern.LastEditedInfluenceLink = influenceLink;
+                //pattern.LastEditedInfluenceLink = influenceLink;
                 string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
                 if (errMessage != null)
                     MessageBox.Show(errMessage);

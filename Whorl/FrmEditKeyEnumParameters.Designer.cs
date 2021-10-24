@@ -119,7 +119,7 @@ namespace Whorl
             this.Controls.Add(this.pnlParameters);
             this.Name = "FrmEditKeyEnumParameters";
             this.Text = "Edit Key Parameters";
-            this.Load += new System.EventHandler(this.FrmEditKeyEnumParameters_Load);
+            this.Activated += new System.EventHandler(this.FrmEditKeyEnumParameters_Activated);
             this.ResumeLayout(false);
             this.PerformLayout();
 

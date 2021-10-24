@@ -29,7 +29,7 @@ namespace Whorl
         }
     }
 
-    public class FormulaSettings : BaseObject, IXml
+    public class FormulaSettings : GuidKey, IXml
     {
         public Pattern ParentPattern { get; }
 
@@ -243,7 +243,7 @@ namespace Whorl
         }
 
         public FormulaSettings(FormulaSettings source, configureDelegate configureParser = null,
-                               ExpressionParser parser = null, Pattern pattern = null)
+                               ExpressionParser parser = null, Pattern pattern = null): base(source)
         {
             FormulaType = source.FormulaType;
             FormulaName = source.FormulaName;
@@ -277,7 +277,6 @@ namespace Whorl
                     Parse(source.Formula, ifChanged: false, displayWarnings: false);
                 }
             }
-            MainForm.DefaultMainForm.FormulaSettingsHandler.AddNewObject(source, this);
         }
 
         public FormulaSettings GetCopy(configureDelegate configureParser = null, ExpressionParser parser = null, Pattern pattern = null)

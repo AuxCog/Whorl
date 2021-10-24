@@ -297,16 +297,22 @@ namespace Whorl
             return firstPattern == null ? Color.White : firstPattern.GetPreviewBackColor();
         }
 
-        public PatternList GetCopy(bool copySharedPatternID = true, bool keepRecursiveParents = false)
+        public PatternList GetCopy(bool copyKeyGuid = true, bool keepRecursiveParents = false)
         {
             PatternList copy = new PatternList(Design);
             copy.IsChanged = this.IsChanged;
             copy.PatternListName = this.PatternListName;
             copy.AddPatterns(this.PatternsList.Select(
-                             ptn => ptn.GetCopy(copySharedPatternID, keepRecursiveParents)));
+                             ptn => ptn.GetCopy(keepRecursiveParents)));
             copy.PreviewZFactor = this.PreviewZFactor;
             copy.ZFactors = this.ZFactors;
-
+            if (!copyKeyGuid)
+            {
+                foreach (Pattern pattern in PatternsList)
+                {
+                    pattern.SetKeyGuid(Guid.NewGuid());
+                }
+            }
             return copy;
         }
 
