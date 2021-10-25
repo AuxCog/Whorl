@@ -1430,7 +1430,7 @@ namespace Whorl
             g.DrawLine(outlinePen, Center, p2);
         }
 
-        public override void DrawSelectionOutline(Graphics g)
+        public override void DrawSelectionOutline(Graphics g, PointF? center = null)
         {
             if (this.RibbonPath.Count < 2)
                 return;

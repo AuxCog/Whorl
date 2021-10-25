@@ -143,6 +143,12 @@
     <Compile Include="frmColorGradient.Designer.cs">
       <DependentUpon>frmColorGradient.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmEditDistancePatternSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmEditDistancePatternSettings.Designer.cs">
+      <DependentUpon>FrmEditDistancePatternSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmEditKeyEnumParameters.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -339,6 +345,7 @@
     </Compile>
     <Compile Include="Tools.cs" />
     <Compile Include="UndoOperations.cs" />
+    <Compile Include="ValueParser.cs" />
     <Compile Include="ValueTextItem.cs" />
     <Compile Include="WhorlBaseObject.cs" />
     <Compile Include="WhorlDesign.cs" />
@@ -364,6 +371,9 @@
     <EmbeddedResource Include="frmColorGradient.resx">
       <DependentUpon>frmColorGradient.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmEditDistancePatternSettings.resx">
+      <DependentUpon>FrmEditDistancePatternSettings.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmEditKeyEnumParameters.resx">
       <DependentUpon>FrmEditKeyEnumParameters.cs</DependentUpon>

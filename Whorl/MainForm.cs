@@ -72,10 +72,13 @@ namespace Whorl
 
                 pasteDefaultPatternToolStripMenuItem.Tag = MenuItemTypes.Paste;
                 pasteCopiedPatternsToolStripMenuItem.Tag = MenuItemTypes.Paste;
+
                 redrawDistancePatternToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 editDistancePatternToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
+                editDistancePatternSettingsToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 deleteDistancePatternToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 addDistancePatternToClipboardToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
+
                 string customDesignsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.CustomDesignParentFolder);
                 bool folderExists = Directory.Exists(customDesignsFolder);
                 openDesignFromFolderToolStripMenuItem.Visible = folderExists;
@@ -138,7 +141,7 @@ namespace Whorl
                     Design.EditedPattern = null;
                 }
                 _design = newDesign;
-                ClearInfluencePointsMode();
+                InitializeForDesign();
                 Design.DesignLayerList.LayerChanged += DesignLayerChanged;
                 Design.IsDirtyChanged += DesignDirtyChanged;
                 if (selectPatternForm != null)
@@ -1134,11 +1137,9 @@ namespace Whorl
                         {
                             distanceCopy = CopyForDistanceInfo(distanceParent, distanceInfo, 
                                                                out var distanceInfoCopy);
-                            bool setEditedPattern = Design.EditedPattern == distanceParent;
-                            if (setEditedPattern)
+                            if (Design.EditedPattern == distanceParent)
                                 Design.EditedPattern = distanceCopy;
-                            distanceInfoCopy.SetDistancePattern(distanceCopy, distancePattern,
-                                                                transform: true);
+                            distanceInfoCopy.SetDistancePattern(distanceCopy, distancePattern, transform: true);
                             AddRenderingControls(distanceCopy);
                         }
                         distanceCopy.PixelRendering.UseDistanceOutline = true;
@@ -1426,6 +1427,14 @@ namespace Whorl
                 {
                     if (Design != null)
                     {
+                        if (selectAllDistancePattern?.PixelRendering != null)
+                        {
+                            foreach (var distanceInfo in selectAllDistancePattern.PixelRendering.GetDistancePatternInfos())
+                            {
+                                distanceInfo.DistancePattern.DrawSelectionOutline(e.Graphics,
+                                             distanceInfo.GetDistancePatternCenter(selectAllDistancePattern));
+                            }
+                        }
                         if (showSelectionsToolStripMenuItem.Checked)
                         {
                             foreach (var ptnInfo in Design.GetAllPatternsInfo(includeRecursive: true))
@@ -2136,9 +2145,10 @@ namespace Whorl
             showTileGridToolStripMenuItem.Checked = false;
         }
 
-        private void ClearInfluencePointsMode()
+        private void InitializeForDesign()
         {
             influencePointsPattern = null;
+            selectAllDistancePattern = null;
             showInfluencePointsToolStripMenuItem.Checked = false;
             editInfluencePointsModeToolStripMenuItem.Checked = false;
         }
@@ -2153,7 +2163,7 @@ namespace Whorl
                 Design.ReadDesignFromXmlFile(fileName, showWarnings: true);
                 WriteStatus($"Opened design file {fileName}.");
                 Design.EditedPattern = null;
-                ClearInfluencePointsMode();
+                InitializeForDesign();
                 Design.DefaultPatternGroup = defaultPatternGroup;
                 SetDesignStartupItems();
                 designLayersForm.SetDesign(Design);
@@ -4800,7 +4810,7 @@ namespace Whorl
                     return;  //User cancelled.
                 Design.ClearDesign();
                 designLayersForm.SetDesign(Design);
-                ClearInfluencePointsMode();
+                InitializeForDesign();
                 StopAnimating();
                 SetDesignStartupItems();
                 RedrawPatterns();
@@ -7208,6 +7218,7 @@ namespace Whorl
 
 
         private Pattern distanceParentPattern { get; set; }
+        private Pattern selectAllDistancePattern { get; set; }
         private DistancePatternInfo distancePatternInfo { get; set; }
         private Pattern mouseDistanceParentPattern { get; set; }
         private DistancePatternInfo mouseDistancePatternInfo { get; set; }
@@ -7223,6 +7234,27 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private void selectAllDistancePatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (selectAllDistancePatternsToolStripMenuItem.Checked)
+                {
+                    selectAllDistancePattern = FindTargetPattern(ptn => ptn.HasPixelRendering);
+                }
+                else
+                {
+                    selectAllDistancePattern = null;
+                }
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
         }
 
         private DistancePatternInfo FindDistanceInfo(Point p, out Pattern parentPattern)
@@ -7266,9 +7298,7 @@ namespace Whorl
                                             out DistancePatternInfo distancePatternInfoCopy)
         {
             Pattern parentCopy = parent.GetCopy();
-            distancePatternInfoCopy = parentCopy.PixelRendering.GetDistancePatternInfos()
-                                     .Where(pi => pi.Guid == distancePatternInfo.Guid)
-                                     .FirstOrDefault();
+            distancePatternInfoCopy = distancePatternInfo.FindByKeyGuid(parentCopy.PixelRendering.GetDistancePatternInfos());
             return parentCopy;
         }
 
@@ -7292,6 +7322,28 @@ namespace Whorl
                         //                   .Where(pi => pi.Guid == mouseDistancePatternInfo.Guid).First();
                         distInfoCopy.SetDistancePattern(ptnCopy, newDistPattern);
                         Design.ReplacePattern(mouseDistanceParentPattern, ptnCopy);
+                        RedrawPatterns();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void editDistancePatternSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (mouseDistancePatternInfo == null || mouseDistanceParentPattern == null)
+                    return;
+                using (var frm = new FrmEditDistancePatternSettings())
+                {
+                    frm.Initialize(mouseDistancePatternInfo.DistancePatternSettings, mouseDistanceParentPattern);
+                    if (frm.ShowDialog() == DialogResult.OK)
+                    {
+                        mouseDistanceParentPattern.ClearRenderingCache();
                         RedrawPatterns();
                     }
                 }

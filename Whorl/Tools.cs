@@ -301,6 +301,22 @@ namespace Whorl
             }
         }
 
+        /// <summary>
+        /// Return True if type passed is a Nullable type.
+        /// </summary>
+        /// <param name="myType"></param>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        public static bool IsNullableType(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+
+        public static Type GetTypeOrUnderlyingType(Type type)
+        {
+            return IsNullableType(type) ? Nullable.GetUnderlyingType(type) : type;
+        }
+
         public static object IfDbNull(object val, object valIfDbNull)
         {
             return val == DBNull.Value ? valIfDbNull : val;
@@ -619,7 +635,7 @@ namespace Whorl
                 if (targetType == typeof(string))
                     oVal = attr.Value;
                 else
-                    oVal = Convert.ChangeType(attr.Value, targetType);
+                    oVal = Convert.ChangeType(attr.Value, Tools.GetTypeOrUnderlyingType(targetType));
                 return oVal;
             }
             catch (Exception ex)
@@ -628,9 +644,9 @@ namespace Whorl
             }
         }
 
-        public static float GetXmlVersion(XmlNode node)
+        public static float GetXmlVersion(XmlNode node, float defaultValue = 0F)
         {
-            return GetXmlAttribute<float>(node, 0F, "XmlVersion");
+            return GetXmlAttribute(node, defaultValue, "XmlVersion");
         }
 
         public static void SetXmlVersion(XmlNode node, XmlTools xmlTools)

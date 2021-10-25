@@ -488,20 +488,61 @@ namespace Whorl
                 }
             }
 
-            public class DistancePatternInfo : IXml
+            public class DistancePatternSettings : IXml
+            {
+                public DistancePatternInfo Parent { get; }
+                public bool UseFadeOut { get; set; }
+                public double FadeStartRatio { get; set; } = 1.1;
+                public double FadeEndRatio { get; set; } = 1.25;
+                public double EndDistanceValue { get; set; } = 10000.0;
+                public bool AutoEndValue { get; set; } = true;
+                public int? InfluencePointId { get; set; }
+                public bool Enabled { get; set; } = true;
+
+
+                public DistancePatternSettings(DistancePatternInfo parent)
+                {
+                    Parent = parent;
+                }
+
+                public DistancePatternSettings(DistancePatternSettings source, DistancePatternInfo parent)
+                {
+                    Parent = parent;
+                    Tools.CopyProperties(this, source);
+                }
+
+                public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
+                {
+                    XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName ?? nameof(DistancePatternSettings));
+                    xmlTools.AppendXmlAttributesExcept(xmlNode, this, new string[] { });
+                    return xmlTools.AppendToParent(parentNode, xmlNode);
+                }
+
+                public void FromXml(XmlNode node)
+                {
+                    Tools.GetXmlAttributesExcept(this, node, new string[] { });
+                }
+            }
+
+            public class DistancePatternInfo : GuidKey, IXml
             {
                 private const float NewTransformXmlVersion = 1.1F;
                 public Pattern DistancePattern { get; private set; }
+                public DistancePatternSettings DistancePatternSettings { get; }
+                public double MaxModulus { get; set; }
+                public PointF DistancePatternCenter { get; set; }
+
                 //public Complex OrigZVector { get; private set; }
                 //public PointF OrigCenter { get; private set; }
-                public Guid Guid { get; }
+                //public Guid Guid { get; }
                 public float XmlVersion { get; private set; }
                 public WhorlDesign Design { get; }
 
                 public DistancePatternInfo(Pattern parent, Pattern distancePattern)
                 {
+                    DistancePatternSettings = new DistancePatternSettings(this);
                     XmlVersion = WhorlDesign.CurrentXmlVersion;
-                    Guid = Guid.NewGuid();
+                    //Guid = Guid.NewGuid();
                     Design = parent.Design;
                     SetDistancePattern(parent, distancePattern, transform: true);
                 }
@@ -509,19 +550,30 @@ namespace Whorl
                 //For CreateFromXml.
                 private DistancePatternInfo(WhorlDesign design)
                 {
-                    Guid = Guid.NewGuid();
+                    DistancePatternSettings = new DistancePatternSettings(this);
+                    //Guid = Guid.NewGuid();
                     if (design == null)
                         throw new NullReferenceException("design cannot be null.");
                     Design = design;
                 }
 
-                public DistancePatternInfo(DistancePatternInfo source)
+                public DistancePatternInfo(DistancePatternInfo source): base(source)
                 {
-                    Guid = source.Guid;
+                    //Guid = source.Guid;
+                    DistancePatternSettings = new DistancePatternSettings(source.DistancePatternSettings, this);
+
                     DistancePattern = source.DistancePattern.GetCopy();
+
                     //OrigZVector = source.OrigZVector;
                     //OrigCenter = source.OrigCenter;
                     XmlVersion = source.XmlVersion;
+                }
+
+                public void SetInfluencePointCenter(InfluencePointInfo influencePoint)
+                {
+                    if (influencePoint != null)
+                        influencePoint.SetDistancePatternCenter(this);
+                    DistancePatternSettings.InfluencePointId = influencePoint?.Id;
                 }
 
                 public void SetDistancePattern(Pattern parent, Pattern distancePattern, bool transform = false)
@@ -530,23 +582,24 @@ namespace Whorl
                         throw new NullReferenceException("distancePattern == null");
                     distancePattern = distancePattern.GetCopy();
                     distancePattern.ClearPixelRendering();
-                    double zoomFactor = parent.PixelRendering.ZoomFactor;
-                    PointF panXY = parent.PixelRendering.GetTransformedPanXY();
                     if (transform)
                     {
-                        Complex zScale = new Complex(1.0 / zoomFactor, 0.0) / parent.ZVector;
-                        //double dScale = 1.0 / zoomFactor;
-                        distancePattern.ZVector *= zScale;
-                        //distancePattern.ZVector /= parent.ZVector;
-                        //float scale = (float)(dScale / parent.ZVector.GetModulus());
-                        PointF vec = new PointF(
-                            distancePattern.Center.X - parent.Center.X + panXY.X,
-                            distancePattern.Center.Y - parent.Center.Y + panXY.Y);
-                        PointF pScale = new PointF((float)zScale.Re, (float)zScale.Im);
-                        vec = Tools.RotatePoint(vec, pScale);  //Also scales vec.
-                        distancePattern.Center = vec;
-                        //distancePattern.Center = new PointF(parent.Center.X + vec.X,
-                        //                                    parent.Center.Y + vec.Y);
+                        TransformDistancePattern(parent, distancePattern, distancePattern.Center);
+                        //double zoomFactor = parent.PixelRendering.ZoomFactor;
+                        //PointF panXY = parent.PixelRendering.GetTransformedPanXY();
+                        //Complex zScale = new Complex(1.0 / zoomFactor, 0.0) / parent.ZVector;
+                        ////double dScale = 1.0 / zoomFactor;
+                        //distancePattern.ZVector *= zScale;
+                        ////distancePattern.ZVector /= parent.ZVector;
+                        ////float scale = (float)(dScale / parent.ZVector.GetModulus());
+                        //PointF vec = new PointF(
+                        //    distancePattern.Center.X - parent.Center.X + panXY.X,
+                        //    distancePattern.Center.Y - parent.Center.Y + panXY.Y);
+                        //PointF pScale = new PointF((float)zScale.Re, (float)zScale.Im);
+                        //vec = Tools.RotatePoint(vec, pScale);  //Also scales vec.
+                        //distancePattern.Center = vec;
+                        ////distancePattern.Center = new PointF(parent.Center.X + vec.X,
+                        ////                                    parent.Center.Y + vec.Y);
                     }
                     if (DistancePattern != null)
                         DistancePattern.Dispose();
@@ -554,6 +607,26 @@ namespace Whorl
                     //OrigZVector = parent.ZVector;
                     //OrigCenter = parent.Center;
                     parent.ClearRenderingCache();
+                }
+
+                public void TransformDistancePattern(Pattern parent, Pattern distancePattern,
+                                                     PointF center, bool scaleZVector = true)
+                {
+                    double zoomFactor = parent.PixelRendering.ZoomFactor;
+                    PointF panXY = parent.PixelRendering.GetTransformedPanXY();
+                    Complex zScale = new Complex(1.0 / zoomFactor, 0.0) / parent.ZVector;
+                    if (scaleZVector)
+                        distancePattern.ZVector *= zScale;
+                    //distancePattern.ZVector /= parent.ZVector;
+                    //float scale = (float)(dScale / parent.ZVector.GetModulus());
+                    PointF vec = new PointF(center.X - parent.Center.X + panXY.X, 
+                                            center.Y - parent.Center.Y + panXY.Y);
+                    PointF pScale = new PointF((float)zScale.Re, (float)zScale.Im);
+                    vec = Tools.RotatePoint(vec, pScale);  //Also scales vec.
+                    distancePattern.Center = vec;
+                    //distancePattern.Center = new PointF(parent.Center.X + vec.X,
+                    //                                    parent.Center.Y + vec.Y);
+
                 }
 
                 private PointF GetInfo(Pattern parent, out Complex zScale)
@@ -595,6 +668,7 @@ namespace Whorl
                 {
                     XmlNode node = xmlTools.CreateXmlNode(xmlNodeName ?? "DistancePatternInfo");
                     Tools.SetXmlVersion(node, xmlTools);
+                    DistancePatternSettings.ToXml(node, xmlTools);
                     DistancePattern.ToXml(node, xmlTools);
                     //node.AppendChild(xmlTools.CreateXmlNode("OrigZVector", OrigZVector));
                     //node.AppendChild(xmlTools.CreateXmlNode("OrigCenter", OrigCenter));
@@ -615,6 +689,9 @@ namespace Whorl
                                 break;
                             case "OrigCenter":
                                 //origCenter = XmlTools.GetPointFFromXml(childNode);
+                                break;
+                            case nameof(DistancePatternSettings):
+                                DistancePatternSettings.FromXml(childNode);
                                 break;
                             default:
                                 DistancePattern = Pattern.CreatePatternFromXml(Design, childNode);
@@ -1050,7 +1127,7 @@ namespace Whorl
                 return count;
             }
 
-            private void InitDistanceSquares(Pattern pattern, PointF[] patternPoints)
+            private void InitDistanceSquares(Pattern parentPattern, PointF[] patternPoints)
             {
                 int count = GetDistancePathsCount();
                 distanceSquaresArray = new List<DistanceSquare>[count];
@@ -1061,11 +1138,21 @@ namespace Whorl
                     for (int i = 0; i < DistancePatternsInfo.Count; i++)
                     {
                         var distanceInfo = DistancePatternsInfo[i];
-                        Pattern distPtn = distanceInfo.GetDistancePattern(pattern);
-                        distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                        PointF[] points = distPtn.CurvePoints.Select(
-                            p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
-                        InitDistanceSquares(i, points);
+                        if (!distanceInfo.DistancePatternSettings.Enabled)
+                            continue;
+                        if (distanceInfo.DistancePatternSettings.AutoEndValue)
+                        {
+                            distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
+                        }
+                        using (Pattern distPtn = distanceInfo.GetDistancePattern(parentPattern))
+                        {
+                            distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
+                            distanceInfo.DistancePatternCenter = distPtn.Center;
+                            distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
+                            PointF[] points = distPtn.CurvePoints.Select(
+                                              p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
+                            InitDistanceSquares(i, points);
+                        }
                     }
                 }
             }
@@ -1134,6 +1221,77 @@ namespace Whorl
                 }
                 distanceSquaresArray[index] = distanceSquares;
             }
+
+            private void SetDistancesToPaths(int x, int y)
+            {
+                for (int index = 0; index < distanceSquaresArray.Length; index++)
+                {
+                    if (distanceSquaresArray[index] != null)
+                        SetDistanceToPath(index, x, y);
+                }
+                if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
+                    Info.SetDistanceToPath(Info.DistancesToPaths[0]);
+            }
+
+            private void SetDistanceToPath(int index, int x, int y)
+            {
+                var p = new PointF(x, y);
+                double minDist = double.MaxValue;
+                DistancePatternInfo distInfo = null;
+                DistancePatternSettings settings = null;
+                bool useFadeOut = false;
+                bool computeDist = true;
+                double modulus = 0;
+                double endFade = 0;
+                if (index < DistancePatternsInfo.Count)
+                {
+                    distInfo = DistancePatternsInfo[index];
+                    settings = distInfo.DistancePatternSettings;
+                    useFadeOut = settings.UseFadeOut;
+                }
+                if (useFadeOut)
+                {
+                    modulus = Tools.Distance(p, distInfo.DistancePatternCenter);
+                    endFade = settings.FadeEndRatio * distInfo.MaxModulus;
+                    if (modulus >= endFade && settings.EndDistanceValue != 0)
+                    {
+                        minDist = settings.EndDistanceValue;
+                        computeDist = false;
+                    }
+                }
+                if (computeDist)
+                {
+                    var distanceSquares = distanceSquaresArray[index];
+                    foreach (DistanceSquare distSquare in distanceSquares)
+                    {
+                        distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
+                    }
+                    double dist;
+                    foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
+                             .Take(Info.DistanceCount))
+                    {
+                        dist = minSquare.Points.Select(pf => Tools.DistanceSquared(pf, p)).Min();
+                        if (dist < minDist)
+                            minDist = dist;
+                    }
+                    if (useFadeOut)
+                    {
+                        double startFade = settings.FadeStartRatio * distInfo.MaxModulus;
+                        if (modulus > startFade)
+                        {
+                            if (settings.AutoEndValue)
+                            {
+                                if (minDist > settings.EndDistanceValue)
+                                    settings.EndDistanceValue = minDist;
+                            }
+                            double factor = (modulus - startFade) / (endFade - startFade);
+                            minDist += factor * (settings.EndDistanceValue - minDist);
+                        }
+                    }
+                }
+                Info.SetDistanceToPath(index, distanceFactor * Math.Sqrt(minDist));
+            }
+
 
             private Color GetGradientColor(float position)
             {
@@ -1479,37 +1637,6 @@ namespace Whorl
                 return inBounds;
             }
 
-            private void SetDistancesToPaths(int x, int y)
-            {
-                for (int index = 0; index < distanceSquaresArray.Length; index++)
-                {
-                    SetDistanceToPath(index, x, y);
-                }
-                if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
-                    Info.SetDistanceToPath(Info.DistancesToPaths[0]);
-            }
-
-            private void SetDistanceToPath(int index, int x, int y)
-            {
-                var p = new PointF(x, y);
-                var distanceSquares = distanceSquaresArray[index];
-                foreach (DistanceSquare distSquare in distanceSquares)
-                {
-                    distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
-                }
-                double minDist = double.MaxValue;
-                double dist;
-                minDist = double.MaxValue;
-                foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
-                         .Take(Info.DistanceCount))
-                { 
-                    dist = minSquare.Points.Select(pf => Tools.DistanceSquared(pf, p)).Min();
-                    if (dist < minDist)
-                        minDist = dist;
-                }
-                Info.SetDistanceToPath(index, distanceFactor * Math.Sqrt(minDist));
-            }
-
             private void Render(Graphics g, Bitmap bitmap, Pattern pattern)
             {
                 PointF centerDiff = Tools.SubtractPoint(pattern.Center, patternCenter);
@@ -1764,6 +1891,7 @@ namespace Whorl
         }
 
         //public bool IsBackgroundPattern { get; set; }
+        public float XmlVersion { get; private set; }
 
         public long XmlPatternID { get; private set; }
         //public int ZOrder { get; set; } = -1;
@@ -2990,14 +3118,25 @@ namespace Whorl
             }
         }
 
-        public virtual void DrawSelectionOutline(Graphics g)
+        public virtual void DrawSelectionOutline(Graphics g, PointF? center = null)
         {
             if (this is PathPattern || WhorlSettings.Instance.ExactOutline)
                 this.OutlineZVector = this.ZVector;
             else
                 this.OutlineZVector = 0.95 * this.ZVector;
-            DrawOutline(g, Tools.InverseColor(this.BoundaryColor));
-            Tools.DrawSquare(g, Tools.InverseColor(this.CenterColor), this.Center);
+            PointF prevCenter = Center;
+            try
+            {
+                if (center != null)
+                    Center = (PointF)center;
+                DrawOutline(g, Tools.InverseColor(this.BoundaryColor));
+                Tools.DrawSquare(g, Tools.InverseColor(this.CenterColor), this.Center);
+            }
+            finally
+            {
+                if (center != null)
+                    Center = prevCenter;
+            }
         }
 
         public const int NonRecursiveDepth = -2;
@@ -3764,6 +3903,7 @@ namespace Whorl
             if (xmlNodeName == null)
                 xmlNodeName = "Pattern";
             XmlNode node = xmlTools.CreateXmlNode(xmlNodeName);
+            Tools.SetXmlVersion(node, xmlTools);
             xmlTools.AppendXmlAttributes(node, this, nameof(RotationSteps), nameof(MergeOperation), nameof(DrawCurve),
                                          nameof(RenderMode), nameof(StainBlendType), nameof(StainWidth), 
                                          nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid),
@@ -3862,6 +4002,9 @@ namespace Whorl
 
         public override void FromXml(XmlNode node)
         {
+            float defaultVersion = Design.XmlVersion == 0F ? 1.1F : Design.XmlVersion;
+            XmlVersion = Tools.GetXmlVersion(node, defaultVersion);
+
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: new string[]
                                    { "MergeOperation", "RenderMode", "Selected",
                                      "DrawingMode", "PathMode", "StainBlendType", "SharedPatternID",

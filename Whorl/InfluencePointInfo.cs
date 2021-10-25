@@ -24,7 +24,12 @@ namespace Whorl
             get => _influencePoint;
             set
             {
-                _influencePoint = AdjustInfluencePoint(value);
+                DoublePoint newPoint = AdjustInfluencePoint(value);
+                if (_influencePoint.X != newPoint.X || _influencePoint.Y != newPoint.Y)
+                {
+                    _influencePoint = newPoint;
+                    OnLocationChanged();
+                }
             }
         }
 
@@ -117,7 +122,7 @@ namespace Whorl
             {
                 FormulaSettings formulaSettings = kvp.Value.Parent.FormulaSettings;
                 if (pattern != null)
-                { 
+                {
                     formulaSettings = formulaSettings.FindByKeyGuid(pattern.GetFormulaSettings(), throwException: true);
                 }
                 copy.Add(kvp.Key, new KeyEnumParameters(kvp.Value, formulaSettings));
@@ -136,6 +141,29 @@ namespace Whorl
             FilterKeys.UnionWith(source.FilterKeys);
             if (copyKeyParams)
                 CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict, pattern);
+        }
+
+        private void OnLocationChanged()
+        {
+            if (ParentPattern == null || !ParentPattern.HasPixelRendering)
+                return;
+            var distInfos = ParentPattern.PixelRendering.GetDistancePatternInfos().Where(
+                            i => i.DistancePatternSettings.InfluencePointId == Id);
+            PointF center = GetOrigLocation();
+            foreach (var distInfo in distInfos)
+            {
+                SetDistancePatternCenter(distInfo, center);
+            }
+        }
+
+        private void SetDistancePatternCenter(Pattern.RenderingInfo.DistancePatternInfo distInfo, PointF center)
+        {
+            distInfo.TransformDistancePattern(ParentPattern, distInfo.DistancePattern, center, scaleZVector: false);
+        }
+
+        public void SetDistancePatternCenter(Pattern.RenderingInfo.DistancePatternInfo distInfo)
+        {
+            SetDistancePatternCenter(distInfo, GetOrigLocation());
         }
 
         public void SetKeyInfosEnabled()
@@ -285,13 +313,18 @@ namespace Whorl
         //    return doublePoint;
         //}
 
+        private PointF GetOrigLocation()
+        {
+            if (ParentPattern == null)
+                throw new NullReferenceException("ParentPattern cannot be null.");
+            return new PointF((float)InfluencePoint.X + ParentPattern.Center.X, (float)InfluencePoint.Y + ParentPattern.Center.Y);
+        }
+
         public void Draw(Graphics g, Bitmap designBitmap, Font font)
         {
             const float crossWidth = 1F;
             const float rectWidth = 2F;
-            if (ParentPattern == null)
-                throw new NullReferenceException("ParentPattern cannot be null.");
-            PointF p = new PointF((float)InfluencePoint.X + ParentPattern.Center.X, (float)InfluencePoint.Y + ParentPattern.Center.Y);
+            PointF p = GetOrigLocation();
             Color penColor = Color.Black;
             if (designBitmap != null)
             {
