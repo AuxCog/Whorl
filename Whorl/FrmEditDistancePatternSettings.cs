@@ -23,6 +23,7 @@ namespace Whorl
         public void Initialize(DistancePatternSettings distancePatternSettings, Pattern pattern)
         {
             this.distancePatternSettings = distancePatternSettings;
+            ChkEnabled.Checked = distancePatternSettings.Enabled;
             ChkUseFadeout.Checked = distancePatternSettings.UseFadeOut;
             txtStartPercentage.Text = (100.0 * distancePatternSettings.FadeStartRatio).ToString("0.##");
             txtEndPercentage.Text = (100.0 * distancePatternSettings.FadeEndRatio).ToString("0.##");
@@ -75,6 +76,7 @@ namespace Whorl
             }
             else
             {
+                distancePatternSettings.Enabled = ChkEnabled.Checked;
                 distancePatternSettings.UseFadeOut = ChkUseFadeout.Checked;
                 if (distancePatternSettings.UseFadeOut)
                 {

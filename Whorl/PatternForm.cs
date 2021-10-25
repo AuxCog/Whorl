@@ -3073,6 +3073,18 @@ namespace Whorl
             }
         }
 
+        private void setPatternAsDefaultToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (design != null)
+                    design.DefaultPatternGroup = EditedPatternGroup.GetCopy();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
 
         private void btnClipRibbonSegments_Click(object sender, EventArgs e)
         {
@@ -3540,6 +3552,7 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
 
         //private void AddAllParametersControls(Panel pnlParameters, FormulaSettings formulaSettings)
         //{

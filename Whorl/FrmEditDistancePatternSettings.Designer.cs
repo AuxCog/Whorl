@@ -33,6 +33,7 @@ namespace Whorl
             this.BtnOK = new System.Windows.Forms.Button();
             this.ChkUseFadeout = new System.Windows.Forms.CheckBox();
             this.pnlFadeOut = new System.Windows.Forms.Panel();
+            this.ChkAutoEnd = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
             this.txtEndValue = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,13 +43,13 @@ namespace Whorl
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.cboInfluencePointId = new System.Windows.Forms.ComboBox();
-            this.ChkAutoEnd = new System.Windows.Forms.CheckBox();
+            this.ChkEnabled = new System.Windows.Forms.CheckBox();
             this.pnlFadeOut.SuspendLayout();
             this.SuspendLayout();
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(181, 12);
+            this.BtnCancel.Location = new System.Drawing.Point(192, 12);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 11;
@@ -58,7 +59,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(109, 12);
+            this.BtnOK.Location = new System.Drawing.Point(120, 12);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 10;
@@ -92,6 +93,17 @@ namespace Whorl
             this.pnlFadeOut.Name = "pnlFadeOut";
             this.pnlFadeOut.Size = new System.Drawing.Size(246, 164);
             this.pnlFadeOut.TabIndex = 13;
+            // 
+            // ChkAutoEnd
+            // 
+            this.ChkAutoEnd.AutoSize = true;
+            this.ChkAutoEnd.Location = new System.Drawing.Point(20, 101);
+            this.ChkAutoEnd.Name = "ChkAutoEnd";
+            this.ChkAutoEnd.Size = new System.Drawing.Size(100, 17);
+            this.ChkAutoEnd.TabIndex = 7;
+            this.ChkAutoEnd.Text = "Auto End Value";
+            this.ChkAutoEnd.UseVisualStyleBackColor = true;
+            this.ChkAutoEnd.CheckedChanged += new System.EventHandler(this.ChkAutoEnd_CheckedChanged);
             // 
             // label4
             // 
@@ -169,22 +181,22 @@ namespace Whorl
             this.cboInfluencePointId.Size = new System.Drawing.Size(61, 21);
             this.cboInfluencePointId.TabIndex = 15;
             // 
-            // ChkAutoEnd
+            // ChkEnabled
             // 
-            this.ChkAutoEnd.AutoSize = true;
-            this.ChkAutoEnd.Location = new System.Drawing.Point(20, 101);
-            this.ChkAutoEnd.Name = "ChkAutoEnd";
-            this.ChkAutoEnd.Size = new System.Drawing.Size(100, 17);
-            this.ChkAutoEnd.TabIndex = 7;
-            this.ChkAutoEnd.Text = "Auto End Value";
-            this.ChkAutoEnd.UseVisualStyleBackColor = true;
-            this.ChkAutoEnd.CheckedChanged += new System.EventHandler(this.ChkAutoEnd_CheckedChanged);
+            this.ChkEnabled.AutoSize = true;
+            this.ChkEnabled.Location = new System.Drawing.Point(15, 16);
+            this.ChkEnabled.Name = "ChkEnabled";
+            this.ChkEnabled.Size = new System.Drawing.Size(65, 17);
+            this.ChkEnabled.TabIndex = 16;
+            this.ChkEnabled.Text = "Enabled";
+            this.ChkEnabled.UseVisualStyleBackColor = true;
             // 
             // FrmEditDistancePatternSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(271, 298);
+            this.Controls.Add(this.ChkEnabled);
             this.Controls.Add(this.cboInfluencePointId);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.pnlFadeOut);
@@ -216,5 +228,6 @@ namespace Whorl
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox cboInfluencePointId;
         private System.Windows.Forms.CheckBox ChkAutoEnd;
+        private System.Windows.Forms.CheckBox ChkEnabled;
     }
 }

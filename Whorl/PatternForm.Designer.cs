@@ -123,6 +123,7 @@
             this.btnCustomSettings = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnIncrementOutlineProperty = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tabTransforms = new System.Windows.Forms.TabPage();
+            this.btnEditTransformInMainForm = new System.Windows.Forms.Button();
             this.pnlTransformParameters = new System.Windows.Forms.Panel();
             this.btnAddTransform = new System.Windows.Forms.Button();
             this.dgvTransforms = new System.Windows.Forms.DataGridView();
@@ -289,7 +290,7 @@
             this.label56 = new System.Windows.Forms.Label();
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
-            this.btnEditTransformInMainForm = new System.Windows.Forms.Button();
+            this.setPatternAsDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -450,6 +451,7 @@
             this.autosampleForRecursionToolStripMenuItem,
             this.choosePatternToolStripMenuItem,
             this.setPatternFromDefaultToolStripMenuItem,
+            this.setPatternAsDefaultToolStripMenuItem,
             this.sizeRectangleToImageToolStripMenuItem,
             this.addPatternGroupToClipboardToolStripMenuItem});
             this.patternToolStripMenuItem.Name = "patternToolStripMenuItem";
@@ -1226,6 +1228,16 @@
             this.tabTransforms.TabIndex = 1;
             this.tabTransforms.Text = "Transforms";
             this.tabTransforms.UseVisualStyleBackColor = true;
+            // 
+            // btnEditTransformInMainForm
+            // 
+            this.btnEditTransformInMainForm.Location = new System.Drawing.Point(520, 34);
+            this.btnEditTransformInMainForm.Name = "btnEditTransformInMainForm";
+            this.btnEditTransformInMainForm.Size = new System.Drawing.Size(105, 23);
+            this.btnEditTransformInMainForm.TabIndex = 8;
+            this.btnEditTransformInMainForm.Text = "Edit in Main Form";
+            this.btnEditTransformInMainForm.UseVisualStyleBackColor = true;
+            this.btnEditTransformInMainForm.Click += new System.EventHandler(this.btnEditTransformInMainForm_Click);
             // 
             // pnlTransformParameters
             // 
@@ -2865,15 +2877,12 @@
             this.chkSmoothedDraft.UseVisualStyleBackColor = true;
             this.chkSmoothedDraft.CheckedChanged += new System.EventHandler(this.chkSmoothedDraft_CheckedChanged);
             // 
-            // btnEditTransformInMainForm
+            // setPatternAsDefaultToolStripMenuItem
             // 
-            this.btnEditTransformInMainForm.Location = new System.Drawing.Point(520, 34);
-            this.btnEditTransformInMainForm.Name = "btnEditTransformInMainForm";
-            this.btnEditTransformInMainForm.Size = new System.Drawing.Size(105, 23);
-            this.btnEditTransformInMainForm.TabIndex = 8;
-            this.btnEditTransformInMainForm.Text = "Edit in Main Form";
-            this.btnEditTransformInMainForm.UseVisualStyleBackColor = true;
-            this.btnEditTransformInMainForm.Click += new System.EventHandler(this.btnEditTransformInMainForm_Click);
+            this.setPatternAsDefaultToolStripMenuItem.Name = "setPatternAsDefaultToolStripMenuItem";
+            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setPatternAsDefaultToolStripMenuItem.Text = "Set Pattern As Default";
+            this.setPatternAsDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternAsDefaultToolStripMenuItem_Click);
             // 
             // PatternForm
             // 
@@ -3224,5 +3233,6 @@
         private System.Windows.Forms.ToolStripMenuItem addPatternGroupToClipboardToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewInfluencePointsToolStripMenuItem;
         private System.Windows.Forms.Button btnEditTransformInMainForm;
+        private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
     }
 }

@@ -1230,7 +1230,7 @@ namespace Whorl
                         SetDistanceToPath(index, x, y);
                 }
                 if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
-                    Info.SetDistanceToPath(Info.DistancesToPaths[0]);
+                    Info.SetDistanceToPath(Info.DistancesToPaths.Average());
             }
 
             private void SetDistanceToPath(int index, int x, int y)
