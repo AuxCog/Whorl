@@ -1431,8 +1431,10 @@ namespace Whorl
                         {
                             foreach (var distanceInfo in selectAllDistancePattern.PixelRendering.GetDistancePatternInfos())
                             {
-                                distanceInfo.DistancePattern.DrawSelectionOutline(e.Graphics,
-                                             distanceInfo.GetDistancePatternCenter(selectAllDistancePattern));
+                                using (var distPtn = distanceInfo.GetDistancePattern(selectAllDistancePattern))
+                                {
+                                    distPtn.DrawSelectionOutline(e.Graphics);
+                                }
                             }
                         }
                         if (showSelectionsToolStripMenuItem.Checked)
