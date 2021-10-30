@@ -53,6 +53,8 @@
             this.addModuleToChoicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mergeModuleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyModuleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showPreprocessedCodeOnErrorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtFormulaName = new System.Windows.Forms.TextBox();
@@ -71,8 +73,8 @@
             this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
             this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.copyIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyFormulaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -196,6 +198,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.formulaToolStripMenuItem,
             this.moduleToolStripMenuItem,
+            this.editToolStripMenuItem,
             this.settingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -299,6 +302,20 @@
             this.copyModuleToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.copyModuleToolStripMenuItem.Text = "Copy Module";
             this.copyModuleToolStripMenuItem.Click += new System.EventHandler(this.CopyModuleToolStripMenuItem_Click);
+            // 
+            // saveIncludeToolStripMenuItem
+            // 
+            this.saveIncludeToolStripMenuItem.Name = "saveIncludeToolStripMenuItem";
+            this.saveIncludeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveIncludeToolStripMenuItem.Text = "Save Include";
+            this.saveIncludeToolStripMenuItem.Click += new System.EventHandler(this.saveIncludeToolStripMenuItem_Click);
+            // 
+            // copyIncludeToolStripMenuItem
+            // 
+            this.copyIncludeToolStripMenuItem.Name = "copyIncludeToolStripMenuItem";
+            this.copyIncludeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.copyIncludeToolStripMenuItem.Text = "Copy Include";
+            this.copyIncludeToolStripMenuItem.Click += new System.EventHandler(this.copyIncludeToolStripMenuItem_Click);
             // 
             // settingsToolStripMenuItem
             // 
@@ -466,19 +483,20 @@
             this.label2.TabIndex = 40;
             this.label2.Text = "Category:";
             // 
-            // copyIncludeToolStripMenuItem
+            // editToolStripMenuItem
             // 
-            this.copyIncludeToolStripMenuItem.Name = "copyIncludeToolStripMenuItem";
-            this.copyIncludeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.copyIncludeToolStripMenuItem.Text = "Copy Include";
-            this.copyIncludeToolStripMenuItem.Click += new System.EventHandler(this.copyIncludeToolStripMenuItem_Click);
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyFormulaToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
             // 
-            // saveIncludeToolStripMenuItem
+            // copyFormulaToolStripMenuItem
             // 
-            this.saveIncludeToolStripMenuItem.Name = "saveIncludeToolStripMenuItem";
-            this.saveIncludeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.saveIncludeToolStripMenuItem.Text = "Save Include";
-            this.saveIncludeToolStripMenuItem.Click += new System.EventHandler(this.saveIncludeToolStripMenuItem_Click);
+            this.copyFormulaToolStripMenuItem.Name = "copyFormulaToolStripMenuItem";
+            this.copyFormulaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyFormulaToolStripMenuItem.Text = "Copy Formula";
+            this.copyFormulaToolStripMenuItem.Click += new System.EventHandler(this.copyFormulaToolStripMenuItem_Click);
             // 
             // OutlineFormulaForm
             // 
@@ -571,5 +589,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ToolStripMenuItem copyIncludeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveIncludeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyFormulaToolStripMenuItem;
     }
 }

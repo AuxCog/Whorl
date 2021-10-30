@@ -895,5 +895,17 @@ namespace Whorl
 
         }
 
+        private void copyFormulaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                chkShowRawCSharp.Checked = false;
+                Clipboard.SetText(txtFormula.Text);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

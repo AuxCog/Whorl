@@ -1427,16 +1427,6 @@ namespace Whorl
                 {
                     if (Design != null)
                     {
-                        if (selectAllDistancePattern?.PixelRendering != null)
-                        {
-                            foreach (var distanceInfo in selectAllDistancePattern.PixelRendering.GetDistancePatternInfos())
-                            {
-                                using (var distPtn = distanceInfo.GetDistancePattern(selectAllDistancePattern))
-                                {
-                                    distPtn.DrawSelectionOutline(e.Graphics);
-                                }
-                            }
-                        }
                         if (showSelectionsToolStripMenuItem.Checked)
                         {
                             foreach (var ptnInfo in Design.GetAllPatternsInfo(includeRecursive: true))
@@ -1480,6 +1470,7 @@ namespace Whorl
                                                                   Brushes.Black, distancePattern.Center);
                                             index++;
                                         }
+                                        //Tools.DrawSquare(e.Graphics, Color.Red, info.DistancePatternCenter);
                                     }
                                 }
                             }
@@ -2150,7 +2141,6 @@ namespace Whorl
         private void InitializeForDesign()
         {
             influencePointsPattern = null;
-            selectAllDistancePattern = null;
             showInfluencePointsToolStripMenuItem.Checked = false;
             editInfluencePointsModeToolStripMenuItem.Checked = false;
         }
@@ -7220,7 +7210,6 @@ namespace Whorl
 
 
         private Pattern distanceParentPattern { get; set; }
-        private Pattern selectAllDistancePattern { get; set; }
         private DistancePatternInfo distancePatternInfo { get; set; }
         private Pattern mouseDistanceParentPattern { get; set; }
         private DistancePatternInfo mouseDistancePatternInfo { get; set; }
@@ -7236,27 +7225,6 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
-        }
-
-        private void selectAllDistancePatternsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (selectAllDistancePatternsToolStripMenuItem.Checked)
-                {
-                    selectAllDistancePattern = FindTargetPattern(ptn => ptn.HasPixelRendering);
-                }
-                else
-                {
-                    selectAllDistancePattern = null;
-                }
-                picDesign.Refresh();
-            }
-            catch (Exception ex)
-            {
-                Tools.HandleException(ex);
-            }
-
         }
 
         private DistancePatternInfo FindDistanceInfo(Point p, out Pattern parentPattern)
