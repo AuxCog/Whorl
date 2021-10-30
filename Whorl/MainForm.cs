@@ -6068,28 +6068,44 @@ namespace Whorl
 
         private ZoomFactorForm zoomFactorForm = null;
 
+        private float GetZoomFactor(out bool keepCenters, out bool cancelled)
+        {
+            if (zoomFactorForm == null || zoomFactorForm.IsDisposed)
+                zoomFactorForm = new ZoomFactorForm();
+            cancelled = zoomFactorForm.ShowDialog() != DialogResult.OK;
+            if (cancelled)
+            {
+                keepCenters = false;
+                return 0;
+            }
+            else
+            {
+                keepCenters = zoomFactorForm.KeepCenters;
+                return zoomFactorForm.ZoomFactors.X;
+            }
+        }
+
         private void zoomToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
                 List<Pattern> selectedPatterns = 
                     Design.DesignPatterns.Where(ptn => ptn.Selected).ToList();
-               if (selectedPatterns.Count == 0)
+                if (selectedPatterns.Count == 0)
                 {
                     MessageBox.Show("Please select the patterns to zoom.");
                     return;
                 }
-                if (zoomFactorForm == null || zoomFactorForm.IsDisposed)
-                    zoomFactorForm = new ZoomFactorForm();
-                if (zoomFactorForm.ShowDialog() != DialogResult.OK)
+                float factor = GetZoomFactor(out bool keepCenters, out bool cancelled);
+                if (cancelled)
                     return;
                 Size prevSize = picDesign.ClientRectangle.Size;
                 Size newSize = new Size(
-                    (int)(prevSize.Width * zoomFactorForm.ZoomFactors.X),
-                    (int)(prevSize.Height * zoomFactorForm.ZoomFactors.Y));
+                    (int)(factor * prevSize.Width),
+                    (int)(factor * prevSize.Height));
                 List<Pattern> copiedPatterns = 
                     selectedPatterns.Select(ptn => ptn.GetCopy()).ToList();
-                ScalePatternMode mode = zoomFactorForm.KeepCenters ? ScalePatternMode.KeepCenter : ScalePatternMode.OldCenter;
+                ScalePatternMode mode = keepCenters ? ScalePatternMode.KeepCenter : ScalePatternMode.OldCenter;
                 Design.ScalePatterns(copiedPatterns, prevSize, newSize, mode: mode);
                 Design.ReplacePatterns(selectedPatterns, copiedPatterns);
                 RedrawPatterns();
@@ -7220,6 +7236,26 @@ namespace Whorl
             {
                 distanceParentPattern = FindTargetPattern(ptn => ptn.HasPixelRendering);
                 distancePatternInfo = null;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void zoomDistancePatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                distanceParentPattern = FindTargetPattern(ptn => ptn.HasPixelRendering);
+                if (distanceParentPattern == null) 
+                    return;
+                float factor = GetZoomFactor(out bool keepCenters, out bool cancelled);
+                if (cancelled)
+                    return;
+                distanceParentPattern.PixelRendering.ZoomDistancePatterns(factor, zoomCenters: !keepCenters);
+                distanceParentPattern.ClearRenderingCache();
+                RedrawPatterns();
             }
             catch (Exception ex)
             {

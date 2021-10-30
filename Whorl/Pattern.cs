@@ -881,6 +881,22 @@ namespace Whorl
                     throw new Exception("distancePatternInfo not in list.");
             }
 
+            public void ZoomDistancePatterns(double factor, bool zoomCenters = true)
+            {
+                float fFac = (float)factor;
+                foreach (var info in distancePatternsInfo)
+                {
+                    if (zoomCenters)
+                    {
+                        PointF center = info.DistancePattern.Center;
+                        center.X *= fFac;
+                        center.Y *= fFac;
+                        info.DistancePattern.Center = center;
+                    }
+                    info.DistancePattern.ZVector *= factor;
+                }
+            }
+
             public void SetSeedPattern(Pattern pattern)
             {
                 var seedPattern = pattern.GetCopy();

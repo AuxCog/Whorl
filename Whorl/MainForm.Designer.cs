@@ -194,6 +194,7 @@
             this.addPatternToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.distancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.drawDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.zoomDistancePatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redrawDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1415,7 +1416,7 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 334);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 312);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1620,6 +1621,7 @@
             // 
             this.distancePatternToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.drawDistancePatternToolStripMenuItem,
+            this.zoomDistancePatternsToolStripMenuItem,
             this.redrawDistancePatternToolStripMenuItem,
             this.deleteDistancePatternToolStripMenuItem,
             this.editDistancePatternToolStripMenuItem,
@@ -1635,6 +1637,13 @@
             this.drawDistancePatternToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.drawDistancePatternToolStripMenuItem.Text = "Draw";
             this.drawDistancePatternToolStripMenuItem.Click += new System.EventHandler(this.drawDistancePatternToolStripMenuItem_Click);
+            // 
+            // zoomDistancePatternsToolStripMenuItem
+            // 
+            this.zoomDistancePatternsToolStripMenuItem.Name = "zoomDistancePatternsToolStripMenuItem";
+            this.zoomDistancePatternsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.zoomDistancePatternsToolStripMenuItem.Text = "Zoom";
+            this.zoomDistancePatternsToolStripMenuItem.Click += new System.EventHandler(this.zoomDistancePatternsToolStripMenuItem_Click);
             // 
             // redrawDistancePatternToolStripMenuItem
             // 
@@ -2227,6 +2236,7 @@
         private System.Windows.Forms.ToolStripMenuItem repeatInfluencePointToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editKeyEnumParametersToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editDistancePatternSettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem zoomDistancePatternsToolStripMenuItem;
     }
 }
 
