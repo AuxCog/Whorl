@@ -3175,7 +3175,7 @@ namespace Whorl
         {
             if (textureFileNames == null)
             {
-                string texturesFolder = WhorlSettings.Instance.TexturesFolder;
+                string texturesFolder = Tools.GetTexturesFolder();
                 if (Directory.Exists(texturesFolder))
                 {
                     var fileNames = Directory.EnumerateFiles(texturesFolder, "*.png").Concat(

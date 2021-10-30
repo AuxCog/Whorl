@@ -11,6 +11,7 @@ namespace Whorl
 {
     public class WhorlSettings : ChangeTracker
     {
+        public const string TexturesFolder = "Textures";
         public static WhorlSettings Instance { get; } = new WhorlSettings();
 
         private WhorlSettings()
@@ -335,14 +336,6 @@ namespace Whorl
         {
             get { return _spinRate; }
             set { SetProperty(ref _spinRate, value); }
-        }
-
-        private String _texturesFolder;
-        [InitialSettingValue(@"C:\WhorlFilesDev\Textures")]
-        public String TexturesFolder
-        {
-            get { return _texturesFolder; }
-            set { SetProperty(ref _texturesFolder, value); }
         }
 
         private Boolean _traceMode;

@@ -698,6 +698,11 @@ namespace Whorl
         //    }
         //}
 
+        public static string GetTexturesFolder()
+        {
+            return Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.TexturesFolder);
+        }
+
         public static void ReadFromXml(Stream s, IXml obj, string topLevelNodeName)
         {
             XmlDocument xmlDoc = new XmlDocument();

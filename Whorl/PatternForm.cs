@@ -2495,7 +2495,7 @@ namespace Whorl
             {
                 OpenFileDialog dlg = new OpenFileDialog();
                 dlg.Filter = "Image file (*.png;*.jpg)|*.png;*.jpg;*.jpeg";
-                dlg.InitialDirectory = WhorlSettings.Instance.TexturesFolder;
+                dlg.InitialDirectory = Tools.GetTexturesFolder();
                 //string defaultFolder = WhorlSettings.Instance.FilesFolder;
                 //if (Directory.Exists(defaultFolder))
                 //    dlg.InitialDirectory = defaultFolder;

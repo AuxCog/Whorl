@@ -71,7 +71,8 @@ namespace Whorl
                     }
                     if (propertyInfo == null)
                     {
-                        errors.Add($"Didn't find settings property {childNode.Name}.");
+                        if (childNode.Name != nameof(WhorlSettings.TexturesFolder))
+                            errors.Add($"Didn't find settings property {childNode.Name}.");
                         continue;
                     }
                 }
