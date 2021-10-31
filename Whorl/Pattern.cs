@@ -532,7 +532,6 @@ namespace Whorl
                 public DistancePatternSettings DistancePatternSettings { get; }
                 public double MaxModulus { get; set; }
                 public PointF DistancePatternCenter { get; set; }
-
                 //public Complex OrigZVector { get; private set; }
                 //public PointF OrigCenter { get; private set; }
                 //public Guid Guid { get; }
@@ -565,6 +564,7 @@ namespace Whorl
 
                     DistancePattern = source.DistancePattern.GetCopy();
 
+                    Design = source.Design;
                     //OrigZVector = source.OrigZVector;
                     //OrigCenter = source.OrigCenter;
                     XmlVersion = source.XmlVersion;
@@ -4150,6 +4150,10 @@ namespace Whorl
                 }
             }
             InfluencePointInfoList.FinishFromXml();
+            foreach (var influencePoint in InfluencePointInfoList.InfluencePointInfos)
+            {
+                influencePoint.OnLocationChanged();
+            }
             if (textureFillNode != null)
             {
                 fillInfo = new TextureFillInfo(this);

@@ -143,7 +143,7 @@ namespace Whorl
                 CopyKeyParamsDict(KeyEnumParamsDict, source.KeyEnumParamsDict, pattern);
         }
 
-        private void OnLocationChanged()
+        public void OnLocationChanged()
         {
             if (ParentPattern == null || !ParentPattern.HasPixelRendering)
                 return;
@@ -443,21 +443,13 @@ namespace Whorl
                 else if (childNode.Name == nameof(KeyEnumParamsDict))
                 {
                     keyEnumParamsDictXmlNode = childNode;
-                    //foreach (XmlNode keyValNode in childNode.ChildNodes)
-                    //{
-                    //    string key = Tools.GetXmlAttribute<string>(keyValNode, "Key");
-                    //    double factor = Tools.GetXmlAttribute<double>(keyValNode, "Value");
-                    //    FactorsByKey.Add(key, factor);
-                    //}
                 }
             }
         }
 
         public void FinishFromXml()
         {
-            if (keyEnumParamsDictXmlNode == null)
-                return;
-
+            InfluencePointInfoList.FinishFromXml(keyEnumParamsDictXmlNode, KeyEnumParamsDict);
         }
 
         public override string ToString()

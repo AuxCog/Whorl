@@ -78,6 +78,7 @@ namespace Whorl
                 editDistancePatternSettingsToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 deleteDistancePatternToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 addDistancePatternToClipboardToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
+                showDistanceInfluencePointsToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
 
                 string customDesignsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.CustomDesignParentFolder);
                 bool folderExists = Directory.Exists(customDesignsFolder);
@@ -1446,8 +1447,14 @@ namespace Whorl
                         }
                         if (influencePointsPattern != null && showInfluencePointsToolStripMenuItem.Checked)
                         {
-                            //INFMOD
                             foreach (var influencePointInfo in influencePointsPattern.InfluencePointInfoList.InfluencePointInfos)
+                            {
+                                influencePointInfo.Draw(e.Graphics, currentBitmap, this.Font);
+                            }
+                        }
+                        if (showInfluencePointsDistancePattern != null)
+                        {
+                            foreach (var influencePointInfo in showInfluencePointsDistancePattern.InfluencePointInfoList.InfluencePointInfos)
                             {
                                 influencePointInfo.Draw(e.Graphics, currentBitmap, this.Font);
                             }
@@ -7382,6 +7389,29 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private Pattern showInfluencePointsDistancePattern { get; set; }
+
+        private void showDistanceInfluencePointsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (showDistanceInfluencePointsToolStripMenuItem.Checked)
+                {
+                    if (mouseDistancePatternInfo == null || mouseDistanceParentPattern == null)
+                        return;
+                    showInfluencePointsDistancePattern = mouseDistancePatternInfo.GetDistancePattern(mouseDistanceParentPattern);
+                }
+                else
+                    showInfluencePointsDistancePattern = null;
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
         }
 
         private void addDistancePatternToClipboardToolStripMenuItem_Click(object sender, EventArgs e)

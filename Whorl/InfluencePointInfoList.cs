@@ -131,18 +131,23 @@ namespace Whorl
 
         public void FinishFromXml()
         {
+            FinishFromXml(keyEnumParamsDictXmlNode, KeyEnumParamsDict);
+        }
+
+        public static void FinishFromXml(XmlNode keyEnumParamsDictXmlNode, Dictionary<string, KeyEnumParameters> keyEnumParamsDict)
+        {
             if (keyEnumParamsDictXmlNode == null)
                 return;
             foreach (XmlNode childNode in keyEnumParamsDictXmlNode.ChildNodes)
             {
-                string enumKey = Tools.GetXmlAttribute<string>(childNode, "Value");
-                if (KeyEnumParamsDict.TryGetValue(enumKey, out var keyParams))
+                if (childNode.FirstChild?.Name == "Parameters")
                 {
-                    if (keyParams.ParametersObject != null)
+                    string enumKey = Tools.GetXmlAttribute<string>(childNode, "Value");
+                    if (keyEnumParamsDict.TryGetValue(enumKey, out var keyParams))
                     {
-                        if (childNode.FirstChild?.Name == "Parameters")
+                        if (keyParams.ParametersObject != null)
                         {
-                            FormulaSettings.ParseCSharpParamsXml(childNode.FirstChild, keyParams.ParametersObject);
+                                FormulaSettings.ParseCSharpParamsXml(childNode.FirstChild, keyParams.ParametersObject);
                         }
                     }
                 }
