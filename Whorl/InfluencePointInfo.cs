@@ -136,7 +136,7 @@ namespace Whorl
 
         public void CopyProperties(InfluencePointInfo source, Pattern pattern = null, bool copyKeyParams = true)
         {
-            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(KeyEnumParamsDict) });
+            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(FilterKeys), nameof(KeyEnumParamsDict) });
             FilterKeys.Clear();
             FilterKeys.UnionWith(source.FilterKeys);
             if (copyKeyParams)
@@ -158,7 +158,7 @@ namespace Whorl
 
         private void SetDistancePatternCenter(Pattern.RenderingInfo.DistancePatternInfo distInfo, PointF center)
         {
-            distInfo.TransformDistancePattern(ParentPattern, distInfo.DistancePattern, center, scaleZVector: false);
+            distInfo.TransformDistancePattern(ParentPattern, distInfo.DistancePattern, center);
         }
 
         public void SetDistancePatternCenter(Pattern.RenderingInfo.DistancePatternInfo distInfo)
@@ -332,8 +332,8 @@ namespace Whorl
                     pY = (int)p.Y;
                 if (pX >= 0 && pY >= 0 && pX < designBitmap.Width && pY < designBitmap.Height)
                 {
-                    bool isLight = Tools.ColorIsLight(designBitmap.GetPixel(pX, pY));
-                    penColor = isLight ? Color.Black : Color.White; //Tools.InverseColor(designBitmap.GetPixel(pX, pY));
+                    if (!Tools.ColorIsLight(designBitmap.GetPixel(pX, pY)))
+                        penColor = Color.White;
                 }
             }
             using (var pen = new Pen(penColor))
@@ -426,7 +426,7 @@ namespace Whorl
             Tools.GetXmlAttributesExcept(this, node, new string[] { "InfluencePointX", "InfluencePointY" });
             double x = Tools.GetXmlAttribute<double>(node, "InfluencePointX");
             double y = Tools.GetXmlAttribute<double>(node, "InfluencePointY");
-            InfluencePoint = new DoublePoint(x, y);
+            _influencePoint = new DoublePoint(x, y);
             if (node.Attributes[nameof(AverageWeight)] == null)
             {
                 AverageWeight = InfluenceFactor;  //Legacy code.

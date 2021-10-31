@@ -118,10 +118,10 @@ namespace Whorl
             {
                 Pattern pattern = PatternsList[0];
                 if (pattern.GetSingleBasicOutline(BasicOutlineTypes.Rectangle) != null)
-                    PreviewZFactor = new Complex(0, 1);
+                    PreviewZFactor = Complex.One;
                 else
                     PreviewZFactor = pattern.PreviewZFactor;
-                this.ZFactors = new Complex[] { new Complex(1, 0) };
+                this.ZFactors = new Complex[] { Complex.One };
                 return;
             }
             Pattern maxPattern = this.Patterns.OrderBy(

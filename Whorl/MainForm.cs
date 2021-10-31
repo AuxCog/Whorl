@@ -1113,96 +1113,99 @@ namespace Whorl
                                         new PointF(dragEnd.X, dragEnd.Y)) > 3.0)
                 {
                     PatternList patternGroup = this.DrawnPatternGroup;  //Redrawn or default pattern.
-                    Complex zVector = patternGroup.PreviewZFactor *
-                        new Complex(dragEnd.X - dragStart.X, dragEnd.Y - dragStart.Y);
-                    patternGroup.SetZVectors(zVector);
-                    foreach (Pattern pattern in patternGroup.Patterns)
-                    {
-                        if (pattern.HasRandomElements)
-                            pattern.SetNewRandomSeed();
-                    }
-                    if (distanceParent != null && distanceParent.PixelRendering != null)
-                    {
+                    Complex zVector = patternGroup.PreviewZFactor * new Complex(dragEnd.X - dragStart.X, dragEnd.Y - dragStart.Y);
+                    bool processDistance = distanceParent?.PixelRendering != null && patternGroup.PatternsList.Any();
+                    if (processDistance)
+                    {   //Process distance pattern.
                         Pattern distancePattern = patternGroup.PatternsList.First();
-                        Pattern distanceCopy;
+                        distancePattern.ZVector = zVector;
+                        Pattern distanceParentCopy;
                         if (distanceInfo == null)  //Newly added distance pattern.
                         {
-                            distanceCopy = distanceParent.GetCopy();
-                            bool setEditedPattern = Design.EditedPattern == distanceParent;
-                            if (setEditedPattern)
-                                Design.EditedPattern = distanceCopy;
-                            distanceCopy.PixelRendering.AddDistancePattern(distanceCopy, distancePattern);
-                            AddRenderingControls(distanceCopy);
+                            distanceParentCopy = distanceParent.GetCopy();
+                            if (Design.EditedPattern == distanceParent)
+                                Design.EditedPattern = distanceParentCopy;
+                            distanceParentCopy.PixelRendering.AddDistancePattern(distanceParentCopy, distancePattern);
+                            AddRenderingControls(distanceParentCopy);
                         }
                         else   //Redrawn distance pattern.
                         {
-                            distanceCopy = CopyForDistanceInfo(distanceParent, distanceInfo, 
-                                                               out var distanceInfoCopy);
+                            distanceParentCopy = CopyForDistanceInfo(distanceParent, distanceInfo,
+                                                                     out var distanceInfoCopy);
                             if (Design.EditedPattern == distanceParent)
-                                Design.EditedPattern = distanceCopy;
-                            distanceInfoCopy.SetDistancePattern(distanceCopy, distancePattern, transform: true);
-                            AddRenderingControls(distanceCopy);
+                                Design.EditedPattern = distanceParentCopy;
+                            distanceInfoCopy.SetDistancePattern(distanceParentCopy, distancePattern, transform: true);
+                            AddRenderingControls(distanceParentCopy);
                         }
-                        distanceCopy.PixelRendering.UseDistanceOutline = true;
-                        Design.ReplacePattern(distanceParent, distanceCopy);
-                        RedrawPatterns();
-                    }
-                    else if (patternGroup != defaultPatternGroup)
-                    {
-                        if (patternGroup == redrawnPatternGroup)
-                        {
-                            Design.ReplacePatterns(origRedrawnPatternGroup.PatternsList,
-                                                   redrawnPatternGroup.PatternsList);
-                        }
+                        distanceParentCopy.PixelRendering.UseDistanceOutline = true;
+                        Design.ReplacePattern(distanceParent, distanceParentCopy);
                         RedrawPatterns();
                     }
                     else
-                    {   //Drawing chosen default pattern group:
-                        if (cycleColorsToolStripMenuItem.Checked)
+                    {
+                        patternGroup.SetZVectors(zVector);
+                        foreach (Pattern pattern in patternGroup.Patterns)
                         {
-                            foreach (Pattern pattern in patternGroup.Patterns)
-                            {
-                                pattern.BoundaryColor = GetNextColor();
-                                pattern.CenterColor = GetNextColor(increment: false);
-                            }
+                            if (pattern.HasRandomElements)
+                                pattern.SetNewRandomSeed();
                         }
-                        Ribbon ribbon = patternGroup.GetRibbon();
-                        if (drawLineRibbonToolStripMenuItem.Checked)
+                        if (patternGroup != defaultPatternGroup)
                         {
-                            if (ribbon != null)
+                            if (patternGroup == redrawnPatternGroup)
                             {
-                                double length = Tools.Distance(dragStart, dragEnd);
-                                int segments = (int)Math.Round(length / ribbon.RibbonDistance);
-                                PointF segInc = new PointF((float)(dragEnd.X - dragStart.X) / segments, 
-                                                           (float)(dragEnd.Y - dragStart.Y) / segments);
-                                for (int i = 0; i <= segments; i++)
-                                {
-                                    ribbon.RibbonPath.Add(new PointF(dragStart.X + i * segInc.X, dragStart.Y + i * segInc.Y));
-                                }
-
+                                Design.ReplacePatterns(origRedrawnPatternGroup.PatternsList,
+                                                       redrawnPatternGroup.PatternsList);
                             }
-                        }
-                        if (continueRibbonToolStripMenuItem.Checked)
-                        {
                             RedrawPatterns();
                         }
                         else
-                        {
-                            bool fixedRibbon = ribbon != null && ribbon.ScaleRibbonPath();
-                            int insertIndex = -1;
-                            if (drawUnderSelectedPatternToolStripMenuItem.Checked)
+                        {   //Drawing chosen default pattern group:
+                            if (cycleColorsToolStripMenuItem.Checked)
                             {
-                                insertIndex = Design.FindPatternIndex(ptn => ptn.Selected);
+                                foreach (Pattern pattern in patternGroup.Patterns)
+                                {
+                                    pattern.BoundaryColor = GetNextColor();
+                                    pattern.CenterColor = GetNextColor(increment: false);
+                                }
                             }
-                            foreach (Pattern pattern in patternGroup.Patterns)
+                            Ribbon ribbon = patternGroup.GetRibbon();
+                            if (drawLineRibbonToolStripMenuItem.Checked)
                             {
-                                pattern.DesignLayer = Design.DefaultDesignLayer;
+                                if (ribbon != null)
+                                {
+                                    double length = Tools.Distance(dragStart, dragEnd);
+                                    int segments = (int)Math.Round(length / ribbon.RibbonDistance);
+                                    PointF segInc = new PointF((float)(dragEnd.X - dragStart.X) / segments,
+                                                               (float)(dragEnd.Y - dragStart.Y) / segments);
+                                    for (int i = 0; i <= segments; i++)
+                                    {
+                                        ribbon.RibbonPath.Add(new PointF(dragStart.X + i * segInc.X, dragStart.Y + i * segInc.Y));
+                                    }
+
+                                }
                             }
-                            Design.AddPatterns(patternGroup.Patterns, insertIndex);
-                            if (insertIndex == -1 && !fixedRibbon)
-                                DrawFilledPattern(patternGroup);
-                            else
+                            if (continueRibbonToolStripMenuItem.Checked)
+                            {
                                 RedrawPatterns();
+                            }
+                            else
+                            {
+                                bool fixedRibbon = ribbon != null && ribbon.ScaleRibbonPath();
+                                int insertIndex = -1;
+                                if (drawUnderSelectedPatternToolStripMenuItem.Checked)
+                                {
+                                    insertIndex = Design.FindPatternIndex(ptn => ptn.Selected);
+                                }
+                                foreach (Pattern pattern in patternGroup.Patterns)
+                                {
+                                    pattern.DesignLayer = Design.DefaultDesignLayer;
+                                }
+                                Design.AddPatterns(patternGroup.Patterns, insertIndex);
+                                if (insertIndex == -1 && !fixedRibbon)
+                                    DrawFilledPattern(patternGroup);
+                                else
+                                    RedrawPatterns();
+                            }
                         }
                     }
                     ClearRedrawPattern();
@@ -2148,7 +2151,9 @@ namespace Whorl
         private void InitializeForDesign()
         {
             influencePointsPattern = null;
+            showInfluencePointsDistancePattern = null;
             showInfluencePointsToolStripMenuItem.Checked = false;
+            showDistanceInfluencePointsToolStripMenuItem.Checked = false;
             editInfluencePointsModeToolStripMenuItem.Checked = false;
         }
 
@@ -7336,7 +7341,7 @@ namespace Whorl
                                                               out var distInfoCopy);
                         //var distInfoCopy = ptnCopy.PixelRendering.GetDistancePatternInfos()
                         //                   .Where(pi => pi.Guid == mouseDistancePatternInfo.Guid).First();
-                        distInfoCopy.SetDistancePattern(ptnCopy, newDistPattern);
+                        distInfoCopy.SetDistancePattern(ptnCopy, newDistPattern, transform: false);
                         Design.ReplacePattern(mouseDistanceParentPattern, ptnCopy);
                         RedrawPatterns();
                     }
@@ -7862,5 +7867,31 @@ namespace Whorl
             }
         }
 
+        private void testDistancePatternToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selPatterns = Design.DesignPatterns.Where(p => p.Selected);
+                if (selPatterns.Count() != 1)
+                    return;
+                Pattern distancePattern = selPatterns.First();
+                var ptn = new Pattern(Design, FillInfo.FillTypes.Path);
+                ptn.ZVector = new Complex(100.0, 0);
+                ptn.Center = new PointF(100, 100);
+                if (ptn.CheckCreatePixelRendering() != null)
+                    return;
+                var info = ptn.PixelRendering.AddDistancePattern(ptn, distancePattern);
+                Pattern newDistancePattern = info.GetDistancePattern(ptn);
+                newDistancePattern.Center = distancePattern.Center;
+                Design.ReplacePattern(distancePattern, newDistancePattern);
+                newDistancePattern.Selected = true;
+                picDesign.Refresh();
+                WriteStatus("Replaced selected pattern with distance pattern.");
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

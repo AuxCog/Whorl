@@ -200,6 +200,7 @@
             this.editDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addDistancePatternToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editDistancePatternSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showDistanceInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.seedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setSeedPatternFromDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editSeedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -238,7 +239,7 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.showDistanceInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1103,6 +1104,7 @@
             this.timeRedrawsToolStripMenuItem,
             this.erasePictureToolStripMenuItem,
             this.showAppPathToolStripMenuItem,
+            this.testDistancePatternToolStripMenuItem,
             this.scanForPatternsToolStripMenuItem,
             this.fixPatternsToolStripMenuItem,
             this.inferFormulaTypesToolStripMenuItem,
@@ -1417,7 +1419,7 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 334);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 312);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1681,6 +1683,14 @@
             this.editDistancePatternSettingsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.editDistancePatternSettingsToolStripMenuItem.Text = "Edit Settings";
             this.editDistancePatternSettingsToolStripMenuItem.Click += new System.EventHandler(this.editDistancePatternSettingsToolStripMenuItem_Click);
+            // 
+            // showDistanceInfluencePointsToolStripMenuItem
+            // 
+            this.showDistanceInfluencePointsToolStripMenuItem.CheckOnClick = true;
+            this.showDistanceInfluencePointsToolStripMenuItem.Name = "showDistanceInfluencePointsToolStripMenuItem";
+            this.showDistanceInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.showDistanceInfluencePointsToolStripMenuItem.Text = "Show Influence Points";
+            this.showDistanceInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.showDistanceInfluencePointsToolStripMenuItem_Click);
             // 
             // seedPatternToolStripMenuItem
             // 
@@ -1998,13 +2008,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // showDistanceInfluencePointsToolStripMenuItem
+            // testDistancePatternToolStripMenuItem
             // 
-            this.showDistanceInfluencePointsToolStripMenuItem.CheckOnClick = true;
-            this.showDistanceInfluencePointsToolStripMenuItem.Name = "showDistanceInfluencePointsToolStripMenuItem";
-            this.showDistanceInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.showDistanceInfluencePointsToolStripMenuItem.Text = "Show Influence Points";
-            this.showDistanceInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.showDistanceInfluencePointsToolStripMenuItem_Click);
+            this.testDistancePatternToolStripMenuItem.Name = "testDistancePatternToolStripMenuItem";
+            this.testDistancePatternToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testDistancePatternToolStripMenuItem.Text = "Test Distance Pattern";
+            this.testDistancePatternToolStripMenuItem.Click += new System.EventHandler(this.testDistancePatternToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2248,6 +2257,7 @@
         private System.Windows.Forms.ToolStripMenuItem editDistancePatternSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomDistancePatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showDistanceInfluencePointsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem testDistancePatternToolStripMenuItem;
     }
 }
 
