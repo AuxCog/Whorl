@@ -2625,9 +2625,12 @@ namespace Whorl
         {
             if (prevZVector == Complex.Zero || prevZVector == ZVector || ZVector == Complex.Zero)
                 return;
-            Complex zFactor = ZVector / prevZVector;
             InfluenceScaleFactor *= prevZVector.GetModulus() / ZVector.GetModulus();
-            InfluencePointInfoList.TransformInfluencePoints(zFactor);
+            if (InfluencePointInfoList.Count != 0)
+            {
+                Complex zFactor = ZVector / prevZVector;
+                InfluencePointInfoList.TransformInfluencePoints(zFactor);
+            }
         }
 
         private struct IndexedPolarCoord

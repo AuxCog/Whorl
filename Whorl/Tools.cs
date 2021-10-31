@@ -758,7 +758,7 @@ namespace Whorl
             return Math.Abs(n1 - n2) <= tolerance;
         }
 
-        public static bool NumbersEqual(double n1, double n2, double tolerance = 0.00001F)
+        public static bool NumbersEqual(double n1, double n2, double tolerance = 0.00001)
         {
             return Math.Abs(n1 - n2) <= tolerance;
         }
@@ -801,10 +801,16 @@ namespace Whorl
 
         public static int GetIndexInRange(int index, int count)
         {
-            while (index < 0)
-                index += count;
-            while (index >= count)
-                index -= count;
+            if (count > 0 && (index < 0 || index >= count))
+            {
+                index = index % count;
+                if (index < 0)
+                    index += count;
+                //while (index < 0)
+                //    index += count;
+                //while (index >= count)
+                //    index -= count;
+            }
             return index;
         }
 

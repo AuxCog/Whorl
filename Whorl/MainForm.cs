@@ -3660,22 +3660,25 @@ namespace Whorl
                     sourcePatterns = Design.DesignPatterns;
                 else
                     sourcePatterns = Design.DesignPatterns.Where(ptn => 
-                        Tools.Distance(ptn.Center, limitSelectionCenterPattern.Center) <= 50D);
-                //Get patterns sorted by distance from (0, 0), then by topmost (last) first:
+                        Tools.DistanceSquared(ptn.Center, limitSelectionCenterPattern.Center) <= 2500D);
+                //Get patterns sorted vertically, then horizontally, then by topmost (last) first:
                 List<Pattern> sortedPatterns = (from ptn in sourcePatterns
                             where !keepSelectedPatterns.Contains(ptn)
-                            orderby Math.Abs(ptn.Center.X) + Math.Abs(ptn.Center.Y) ascending,
+                            orderby Math.Round(ptn.Center.Y / 100F) ascending,
+                            ptn.Center.X ascending,
                             Design.IndexOfPattern(ptn) descending
                             select ptn).ToList();
                 if (sortedPatterns.Count == 0)
                     return;
                 Pattern selPattern = Design.SelectedPattern;
-                if (selPattern == null)
+                if (selPattern == null || !selPattern.Selected)
                     selPattern = Design.FindPattern(ptn => ptn.Selected);
                 int index = selPattern == null ? 0 : sortedPatterns.IndexOf(selPattern);
                 if (selPattern != null)
+                {
                     selPattern.Selected = false;
-                index = Tools.GetIndexInRange(index + indexIncrement, sortedPatterns.Count);
+                    index = Tools.GetIndexInRange(index + indexIncrement, sortedPatterns.Count);
+                }
                 selPattern = sortedPatterns[index];
                 Design.SelectedPatternIndex = Design.IndexOfPattern(selPattern);
                 foreach (Pattern pattern in Design.DesignPatterns)
