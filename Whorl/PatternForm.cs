@@ -2724,6 +2724,8 @@ namespace Whorl
                 var pathFillInfo = GetEditedPathFillInfo();
                 if (pathFillInfo != null)
                 {
+                    if (pathFillInfo.ColorMode == FillInfo.PathColorModes.Normal)
+                        pathFillInfo.ColorMode = FillInfo.PathColorModes.Radial;
                     pathFillInfo.ColorInfo.WaveRandomGenerator.ReseedRandom();
                     PreviewChanges();
                 }
