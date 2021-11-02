@@ -1315,7 +1315,7 @@ namespace Whorl
                     e.Graphics.DrawCurve(Pens.Red, graphPoints);
                     foreach (PointF p in graphFitPoints)
                     {
-                        e.Graphics.FillEllipse(Brushes.Yellow, new RectangleF(p, new SizeF(2F, 2F)));
+                        e.Graphics.FillEllipse(Brushes.Green, new RectangleF(p, new SizeF(4F, 4F)));
                     }
                 }
                 bool showGrid = showGridToolStripMenuItem.Checked
