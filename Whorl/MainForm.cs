@@ -1313,7 +1313,10 @@ namespace Whorl
                 if (graphPoints != null)
                 {
                     e.Graphics.DrawCurve(Pens.Red, graphPoints);
-                    return;
+                    foreach (PointF p in graphFitPoints)
+                    {
+                        e.Graphics.FillEllipse(Brushes.Yellow, new RectangleF(p, new SizeF(2F, 2F)));
+                    }
                 }
                 bool showGrid = showGridToolStripMenuItem.Checked
                      && (GridType != GridTypes.None || tileInfoPattern != null);
@@ -7900,6 +7903,7 @@ namespace Whorl
         }
 
         PointF[] graphPoints { get; set; }
+        PointF[] graphFitPoints { get; set; }
 
         private void testRandomToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -7910,15 +7914,16 @@ namespace Whorl
                     var randomOps = new RandomOps();
                     randomOps.Weight = (float)picDesign.ClientSize.Height;
                     randomOps.Smoothness = 40;
-                    randomOps.XLength = picDesign.ClientSize.Width - 10;
+                    randomOps.XLength = picDesign.ClientSize.Width - 200;
                     randomOps.ClipYValues = true;
-                    float[] yValues = randomOps.ComputeYValues(out float[] xValues);
+                    float[] yValues = randomOps.ComputeYValues(out float[] xValues, out PointF[] points, closed: true);
                     float midY = 0.5F * picDesign.ClientSize.Height;
                     graphPoints = Enumerable.Range(0, xValues.Length)
                                   .Select(i => new PointF(xValues[i] + 5F, yValues[i] + midY)).ToArray();
+                    graphFitPoints = points.Select(p => new PointF(p.X + 5F, p.Y + midY)).ToArray();
                 }
                 else
-                    graphPoints = null;
+                    graphPoints = graphFitPoints = null;
                 picDesign.Refresh();
             }
             catch (Exception ex)
