@@ -1310,6 +1310,11 @@ namespace Whorl
         {
             try
             {
+                if (graphPoints != null)
+                {
+                    e.Graphics.DrawCurve(Pens.Red, graphPoints);
+                    return;
+                }
                 bool showGrid = showGridToolStripMenuItem.Checked
                      && (GridType != GridTypes.None || tileInfoPattern != null);
                 //WriteTrace("Repaint: dragState=" + dragState.ToString());
@@ -7887,6 +7892,34 @@ namespace Whorl
                 newDistancePattern.Selected = true;
                 picDesign.Refresh();
                 WriteStatus("Replaced selected pattern with distance pattern.");
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        PointF[] graphPoints { get; set; }
+
+        private void testRandomToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (testRandomToolStripMenuItem.Checked)
+                {
+                    var randomOps = new RandomOps();
+                    randomOps.Weight = (float)picDesign.ClientSize.Height;
+                    randomOps.Smoothness = 40;
+                    randomOps.XLength = picDesign.ClientSize.Width - 10;
+                    randomOps.ClipYValues = true;
+                    float[] yValues = randomOps.ComputeYValues(out float[] xValues);
+                    float midY = 0.5F * picDesign.ClientSize.Height;
+                    graphPoints = Enumerable.Range(0, xValues.Length)
+                                  .Select(i => new PointF(xValues[i] + 5F, yValues[i] + midY)).ToArray();
+                }
+                else
+                    graphPoints = null;
+                picDesign.Refresh();
             }
             catch (Exception ex)
             {

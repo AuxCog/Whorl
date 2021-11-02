@@ -139,6 +139,7 @@
             this.timeRedrawsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.erasePictureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showAppPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanForPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fixPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inferFormulaTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -239,7 +240,7 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.testDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testRandomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1105,6 +1106,7 @@
             this.erasePictureToolStripMenuItem,
             this.showAppPathToolStripMenuItem,
             this.testDistancePatternToolStripMenuItem,
+            this.testRandomToolStripMenuItem,
             this.scanForPatternsToolStripMenuItem,
             this.fixPatternsToolStripMenuItem,
             this.inferFormulaTypesToolStripMenuItem,
@@ -1167,6 +1169,13 @@
             this.showAppPathToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.showAppPathToolStripMenuItem.Text = "Show App Path";
             this.showAppPathToolStripMenuItem.Click += new System.EventHandler(this.ShowAppPathToolStripMenuItem_Click);
+            // 
+            // testDistancePatternToolStripMenuItem
+            // 
+            this.testDistancePatternToolStripMenuItem.Name = "testDistancePatternToolStripMenuItem";
+            this.testDistancePatternToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testDistancePatternToolStripMenuItem.Text = "Test Distance Pattern";
+            this.testDistancePatternToolStripMenuItem.Click += new System.EventHandler(this.testDistancePatternToolStripMenuItem_Click);
             // 
             // scanForPatternsToolStripMenuItem
             // 
@@ -2008,12 +2017,13 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // testDistancePatternToolStripMenuItem
+            // testRandomToolStripMenuItem
             // 
-            this.testDistancePatternToolStripMenuItem.Name = "testDistancePatternToolStripMenuItem";
-            this.testDistancePatternToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.testDistancePatternToolStripMenuItem.Text = "Test Distance Pattern";
-            this.testDistancePatternToolStripMenuItem.Click += new System.EventHandler(this.testDistancePatternToolStripMenuItem_Click);
+            this.testRandomToolStripMenuItem.CheckOnClick = true;
+            this.testRandomToolStripMenuItem.Name = "testRandomToolStripMenuItem";
+            this.testRandomToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testRandomToolStripMenuItem.Text = "Test Random";
+            this.testRandomToolStripMenuItem.Click += new System.EventHandler(this.testRandomToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2258,6 +2268,7 @@
         private System.Windows.Forms.ToolStripMenuItem zoomDistancePatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showDistanceInfluencePointsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testDistancePatternToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem testRandomToolStripMenuItem;
     }
 }
 
