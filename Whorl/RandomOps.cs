@@ -13,6 +13,7 @@ namespace Whorl
         public int XLength { get; set; }
         public int Smoothness { get; set; }
         public bool ClipYValues { get; set; }
+        public bool Closed { get; set; }
         public int? RandomSeed { get; private set; }
 
         private Random randomGenerator { get; set; }
@@ -23,7 +24,7 @@ namespace Whorl
             RandomSeed = seed;
         }
 
-        public float[] ComputeYValues(out float[] xValues, out PointF[] points, bool closed = false)
+        public float[] ComputeYValues(out float[] xValues, out PointF[] points)
         {
             if (randomGenerator == null)
                 randomGenerator = new Random();
@@ -32,7 +33,7 @@ namespace Whorl
             if (Smoothness <= 0)
                 throw new Exception("Smoothness must be positive.");
             int xCount = (int)Math.Ceiling((double)XLength / Smoothness);
-            if (closed)
+            if (Closed)
                 xCount++;
             int xLength = (xCount - 1) * Smoothness + 1;
             float xScale = (float)Smoothness;
@@ -41,7 +42,7 @@ namespace Whorl
             var xs = Enumerable.Range(0, xLength).Select(i => (float)i).ToList();
             float startSlope, endSlope;
             startSlope = endSlope = float.NaN;
-            if (closed)
+            if (Closed)
             {
                 startSlope = endSlope = 0F;
                 vals[vals.Count - 1] = vals.First();

@@ -7913,13 +7913,18 @@ namespace Whorl
                 {
                     var randomOps = new RandomOps();
                     randomOps.Weight = (float)picDesign.ClientSize.Height;
-                    randomOps.Smoothness = 40;
-                    randomOps.XLength = picDesign.ClientSize.Width - 200;
+                    randomOps.Smoothness = 100;
+                    randomOps.XLength = picDesign.ClientSize.Height;
                     randomOps.ClipYValues = true;
-                    float[] yValues = randomOps.ComputeYValues(out float[] xValues, out PointF[] points, closed: true);
+                    randomOps.Closed = true;
+                    float[] yValues = randomOps.ComputeYValues(out float[] xValues, out PointF[] points);
                     float midY = 0.5F * picDesign.ClientSize.Height;
-                    graphPoints = Enumerable.Range(0, xValues.Length)
-                                  .Select(i => new PointF(xValues[i] + 5F, yValues[i] + midY)).ToArray();
+                    var polarPoints = Enumerable.Range(0, xValues.Length)
+                                      .Select(i => new PolarCoord((float)i / xValues.Length * 2F * (float)Math.PI, 0.3F * (midY + yValues[i])));
+                    PointF center = new PointF(0.5F * picDesign.ClientSize.Width, midY);
+                    graphPoints = polarPoints.Select(pc => pc.ToRectangular()).Select(p => new PointF(p.X + center.X, p.Y + center.Y)).ToArray();
+                    //graphPoints = Enumerable.Range(0, xValues.Length)
+                    //              .Select(i => new PointF(xValues[i] + 5F, yValues[i] + midY)).ToArray();
                     graphFitPoints = points.Select(p => new PointF(p.X + 5F, p.Y + midY)).ToArray();
                 }
                 else
