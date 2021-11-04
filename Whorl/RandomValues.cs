@@ -104,6 +104,13 @@ namespace Whorl
             RandomOps.SetRandomSeed(Settings.RandomSeed, reset: true);
         }
 
+        public void ClearValues()
+        {
+            YValues = null;
+            XValues = null;
+            FittedPoints = null;
+        }
+
         public void ComputeRandomValues()
         {
             if (Disposed)
@@ -199,9 +206,7 @@ namespace Whorl
             if (Disposed)
                 return;
             Disposed = true;
-            YValues = null;
-            XValues = null;
-            FittedPoints = null;
+            ClearValues();
         }
     }
 }

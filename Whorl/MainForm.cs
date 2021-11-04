@@ -5352,16 +5352,15 @@ namespace Whorl
         {
             bool fixedPattern = true;
             pattern.ComputeSeedPoints();
+            PathPattern pathPattern = pattern as PathPattern;
             if (pattern.SeedPointsNormalizationFactor != 0)
                 pattern.ZVector /= pattern.SeedPointsNormalizationFactor;
             else
             {
-                if (!(pattern is PathPattern &&
-                    ((PathPattern)pattern).CartesianPathOutline != null))
+                if (pathPattern?.CartesianPathOutline == null)
                     throw new Exception("Pattern had normalization factor = 0.");
             }
             Ribbon ribbon = pattern as Ribbon;
-            PathPattern pathPattern = pattern as PathPattern;
             if (pathPattern != null)
             {
                 ribbon = pathPattern.PathRibbon;

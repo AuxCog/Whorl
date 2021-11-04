@@ -91,6 +91,17 @@ namespace Whorl
             }
         }
 
+        public void CleanUp()
+        {
+            if (Enabled)
+            {
+                foreach (RandomValues randomValues in GetRandomValues())
+                {
+                    randomValues.ClearValues();
+                }
+            }
+        }
+
         /// <summary>
         /// Reset the C# formula's parameter properties to their original values, after processing has finished.
         /// (Does nothing if formula is not C#).

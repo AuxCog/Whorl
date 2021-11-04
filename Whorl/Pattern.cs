@@ -2521,6 +2521,13 @@ namespace Whorl
                 for (int i = 0; i < SeedPoints.Length; i++)
                     SeedPoints[i].Modulus *= SeedPointsNormalizationFactor;
                 //seedPointsChanged = true;
+                foreach (FormulaSettings formulaSettings in GetFormulaSettings())
+                {
+                    if (formulaSettings.InfluenceLinkParentCollection != null)
+                    {
+                        formulaSettings.InfluenceLinkParentCollection.CleanUp();
+                    }
+                }
                 ClearRenderingCache();
             }
             double previewModulus = 1D; // / (MaxPoint.Modulus == 0 ? 1D : MaxPoint.Modulus);
