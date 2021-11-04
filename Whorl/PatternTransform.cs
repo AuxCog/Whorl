@@ -133,33 +133,11 @@ namespace Whorl
             Info.Amplitude = amplitude;
             Info.Angle = angle;
             Info.PreviousPoint = previousPoint;
-            //if (TransformSettings.IsCSharpFormula)
-            //{
-            //    Info.Amplitude = amplitude;
-            //    Info.Angle = angle;
-            //    Info.PreviousPoint = previousPoint;
-            //}
-            //else
-            //{
-            //    amplitudeIdent.SetCurrentValue(amplitude);
-            //    angleIdent.SetCurrentValue(angle);
-            //    previousPointIdent.SetCurrentValue(previousPoint);
-            //}
             previousPoint = new PolarPoint(angle, amplitude);
             if (TransformSettings.EvalFormula())
             {
                 amplitude = Info.Amplitude;
                 angle = Info.Angle;
-                //if (TransformSettings.IsCSharpFormula)
-                //{
-                //    amplitude = Info.Amplitude;
-                //    angle = Info.Angle;
-                //}
-                //else
-                //{
-                //    amplitude = (double)amplitudeIdent.CurrentValue;
-                //    angle = (double)angleIdent.CurrentValue;
-                //}
             }
         }
 

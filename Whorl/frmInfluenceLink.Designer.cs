@@ -44,6 +44,11 @@ namespace Whorl
             this.label4 = new System.Windows.Forms.Label();
             this.chkMultiply = new System.Windows.Forms.CheckBox();
             this.BtnFindLink = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.BtnCreateRandomSettings = new System.Windows.Forms.Button();
+            this.BtnEditRandomSettings = new System.Windows.Forms.Button();
+            this.BtnDeleteRandomSettings = new System.Windows.Forms.Button();
+            this.BtnReseedRandom = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -67,7 +72,7 @@ namespace Whorl
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 99);
+            this.label2.Location = new System.Drawing.Point(12, 100);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(93, 13);
             this.label2.TabIndex = 2;
@@ -81,12 +86,11 @@ namespace Whorl
             this.cboInfluencePointInfo.Name = "cboInfluencePointInfo";
             this.cboInfluencePointInfo.Size = new System.Drawing.Size(97, 21);
             this.cboInfluencePointInfo.TabIndex = 3;
-            this.cboInfluencePointInfo.SelectedIndexChanged += new System.EventHandler(this.cboInfluencePointInfo_SelectedIndexChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 127);
+            this.label3.Location = new System.Drawing.Point(18, 127);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(87, 13);
             this.label3.TabIndex = 4;
@@ -113,7 +117,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(15, 189);
+            this.BtnOK.Location = new System.Drawing.Point(280, 12);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(75, 23);
             this.BtnOK.TabIndex = 7;
@@ -123,7 +127,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(115, 189);
+            this.BtnCancel.Location = new System.Drawing.Point(280, 41);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(75, 23);
             this.BtnCancel.TabIndex = 8;
@@ -165,7 +169,7 @@ namespace Whorl
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 72);
+            this.label4.Location = new System.Drawing.Point(45, 77);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(58, 13);
             this.label4.TabIndex = 11;
@@ -194,11 +198,65 @@ namespace Whorl
             this.BtnFindLink.UseVisualStyleBackColor = true;
             this.BtnFindLink.Click += new System.EventHandler(this.BtnFindLink_Click);
             // 
-            // frmInflenceLink
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 185);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(91, 13);
+            this.label5.TabIndex = 15;
+            this.label5.Text = "Random Settings:";
+            // 
+            // BtnCreateRandomSettings
+            // 
+            this.BtnCreateRandomSettings.Location = new System.Drawing.Point(113, 180);
+            this.BtnCreateRandomSettings.Name = "BtnCreateRandomSettings";
+            this.BtnCreateRandomSettings.Size = new System.Drawing.Size(55, 23);
+            this.BtnCreateRandomSettings.TabIndex = 16;
+            this.BtnCreateRandomSettings.Text = "Create";
+            this.BtnCreateRandomSettings.UseVisualStyleBackColor = true;
+            this.BtnCreateRandomSettings.Click += new System.EventHandler(this.BtnCreateRandomSettings_Click);
+            // 
+            // BtnEditRandomSettings
+            // 
+            this.BtnEditRandomSettings.Location = new System.Drawing.Point(174, 180);
+            this.BtnEditRandomSettings.Name = "BtnEditRandomSettings";
+            this.BtnEditRandomSettings.Size = new System.Drawing.Size(55, 23);
+            this.BtnEditRandomSettings.TabIndex = 17;
+            this.BtnEditRandomSettings.Text = "Edit";
+            this.BtnEditRandomSettings.UseVisualStyleBackColor = true;
+            this.BtnEditRandomSettings.Click += new System.EventHandler(this.BtnEditRandomSettings_Click);
+            // 
+            // BtnDeleteRandomSettings
+            // 
+            this.BtnDeleteRandomSettings.Location = new System.Drawing.Point(296, 180);
+            this.BtnDeleteRandomSettings.Name = "BtnDeleteRandomSettings";
+            this.BtnDeleteRandomSettings.Size = new System.Drawing.Size(55, 23);
+            this.BtnDeleteRandomSettings.TabIndex = 18;
+            this.BtnDeleteRandomSettings.Text = "Delete";
+            this.BtnDeleteRandomSettings.UseVisualStyleBackColor = true;
+            this.BtnDeleteRandomSettings.Click += new System.EventHandler(this.BtnDeleteRandomSettings_Click);
+            // 
+            // BtnReseedRandom
+            // 
+            this.BtnReseedRandom.Location = new System.Drawing.Point(235, 180);
+            this.BtnReseedRandom.Name = "BtnReseedRandom";
+            this.BtnReseedRandom.Size = new System.Drawing.Size(55, 23);
+            this.BtnReseedRandom.TabIndex = 19;
+            this.BtnReseedRandom.Text = "Reseed";
+            this.BtnReseedRandom.UseVisualStyleBackColor = true;
+            this.BtnReseedRandom.Click += new System.EventHandler(this.BtnReseedRandom_Click);
+            // 
+            // frmInfluenceLink
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(329, 224);
+            this.ClientSize = new System.Drawing.Size(367, 217);
+            this.Controls.Add(this.BtnReseedRandom);
+            this.Controls.Add(this.BtnDeleteRandomSettings);
+            this.Controls.Add(this.BtnEditRandomSettings);
+            this.Controls.Add(this.BtnCreateRandomSettings);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.BtnFindLink);
             this.Controls.Add(this.chkMultiply);
             this.Controls.Add(this.cboParameter);
@@ -214,7 +272,7 @@ namespace Whorl
             this.Controls.Add(this.label2);
             this.Controls.Add(this.lblTransformName);
             this.Controls.Add(this.label1);
-            this.Name = "frmInflenceLink";
+            this.Name = "frmInfluenceLink";
             this.Text = "Edit Influence Link";
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -238,5 +296,10 @@ namespace Whorl
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox chkMultiply;
         private System.Windows.Forms.Button BtnFindLink;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button BtnCreateRandomSettings;
+        private System.Windows.Forms.Button BtnEditRandomSettings;
+        private System.Windows.Forms.Button BtnDeleteRandomSettings;
+        private System.Windows.Forms.Button BtnReseedRandom;
     }
 }

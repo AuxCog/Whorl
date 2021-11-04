@@ -50,7 +50,19 @@ namespace Whorl
                         idText += "*";
                     cboPointInfoList.Add(new ValueTextItem(pointInfo, idText));
                 }
+                var pointItem = cboInfluencePointInfo.SelectedItem as ValueTextItem;
                 cboInfluencePointInfo.DataSource = cboPointInfoList;
+                if (pointItem != null)
+                {
+                    pointItem = cboPointInfoList.Select(o => o as ValueTextItem).FirstOrDefault(it => it?.Value == pointItem.Value);
+                }
+                if (pointItem != null)
+                    cboInfluencePointInfo.SelectedItem = pointItem;
+                else
+                    cboInfluencePointInfo.SelectedIndex = 0;
+                bool hasRandom = randomValuesByParameterName.ContainsKey(_parameterName);
+                BtnCreateRandomSettings.Enabled = !hasRandom;
+                BtnEditRandomSettings.Enabled = BtnDeleteRandomSettings.Enabled = hasRandom;
             }
         }
 
@@ -74,7 +86,7 @@ namespace Whorl
         }
         private InfluenceLink newInfluenceLink { get; set; }
         private Pattern pattern { get; set; }
-
+        private Dictionary<string, RandomValues> randomValuesByParameterName { get; } = new Dictionary<string, RandomValues>();
         private bool ignoreEvents { get; set; }
 
         public void Initialize(Pattern pattern, FormulaSettings formulaSettings, string parameterName)
@@ -84,8 +96,21 @@ namespace Whorl
                 ignoreEvents = true;
                 this.pattern = pattern;
                 this.formulaSettings = formulaSettings;
-                this.parameterName = parameterName;  //Populates cboInfluencePointInfo
                 lblTransformName.Text = formulaSettings.FormulaName;
+                _parameterName = null;
+                randomValuesByParameterName.Clear();
+                if (formulaSettings.InfluenceLinkParentCollection != null)
+                {
+                    foreach (var linkParent in formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.Values)
+                    {
+                        if (linkParent.RandomValues != null)
+                        {
+                            var copy = new RandomValues(linkParent.RandomValues);
+                            randomValuesByParameterName.Add(linkParent.ParameterName, copy);
+                        }
+                    }
+                }
+                this.parameterName = parameterName;  //Populates cboInfluencePointInfo
                 var parameterNames = new List<string>();
                 if (formulaSettings.IsCSharpFormula)
                 {
@@ -117,15 +142,15 @@ namespace Whorl
                     }
                 }
                 influenceLink = link;
-                ValueTextItem cboValue = null;
+                ValueTextItem pointItem = null;
                 var pointInfo = influenceLink?.InfluencePointInfo;
                 if (pointInfo != null)
                 {
-                    cboValue = cboPointInfoList.Select(v => v as ValueTextItem)
-                                               .FirstOrDefault(vti => vti != null && vti.Value == pointInfo);
+                    pointItem = cboPointInfoList.Select(v => v as ValueTextItem)
+                                                .FirstOrDefault(vti => vti != null && vti.Value == pointInfo);
                 }
-                if (cboValue != null)
-                    cboInfluencePointInfo.SelectedItem = cboValue;
+                if (pointItem != null)
+                    cboInfluencePointInfo.SelectedItem = pointItem;
                 else
                     cboInfluencePointInfo.SelectedIndex = 0;
             }
@@ -143,22 +168,6 @@ namespace Whorl
         {
             var cboValue = cboInfluencePointInfo.SelectedItem as ValueTextItem;
             return cboValue?.Value as InfluencePointInfo;
-        }
-
-        private void cboInfluencePointInfo_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                //if (ignoreEvents)
-                //{
-                //    return;
-                //}
-                //FindInfluenceLink();
-            }
-            catch (Exception ex)
-            {
-                Tools.HandleException(ex);
-            }
         }
 
         private InfluenceLink FindInfluenceLink(out bool isValid)
@@ -332,6 +341,10 @@ namespace Whorl
                 string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
                 if (errMessage != null)
                     MessageBox.Show(errMessage);
+                var randomValues = GetRandomValues();
+                if (influenceLink.Parent.RandomValues != null)
+                    influenceLink.Parent.RandomValues.Dispose();
+                influenceLink.Parent.RandomValues = randomValues;
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -370,5 +383,99 @@ namespace Whorl
             }
         }
 
+        private void BtnCreateRandomSettings_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (parameterName == null) return;
+                if (formulaSettings.FormulaType != FormulaTypes.Transform)
+                {
+                    MessageBox.Show("Random settings are only implemented for Transforms.");
+                    return;
+                }
+                var randomValues = new RandomValues(setNewSeed: true);
+                if (randomValues.Settings.DomainType == RandomValues.RandomDomainTypes.Angle)
+                {
+                    randomValues.Settings.XLength = pattern.RotationSteps;
+                    randomValues.Settings.ReferenceXLength = Pattern.DefaultRotationSteps;
+                }
+                else
+                {
+                    randomValues.Settings.XLength = RandomValues.RandomSettings.DefaultXLength;
+                    randomValues.Settings.ReferenceXLength = null;
+                }
+                randomValues.Settings.ReferenceXLength = randomValues.Settings.XLength;
+                randomValuesByParameterName.Add(parameterName, randomValues);
+                BtnCreateRandomSettings.Enabled = false;
+                BtnEditRandomSettings.Enabled = BtnDeleteRandomSettings.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private RandomValues GetRandomValues()
+        {
+            if (parameterName != null && randomValuesByParameterName.TryGetValue(parameterName, out var randomValues))
+            {
+                return randomValues;
+            }
+            else
+                return null;
+        }
+
+        private void BtnEditRandomSettings_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                RandomValues randomValues = GetRandomValues();
+                if (randomValues != null)
+                {
+                    using (var frm = new FrmRandomValues())
+                    {
+                        frm.Initialize(randomValues);
+                        frm.ShowDialog();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void BtnDeleteRandomSettings_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                RandomValues randomValues = GetRandomValues();
+                if (randomValues != null)
+                {
+                    randomValues.Dispose();
+                    randomValuesByParameterName.Remove(parameterName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void BtnReseedRandom_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                RandomValues randomValues = GetRandomValues();
+                if (randomValues != null)
+                {
+                    randomValues.Settings.ReseedRandom();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

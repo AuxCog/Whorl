@@ -590,11 +590,11 @@ namespace Whorl
         }
 
         public static void GetXmlAttributesExcept(object o, XmlNode node,
-                                            string[] excludedPropertyNames = null)
+                                                  params string[] excludedPropertyNames)
         {
             foreach (XmlAttribute attr in node.Attributes)
             {
-                if (excludedPropertyNames != null && excludedPropertyNames.Contains(attr.Name))
+                if (excludedPropertyNames.Contains(attr.Name))
                     continue;
                 PropertyInfo prp = o.GetType().GetProperty(attr.Name);
                 if (prp != null)
@@ -635,7 +635,13 @@ namespace Whorl
                 if (targetType == typeof(string))
                     oVal = attr.Value;
                 else
-                    oVal = Convert.ChangeType(attr.Value, Tools.GetTypeOrUnderlyingType(targetType));
+                {
+                    targetType = GetTypeOrUnderlyingType(targetType);
+                    if (targetType.IsEnum)
+                        oVal = Enum.Parse(targetType, attr.Value);
+                    else
+                        oVal = Convert.ChangeType(attr.Value, targetType);
+                }
                 return oVal;
             }
             catch (Exception ex)

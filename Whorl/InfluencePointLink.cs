@@ -35,6 +35,8 @@ namespace Whorl
         public object PropertiesObject { get; set; }
         public double OrigValue { get; protected set; }
 
+        public RandomValues RandomValues { get; set; }
+
         protected BaseInfluenceLinkParent(InfluenceLinkParentCollection parentCollection)
         {
             if (parentCollection == null)
@@ -105,6 +107,8 @@ namespace Whorl
         public BaseInfluenceLinkParent GetCopy(InfluenceLinkParentCollection parentCollection)
         {
             var copy = _GetCopy(parentCollection);
+            if (RandomValues != null)
+                copy.RandomValues = new RandomValues(RandomValues);
             foreach (var influenceLink in InfluenceLinks)
             {
                 var linkCopy = influenceLink.GetCopy(copy);
@@ -139,12 +143,26 @@ namespace Whorl
             if (HaveReferences)
             {
                 double value = InfluenceLinks.Select(l => l.GetParameterValue(patternPoint, forRendering)).Sum();
+                if (RandomValues != null)
+                {
+                    if (RandomValues.XValues == null)
+                        RandomValues.ComputeRandomValues();
+                    float randomVal = RandomValues.GetYValue();
+                    value += randomVal;
+                }
                 _SetParameterValue(OrigValue + value);
             }
         }
 
         protected abstract void _SetParameterValue(double influenceValue);
-        public abstract void Initialize();
+        public virtual void Initialize()
+        {
+            if (RandomValues != null)
+            {
+                RandomValues.ResetSeed();
+                RandomValues.ComputeRandomValues();
+            }
+        }
 
         public virtual void FinalizeSettings()
         {
@@ -183,6 +201,10 @@ namespace Whorl
             {
                 link.ToXml(xmlNode, xmlTools);
             }
+            if (RandomValues != null)
+            {
+                RandomValues.ToXml(xmlNode, xmlTools);
+            }
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
@@ -195,14 +217,19 @@ namespace Whorl
             FromAddedXml(xmlNode);
             foreach (XmlNode childNode in xmlNode.ChildNodes)
             {
-                //INFL Legacy
-                if (childNode.Name != nameof(InfluenceLink)) // && childNode.Name != "TransformInfluenceLink")
-                    throw new Exception("Invalid node name found in XML.");
-                InfluenceLink influenceLink = new InfluenceLink(this, childNode); //, forLegacy);
-                //if (forLegacy)
-                //    InfluenceLinkList.Add(influenceLink);
-                //else
-                AddInfluenceLink(influenceLink);
+                if (childNode.Name == nameof(InfluenceLink))
+                {
+                    InfluenceLink influenceLink = new InfluenceLink(this, childNode); //, forLegacy);
+                    AddInfluenceLink(influenceLink);
+                }
+                else if (childNode.Name == nameof(RandomValues))
+                {
+                    RandomValues = new RandomValues(childNode);
+                }
+                else
+                {
+                    throw new Exception($"Invalid XmlNode named {childNode.Name}.");
+                }
             }
         }
     }
@@ -227,6 +254,7 @@ namespace Whorl
 
         public override void Initialize()
         {
+            base.Initialize();
             if (TargetParameter != null)
                 OrigValue = (double)(TargetParameter.Value ?? 0.0);
         }
@@ -297,6 +325,7 @@ namespace Whorl
 
         public override void Initialize()
         {
+            base.Initialize();
             if (HaveReferences)
             {
                 var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
@@ -389,106 +418,6 @@ namespace Whorl
             ArrayIndex = Tools.GetXmlAttribute<int>(xmlNode, defaultValue: -1, nameof(ArrayIndex));
         }
     }
-
-    //public class PropertyInfluenceLinkParent : BaseInfluenceLinkParent
-    //{
-    //    public PropertyInfo TargetPropertyInfo { get; private set; }
-    //    public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
-    //    private object paramsObject { get; set; }
-
-    //    public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName)
-    //           : base(parentCollection, parameterName)
-    //    {
-    //        if (!parentCollection.FormulaSettings.IsCSharpFormula)
-    //            throw new Exception("Formula must be in C#.");
-    //    }
-
-    //    public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, XmlNode node) //, bool forLegacy = false)
-    //           : base(parentCollection)
-    //    {
-    //        FromXml(node); //, forLegacy);
-    //    }
-
-    //    public override void Initialize()
-    //    {
-    //        if (HaveReferences)
-    //        {
-    //            var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
-    //            paramsObject = evalInstance?.ParamsObj;
-    //            if (paramsObject == null)
-    //                HaveReferences = false;
-    //            else
-    //            {
-    //                OrigValue = (double)TargetPropertyInfo.GetValue(paramsObject);
-    //            }
-    //        }
-    //    }
-
-    //    /// <summary>
-    //    /// Reset the C# formula's parameter property to its original value, after processing has finished.
-    //    /// </summary>
-    //    public override void FinalizeSettings()
-    //    {
-    //        base.FinalizeSettings();
-    //        if (HaveReferences)
-    //        {
-    //            TargetPropertyInfo.SetValue(paramsObject, OrigValue);
-    //        }
-    //    }
-
-    //    protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection)
-    //    {
-    //        return new PropertyInfluenceLinkParent(parentCollection, ParameterName);
-    //    }
-
-    //    protected override string SetTargetParameter(string parameterName, bool throwException = true)
-    //    {
-    //        string errMessage = null;
-    //        TargetPropertyInfo = null;
-    //        var evalInstance = ParentCollection.FormulaSettings.EvalInstance;
-    //        if (evalInstance == null)
-    //            errMessage = $"C# formula named {ParentCollection.FormulaSettings.FormulaName} is invalid.";
-    //        else
-    //        {
-    //            var paramsObject = evalInstance.ParamsObj;
-    //            if (paramsObject == null)
-    //                errMessage = "Formula has no parameters.";
-    //            else
-    //            {
-    //                PropertyInfo prpInfo = paramsObject.GetType().GetProperty(ParameterName, BindingFlags.Public | BindingFlags.Instance);
-    //                if (prpInfo == null)
-    //                {
-    //                    errMessage = $"Didn't find parameter property named {ParameterName}.";
-    //                }
-    //                else if (prpInfo.PropertyType != typeof(double))
-    //                {
-    //                    errMessage = $"Parameter property named {ParameterName} is not of type double.";
-    //                }
-    //                else
-    //                {
-    //                    TargetPropertyInfo = prpInfo;
-    //                    ParameterInfoAttribute = TargetPropertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
-    //                }
-    //            }
-    //        }
-    //        HaveReferences = TargetPropertyInfo != null;
-    //        if (throwException && errMessage != null)
-    //            throw new Exception(errMessage);
-    //        return errMessage;
-    //    }
-
-    //    protected override void _SetParameterValue(double value)
-    //    {
-    //        if (ParameterInfoAttribute != null)
-    //        {
-    //            if (value < ParameterInfoAttribute.MinValue)
-    //                value = ParameterInfoAttribute.MinValue;
-    //            else if (value > ParameterInfoAttribute.MaxValue)
-    //                value = ParameterInfoAttribute.MaxValue;
-    //        }
-    //        TargetPropertyInfo.SetValue(paramsObject, value);
-    //    }
-    //}
 
     public class InfluenceLink
     {
@@ -666,132 +595,4 @@ namespace Whorl
         }
     }
 
-    //public class TransformInfluenceLink : InfluenceLink
-    //{
-    //    public TransformInfluenceLink(BaseInfluenceLinkParent parent, XmlNode xmlNode) : base(parent)
-    //    {
-    //        FromXml(xmlNode);
-    //    }
-
-    //    public TransformInfluenceLink(BaseInfluenceLinkParent parent, InfluencePointInfo influencePointInfo) : base(parent, influencePointInfo)
-    //    {
-    //    }
-
-    //    protected override InfluenceLink _GetCopy(BaseInfluenceLinkParent parent)
-    //    {
-    //        return new TransformInfluenceLink(parent, GetInfluencePointInfo(parent.ParentCollection));
-    //    }
-
-    //    public override string ResolveReferences(bool throwException = true)
-    //    {
-    //        string errMessage = SetTargetParameter(ParameterName, throwException);
-    //        return errMessage;
-    //    }
-
-    //    public override void Initialize()
-    //    {
-    //        if (TargetParameter != null)
-    //            origValue = (double)(TargetParameter.Value ?? 0.0);
-    //    }
-
-    //    public override void SetParameterValue(double influenceValue)
-    //    {
-    //        if (TargetParameter != null)
-    //        {
-    //            TargetParameter.SetUsedValue(GetParameterValue(influenceValue));
-    //        }
-    //    }
-
-    //}
-
-    //public class PropertyInfluenceLink : InfluenceLink
-    //{
-
-    //    public PropertyInfluenceLink(BaseInfluenceLinkParent parent, XmlNode xmlNode): base(parent)
-    //    {
-    //        FromXml(xmlNode);
-    //    }
-
-    //    public PropertyInfluenceLink(BaseInfluenceLinkParent parent, string parameterName, string basePropertyName)
-    //                                : base(parent)
-    //    {
-    //        if (parameterName == null)
-    //            throw new NullReferenceException("parameterName cannot be null.");
-    //        if (basePropertyName == null)
-    //            throw new NullReferenceException("basePropertyName cannot be null.");
-    //        ParameterName = parameterName;
-    //        BasePropertyName = basePropertyName;
-    //    }
-
-    //    protected override InfluenceLink _GetCopy(BaseInfluenceLinkParent parent)
-    //    {
-    //        return new PropertyInfluenceLink(parent, ParameterName, BasePropertyName);
-    //    }
-
-    //    public override string ResolveReferences(bool throwException = true)
-    //    {
-    //        string errMessage = base.ResolveReferences(throwException);
-    //        if (errMessage != null)
-    //            return errMessage;
-    //        HaveReferences = Parent.PropertiesObject != null;
-    //        if (HaveReferences)
-    //        {
-    //            Type type = Parent.PropertiesObject.GetType();
-    //            ParameterPropertyInfo = type.GetProperty(ParameterName);
-    //            if (ParameterPropertyInfo != null && ParameterPropertyInfo.PropertyType != typeof(double))
-    //                ParameterPropertyInfo = null;
-    //            BasePropertyInfo = type.GetProperty(BasePropertyName);
-    //            if (BasePropertyInfo != null && BasePropertyInfo.PropertyType != typeof(double))
-    //                BasePropertyInfo = null;
-    //            ParameterInfoAttribute = ParameterPropertyInfo?.GetCustomAttribute<ParameterInfoAttribute>();
-    //            if (ParameterPropertyInfo == null)
-    //                errMessage = $"Target Property {ParameterName} was not found.";
-    //            if (BasePropertyInfo == null)
-    //            {
-    //                if (errMessage == null)
-    //                    errMessage = string.Empty;
-    //                else
-    //                    errMessage += Environment.NewLine;
-    //                errMessage += $"Base Property {BasePropertyName} was not found.";
-    //            }
-    //            HaveReferences = errMessage == null;
-    //        }
-    //        if (throwException && errMessage != null)
-    //            throw new Exception(errMessage);
-    //        return errMessage;
-    //    }
-
-    //    public override void Initialize()
-    //    {
-    //        if (!HaveReferences)
-    //            return;
-    //        origValue = (double)BasePropertyInfo.GetValue(Parent.PropertiesObject);
-    //    }
-
-    //    public override void SetParameterValue(double influenceValue)
-    //    {
-    //        if (!HaveReferences)
-    //            return;
-    //        double newValue = GetParameterValue(influenceValue);
-    //        if (ParameterInfoAttribute != null)
-    //        {
-    //            if (newValue < ParameterInfoAttribute.MinValue)
-    //                newValue = ParameterInfoAttribute.MinValue;
-    //            else if (newValue > ParameterInfoAttribute.MaxValue)
-    //                newValue = ParameterInfoAttribute.MaxValue;
-    //        }
-    //        ParameterPropertyInfo.SetValue(Parent.PropertiesObject, newValue);
-    //    }
-
-
-    //    protected override void AddXml(XmlNode xmlNode, XmlTools xmlTools)
-    //    {
-    //        xmlTools.AppendXmlAttribute(xmlNode, nameof(BasePropertyName), BasePropertyName);
-    //    }
-
-    //    protected override void FromAddedXml(XmlNode xmlNode)
-    //    {
-    //        BasePropertyName = Tools.GetXmlAttribute<string>(xmlNode, nameof(BasePropertyName));
-    //    }
-    //}
 }

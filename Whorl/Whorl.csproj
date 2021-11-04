@@ -191,6 +191,12 @@
     <Compile Include="frmMessage.Designer.cs">
       <DependentUpon>frmMessage.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmRandomValues.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRandomValues.Designer.cs">
+      <DependentUpon>FrmRandomValues.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmTextEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -299,6 +305,7 @@
     <Compile Include="PropertyActionAttribute.cs" />
     <Compile Include="PropertyInfoPath.cs" />
     <Compile Include="RandomOps.cs" />
+    <Compile Include="RandomValues.cs" />
     <Compile Include="RenderCaller.cs" />
     <Compile Include="RenderDesignForm.cs">
       <SubType>Form</SubType>
@@ -398,6 +405,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmMessage.resx">
       <DependentUpon>frmMessage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRandomValues.resx">
+      <DependentUpon>FrmRandomValues.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmTextEditor.resx">
       <DependentUpon>frmTextEditor.cs</DependentUpon>

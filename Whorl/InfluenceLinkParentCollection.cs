@@ -116,6 +116,11 @@ namespace Whorl
             }
         }
 
+        public IEnumerable<RandomValues> GetRandomValues()
+        {
+            return InfluenceLinkParentsByParameterName.Values.Select(p => p.RandomValues).Where(r => r != null);
+        }
+
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
             if (xmlNodeName == null)

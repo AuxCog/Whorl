@@ -515,13 +515,13 @@ namespace Whorl
                 public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
                 {
                     XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName ?? nameof(DistancePatternSettings));
-                    xmlTools.AppendXmlAttributesExcept(xmlNode, this, new string[] { });
+                    xmlTools.AppendXmlAttributesExcept(xmlNode, this);
                     return xmlTools.AppendToParent(parentNode, xmlNode);
                 }
 
                 public void FromXml(XmlNode node)
                 {
-                    Tools.GetXmlAttributesExcept(this, node, new string[] { });
+                    Tools.GetXmlAttributesExcept(this, node);
                 }
             }
 
@@ -2353,6 +2353,10 @@ namespace Whorl
                 var influenceParent = transform.TransformSettings.InfluenceLinkParentCollection;
                 if (influenceParent != null)
                 {
+                    foreach (RandomValues randomValues in influenceParent.GetRandomValues())
+                    {
+                        randomValues.CurrentXValue = i;
+                    }
                     influenceParent.SetParameterValues(doublePoint, forRendering: false);
                 }
                 if (transform.TransformSettings.InfluenceValueParameter != null)

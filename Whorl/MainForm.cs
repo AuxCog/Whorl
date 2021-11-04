@@ -7911,13 +7911,15 @@ namespace Whorl
             {
                 if (testRandomToolStripMenuItem.Checked)
                 {
-                    var randomOps = new RandomOps();
-                    randomOps.Weight = (float)picDesign.ClientSize.Height;
-                    randomOps.Smoothness = 100;
-                    randomOps.XLength = picDesign.ClientSize.Height;
-                    randomOps.ClipYValues = true;
-                    randomOps.Closed = true;
-                    float[] yValues = randomOps.ComputeYValues(out float[] xValues, out PointF[] points);
+                    var randomValues = new RandomValues();
+                    randomValues.Settings.Weight = (float)picDesign.ClientSize.Height;
+                    randomValues.Settings.Smoothness = 100F;
+                    randomValues.Settings.XLength = picDesign.ClientSize.Height;
+                    randomValues.Settings.ClipYValues = true;
+                    randomValues.Settings.Closed = true;
+                    randomValues.ComputeRandomValues();
+                    float[] yValues = randomValues.YValues;
+                    float[] xValues = randomValues.XValues;
                     float midY = 0.5F * picDesign.ClientSize.Height;
                     var polarPoints = Enumerable.Range(0, xValues.Length)
                                       .Select(i => new PolarCoord((float)i / xValues.Length * 2F * (float)Math.PI, 0.3F * (midY + yValues[i])));
@@ -7925,7 +7927,7 @@ namespace Whorl
                     graphPoints = polarPoints.Select(pc => pc.ToRectangular()).Select(p => new PointF(p.X + center.X, p.Y + center.Y)).ToArray();
                     //graphPoints = Enumerable.Range(0, xValues.Length)
                     //              .Select(i => new PointF(xValues[i] + 5F, yValues[i] + midY)).ToArray();
-                    graphFitPoints = points.Select(p => new PointF(p.X + 5F, p.Y + midY)).ToArray();
+                    graphFitPoints = randomValues.FittedPoints.Select(p => new PointF(p.X + 5F, p.Y + midY)).ToArray();
                 }
                 else
                     graphPoints = graphFitPoints = null;
