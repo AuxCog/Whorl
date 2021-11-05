@@ -291,7 +291,7 @@ namespace Whorl
         public FormulaSettings FormulaSettings { get; protected set; }
         public Panel ParametersPanel { get; }
 
-        public delegate bool delEditTransformInfluenceLink(string parameterName);
+        public delegate bool delEditTransformInfluenceLink(string parameterKey);
         public delEditTransformInfluenceLink FnEditInfluenceLink { get; set; }
 
 
@@ -360,13 +360,13 @@ namespace Whorl
             top = critTopMargin + rowIndex * critRowHeight;
         }
 
-        protected LinkLabel CreateInfluenceLinkLabel(string parameterName, ref int txtWidth)
+        protected LinkLabel CreateInfluenceLinkLabel(string parameterKey, ref int txtWidth)
         {
             var lnkInfluence = new LinkLabel()
             {
                 AutoSize = false,
                 Width = 15,
-                Tag = parameterName
+                Tag = parameterKey
             };
             SetInfluenceLinkLabelText(lnkInfluence);
             lnkInfluence.Click += LnkInfluence_Click;
@@ -387,14 +387,14 @@ namespace Whorl
 
         private void SetInfluenceLinkLabelText(LinkLabel linkLabel)
         {
-            string parameterName = (string)linkLabel.Tag;
+            string parameterKey = (string)linkLabel.Tag;
             bool haveInfluenceLinks = false;
             var parentCollection = FormulaSettings?.InfluenceLinkParentCollection;
-            if (parentCollection != null &&
-                parentCollection.InfluenceLinkParentsByParameterName.TryGetValue(
-                                 parameterName, out var linkParent))
+            if (parentCollection != null)
             {
-                haveInfluenceLinks = linkParent.InfluenceLinks.Any();
+                var linkParent = parentCollection.GetLinkParent(parameterKey);
+                if (linkParent != null)
+                    haveInfluenceLinks = linkParent.InfluenceLinks.Any();
             }
             linkLabel.Text = haveInfluenceLinks ? "i*" : "i";
         }
@@ -405,8 +405,8 @@ namespace Whorl
             {
                 if (FnEditInfluenceLink == null) return;
                 var lnkInfluence = (LinkLabel)sender;
-                string parameterName = (string)lnkInfluence.Tag;
-                if (FnEditInfluenceLink(parameterName))
+                string parameterKey = (string)lnkInfluence.Tag;
+                if (FnEditInfluenceLink(parameterKey))
                 {
                     UpdateInfluenceLinkLabelsText();
                 }

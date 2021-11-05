@@ -11,7 +11,7 @@ namespace Whorl
 {
     public class InfluenceLinkParentCollection: IXml
     {
-        public Dictionary<string, BaseInfluenceLinkParent> InfluenceLinkParentsByParameterName { get; } =
+        private Dictionary<string, BaseInfluenceLinkParent> influenceLinkParentsByParameterKey { get; } =
            new Dictionary<string, BaseInfluenceLinkParent>();
         public Pattern ParentPattern { get; }
         public FormulaSettings FormulaSettings { get; }
@@ -34,12 +34,44 @@ namespace Whorl
             //PatternTransform = transform;
         }
 
+        public BaseInfluenceLinkParent GetLinkParent(string parameterKey)
+        {
+            if (!influenceLinkParentsByParameterKey.TryGetValue(parameterKey, out var linkParent))
+                linkParent = null;
+            return linkParent;
+        }
+
+        public void AddLinkParent(BaseInfluenceLinkParent linkParent)
+        {
+            influenceLinkParentsByParameterKey.Add(linkParent.ParameterKey, linkParent);
+        }
+
+        public void SetLinkParent(BaseInfluenceLinkParent linkParent)
+        {
+            influenceLinkParentsByParameterKey[linkParent.ParameterKey] = linkParent;
+        }
+
+        public void RemoveLinkParent(BaseInfluenceLinkParent linkParent)
+        {
+            influenceLinkParentsByParameterKey.Remove(linkParent.ParameterKey);
+        }
+
+        public IEnumerable<BaseInfluenceLinkParent> GetLinkParents()
+        {
+            return influenceLinkParentsByParameterKey.Values;
+        }
+
+        public void ClearLinkParents()
+        {
+            influenceLinkParentsByParameterKey.Clear();
+        }
+
         public InfluenceLinkParentCollection GetCopy(FormulaSettings formulaSettings, Pattern pattern)
         {
             var copy = new InfluenceLinkParentCollection(pattern, formulaSettings);
-            foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
+            foreach (var linkParent in GetLinkParents())
             {
-                copy.InfluenceLinkParentsByParameterName.Add(linkParent.ParameterName, linkParent.GetCopy(copy));
+                copy.AddLinkParent(linkParent.GetCopy(copy));
             }
             copy.ResolveReferences();
             return copy;
@@ -64,10 +96,10 @@ namespace Whorl
             //}
             IsCSharpFormula = FormulaSettings.IsCSharpFormula;
             var sbErrors = new StringBuilder();
-            foreach (var linkParent in InfluenceLinkParentsByParameterName.Values.ToList())
+            foreach (var linkParent in GetLinkParents().ToList())
             {
                 if (!linkParent.ResolveReferences(sbErrors))
-                    InfluenceLinkParentsByParameterName.Remove(linkParent.ParameterName);
+                    RemoveLinkParent(linkParent);
             }
             if (sbErrors.Length > 0)
             {
@@ -84,7 +116,7 @@ namespace Whorl
         {
             if (Enabled)
             {
-                foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
+                foreach (var linkParent in GetLinkParents())
                 {
                     linkParent.Initialize();
                 }
@@ -110,7 +142,7 @@ namespace Whorl
         {
             if (Enabled)
             {
-                foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
+                foreach (var linkParent in GetLinkParents())
                 {
                     linkParent.FinalizeSettings();
                 }
@@ -121,7 +153,7 @@ namespace Whorl
         {
             if (!Enabled)
                 return;
-            foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
+            foreach (var linkParent in GetLinkParents())
             {
                 linkParent.SetParameterValue(patternPoint, forRendering);
             }
@@ -129,7 +161,7 @@ namespace Whorl
 
         public IEnumerable<RandomValues> GetRandomValues()
         {
-            return InfluenceLinkParentsByParameterName.Values.Select(p => p.RandomValues).Where(r => r != null);
+            return GetLinkParents().Select(p => p.RandomValues).Where(r => r != null);
         }
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
@@ -137,7 +169,7 @@ namespace Whorl
             if (xmlNodeName == null)
                 xmlNodeName = nameof(InfluenceLinkParentCollection);
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-            foreach (var linkParent in InfluenceLinkParentsByParameterName.Values)
+            foreach (var linkParent in GetLinkParents())
             {
                 linkParent.ToXml(xmlNode, xmlTools);
             }
@@ -160,7 +192,7 @@ namespace Whorl
                 }
                 else
                     throw new Exception("Invalid node name found in XML.");
-                InfluenceLinkParentsByParameterName.Add(linkParent.ParameterName, linkParent);
+                AddLinkParent(linkParent);
                 //INFL Legacy
                 //else if (childNode.Name == "InfluenceLinkParent")
                 //{

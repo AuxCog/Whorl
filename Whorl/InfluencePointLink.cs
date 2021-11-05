@@ -26,6 +26,11 @@ namespace Whorl
 
         public IEnumerable<InfluenceLink> InfluenceLinks => influenceLinksById.Values;
 
+        /// <summary>
+        /// Weight applied to random value, if present.
+        /// </summary>
+        public double RandomWeight { get; set; } = 1.0;
+
         //INFL Legacy
         //public List<InfluenceLink> InfluenceLinkList { get; } = new List<InfluenceLink>();
 
@@ -99,7 +104,10 @@ namespace Whorl
 
         public bool RemoveInfluenceLink(InfluenceLink influenceLink)
         {
-            return RemoveInfluenceLink(influenceLink.InfluencePointId);
+            if (influenceLink.InfluencePointId != 0)
+                return RemoveInfluenceLink(influenceLink.InfluencePointId);
+            else
+                return false;
         }
 
         protected abstract BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection);
@@ -107,6 +115,7 @@ namespace Whorl
         public BaseInfluenceLinkParent GetCopy(InfluenceLinkParentCollection parentCollection)
         {
             var copy = _GetCopy(parentCollection);
+            copy.RandomWeight = RandomWeight;
             if (RandomValues != null)
                 copy.RandomValues = new RandomValues(RandomValues);
             foreach (var influenceLink in InfluenceLinks)
@@ -142,13 +151,23 @@ namespace Whorl
         {
             if (HaveReferences)
             {
-                double value = InfluenceLinks.Select(l => l.GetParameterValue(patternPoint, forRendering)).Sum();
+                float randomVal;
+                double value = 0.0;
                 if (RandomValues != null)
                 {
                     if (RandomValues.XValues == null)
                         RandomValues.ComputeRandomValues();
-                    float randomVal = RandomValues.GetYValue();
-                    value += randomVal;
+                    randomVal = RandomValues.GetYValue();
+                    value += RandomWeight * randomVal;
+                }
+                else
+                    randomVal = float.NaN;
+                foreach (InfluenceLink influenceLink in InfluenceLinks)
+                {
+                    double paramVal = influenceLink.GetParameterValue(patternPoint, forRendering);
+                    value += paramVal;
+                    if (!float.IsNaN(randomVal) && influenceLink.RandomWeight != 0.0)
+                        value += influenceLink.RandomWeight * randomVal * paramVal;
                 }
                 _SetParameterValue(OrigValue + value);
             }
@@ -168,7 +187,7 @@ namespace Whorl
         {
         }
 
-        protected abstract string SetTargetParameter(string parameterName, bool throwException = true);
+        protected abstract string SetTargetParameter(string parameterKey, bool throwException = true);
 
         //public void Initialize()
         //{
@@ -196,6 +215,7 @@ namespace Whorl
                 xmlNodeName = GetType().Name;
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ParameterName), ParameterName);
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(RandomWeight), RandomWeight);
             AddXml(xmlNode, xmlTools);
             foreach (var link in InfluenceLinks)
             {
@@ -214,6 +234,7 @@ namespace Whorl
             //    InfluencePointId = Tools.GetXmlAttribute<int>(xmlNode, nameof(InfluencePointId));
             //else
             ParameterName = Tools.GetXmlAttribute<string>(xmlNode, nameof(ParameterName));
+            RandomWeight = Tools.GetXmlAttribute(xmlNode, defaultValue: 1.0, nameof(RandomWeight));
             FromAddedXml(xmlNode);
             foreach (XmlNode childNode in xmlNode.ChildNodes)
             {
@@ -238,12 +259,12 @@ namespace Whorl
     {
         public Parameter TargetParameter { get; private set; }
 
-        public ParameterInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName)
-               : base(parentCollection, parameterName)
+        public ParameterInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterKey)
+               : base(parentCollection, parameterKey)
         {
             if (parentCollection.FormulaSettings.IsCSharpFormula)
                 throw new Exception("Formula must not be in C#.");
-            SetTargetParameter(parameterName, throwException: true);
+            SetTargetParameter(parameterKey, throwException: true);
         }
 
         public ParameterInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, XmlNode node) //, bool forLegacy = false)
@@ -264,16 +285,16 @@ namespace Whorl
             TargetParameter.SetUsedValue(value);
         }
 
-        protected override string SetTargetParameter(string parameterName, bool throwException = true)
+        protected override string SetTargetParameter(string parameterKey, bool throwException = true)
         {
             string errMessage = null;
             Parameter parameter = null;
-            parameter = ParentCollection.FormulaSettings.Parameters.FirstOrDefault(p => p.ParameterName == parameterName);
+            parameter = ParentCollection.FormulaSettings.Parameters.FirstOrDefault(p => p.ParameterName == parameterKey);
             if (parameter == null)
-                errMessage = $"Parameter named {parameterName} was not found.";
+                errMessage = $"Parameter named {parameterKey} was not found.";
             if (parameter != null)
             {
-                ParameterName = parameterName;
+                ParameterName = parameterKey;
                 TargetParameter = parameter;
             }
             HaveReferences = TargetParameter != null;
@@ -304,13 +325,10 @@ namespace Whorl
             }
         }
         public BaseInfluenceParameter InfluenceParameter { get; private set; }
-        //public PropertyInfo TargetPropertyInfo { get; private set; }
-        //public ParameterInfoAttribute ParameterInfoAttribute { get; private set; }
-        //private object paramsObject { get; set; }
-        public override string ParameterKey => InfluenceParameter == null ? base.ParameterKey : InfluenceParameter.ToString();
+        public override string ParameterKey => ArrayIndex == -1 ? ParameterName : $"{ParameterName}[{ArrayIndex + 1}]";
 
-        public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterName, int arrayIndex = -1)
-               : base(parentCollection, parameterName)
+        public PropertyInfluenceLinkParent(InfluenceLinkParentCollection parentCollection, string parameterKey, int arrayIndex = -1)
+               : base(parentCollection, parameterKey)
         {
             if (!parentCollection.FormulaSettings.IsCSharpFormula)
                 throw new Exception("Formula must be in C#.");
@@ -437,6 +455,11 @@ namespace Whorl
 
         public bool Multiply { get; set; } = true;
 
+        /// <summary>
+        /// Weight applied to random value, if present.
+        /// </summary>
+        public double RandomWeight { get; set; } = 0.0;
+
         private InfluencePointInfo _influencePointInfo;
         public InfluencePointInfo InfluencePointInfo
         {
@@ -490,7 +513,7 @@ namespace Whorl
             try
             {
                 if (Parent == null) return;
-                foreach (var parent in Parent.ParentCollection.InfluenceLinkParentsByParameterName.Values.ToList())
+                foreach (var parent in Parent.ParentCollection.GetLinkParents().ToList())
                 {
                     parent.RemoveInfluenceLink(InfluencePointInfo.Id);
                 }
@@ -508,10 +531,7 @@ namespace Whorl
                 copy.InfluencePointInfo = GetInfluencePointInfo(parent.ParentCollection);
             copy.LinkFactor = LinkFactor;
             copy.Multiply = Multiply;
-            //if (Parent.ParentCollection.ParentPattern.LastEditedInfluenceLink == this)
-            //{
-            //    Parent.ParentCollection.ParentPattern.CopiedLastEditedInfluenceLink = copy;
-            //}
+            copy.RandomWeight = RandomWeight;
             return copy;
         }
 
@@ -548,13 +568,17 @@ namespace Whorl
 
         public double GetParameterValue(DoublePoint patternPoint, bool forRendering)
         {
+            double val;
             if (InfluencePointInfo == null)
-                return 0.0;
-            double influenceValue = InfluencePointInfo.ComputeValue(patternPoint, forRendering);
-            double value = LinkFactor * influenceValue;
-            if (Multiply)
-                value *= Parent.OrigValue;
-            return value;
+                val = 0.0;
+            else
+            {
+                double influenceValue = InfluencePointInfo.ComputeValue(patternPoint, forRendering);
+                val = LinkFactor * influenceValue;
+                if (Multiply)
+                    val *= Parent.OrigValue;
+            }
+            return val;
         }
 
         //protected abstract InfluenceLink _GetCopy(BaseInfluenceLinkParent parent);
@@ -579,6 +603,7 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(InfluencePointId), InfluencePointId);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(LinkFactor), LinkFactor);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(Multiply), Multiply);
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(RandomWeight), RandomWeight);
             //AddXml(xmlNode, xmlTools);  //Derived classes can add XML.
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
@@ -591,6 +616,7 @@ namespace Whorl
             InfluencePointId = Tools.GetXmlAttribute<int>(xmlNode, nameof(InfluencePointId));
             LinkFactor = Tools.GetXmlAttribute<double>(xmlNode, nameof(LinkFactor));
             Multiply = Tools.GetXmlAttribute<bool>(xmlNode, true, nameof(Multiply));
+            RandomWeight = Tools.GetXmlAttribute<double>(xmlNode, defaultValue: 0.0, nameof(RandomWeight));
             //FromAddedXml(xmlNode);
         }
     }

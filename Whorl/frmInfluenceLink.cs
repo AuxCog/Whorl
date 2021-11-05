@@ -13,34 +13,45 @@ namespace Whorl
 {
     public partial class frmInfluenceLink : Form
     {
+        private enum LinkCopyModes
+        {
+            All,
+            ParentLink,
+            InfluenceLink
+        }
         public frmInfluenceLink()
         {
             InitializeComponent();
+            try
+            {
+                ConfigureMenu();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         private FormulaSettings formulaSettings { get; set; }
         private List<object> cboPointInfoList { get; set; }
 
-        private string _parameterName;
-        private string parameterName
+        private string _parameterKey;
+        private string parameterKey
         {
-            get => _parameterName;
+            get => _parameterKey;
             set
             {
-                if (_parameterName == value)
+                if (_parameterKey == value)
                     return;
-                _parameterName = value;
+                _parameterKey = value;
                 BaseInfluenceLinkParent linkParent;
                 if (formulaSettings.InfluenceLinkParentCollection == null)
                     linkParent = null;
                 else
                 {
-                    if (!formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName
-                                        .TryGetValue(_parameterName, out linkParent))
-                    {
-                        linkParent = null;
-                    }
+                    linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(_parameterKey);
                 }
+                influenceLinkParent = linkParent;
                 cboPointInfoList = new List<object>() { "(Please Select)" };
                 foreach (var pointInfo in pattern.InfluencePointInfoList.InfluencePointInfos)
                 {
@@ -60,9 +71,28 @@ namespace Whorl
                     cboInfluencePointInfo.SelectedItem = pointItem;
                 else
                     cboInfluencePointInfo.SelectedIndex = 0;
-                bool hasRandom = randomValuesByParameterName.ContainsKey(_parameterName);
+                bool hasRandom = randomValuesByParameterKey.ContainsKey(_parameterKey);
                 BtnCreateRandomSettings.Enabled = !hasRandom;
                 BtnEditRandomSettings.Enabled = BtnDeleteRandomSettings.Enabled = hasRandom;
+            }
+        }
+        private static BaseInfluenceLinkParent copiedInfluenceLinkParent { get; set; }
+        private static InfluenceLink copiedInfluenceLink { get; set; }
+
+        private BaseInfluenceLinkParent _influenceLinkParent;
+        private BaseInfluenceLinkParent influenceLinkParent 
+        {
+            get => _influenceLinkParent;
+            set
+            {
+                if (_influenceLinkParent == value)
+                    return;
+                _influenceLinkParent = value;
+                txtParentRandomWeight.Enabled = _influenceLinkParent != null;
+                if (_influenceLinkParent != null)
+                {
+                    txtParentRandomWeight.Text = _influenceLinkParent.RandomWeight.ToString("0.####");
+                }
             }
         }
 
@@ -76,20 +106,140 @@ namespace Whorl
                     return;
                 _influenceLink = value;
                 BtnCreateLink.Enabled = _influenceLink == null;
-                BtnDeleteLink.Enabled = txtInfluenceFactor.Enabled = chkMultiply.Enabled = _influenceLink != null;
+                BtnDeleteLink.Enabled = txtInfluenceFactor.Enabled = chkMultiply.Enabled = txtPointRandomWeight.Enabled = _influenceLink != null;
                 if (_influenceLink != null)
                 {
                     txtInfluenceFactor.Text = _influenceLink.LinkFactor.ToString("0.####");
                     chkMultiply.Checked = _influenceLink.Multiply;
+                    txtPointRandomWeight.Text = _influenceLink.RandomWeight.ToString("0.####");
                 }
             }
         }
+
         private InfluenceLink newInfluenceLink { get; set; }
         private Pattern pattern { get; set; }
-        private Dictionary<string, RandomValues> randomValuesByParameterName { get; } = new Dictionary<string, RandomValues>();
+        private Dictionary<string, RandomValues> randomValuesByParameterKey { get; } = new Dictionary<string, RandomValues>();
         private bool ignoreEvents { get; set; }
 
-        public void Initialize(Pattern pattern, FormulaSettings formulaSettings, string parameterName)
+        private void AddMenuItem(ToolStripMenuItem menuItem, EventHandler eventHandler, LinkCopyModes mode, string text)
+        {
+            var childItem = new ToolStripMenuItem(text);
+            childItem.Click += eventHandler;
+            childItem.Tag = mode;
+            menuItem.DropDownItems.Add(childItem);
+        }
+
+        private void AddMenuItems(ToolStripMenuItem menuItem, EventHandler eventHandler)
+        {
+            AddMenuItem(menuItem, eventHandler, LinkCopyModes.All, "All");
+            AddMenuItem(menuItem, eventHandler, LinkCopyModes.InfluenceLink, "Influence Link");
+            AddMenuItem(menuItem, eventHandler, LinkCopyModes.ParentLink, "Parent Link");
+        }
+
+        private void ConfigureMenu()
+        {
+            AddMenuItems(copyToolStripMenuItem, new EventHandler(CopyAction));
+            AddMenuItems(pasteToolStripMenuItem, new EventHandler(PasteAction));
+        }
+
+        private LinkCopyModes GetLinkCopyMode(object sender, out ToolStripMenuItem menuItem)
+        {
+            menuItem = (ToolStripMenuItem)sender;
+            return (LinkCopyModes)menuItem.Tag;
+        }
+
+        private void CopyAction(object sender, EventArgs e)
+        {            
+            try
+            {
+                LinkCopyModes mode = GetLinkCopyMode(sender, out var menuItem);
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.ParentLink)
+                {
+                    if (influenceLinkParent != null)
+                        copiedInfluenceLinkParent = influenceLinkParent.GetCopy(influenceLinkParent.ParentCollection);
+                    else
+                        copiedInfluenceLinkParent = null;
+                }
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.InfluenceLink)
+                {
+                    if (influenceLink != null)
+                        copiedInfluenceLink = influenceLink.GetCopy(influenceLink.Parent);
+                    else
+                        copiedInfluenceLink = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void SetLinkParent(BaseInfluenceLinkParent linkParent)
+        {
+            if (influenceLinkParent == null)
+                throw new NullReferenceException("influenceLinkParent cannot be null.");
+            influenceLinkParent.ParentCollection.SetLinkParent(linkParent);
+            if (linkParent.RandomValues != null)
+                randomValuesByParameterKey[linkParent.ParameterKey] = new RandomValues(linkParent.RandomValues);
+            else
+                randomValuesByParameterKey.Remove(linkParent.ParameterKey);
+        }
+
+        private void PasteAction(object sender, EventArgs e)
+        {
+            try
+            {
+                if (influenceLinkParent == null)
+                    return;
+                LinkCopyModes mode = GetLinkCopyMode(sender, out var menuItem);
+                var sbMessages = new StringBuilder();
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.ParentLink)
+                {
+                    if (copiedInfluenceLinkParent != null)
+                    {
+                        var newLinkParent = copiedInfluenceLinkParent.GetCopy(influenceLinkParent.ParentCollection);
+                        SetLinkParent(newLinkParent);
+                        if (parameterKey == newLinkParent.ParameterKey)
+                        {
+                            influenceLinkParent = newLinkParent;
+                        }
+                    }
+                    else
+                        sbMessages.AppendLine("No copied link parent found.");
+                }
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.InfluenceLink)
+                {
+                    if (copiedInfluenceLink != null)
+                    {
+                        string paramKey = copiedInfluenceLink.Parent.ParameterKey;
+                        var linkParent = influenceLinkParent.ParentCollection.GetLinkParent(paramKey);
+                        if (linkParent == null)
+                        {
+                            linkParent = copiedInfluenceLink.Parent.GetCopy(influenceLinkParent.ParentCollection);
+                            SetLinkParent(linkParent);
+                        }
+                        var newInfluenceLink = copiedInfluenceLink.GetCopy(linkParent);
+                        linkParent.RemoveInfluenceLink(newInfluenceLink);
+                        linkParent.AddInfluenceLink(newInfluenceLink);
+                        if (influenceLink != null)
+                        {
+                            if (influenceLink.Parent.ParameterKey == paramKey && influenceLink.InfluencePointId == newInfluenceLink.InfluencePointId)
+                                influenceLink = newInfluenceLink;
+                        }
+                    }
+                    else
+                        sbMessages.AppendLine("No copied influence link found.");
+                }
+                if (sbMessages.Length > 0)
+                    MessageBox.Show(sbMessages.ToString());
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        public void Initialize(Pattern pattern, FormulaSettings formulaSettings, string parameterKey)
         {
             try
             {
@@ -97,48 +247,41 @@ namespace Whorl
                 this.pattern = pattern;
                 this.formulaSettings = formulaSettings;
                 lblTransformName.Text = formulaSettings.FormulaName;
-                _parameterName = null;
-                randomValuesByParameterName.Clear();
+                _parameterKey = null;
+                randomValuesByParameterKey.Clear();
                 if (formulaSettings.InfluenceLinkParentCollection != null)
                 {
-                    foreach (var linkParent in formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.Values)
+                    foreach (var linkParent in formulaSettings.InfluenceLinkParentCollection.GetLinkParents())
                     {
                         if (linkParent.RandomValues != null)
                         {
                             var copy = new RandomValues(linkParent.RandomValues);
-                            randomValuesByParameterName.Add(linkParent.ParameterName, copy);
+                            randomValuesByParameterKey.Add(linkParent.ParameterKey, copy);
                         }
                     }
                 }
-                this.parameterName = parameterName;  //Populates cboInfluencePointInfo
-                var parameterNames = new List<string>();
+                this.parameterKey = parameterKey;  //Populates cboInfluencePointInfo
+                var parameterKeys = new List<string>();
                 if (formulaSettings.IsCSharpFormula)
                 {
                     if (formulaSettings.EvalInstance != null)
                     {
-                        var propertyInfos = formulaSettings.EvalInstance.GetParameterPropertyInfos();
-                        if (propertyInfos != null)
-                        {
-                            parameterNames.AddRange(propertyInfos.Select(pi => pi.Name).OrderBy(s => s));
-                        }
+                        parameterKeys.AddRange(formulaSettings.EvalInstance.GetParameterKeys().OrderBy(s => s));
                     }
                 }
                 else
                 {
-                    parameterNames.AddRange(formulaSettings.Parameters.Select(p => p.ParameterName));
+                    parameterKeys.AddRange(formulaSettings.Parameters.Select(p => p.ParameterName));
                 }
-                cboParameter.DataSource = parameterNames;
-                cboParameter.SelectedItem = parameterName;
+                cboParameter.DataSource = parameterKeys;
+                cboParameter.SelectedItem = parameterKey;
                 InfluenceLink link = null;
                 if (formulaSettings.InfluenceLinkParentCollection != null)
                 {
-                    if (formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.TryGetValue(
-                                        parameterName, out var linkParent))
+                    var linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+                    if (linkParent != null && linkParent.InfluenceLinks.Count() == 1)
                     {
-                        if (linkParent.InfluenceLinks.Count() == 1)
-                        {
-                            link = linkParent.InfluenceLinks.First();
-                        }
+                        link = linkParent.InfluenceLinks.First();
                     }
                 }
                 influenceLink = link;
@@ -173,7 +316,7 @@ namespace Whorl
         private InfluenceLink FindInfluenceLink(out bool isValid)
         {
             var influencePointInfo = GetSelectedPointInfo();
-            if (parameterName == null || formulaSettings?.InfluenceLinkParentCollection == null)
+            if (parameterKey == null || formulaSettings?.InfluenceLinkParentCollection == null)
             {
                 isValid = false;
             }
@@ -184,8 +327,8 @@ namespace Whorl
             else
             {
                 isValid = true;
-                if (formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName
-                                   .TryGetValue(parameterName, out var linkParent))
+                var linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+                if (linkParent != null)
                 {
                     return FindInfluenceLink(linkParent);
                 }
@@ -221,15 +364,16 @@ namespace Whorl
             }
         }
 
-        private BaseInfluenceLinkParent GetInfluenceLinkParent(string parameterName)
+        private BaseInfluenceLinkParent GetInfluenceLinkParent(string parameterKey)
         {
-            if (!formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.TryGetValue(parameterName, out var influenceLinkParent))
+            var influenceLinkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+            if (influenceLinkParent == null)
             {
                 if (formulaSettings.IsCSharpFormula)
-                    influenceLinkParent = new PropertyInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterName);
+                    influenceLinkParent = new PropertyInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterKey);
                 else
-                    influenceLinkParent = new ParameterInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterName);
-                formulaSettings.InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.Add(parameterName, influenceLinkParent);
+                    influenceLinkParent = new ParameterInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterKey);
+                formulaSettings.InfluenceLinkParentCollection.AddLinkParent(influenceLinkParent);
             }
             return influenceLinkParent;
         }
@@ -247,7 +391,7 @@ namespace Whorl
         {
             try
             {
-                if (formulaSettings == null || parameterName == null) return;
+                if (formulaSettings == null || parameterKey == null) return;
                 RemoveNewInfluenceLink();
                 var influencePointInfo = GetSelectedPointInfo();
                 if (influencePointInfo == null)
@@ -259,7 +403,7 @@ namespace Whorl
                 {
                     formulaSettings.InfluenceLinkParentCollection = new InfluenceLinkParentCollection(pattern, formulaSettings);
                 }
-                BaseInfluenceLinkParent influenceLinkParent = GetInfluenceLinkParent(parameterName);
+                BaseInfluenceLinkParent influenceLinkParent = GetInfluenceLinkParent(parameterKey);
                 if (influenceLinkParent == null)
                     return;
                 if (FindInfluenceLink(influenceLinkParent) != null)
@@ -305,6 +449,71 @@ namespace Whorl
             }
         }
 
+        private bool ApplySettings(bool requireInfluencePoint)
+        {
+            if (influenceLinkParent != null)
+            {
+                if (double.TryParse(txtParentRandomWeight.Text, out double weight))
+                {
+                    influenceLinkParent.RandomWeight = weight;
+                }
+                var randomValues = GetRandomValues();
+                if (influenceLinkParent.RandomValues != null)
+                    influenceLinkParent.RandomValues.Dispose();
+                influenceLinkParent.RandomValues = randomValues;
+            }
+            if (influenceLink != null)
+            {
+                var influencePointInfo = GetSelectedPointInfo();
+                if (influencePointInfo == null)
+                {
+                    if (requireInfluencePoint)
+                    {
+                        MessageBox.Show("Please select an Influence Point.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!double.TryParse(txtInfluenceFactor.Text, out double val))
+                    {
+                        MessageBox.Show("Please enter a number for Influence Factor.");
+                        return false;
+                    }
+                    if (influenceLink.Parent.ParameterName != parameterKey)
+                    {
+                        var newParent = GetInfluenceLinkParent(parameterKey);
+                        if (newParent != null)
+                        {
+                            influenceLink.Parent.RemoveInfluenceLink(influenceLink);
+                            newParent.AddInfluenceLink(influenceLink);
+                        }
+                    }
+                    influenceLink.InfluencePointInfo = influencePointInfo;
+                    influenceLink.LinkFactor = val;
+                    influenceLink.Multiply = chkMultiply.Checked;
+                    if (double.TryParse(txtPointRandomWeight.Text, out double weight))
+                    {
+                        influenceLink.RandomWeight = weight;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private void BtnApply_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ApplySettings(requireInfluencePoint: false);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
+        }
+
         private void BtnOK_Click(object sender, EventArgs e)
         {
             try
@@ -314,37 +523,11 @@ namespace Whorl
                     MessageBox.Show("Please click Create Link first, or click Cancel.");
                     return;
                 }
-                var influencePointInfo = GetSelectedPointInfo();
-                if (influencePointInfo == null)
-                {
-                    MessageBox.Show("Please select an Influence Point.");
+                if (!ApplySettings(requireInfluencePoint: true))
                     return;
-                }
-                if (!double.TryParse(txtInfluenceFactor.Text, out double val))
-                {
-                    MessageBox.Show("Please enter a number for Influence Factor.");
-                    return;
-                }
-                if (influenceLink.Parent.ParameterName != parameterName)
-                {
-                    var newParent = GetInfluenceLinkParent(parameterName);
-                    if (newParent != null)
-                    {
-                        influenceLink.Parent.RemoveInfluenceLink(influenceLink);
-                        newParent.AddInfluenceLink(influenceLink);
-                    }
-                }
-                influenceLink.InfluencePointInfo = influencePointInfo;
-                influenceLink.LinkFactor = val;
-                influenceLink.Multiply = chkMultiply.Checked;
-                //pattern.LastEditedInfluenceLink = influenceLink;
                 string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
                 if (errMessage != null)
                     MessageBox.Show(errMessage);
-                var randomValues = GetRandomValues();
-                if (influenceLink.Parent.RandomValues != null)
-                    influenceLink.Parent.RandomValues.Dispose();
-                influenceLink.Parent.RandomValues = randomValues;
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -375,7 +558,7 @@ namespace Whorl
                 if (ignoreEvents) return;
                 string name = cboParameter.SelectedItem as string;
                 if (name != null)
-                    parameterName = name;
+                    parameterKey = name;
             }
             catch (Exception ex)
             {
@@ -387,7 +570,7 @@ namespace Whorl
         {
             try
             {
-                if (parameterName == null) return;
+                if (parameterKey == null) return;
                 if (formulaSettings.FormulaType != FormulaTypes.Transform)
                 {
                     MessageBox.Show("Random settings are only implemented for Transforms.");
@@ -405,7 +588,7 @@ namespace Whorl
                     randomValues.Settings.ReferenceXLength = null;
                 }
                 randomValues.Settings.ReferenceXLength = randomValues.Settings.XLength;
-                randomValuesByParameterName.Add(parameterName, randomValues);
+                randomValuesByParameterKey.Add(parameterKey, randomValues);
                 BtnCreateRandomSettings.Enabled = false;
                 BtnEditRandomSettings.Enabled = BtnDeleteRandomSettings.Enabled = true;
             }
@@ -417,7 +600,7 @@ namespace Whorl
 
         private RandomValues GetRandomValues()
         {
-            if (parameterName != null && randomValuesByParameterName.TryGetValue(parameterName, out var randomValues))
+            if (parameterKey != null && randomValuesByParameterKey.TryGetValue(parameterKey, out var randomValues))
             {
                 return randomValues;
             }
@@ -453,7 +636,7 @@ namespace Whorl
                 if (randomValues != null)
                 {
                     randomValues.Dispose();
-                    randomValuesByParameterName.Remove(parameterName);
+                    randomValuesByParameterKey.Remove(parameterKey);
                 }
             }
             catch (Exception ex)
@@ -477,5 +660,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

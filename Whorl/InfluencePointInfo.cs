@@ -200,7 +200,7 @@ namespace Whorl
             var parentCollection = formulaSettings?.InfluenceLinkParentCollection;
             if (parentCollection != null)
             {
-                influenceLinks.AddRange(parentCollection.InfluenceLinkParentsByParameterName.Values
+                influenceLinks.AddRange(parentCollection.GetLinkParents()
                                         .SelectMany(lp => lp.InfluenceLinks)
                                         .Where(il => il.InfluencePointInfo == source));
             }

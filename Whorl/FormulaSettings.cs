@@ -516,7 +516,7 @@ namespace Whorl
                 {
                     if (InfluenceLinkParentCollection.IsCSharpFormula != IsCSharpFormula)
                     {
-                        InfluenceLinkParentCollection.InfluenceLinkParentsByParameterName.Clear();
+                        InfluenceLinkParentCollection.ClearLinkParents();
                     }
                     else
                     {

@@ -49,12 +49,22 @@ namespace Whorl
             this.BtnEditRandomSettings = new System.Windows.Forms.Button();
             this.BtnDeleteRandomSettings = new System.Windows.Forms.Button();
             this.BtnReseedRandom = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtPointRandomWeight = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txtParentRandomWeight = new System.Windows.Forms.TextBox();
+            this.BtnApply = new System.Windows.Forms.Button();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 9);
+            this.label1.Location = new System.Drawing.Point(12, 36);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(57, 13);
             this.label1.TabIndex = 0;
@@ -63,7 +73,7 @@ namespace Whorl
             // lblTransformName
             // 
             this.lblTransformName.AutoSize = true;
-            this.lblTransformName.Location = new System.Drawing.Point(75, 9);
+            this.lblTransformName.Location = new System.Drawing.Point(75, 36);
             this.lblTransformName.Name = "lblTransformName";
             this.lblTransformName.Size = new System.Drawing.Size(85, 13);
             this.lblTransformName.TabIndex = 1;
@@ -72,7 +82,7 @@ namespace Whorl
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 100);
+            this.label2.Location = new System.Drawing.Point(12, 127);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(93, 13);
             this.label2.TabIndex = 2;
@@ -82,7 +92,7 @@ namespace Whorl
             // 
             this.cboInfluencePointInfo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboInfluencePointInfo.FormattingEnabled = true;
-            this.cboInfluencePointInfo.Location = new System.Drawing.Point(115, 96);
+            this.cboInfluencePointInfo.Location = new System.Drawing.Point(115, 123);
             this.cboInfluencePointInfo.Name = "cboInfluencePointInfo";
             this.cboInfluencePointInfo.Size = new System.Drawing.Size(97, 21);
             this.cboInfluencePointInfo.TabIndex = 3;
@@ -90,7 +100,7 @@ namespace Whorl
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(18, 127);
+            this.label3.Location = new System.Drawing.Point(18, 154);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(87, 13);
             this.label3.TabIndex = 4;
@@ -99,7 +109,7 @@ namespace Whorl
             // txtInfluenceFactor
             // 
             this.txtInfluenceFactor.Enabled = false;
-            this.txtInfluenceFactor.Location = new System.Drawing.Point(115, 124);
+            this.txtInfluenceFactor.Location = new System.Drawing.Point(115, 151);
             this.txtInfluenceFactor.Name = "txtInfluenceFactor";
             this.txtInfluenceFactor.Size = new System.Drawing.Size(75, 20);
             this.txtInfluenceFactor.TabIndex = 5;
@@ -107,7 +117,7 @@ namespace Whorl
             // 
             // BtnCreateLink
             // 
-            this.BtnCreateLink.Location = new System.Drawing.Point(30, 40);
+            this.BtnCreateLink.Location = new System.Drawing.Point(30, 67);
             this.BtnCreateLink.Name = "BtnCreateLink";
             this.BtnCreateLink.Size = new System.Drawing.Size(75, 23);
             this.BtnCreateLink.TabIndex = 6;
@@ -117,7 +127,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(280, 12);
+            this.BtnOK.Location = new System.Drawing.Point(280, 39);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(75, 23);
             this.BtnOK.TabIndex = 7;
@@ -127,7 +137,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(280, 41);
+            this.BtnCancel.Location = new System.Drawing.Point(280, 68);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(75, 23);
             this.BtnCancel.TabIndex = 8;
@@ -138,7 +148,7 @@ namespace Whorl
             // BtnDeleteLink
             // 
             this.BtnDeleteLink.Enabled = false;
-            this.BtnDeleteLink.Location = new System.Drawing.Point(113, 40);
+            this.BtnDeleteLink.Location = new System.Drawing.Point(113, 67);
             this.BtnDeleteLink.Name = "BtnDeleteLink";
             this.BtnDeleteLink.Size = new System.Drawing.Size(75, 23);
             this.BtnDeleteLink.TabIndex = 9;
@@ -148,7 +158,7 @@ namespace Whorl
             // 
             // BtnEditInfluencePoint
             // 
-            this.BtnEditInfluencePoint.Location = new System.Drawing.Point(218, 96);
+            this.BtnEditInfluencePoint.Location = new System.Drawing.Point(218, 123);
             this.BtnEditInfluencePoint.Name = "BtnEditInfluencePoint";
             this.BtnEditInfluencePoint.Size = new System.Drawing.Size(41, 21);
             this.BtnEditInfluencePoint.TabIndex = 10;
@@ -160,7 +170,7 @@ namespace Whorl
             // 
             this.cboParameter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboParameter.FormattingEnabled = true;
-            this.cboParameter.Location = new System.Drawing.Point(115, 69);
+            this.cboParameter.Location = new System.Drawing.Point(115, 96);
             this.cboParameter.Name = "cboParameter";
             this.cboParameter.Size = new System.Drawing.Size(144, 21);
             this.cboParameter.TabIndex = 12;
@@ -169,7 +179,7 @@ namespace Whorl
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(45, 77);
+            this.label4.Location = new System.Drawing.Point(45, 104);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(58, 13);
             this.label4.TabIndex = 11;
@@ -181,7 +191,7 @@ namespace Whorl
             this.chkMultiply.Checked = true;
             this.chkMultiply.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkMultiply.Enabled = false;
-            this.chkMultiply.Location = new System.Drawing.Point(115, 156);
+            this.chkMultiply.Location = new System.Drawing.Point(115, 183);
             this.chkMultiply.Name = "chkMultiply";
             this.chkMultiply.Size = new System.Drawing.Size(94, 17);
             this.chkMultiply.TabIndex = 13;
@@ -190,7 +200,7 @@ namespace Whorl
             // 
             // BtnFindLink
             // 
-            this.BtnFindLink.Location = new System.Drawing.Point(194, 40);
+            this.BtnFindLink.Location = new System.Drawing.Point(194, 67);
             this.BtnFindLink.Name = "BtnFindLink";
             this.BtnFindLink.Size = new System.Drawing.Size(65, 23);
             this.BtnFindLink.TabIndex = 14;
@@ -201,7 +211,7 @@ namespace Whorl
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 185);
+            this.label5.Location = new System.Drawing.Point(12, 212);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(91, 13);
             this.label5.TabIndex = 15;
@@ -209,7 +219,7 @@ namespace Whorl
             // 
             // BtnCreateRandomSettings
             // 
-            this.BtnCreateRandomSettings.Location = new System.Drawing.Point(113, 180);
+            this.BtnCreateRandomSettings.Location = new System.Drawing.Point(113, 207);
             this.BtnCreateRandomSettings.Name = "BtnCreateRandomSettings";
             this.BtnCreateRandomSettings.Size = new System.Drawing.Size(55, 23);
             this.BtnCreateRandomSettings.TabIndex = 16;
@@ -219,7 +229,7 @@ namespace Whorl
             // 
             // BtnEditRandomSettings
             // 
-            this.BtnEditRandomSettings.Location = new System.Drawing.Point(174, 180);
+            this.BtnEditRandomSettings.Location = new System.Drawing.Point(174, 207);
             this.BtnEditRandomSettings.Name = "BtnEditRandomSettings";
             this.BtnEditRandomSettings.Size = new System.Drawing.Size(55, 23);
             this.BtnEditRandomSettings.TabIndex = 17;
@@ -229,7 +239,7 @@ namespace Whorl
             // 
             // BtnDeleteRandomSettings
             // 
-            this.BtnDeleteRandomSettings.Location = new System.Drawing.Point(296, 180);
+            this.BtnDeleteRandomSettings.Location = new System.Drawing.Point(296, 207);
             this.BtnDeleteRandomSettings.Name = "BtnDeleteRandomSettings";
             this.BtnDeleteRandomSettings.Size = new System.Drawing.Size(55, 23);
             this.BtnDeleteRandomSettings.TabIndex = 18;
@@ -239,7 +249,7 @@ namespace Whorl
             // 
             // BtnReseedRandom
             // 
-            this.BtnReseedRandom.Location = new System.Drawing.Point(235, 180);
+            this.BtnReseedRandom.Location = new System.Drawing.Point(235, 207);
             this.BtnReseedRandom.Name = "BtnReseedRandom";
             this.BtnReseedRandom.Size = new System.Drawing.Size(55, 23);
             this.BtnReseedRandom.TabIndex = 19;
@@ -247,11 +257,93 @@ namespace Whorl
             this.BtnReseedRandom.UseVisualStyleBackColor = true;
             this.BtnReseedRandom.Click += new System.EventHandler(this.BtnReseedRandom_Click);
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(20, 248);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(121, 13);
+            this.label6.TabIndex = 20;
+            this.label6.Text = "Parent Random Weight:";
+            // 
+            // txtPointRandomWeight
+            // 
+            this.txtPointRandomWeight.Enabled = false;
+            this.txtPointRandomWeight.Location = new System.Drawing.Point(147, 274);
+            this.txtPointRandomWeight.Name = "txtPointRandomWeight";
+            this.txtPointRandomWeight.Size = new System.Drawing.Size(75, 20);
+            this.txtPointRandomWeight.TabIndex = 23;
+            this.txtPointRandomWeight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(27, 277);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(114, 13);
+            this.label7.TabIndex = 22;
+            this.label7.Text = "Point Random Weight:";
+            // 
+            // txtParentRandomWeight
+            // 
+            this.txtParentRandomWeight.Enabled = false;
+            this.txtParentRandomWeight.Location = new System.Drawing.Point(147, 245);
+            this.txtParentRandomWeight.Name = "txtParentRandomWeight";
+            this.txtParentRandomWeight.Size = new System.Drawing.Size(75, 20);
+            this.txtParentRandomWeight.TabIndex = 24;
+            this.txtParentRandomWeight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // BtnApply
+            // 
+            this.BtnApply.Location = new System.Drawing.Point(280, 99);
+            this.BtnApply.Name = "BtnApply";
+            this.BtnApply.Size = new System.Drawing.Size(75, 23);
+            this.BtnApply.TabIndex = 25;
+            this.BtnApply.Text = "Apply";
+            this.BtnApply.UseVisualStyleBackColor = true;
+            this.BtnApply.Click += new System.EventHandler(this.BtnApply_Click);
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.editToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(363, 24);
+            this.menuStrip1.TabIndex = 26;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem,
+            this.pasteToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            // 
+            // pasteToolStripMenuItem
+            // 
+            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteToolStripMenuItem.Text = "Paste";
+            // 
             // frmInfluenceLink
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(367, 217);
+            this.ClientSize = new System.Drawing.Size(363, 301);
+            this.Controls.Add(this.BtnApply);
+            this.Controls.Add(this.txtParentRandomWeight);
+            this.Controls.Add(this.txtPointRandomWeight);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.BtnReseedRandom);
             this.Controls.Add(this.BtnDeleteRandomSettings);
             this.Controls.Add(this.BtnEditRandomSettings);
@@ -272,8 +364,12 @@ namespace Whorl
             this.Controls.Add(this.label2);
             this.Controls.Add(this.lblTransformName);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.menuStrip1);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "frmInfluenceLink";
             this.Text = "Edit Influence Link";
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -301,5 +397,14 @@ namespace Whorl
         private System.Windows.Forms.Button BtnEditRandomSettings;
         private System.Windows.Forms.Button BtnDeleteRandomSettings;
         private System.Windows.Forms.Button BtnReseedRandom;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtPointRandomWeight;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtParentRandomWeight;
+        private System.Windows.Forms.Button BtnApply;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pasteToolStripMenuItem;
     }
 }

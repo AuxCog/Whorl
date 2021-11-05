@@ -7784,7 +7784,7 @@ namespace Whorl
         //    }
         //}
 
-        private bool EditInfluenceLink(string parameterName)
+        private bool EditInfluenceLink(string parameterKey)
         {
             Pattern pattern = Design.EditedPattern;
             FormulaSettings formulaSettings = EditedFormulaSettings;
@@ -7797,7 +7797,7 @@ namespace Whorl
             }
             using (var frm = new frmInfluenceLink())
             {
-                frm.Initialize(pattern, formulaSettings, parameterName);
+                frm.Initialize(pattern, formulaSettings, parameterKey);
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     pattern.ComputeSeedPoints();
@@ -7809,7 +7809,7 @@ namespace Whorl
             return false;
         }
 
-        //private bool EditRenderingInfluenceLink(string parameterName)
+        //private bool EditRenderingInfluenceLink(string parameterKey)
         //{
         //    Pattern pattern = design.EditedPattern;
         //    if (pattern == null || !pattern.HasPixelRendering)
@@ -7821,7 +7821,7 @@ namespace Whorl
         //    }
         //    using (var frm = new frmInfluenceLink())
         //    {
-        //        frm.Initialize(pattern, pattern.PixelRendering.FormulaSettings, parameterName);
+        //        frm.Initialize(pattern, pattern.PixelRendering.FormulaSettings, parameterKey);
         //        if (frm.ShowDialog() == DialogResult.OK)
         //        {
         //            pattern.ClearRenderingCache();

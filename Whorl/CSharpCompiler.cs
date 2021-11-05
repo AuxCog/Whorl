@@ -73,6 +73,29 @@ namespace Whorl
                     return ParamsObj.GetType().GetProperties()
                                     .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi));
             }
+
+            public List<string> GetParameterKeys()
+            {
+                var keys = new List<string>();
+                if (ParamsObj != null)
+                {
+                    foreach (var propertyInfo in GetParameterPropertyInfos())
+                    {
+                        if (propertyInfo.PropertyType.IsArray)
+                        {
+                            object oValue = propertyInfo.GetValue(ParamsObj);
+                            if (oValue != null)
+                            {
+                                var array = (Array)oValue;
+                                keys.AddRange(Enumerable.Range(1, array.Length).Select(i => $"{propertyInfo.Name}[{i}]"));
+                            }
+                        }
+                        else
+                            keys.Add(propertyInfo.Name);
+                    }
+                }
+                return keys;
+            }
         }
 
         public enum ErrorType

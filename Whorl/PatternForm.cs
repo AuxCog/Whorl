@@ -165,7 +165,7 @@ namespace Whorl
             }
         }
 
-        private bool EditInfluenceLink(string parameterName, Pattern pattern, FormulaSettings formulaSettings)
+        private bool EditInfluenceLink(string parameterKey, Pattern pattern, FormulaSettings formulaSettings)
         {
             if (pattern.InfluencePointInfoList.Count == 0)
             {
@@ -174,7 +174,7 @@ namespace Whorl
             }
             using (var frm = new frmInfluenceLink())
             {
-                frm.Initialize(pattern, formulaSettings, parameterName);
+                frm.Initialize(pattern, formulaSettings, parameterKey);
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     PreviewChanges();
@@ -185,20 +185,20 @@ namespace Whorl
             return false;
         }
 
-        private bool EditTransformInfluenceLink(string parameterName)
+        private bool EditTransformInfluenceLink(string parameterKey)
         {
             Pattern pattern = EditedPattern;
             if (pattern == null) 
                 return false;
-            return EditInfluenceLink(parameterName, pattern, selectedTransform.TransformSettings);
+            return EditInfluenceLink(parameterKey, pattern, selectedTransform.TransformSettings);
         }
 
-        private bool EditRenderingInfluenceLink(string parameterName)
+        private bool EditRenderingInfluenceLink(string parameterKey)
         {
             Pattern pattern = EditedPattern;
             if (pattern == null || pattern.PixelRendering?.FormulaSettings == null)
                 return false;
-            return EditInfluenceLink(parameterName, pattern, pattern.PixelRendering.FormulaSettings);
+            return EditInfluenceLink(parameterKey, pattern, pattern.PixelRendering.FormulaSettings);
         }
 
         private void gradientChanged(object sender, EventArgs e)

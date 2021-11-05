@@ -317,7 +317,10 @@ namespace Whorl
                 {
                     if (FnEditInfluenceLink != null)
                     {
-                        lnkInfluence = CreateInfluenceLinkLabel(propertyInfo.Name, ref txtWidth);
+                        string key = propertyInfo.Name;
+                        if (arrayInfo != null)
+                            key += $"[{arrayInfo.Index + 1}]";
+                        lnkInfluence = CreateInfluenceLinkLabel(key, ref txtWidth);
                     }
                 }
                 txtBox.Width = txtWidth;
