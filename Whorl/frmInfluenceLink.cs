@@ -520,8 +520,6 @@ namespace Whorl
                     influenceLinkParent.RandomWeight = weight;
                 }
                 var randomValues = GetRandomValues();
-                if (influenceLinkParent.RandomValues != null)
-                    influenceLinkParent.RandomValues.Dispose();
                 influenceLinkParent.RandomValues = randomValues;
             }
             if (influenceLink != null)
@@ -695,12 +693,7 @@ namespace Whorl
         {
             try
             {
-                RandomValues randomValues = GetRandomValues();
-                if (randomValues != null)
-                {
-                    randomValues.Dispose();
-                    randomValuesByParameterKey.Remove(parameterKey);
-                }
+                randomValuesByParameterKey.Remove(parameterKey);
             }
             catch (Exception ex)
             {

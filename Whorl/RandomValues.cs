@@ -8,7 +8,7 @@ using System.Xml;
 
 namespace Whorl
 {
-    public class RandomValues : IXml, IDisposable
+    public class RandomValues : IXml
     {
         public enum RandomDomainTypes
         {
@@ -113,8 +113,6 @@ namespace Whorl
 
         public void ComputeRandomValues()
         {
-            if (Disposed)
-                throw new ObjectDisposedException(GetType().Name, "Operation not valid on disposed object.");
             RandomOps.SetRandomSeed(Settings.RandomSeed);
             float smoothness = Settings.Smoothness;
             if (Settings.ReferenceXLength != null)
@@ -146,8 +144,6 @@ namespace Whorl
 
         public float GetYValue(float x)
         {
-            if (Disposed)
-                throw new ObjectDisposedException(GetType().Name, "Operation not valid on disposed object.");
             if (XValues == null)
                 throw new Exception("ComputeRandom was not called.");
             if (!XValues.Any())
@@ -175,8 +171,6 @@ namespace Whorl
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
-            if (Disposed)
-                throw new ObjectDisposedException(GetType().Name, "Operation not valid on disposed object.");
             if (xmlNodeName == null)
                 xmlNodeName = nameof(RandomValues);
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
@@ -199,14 +193,14 @@ namespace Whorl
             }
         }
 
-        public bool Disposed { get; private set; }
+        //public bool Disposed { get; private set; }
 
-        public void Dispose()
-        {
-            if (Disposed)
-                return;
-            Disposed = true;
-            ClearValues();
-        }
+        //public void Dispose()
+        //{
+        //    if (Disposed)
+        //        return;
+        //    Disposed = true;
+        //    ClearValues();
+        //}
     }
 }
