@@ -55,8 +55,7 @@ namespace Whorl
             {
                 origInfluencePointInfo = influencePointInfo;
                 parentPattern = influencePointInfo.ParentPattern;
-                editedInfluencePointInfo = new InfluencePointInfo();
-                editedInfluencePointInfo.CopyProperties(origInfluencePointInfo);
+                editedInfluencePointInfo = new InfluencePointInfo(origInfluencePointInfo, parentPattern);
                 lblPointID.Text = influencePointInfo.Id.ToString();
                 chkEnabled.Checked = editedInfluencePointInfo.Enabled;
                 txtInfluenceFactor.Text = editedInfluencePointInfo.InfluenceFactor.ToString("0.####");

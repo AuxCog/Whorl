@@ -110,11 +110,11 @@ namespace Whorl
                 return false;
         }
 
-        protected abstract BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection);
+        protected abstract BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection, string parameterKey = null);
 
-        public BaseInfluenceLinkParent GetCopy(InfluenceLinkParentCollection parentCollection)
+        public BaseInfluenceLinkParent GetCopy(InfluenceLinkParentCollection parentCollection, string parameterKey = null)
         {
-            var copy = _GetCopy(parentCollection);
+            var copy = _GetCopy(parentCollection, parameterKey);
             copy.RandomWeight = RandomWeight;
             if (RandomValues != null)
                 copy.RandomValues = new RandomValues(RandomValues);
@@ -303,9 +303,9 @@ namespace Whorl
             return errMessage;
         }
 
-        protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection)
+        protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection, string parameterKey = null)
         {
-            return new ParameterInfluenceLinkParent(parentCollection, ParameterName);
+            return new ParameterInfluenceLinkParent(parentCollection, parameterKey ?? ParameterKey);
         }
     }
 
@@ -367,9 +367,9 @@ namespace Whorl
             }
         }
 
-        protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection)
+        protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection, string parameterKey = null)
         {
-            return new PropertyInfluenceLinkParent(parentCollection, ParameterName);
+            return new PropertyInfluenceLinkParent(parentCollection, parameterKey ?? ParameterKey);
         }
 
         protected override string SetTargetParameter(string parameterName, bool throwException = true)

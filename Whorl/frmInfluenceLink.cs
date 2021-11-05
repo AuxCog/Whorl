@@ -33,6 +33,7 @@ namespace Whorl
         }
 
         private FormulaSettings formulaSettings { get; set; }
+        private InfluenceLinkParentCollection influenceLinkParentCollection { get; set; }
         private List<object> cboPointInfoList { get; set; }
 
         private string _parameterKey;
@@ -45,11 +46,11 @@ namespace Whorl
                     return;
                 _parameterKey = value;
                 BaseInfluenceLinkParent linkParent;
-                if (formulaSettings.InfluenceLinkParentCollection == null)
+                if (influenceLinkParentCollection == null)
                     linkParent = null;
                 else
                 {
-                    linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(_parameterKey);
+                    linkParent = influenceLinkParentCollection.GetLinkParent(_parameterKey);
                 }
                 influenceLinkParent = linkParent;
                 cboPointInfoList = new List<object>() { "(Please Select)" };
@@ -91,6 +92,18 @@ namespace Whorl
                 txtParentRandomWeight.Enabled = _influenceLinkParent != null;
                 if (_influenceLinkParent != null)
                 {
+                    if (!Equals(cboParameter.SelectedItem, _influenceLinkParent.ParameterKey))
+                    {
+                        ignoreEvents = true;
+                        try
+                        {
+                            cboParameter.SelectedItem = _influenceLinkParent.ParameterKey;
+                        }
+                        finally
+                        {
+                            ignoreEvents = false;
+                        }
+                    }
                     txtParentRandomWeight.Text = _influenceLinkParent.RandomWeight.ToString("0.####");
                 }
             }
@@ -153,19 +166,24 @@ namespace Whorl
             try
             {
                 LinkCopyModes mode = GetLinkCopyMode(sender, out var menuItem);
+                copiedInfluenceLinkParent = null;
+                copiedInfluenceLink = null;
                 if (mode == LinkCopyModes.All || mode == LinkCopyModes.ParentLink)
                 {
                     if (influenceLinkParent != null)
                         copiedInfluenceLinkParent = influenceLinkParent.GetCopy(influenceLinkParent.ParentCollection);
-                    else
-                        copiedInfluenceLinkParent = null;
                 }
                 if (mode == LinkCopyModes.All || mode == LinkCopyModes.InfluenceLink)
                 {
                     if (influenceLink != null)
-                        copiedInfluenceLink = influenceLink.GetCopy(influenceLink.Parent);
-                    else
-                        copiedInfluenceLink = null;
+                    {
+                        if (influenceLinkParent == null || influenceLinkParent.ParameterKey != influenceLink.Parent.ParameterKey)
+                        {
+                            MessageBox.Show("Cannot copy influence link.");
+                        }
+                        else
+                            copiedInfluenceLink = influenceLink.GetCopy(influenceLink.Parent);
+                    }
                 }
             }
             catch (Exception ex)
@@ -190,48 +208,89 @@ namespace Whorl
             try
             {
                 if (influenceLinkParent == null)
-                    return;
+                {
+                    influenceLinkParent = GetInfluenceLinkParent(parameterKey);
+                }
                 LinkCopyModes mode = GetLinkCopyMode(sender, out var menuItem);
                 var sbMessages = new StringBuilder();
+                string paramKey = null;
+                InfluencePointInfo newPointInfo = null;
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.ParentLink)
+                {
+                    if (copiedInfluenceLinkParent == null)
+                        sbMessages.AppendLine("No copied link parent found.");
+                    else
+                        paramKey = copiedInfluenceLinkParent.ParameterKey;
+                }
+                if (mode == LinkCopyModes.All || mode == LinkCopyModes.InfluenceLink)
+                {
+                    if (copiedInfluenceLink == null)
+                        sbMessages.AppendLine("No copied influence link found.");
+                    else
+                    {
+                        newPointInfo = copiedInfluenceLink.InfluencePointInfo.FindByKeyGuid(pattern.InfluencePointInfoList.InfluencePointInfos);
+                        if (newPointInfo == null)
+                        {
+                            sbMessages.AppendLine("The copied influence link's Influence Point is not present in this pattern.");
+                            paramKey = null;
+                        }
+                        else if (paramKey == null)
+                            paramKey = copiedInfluenceLink.Parent.ParameterKey;
+                        else if (copiedInfluenceLink.Parent.ParameterKey != paramKey)
+                        {
+                            sbMessages.AppendLine("The copied influence link is not valid.");
+                            paramKey = null;
+                        }
+                    }
+                }
+                if (sbMessages.Length > 0)
+                    MessageBox.Show(sbMessages.ToString());
+                if (paramKey == null)
+                    return;
+                if (paramKey != parameterKey)
+                {
+                    switch (MessageBox.Show($"Paste to parameter {parameterKey}?", "Confirm", MessageBoxButtons.YesNoCancel))
+                    {
+                        case DialogResult.Cancel:
+                            return;
+                        case DialogResult.Yes:
+                            paramKey = parameterKey;
+                            break;
+                        case DialogResult.No:
+                            if (!cboParameter.Items.Contains(paramKey))
+                            {
+                                MessageBox.Show($"The parameter {paramKey} is not valid in this case.");
+                                return;
+                            }
+                            break;
+                    }
+                }
                 if (mode == LinkCopyModes.All || mode == LinkCopyModes.ParentLink)
                 {
                     if (copiedInfluenceLinkParent != null)
                     {
-                        var newLinkParent = copiedInfluenceLinkParent.GetCopy(influenceLinkParent.ParentCollection);
+                        var newLinkParent = copiedInfluenceLinkParent.GetCopy(influenceLinkParent.ParentCollection, paramKey);
                         SetLinkParent(newLinkParent);
-                        if (parameterKey == newLinkParent.ParameterKey)
-                        {
-                            influenceLinkParent = newLinkParent;
-                        }
+                        this.influenceLinkParent = newLinkParent;
                     }
-                    else
-                        sbMessages.AppendLine("No copied link parent found.");
                 }
                 if (mode == LinkCopyModes.All || mode == LinkCopyModes.InfluenceLink)
                 {
                     if (copiedInfluenceLink != null)
                     {
-                        string paramKey = copiedInfluenceLink.Parent.ParameterKey;
                         var linkParent = influenceLinkParent.ParentCollection.GetLinkParent(paramKey);
                         if (linkParent == null)
                         {
-                            linkParent = copiedInfluenceLink.Parent.GetCopy(influenceLinkParent.ParentCollection);
+                            linkParent = copiedInfluenceLink.Parent.GetCopy(influenceLinkParent.ParentCollection, paramKey);
                             SetLinkParent(linkParent);
                         }
                         var newInfluenceLink = copiedInfluenceLink.GetCopy(linkParent);
+                        newInfluenceLink.InfluencePointInfo = newPointInfo;
                         linkParent.RemoveInfluenceLink(newInfluenceLink);
                         linkParent.AddInfluenceLink(newInfluenceLink);
-                        if (influenceLink != null)
-                        {
-                            if (influenceLink.Parent.ParameterKey == paramKey && influenceLink.InfluencePointId == newInfluenceLink.InfluencePointId)
-                                influenceLink = newInfluenceLink;
-                        }
+                        this.influenceLink = newInfluenceLink;
                     }
-                    else
-                        sbMessages.AppendLine("No copied influence link found.");
                 }
-                if (sbMessages.Length > 0)
-                    MessageBox.Show(sbMessages.ToString());
             }
             catch (Exception ex)
             {
@@ -246,12 +305,15 @@ namespace Whorl
                 ignoreEvents = true;
                 this.pattern = pattern;
                 this.formulaSettings = formulaSettings;
+                influenceLinkParentCollection = formulaSettings.InfluenceLinkParentCollection;
+                if (influenceLinkParentCollection == null)
+                    influenceLinkParentCollection = new InfluenceLinkParentCollection(pattern, formulaSettings);
                 lblTransformName.Text = formulaSettings.FormulaName;
                 _parameterKey = null;
                 randomValuesByParameterKey.Clear();
-                if (formulaSettings.InfluenceLinkParentCollection != null)
+                if (influenceLinkParentCollection != null)
                 {
-                    foreach (var linkParent in formulaSettings.InfluenceLinkParentCollection.GetLinkParents())
+                    foreach (var linkParent in influenceLinkParentCollection.GetLinkParents())
                     {
                         if (linkParent.RandomValues != null)
                         {
@@ -276,9 +338,9 @@ namespace Whorl
                 cboParameter.DataSource = parameterKeys;
                 cboParameter.SelectedItem = parameterKey;
                 InfluenceLink link = null;
-                if (formulaSettings.InfluenceLinkParentCollection != null)
+                if (influenceLinkParentCollection != null)
                 {
-                    var linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+                    var linkParent = influenceLinkParentCollection.GetLinkParent(parameterKey);
                     if (linkParent != null && linkParent.InfluenceLinks.Count() == 1)
                     {
                         link = linkParent.InfluenceLinks.First();
@@ -316,7 +378,7 @@ namespace Whorl
         private InfluenceLink FindInfluenceLink(out bool isValid)
         {
             var influencePointInfo = GetSelectedPointInfo();
-            if (parameterKey == null || formulaSettings?.InfluenceLinkParentCollection == null)
+            if (parameterKey == null || influenceLinkParentCollection == null)
             {
                 isValid = false;
             }
@@ -327,7 +389,7 @@ namespace Whorl
             else
             {
                 isValid = true;
-                var linkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+                var linkParent = influenceLinkParentCollection.GetLinkParent(parameterKey);
                 if (linkParent != null)
                 {
                     return FindInfluenceLink(linkParent);
@@ -366,14 +428,14 @@ namespace Whorl
 
         private BaseInfluenceLinkParent GetInfluenceLinkParent(string parameterKey)
         {
-            var influenceLinkParent = formulaSettings.InfluenceLinkParentCollection.GetLinkParent(parameterKey);
+            var influenceLinkParent = influenceLinkParentCollection.GetLinkParent(parameterKey);
             if (influenceLinkParent == null)
             {
                 if (formulaSettings.IsCSharpFormula)
-                    influenceLinkParent = new PropertyInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterKey);
+                    influenceLinkParent = new PropertyInfluenceLinkParent(influenceLinkParentCollection, parameterKey);
                 else
-                    influenceLinkParent = new ParameterInfluenceLinkParent(formulaSettings.InfluenceLinkParentCollection, parameterKey);
-                formulaSettings.InfluenceLinkParentCollection.AddLinkParent(influenceLinkParent);
+                    influenceLinkParent = new ParameterInfluenceLinkParent(influenceLinkParentCollection, parameterKey);
+                influenceLinkParentCollection.AddLinkParent(influenceLinkParent);
             }
             return influenceLinkParent;
         }
@@ -399,9 +461,9 @@ namespace Whorl
                     MessageBox.Show("Please select an Influence Point.");
                     return;
                 }
-                if (formulaSettings.InfluenceLinkParentCollection == null)
+                if (influenceLinkParentCollection == null)
                 {
-                    formulaSettings.InfluenceLinkParentCollection = new InfluenceLinkParentCollection(pattern, formulaSettings);
+                    influenceLinkParentCollection = new InfluenceLinkParentCollection(pattern, formulaSettings);
                 }
                 BaseInfluenceLinkParent influenceLinkParent = GetInfluenceLinkParent(parameterKey);
                 if (influenceLinkParent == null)
@@ -525,6 +587,7 @@ namespace Whorl
                 }
                 if (!ApplySettings(requireInfluencePoint: true))
                     return;
+                formulaSettings.InfluenceLinkParentCollection = influenceLinkParentCollection;
                 string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
                 if (errMessage != null)
                     MessageBox.Show(errMessage);

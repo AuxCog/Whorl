@@ -13,7 +13,7 @@ namespace Whorl
     /// <summary>
     /// Information for a point that influences parameters, based on its distance from a point for a pattern.
     /// </summary>
-    public class InfluencePointInfo : IXml
+    public class InfluencePointInfo : GuidKey, IXml
     {
         public Pattern ParentPattern { get; private set; }
         public int Id { get; private set; }
@@ -108,7 +108,7 @@ namespace Whorl
             TransformFunctionName = EvalMethods.IdentMethodName;
         }
 
-        public InfluencePointInfo(InfluencePointInfo source, Pattern pattern, bool copyKeyParams = true)
+        public InfluencePointInfo(InfluencePointInfo source, Pattern pattern, bool copyKeyParams = true): base(source)
         {
             CopyProperties(source, pattern, copyKeyParams);
             ParentPattern = pattern;
