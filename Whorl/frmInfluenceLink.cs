@@ -341,9 +341,9 @@ namespace Whorl
                 if (influenceLinkParentCollection != null)
                 {
                     var linkParent = influenceLinkParentCollection.GetLinkParent(parameterKey);
-                    if (linkParent != null && linkParent.InfluenceLinks.Count() == 1)
+                    if (linkParent != null)
                     {
-                        link = linkParent.InfluenceLinks.First();
+                        link = linkParent.InfluenceLinks.FirstOrDefault();
                     }
                 }
                 influenceLink = link;
@@ -511,7 +511,7 @@ namespace Whorl
             }
         }
 
-        private bool ApplySettings(bool requireInfluencePoint)
+        private bool ApplySettings(bool requireInfluencePoint = false)
         {
             if (influenceLinkParent != null)
             {
@@ -565,7 +565,7 @@ namespace Whorl
         {
             try
             {
-                ApplySettings(requireInfluencePoint: false);
+                ApplySettings();
             }
             catch (Exception ex)
             {
@@ -578,17 +578,20 @@ namespace Whorl
         {
             try
             {
-                if (influenceLink == null)
-                {
-                    MessageBox.Show("Please click Create Link first, or click Cancel.");
-                    return;
-                }
+                //if (influenceLink == null)
+                //{
+                //    MessageBox.Show("Please click Create Link first, or click Cancel.");
+                //    return;
+                //}
                 if (!ApplySettings(requireInfluencePoint: true))
                     return;
                 formulaSettings.InfluenceLinkParentCollection = influenceLinkParentCollection;
-                string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
-                if (errMessage != null)
-                    MessageBox.Show(errMessage);
+                if (influenceLink != null)
+                {
+                    string errMessage = influenceLink.Parent.ParentCollection.ResolveReferences(throwException: false);
+                    if (errMessage != null)
+                        MessageBox.Show(errMessage);
+                }
                 DialogResult = DialogResult.OK;
                 Close();
             }
