@@ -16,6 +16,15 @@ namespace Whorl
         public DataTable LayersDataTable { get; private set; }
         public List<PatternLayer> PatternLayers { get; } =
            new List<PatternLayer>();
+        private int _editedIndex;
+        public int EditedIndex 
+        {
+            get => _editedIndex;
+            set
+            {
+                _editedIndex = Math.Max(0, Math.Min(PatternLayers.Count - 1, value));
+            }
+        }
         public Pattern ParentPattern { get; }
 
         public EventHandler LayersChanged;
@@ -23,6 +32,14 @@ namespace Whorl
         public PatternLayerList(Pattern parentPattern)
         {
             this.ParentPattern = parentPattern;
+        }
+
+        public PatternLayer GetEditedPatternLayer()
+        {
+            if (EditedIndex >= 0 && EditedIndex < PatternLayers.Count)
+                return PatternLayers[EditedIndex];
+            else
+                return null;
         }
 
         private void CreateLayersDataTable()
@@ -128,6 +145,7 @@ namespace Whorl
                 else
                     copy.PatternLayers.Add(layer.GetCopy(copy, parentPattern));
             }
+            copy.EditedIndex = EditedIndex;
             return copy;
         }
 
@@ -136,6 +154,8 @@ namespace Whorl
             if (xmlNodeName == null)
                 xmlNodeName = nameof(PatternLayerList);
             XmlNode node = xmlTools.CreateXmlNode(xmlNodeName);
+            if (EditedIndex > 0)
+                xmlTools.AppendXmlAttribute(node, nameof(EditedIndex), EditedIndex);
             for (int i = 1; i < this.PatternLayers.Count; i++)
             {
                 PatternLayer layer = this.PatternLayers[i];
@@ -152,6 +172,7 @@ namespace Whorl
 
         public void FromXml(XmlNode node)
         {
+            int editedIndex = Tools.GetXmlAttribute<int>(node, defaultValue: 0, nameof(EditedIndex));
             PatternLayer layer = new PatternLayer(this);
             layer.SetModulusRatio(1F);
             layer.FillInfo = this.ParentPattern.FillInfo;
@@ -179,6 +200,7 @@ namespace Whorl
                 }
                 this.PatternLayers.Add(layer);
             }
+            EditedIndex = editedIndex;
         }
     }
 }

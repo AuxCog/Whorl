@@ -167,14 +167,23 @@ namespace Whorl
             }
         }
 
+        public void AppendAllXmlAttributes(XmlNode xmlNode, object source)
+        {
+            AppendXmlAttributesExcept(xmlNode, source);
+        }
+
         public void AppendXmlAttributesExcept(XmlNode xmlNode, object source, params string[] excludedPropertyNames)
         {
             Type sourceType = source.GetType();
             var excludedProps = new HashSet<string>(excludedPropertyNames);
             foreach (PropertyInfo propertyInfo in sourceType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                if (!propertyInfo.CanWrite || excludedProps.Contains(propertyInfo.Name))
+                if (!(propertyInfo.CanWrite && propertyInfo.CanRead) 
+                    || excludedProps.Contains(propertyInfo.Name)
+                    || propertyInfo.GetIndexParameters().Any())
+                {
                     continue;
+                }
                 object value = propertyInfo.GetValue(source);
                 if (value != null)
                 {

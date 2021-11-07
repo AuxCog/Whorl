@@ -182,7 +182,7 @@ namespace Whorl
 
         public static PointF RotatePoint(PointF p, PointF rotationVector)
         {
-            return new PointF(p.X * rotationVector.X - p.Y * rotationVector.Y, 
+            return new PointF(p.X * rotationVector.X - p.Y * rotationVector.Y,
                               p.X * rotationVector.Y + p.Y * rotationVector.X);
         }
 
@@ -434,7 +434,7 @@ namespace Whorl
             bitmap[bitInd >> 5] &= ~GetBitmapBit(bitInd);
         }
 
-        public static Dictionary<string, T> GetCaseInsensitiveEnumDictionary<T>() where T: struct
+        public static Dictionary<string, T> GetCaseInsensitiveEnumDictionary<T>() where T : struct
         {
             if (!typeof(T).IsEnum)
                 throw new Exception($"{typeof(T).FullName} is not an enum type.");
@@ -507,13 +507,13 @@ namespace Whorl
 
         public static PointF GetPointFFromXml(XmlNode node)
         {
-            return new PointF((float)GetXmlAttribute("X", typeof(float), node), 
+            return new PointF((float)GetXmlAttribute("X", typeof(float), node),
                               (float)GetXmlAttribute("Y", typeof(float), node));
         }
 
         public static Size GetSizeFromXml(XmlNode node)
         {
-            return new Size((int)GetXmlAttribute("Width", typeof(int), node), 
+            return new Size((int)GetXmlAttribute("Width", typeof(int), node),
                             (int)GetXmlAttribute("Height", typeof(int), node));
         }
 
@@ -587,6 +587,11 @@ namespace Whorl
                         throw new Exception($"Invalid property name {propName} specified.");
                 }
             }
+        }
+
+        public static void GetAllXmlAttributes(object o, XmlNode node)
+        {
+            GetXmlAttributesExcept(o, node);
         }
 
         public static void GetXmlAttributesExcept(object o, XmlNode node,

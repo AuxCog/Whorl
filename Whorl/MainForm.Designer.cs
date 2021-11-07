@@ -140,6 +140,7 @@
             this.erasePictureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showAppPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testRandomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanForPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fixPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inferFormulaTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -240,7 +241,7 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.testRandomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editRenderingRandomSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1177,6 +1178,14 @@
             this.testDistancePatternToolStripMenuItem.Text = "Test Distance Pattern";
             this.testDistancePatternToolStripMenuItem.Click += new System.EventHandler(this.testDistancePatternToolStripMenuItem_Click);
             // 
+            // testRandomToolStripMenuItem
+            // 
+            this.testRandomToolStripMenuItem.CheckOnClick = true;
+            this.testRandomToolStripMenuItem.Name = "testRandomToolStripMenuItem";
+            this.testRandomToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testRandomToolStripMenuItem.Text = "Test Random";
+            this.testRandomToolStripMenuItem.Click += new System.EventHandler(this.testRandomToolStripMenuItem_Click);
+            // 
             // scanForPatternsToolStripMenuItem
             // 
             this.scanForPatternsToolStripMenuItem.Enabled = false;
@@ -1418,6 +1427,7 @@
             this.setPatternFromDefaultToolStripMenuItem,
             this.editPatternToolStripMenuItem,
             this.editRenderParametersToolStripMenuItem,
+            this.editRenderingRandomSettingsToolStripMenuItem,
             this.editColorGradientToolStripMenuItem,
             this.ribbonToolStripMenuItem,
             this.moveTextureToolStripMenuItem,
@@ -1428,19 +1438,19 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(214, 312);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
             // 
             // selectPatternToolStripMenuItem
             // 
             this.selectPatternToolStripMenuItem.Name = "selectPatternToolStripMenuItem";
-            this.selectPatternToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.selectPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.selectPatternToolStripMenuItem.Text = "Select Pattern";
             this.selectPatternToolStripMenuItem.Click += new System.EventHandler(this.selectPatternToolStripMenuItem_Click);
             // 
             // setPatternAsDefaultToolStripMenuItem
             // 
             this.setPatternAsDefaultToolStripMenuItem.Name = "setPatternAsDefaultToolStripMenuItem";
-            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.setPatternAsDefaultToolStripMenuItem.Text = "Set Pattern As Default";
             this.setPatternAsDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternAsDefaultToolStripMenuItem_Click);
             // 
@@ -1452,7 +1462,7 @@
             this.pasteBasicOutlinesToolStripMenuItem,
             this.pasteTransformsToolStripMenuItem});
             this.setPatternFromDefaultToolStripMenuItem.Name = "setPatternFromDefaultToolStripMenuItem";
-            this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.setPatternFromDefaultToolStripMenuItem.Text = "Set Pattern From Default";
             // 
             // pasteFillToolStripMenuItem
@@ -1486,14 +1496,14 @@
             // editPatternToolStripMenuItem
             // 
             this.editPatternToolStripMenuItem.Name = "editPatternToolStripMenuItem";
-            this.editPatternToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.editPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.editPatternToolStripMenuItem.Text = "Edit Pattern";
             this.editPatternToolStripMenuItem.Click += new System.EventHandler(this.editPatternToolStripMenuItem_Click);
             // 
             // editRenderParametersToolStripMenuItem
             // 
             this.editRenderParametersToolStripMenuItem.Name = "editRenderParametersToolStripMenuItem";
-            this.editRenderParametersToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.editRenderParametersToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.editRenderParametersToolStripMenuItem.Text = "Edit Rendering Parameters";
             this.editRenderParametersToolStripMenuItem.Click += new System.EventHandler(this.editRenderParametersToolStripMenuItem_Click);
             // 
@@ -1501,7 +1511,7 @@
             // 
             this.editColorGradientToolStripMenuItem.CheckOnClick = true;
             this.editColorGradientToolStripMenuItem.Name = "editColorGradientToolStripMenuItem";
-            this.editColorGradientToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.editColorGradientToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.editColorGradientToolStripMenuItem.Text = "Edit Color Gradient";
             this.editColorGradientToolStripMenuItem.Click += new System.EventHandler(this.editColorGradientToolStripMenuItem_Click);
             // 
@@ -1514,7 +1524,7 @@
             this.recomputeRibbonPathToolStripMenuItem,
             this.flipToolStripMenuItem});
             this.ribbonToolStripMenuItem.Name = "ribbonToolStripMenuItem";
-            this.ribbonToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.ribbonToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.ribbonToolStripMenuItem.Text = "Ribbon";
             // 
             // scaleRibbonToolStripMenuItem
@@ -1573,7 +1583,7 @@
             // 
             this.moveTextureToolStripMenuItem.CheckOnClick = true;
             this.moveTextureToolStripMenuItem.Name = "moveTextureToolStripMenuItem";
-            this.moveTextureToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.moveTextureToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.moveTextureToolStripMenuItem.Text = "Move Texture";
             this.moveTextureToolStripMenuItem.Click += new System.EventHandler(this.moveTextureToolStripMenuItem_Click);
             // 
@@ -1598,7 +1608,7 @@
             this.equalizeToolStripMenuItem,
             this.showTileGridToolStripMenuItem});
             this.contextPatternToolStripMenuItem.Name = "contextPatternToolStripMenuItem";
-            this.contextPatternToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.contextPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.contextPatternToolStripMenuItem.Text = "Pattern";
             // 
             // addPatternToChoicesToolStripMenuItem
@@ -1833,7 +1843,7 @@
             this.fillPathToolStripMenuItem,
             this.showPathToolStripMenuItem});
             this.pathToolStripMenuItem.Name = "pathToolStripMenuItem";
-            this.pathToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.pathToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.pathToolStripMenuItem.Text = "Path";
             // 
             // fillPathToolStripMenuItem
@@ -1853,7 +1863,7 @@
             // setLogoPatternToolStripMenuItem
             // 
             this.setLogoPatternToolStripMenuItem.Name = "setLogoPatternToolStripMenuItem";
-            this.setLogoPatternToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.setLogoPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.setLogoPatternToolStripMenuItem.Text = "Set Logo Pattern";
             this.setLogoPatternToolStripMenuItem.Click += new System.EventHandler(this.setLogoPatternToolStripMenuItem_Click);
             // 
@@ -1861,21 +1871,21 @@
             // 
             this.limitSelectionToCenterToolStripMenuItem.CheckOnClick = true;
             this.limitSelectionToCenterToolStripMenuItem.Name = "limitSelectionToCenterToolStripMenuItem";
-            this.limitSelectionToCenterToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.limitSelectionToCenterToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.limitSelectionToCenterToolStripMenuItem.Text = "Limit Selection to Center";
             this.limitSelectionToCenterToolStripMenuItem.Click += new System.EventHandler(this.limitSelectionToCenterToolStripMenuItem_Click);
             // 
             // pasteDefaultPatternToolStripMenuItem
             // 
             this.pasteDefaultPatternToolStripMenuItem.Name = "pasteDefaultPatternToolStripMenuItem";
-            this.pasteDefaultPatternToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.pasteDefaultPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.pasteDefaultPatternToolStripMenuItem.Text = "Paste Default Pattern";
             this.pasteDefaultPatternToolStripMenuItem.Click += new System.EventHandler(this.pasteDefaultPatternToolStripMenuItem_Click);
             // 
             // pasteCopiedPatternsToolStripMenuItem
             // 
             this.pasteCopiedPatternsToolStripMenuItem.Name = "pasteCopiedPatternsToolStripMenuItem";
-            this.pasteCopiedPatternsToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.pasteCopiedPatternsToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.pasteCopiedPatternsToolStripMenuItem.Text = "Paste Copied Patterns";
             this.pasteCopiedPatternsToolStripMenuItem.Click += new System.EventHandler(this.pasteCopiedPatternsToolStripMenuItem_Click);
             // 
@@ -2017,13 +2027,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // testRandomToolStripMenuItem
+            // editRenderingRandomSettingsToolStripMenuItem
             // 
-            this.testRandomToolStripMenuItem.CheckOnClick = true;
-            this.testRandomToolStripMenuItem.Name = "testRandomToolStripMenuItem";
-            this.testRandomToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.testRandomToolStripMenuItem.Text = "Test Random";
-            this.testRandomToolStripMenuItem.Click += new System.EventHandler(this.testRandomToolStripMenuItem_Click);
+            this.editRenderingRandomSettingsToolStripMenuItem.Name = "editRenderingRandomSettingsToolStripMenuItem";
+            this.editRenderingRandomSettingsToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.editRenderingRandomSettingsToolStripMenuItem.Text = "Edit Rendering Random Settings";
+            this.editRenderingRandomSettingsToolStripMenuItem.Click += new System.EventHandler(this.editRenderingRandomSettingsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2269,6 +2278,7 @@
         private System.Windows.Forms.ToolStripMenuItem showDistanceInfluencePointsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testDistancePatternToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testRandomToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editRenderingRandomSettingsToolStripMenuItem;
     }
 }
 

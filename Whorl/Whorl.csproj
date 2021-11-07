@@ -155,6 +155,12 @@
     <Compile Include="FrmEditKeyEnumParameters.Designer.cs">
       <DependentUpon>FrmEditKeyEnumParameters.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmEditPointsRandomOps.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmEditPointsRandomOps.Designer.cs">
+      <DependentUpon>FrmEditPointsRandomOps.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmFormulaEntries.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -300,6 +306,7 @@
       <DependentUpon>PatternZOrderForm.cs</DependentUpon>
     </Compile>
     <Compile Include="PixelRenderInfo.cs" />
+    <Compile Include="PointsRandomOps.cs" />
     <Compile Include="PolarCoord.cs" />
     <Compile Include="PropertyAction.cs" />
     <Compile Include="PropertyActionAttribute.cs" />
@@ -385,6 +392,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmEditKeyEnumParameters.resx">
       <DependentUpon>FrmEditKeyEnumParameters.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmEditPointsRandomOps.resx">
+      <DependentUpon>FrmEditPointsRandomOps.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmFormulaEntries.resx">
       <DependentUpon>frmFormulaEntries.cs</DependentUpon>

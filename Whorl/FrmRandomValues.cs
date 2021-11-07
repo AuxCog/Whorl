@@ -47,8 +47,8 @@ namespace Whorl
                 sbErrors.AppendLine("Weight must be a non-negative number.");
             if (!float.TryParse(txtSmoothness.Text, out float smoothness))
                 smoothness = -1F;
-            if (smoothness <= 0F)
-                sbErrors.AppendLine("Smoothness must be a positive number.");
+            if (smoothness < 1F)
+                sbErrors.AppendLine("Smoothness must be a number >= 1.");
             if (sbErrors.Length == 0)
             {   //No input errors.
                 randomValues.Settings.Weight = weight;
@@ -56,7 +56,7 @@ namespace Whorl
                 randomValues.Settings.Closed = ChkClosed.Checked;
                 randomValues.Settings.ClipYValues = ChkClipValues.Checked;
                 if (chkReseedRandom.Checked)
-                    randomValues.Settings.ReseedRandom();
+                    randomValues.SetNewSeed();
             }
             else
             {   //Show error messages.

@@ -56,6 +56,7 @@
             this.autosampleForRecursionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.choosePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setPatternFromDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setPatternAsDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sizeRectangleToImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addPatternGroupToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -130,8 +131,6 @@
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -290,7 +289,9 @@
             this.label56 = new System.Windows.Forms.Label();
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
-            this.setPatternAsDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.BtnEditPatternLayerInMainForm = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -303,7 +304,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -318,6 +318,7 @@
             this.tabStringPattern.SuspendLayout();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
@@ -556,6 +557,13 @@
             this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
             this.setPatternFromDefaultToolStripMenuItem.Text = "Set Pattern From Default";
             this.setPatternFromDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternFromDefaultToolStripMenuItem_Click);
+            // 
+            // setPatternAsDefaultToolStripMenuItem
+            // 
+            this.setPatternAsDefaultToolStripMenuItem.Name = "setPatternAsDefaultToolStripMenuItem";
+            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setPatternAsDefaultToolStripMenuItem.Text = "Set Pattern As Default";
+            this.setPatternAsDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternAsDefaultToolStripMenuItem_Click);
             // 
             // sizeRectangleToImageToolStripMenuItem
             // 
@@ -1307,18 +1315,6 @@
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
             // 
-            // transformNameDataGridViewTextBoxColumn
-            // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
-            // 
             // tabRibbon
             // 
             this.tabRibbon.Controls.Add(this.chkRibbonLinearGradientPerSegment);
@@ -1744,6 +1740,7 @@
             // 
             // tabPatternLayers
             // 
+            this.tabPatternLayers.Controls.Add(this.BtnEditPatternLayerInMainForm);
             this.tabPatternLayers.Controls.Add(this.chkEditLayers);
             this.tabPatternLayers.Controls.Add(this.dgvLayers);
             this.tabPatternLayers.Location = new System.Drawing.Point(4, 22);
@@ -2877,12 +2874,27 @@
             this.chkSmoothedDraft.UseVisualStyleBackColor = true;
             this.chkSmoothedDraft.CheckedChanged += new System.EventHandler(this.chkSmoothedDraft_CheckedChanged);
             // 
-            // setPatternAsDefaultToolStripMenuItem
+            // transformNameDataGridViewTextBoxColumn
             // 
-            this.setPatternAsDefaultToolStripMenuItem.Name = "setPatternAsDefaultToolStripMenuItem";
-            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.setPatternAsDefaultToolStripMenuItem.Text = "Set Pattern As Default";
-            this.setPatternAsDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternAsDefaultToolStripMenuItem_Click);
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
+            // 
+            // BtnEditPatternLayerInMainForm
+            // 
+            this.BtnEditPatternLayerInMainForm.Location = new System.Drawing.Point(211, 36);
+            this.BtnEditPatternLayerInMainForm.Name = "BtnEditPatternLayerInMainForm";
+            this.BtnEditPatternLayerInMainForm.Size = new System.Drawing.Size(105, 23);
+            this.BtnEditPatternLayerInMainForm.TabIndex = 46;
+            this.BtnEditPatternLayerInMainForm.Text = "Edit in Main Form";
+            this.BtnEditPatternLayerInMainForm.UseVisualStyleBackColor = true;
+            this.BtnEditPatternLayerInMainForm.Click += new System.EventHandler(this.BtnEditPatternLayerInMainForm_Click);
             // 
             // PatternForm
             // 
@@ -2942,7 +2954,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -2966,6 +2977,7 @@
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3234,5 +3246,6 @@
         private System.Windows.Forms.ToolStripMenuItem viewInfluencePointsToolStripMenuItem;
         private System.Windows.Forms.Button btnEditTransformInMainForm;
         private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
+        private System.Windows.Forms.Button BtnEditPatternLayerInMainForm;
     }
 }

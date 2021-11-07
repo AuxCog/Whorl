@@ -800,6 +800,7 @@ namespace Whorl
             private InfoExt Info { get; }
             public PointF PanXY { get; set; }
             public float ZoomFactor { get; set; } = 1F;
+            public PointsRandomOps PointsRandomOps { get; set; }
             private PointF transformedPanXY;
             private Size boundsSize;
             private uint[] boundsBitmap;
@@ -1776,6 +1777,10 @@ namespace Whorl
                         FormulaSettings.InfluenceLinkParentCollection.ToXml(node, xmlTools);
                     }
                 }
+                if (PointsRandomOps != null)
+                {
+                    PointsRandomOps.ToXml(node, xmlTools);
+                }
                 return xmlTools.AppendToParent(parentNode, node);
             }
 
@@ -1805,6 +1810,9 @@ namespace Whorl
                             break;
                         case "DistancePatternInfo":
                             distancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design, ParentPattern, childNode));
+                            break;
+                        case nameof(PointsRandomOps):
+                            PointsRandomOps = new PointsRandomOps(childNode);
                             break;
                         case "SeedPattern":
                             var seedPattern = Pattern.CreatePatternFromXml(ParentPattern.Design, childNode.FirstChild,

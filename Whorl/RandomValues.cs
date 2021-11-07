@@ -27,13 +27,12 @@ namespace Whorl
         {
             public const int DefaultXLength = 500;
 
-            public int? RandomSeed { get; private set; }
+            public int? RandomSeed { get; set; }
             public int XLength { get; set; } = DefaultXLength;
             public float Weight { get; set; }
             public float Smoothness { get; set; } = 20F;
             public bool ClipYValues { get; set; } = true;
             public bool Closed { get; set; } = true;
-            public bool SaveRandomSeed { get; set; } = true;
             public RandomDomainTypes DomainType { get; set; } = RandomDomainTypes.Angle;
             public int? ReferenceXLength { get; set; }
 
@@ -46,42 +45,37 @@ namespace Whorl
                 Tools.CopyProperties(this, source);
             }
 
-            public void ReseedRandom()
-            {
-                RandomSeed = GetNewSeed();
-            }
-
             public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
             {
                 if (xmlNodeName == null)
                     xmlNodeName = nameof(RandomSettings);
                 XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-                string[] excludedProperties = SaveRandomSeed ? new string[] { } : new string[] { nameof(RandomSeed) };
-                xmlTools.AppendXmlAttributesExcept(xmlNode, this, excludedProperties);
+                xmlTools.AppendAllXmlAttributes(xmlNode, this);
                 return xmlTools.AppendToParent(parentNode, xmlNode);
             }
 
             public void FromXml(XmlNode node)
             {
-                Tools.GetXmlAttributesExcept(this, node);
+                Tools.GetAllXmlAttributes(this, node);
             }
-
         }
 
         public RandomSettings Settings { get; }
-        public RandomOps RandomOps { get; } = new RandomOps();
+        private RandomOps randomOps { get; }
 
         public RandomValues(bool setNewSeed = true)
         {
+            randomOps = new RandomOps();
             Settings = new RandomSettings();
             if (setNewSeed)
             {
-                Settings.ReseedRandom();
+                SetNewSeed();
             }
         }
 
         public RandomValues(RandomValues source)
         {
+            randomOps = new RandomOps(source.randomOps);
             Settings = new RandomSettings(source.Settings);
             if (source.YValues != null)
             {
@@ -99,9 +93,15 @@ namespace Whorl
             FromXml(xmlNode);
         }
 
+        public void SetNewSeed()
+        {
+            randomOps.SetNewSeed();
+            Settings.RandomSeed = randomOps.RandomSeed;
+        }
+
         public void ResetSeed()
         {
-            RandomOps.SetRandomSeed(Settings.RandomSeed, reset: true);
+            randomOps.SetRandomSeed(Settings.RandomSeed, reset: true);
         }
 
         public void ClearValues()
@@ -109,17 +109,18 @@ namespace Whorl
             YValues = null;
             XValues = null;
             FittedPoints = null;
+            CurrentXValue = MinXValue = MaxXValue = 0F;
         }
 
         public void ComputeRandomValues()
         {
-            RandomOps.SetRandomSeed(Settings.RandomSeed);
+            randomOps.SetRandomSeed(Settings.RandomSeed);
             float smoothness = Settings.Smoothness;
             if (Settings.ReferenceXLength != null)
             {
                 smoothness *= (float)Settings.XLength / (float)Settings.ReferenceXLength;
             }    
-            YValues = RandomOps.ComputeYValues(out float[] xVals, out PointF[] points, Settings.Weight, Settings.XLength,
+            YValues = randomOps.ComputeYValues(out float[] xVals, out PointF[] points, Settings.Weight, Settings.XLength,
                                                smoothness, Settings.Closed, Settings.ClipYValues);
             XValues = xVals;
             FittedPoints = points;
@@ -130,11 +131,6 @@ namespace Whorl
             }
             else
                 MinXValue = MaxXValue = 0F;
-        }
-
-        public static int GetNewSeed()
-        {
-            return Environment.TickCount;
         }
 
         public float GetYValue()
@@ -191,6 +187,7 @@ namespace Whorl
                     throw new Exception($"Invalid XmlNode named {childNode.Name}.");
                 }
             }
+            ResetSeed();
         }
 
         //public bool Disposed { get; private set; }

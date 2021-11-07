@@ -711,7 +711,7 @@ namespace Whorl
                 RandomValues randomValues = GetRandomValues();
                 if (randomValues != null)
                 {
-                    randomValues.Settings.ReseedRandom();
+                    randomValues.SetNewSeed();
                 }
             }
             catch (Exception ex)

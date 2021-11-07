@@ -211,8 +211,7 @@ namespace Whorl
                 waveColors = new List<Color>();
                 if (positions.Count == 0)
                     return;
-                //if (!keepRandomSeed)
-                //    WaveRandomGenerator.ReseedRandom();
+                WaveRandomGenerator.ResetRandom();
                 Random random = WaveRandomGenerator.Random;
                 float[] newPositions = new float[TranslucentCycles];
                 for (int i = 0; i < newPositions.Length; i++)

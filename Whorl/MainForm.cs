@@ -3901,8 +3901,19 @@ namespace Whorl
                     if (pattern.PixelRendering != null && pattern.PixelRendering.Enabled)
                         colorNodesParent = pattern.PixelRendering;
                     else
-                        colorNodesParent = pattern.PatternLayers.PatternLayers.Select(pl => pl.FillInfo)
-                                                  .Where(fi => fi is PathFillInfo).FirstOrDefault() as PathFillInfo;
+                    {
+                        colorNodesParent = null;
+                        var editedLayer = pattern.PatternLayers.GetEditedPatternLayer();
+                        if (editedLayer != null)
+                        {
+                            colorNodesParent = editedLayer.FillInfo as PathFillInfo;
+                        }
+                        if (colorNodesParent == null)
+                        {
+                            colorNodesParent = pattern.PatternLayers.PatternLayers.Select(pl => pl.FillInfo)
+                                               .Select(fi => fi as PathFillInfo).Where(p => p != null).FirstOrDefault();
+                        }
+                    }
                     if (colorNodesParent != null)
                     {
                         editedGradientPattern = pattern;
@@ -7510,6 +7521,24 @@ namespace Whorl
             }
         }
 
+        private void editRenderingRandomSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Pattern pattern = FindTargetPattern(ptn => ptn.HasPixelRendering);
+                if (pattern == null) return;
+                using (var frm = new FrmEditPointsRandomOps())
+                {
+                    frm.Initialize(pattern.PixelRendering);
+                    frm.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         private void erasePictureToolStripMenuItem_Click(object sender, EventArgs e)
         {
             picDesign.Image = null;
@@ -7937,5 +7966,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

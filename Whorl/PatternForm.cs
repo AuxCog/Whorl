@@ -2847,6 +2847,8 @@ namespace Whorl
         //    }
         //}
 
+        private int currentLayerIndex { get; set; } = -1;
+
         private void dgvLayers_RowEnter(object sender, DataGridViewCellEventArgs e)
         {
             try
@@ -2869,6 +2871,7 @@ namespace Whorl
                     dRow[1] = layer;
                 }
                 editedLayer = layer;
+                currentLayerIndex = e.RowIndex;
             }
             catch (Exception ex)
             {
@@ -2912,8 +2915,9 @@ namespace Whorl
                 {
                     Pattern editedPattern = EditedPattern;
                     if (editedPattern != null)
-                        editedLayer =
-                            editedPattern.PatternLayers.PatternLayers.FirstOrDefault();
+                    {
+                        editedLayer = editedPattern.PatternLayers.PatternLayers.FirstOrDefault();
+                    }
                 }
                 else
                     editedLayer = null;
@@ -2923,6 +2927,27 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private void BtnEditPatternLayerInMainForm_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (currentLayerIndex == -1)
+                {
+                    MessageBox.Show("Please select a Pattern Layer first.");
+                    return;
+                }
+                if (editedLayers != null)
+                {
+                    editedLayers.EditedIndex = currentLayerIndex;
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
 
         PatternForm editRecursionPatternForm = null;
 
