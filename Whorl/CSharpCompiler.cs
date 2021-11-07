@@ -74,9 +74,9 @@ namespace Whorl
                                     .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi));
             }
 
-            public List<string> GetParameterKeys()
+            public List<ParamInfo> GetParamInfos()
             {
-                var keys = new List<string>();
+                var keys = new List<ParamInfo>();
                 if (ParamsObj != null)
                 {
                     foreach (var propertyInfo in GetParameterPropertyInfos())
@@ -87,11 +87,11 @@ namespace Whorl
                             if (oValue != null)
                             {
                                 var array = (Array)oValue;
-                                keys.AddRange(Enumerable.Range(1, array.Length).Select(i => $"{propertyInfo.Name}[{i}]"));
+                                keys.AddRange(Enumerable.Range(0, array.Length).Select(i => new ParamInfo(propertyInfo.Name, i)));
                             }
                         }
                         else
-                            keys.Add(propertyInfo.Name);
+                            keys.Add(new ParamInfo(propertyInfo.Name));
                     }
                 }
                 return keys;

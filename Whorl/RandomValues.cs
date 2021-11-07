@@ -56,7 +56,7 @@ namespace Whorl
 
             public void FromXml(XmlNode node)
             {
-                Tools.GetAllXmlAttributes(this, node);
+                Tools.GetXmlAttributesExcept(this, node, "SaveRandomSeed");
             }
         }
 
@@ -87,9 +87,8 @@ namespace Whorl
             }
         }
 
-        public RandomValues(XmlNode xmlNode)
+        public RandomValues(XmlNode xmlNode): this(setNewSeed: false)
         {
-            Settings = new RandomSettings();
             FromXml(xmlNode);
         }
 

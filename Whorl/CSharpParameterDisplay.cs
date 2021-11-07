@@ -313,7 +313,9 @@ namespace Whorl
                 txtBox.Leave += ParametersTextBox_Leave;
                 int txtWidth = critControlWidth;
                 ctl = txtBox;
-                if (propertyInfo != null && propertyInfo.PropertyType == typeof(double))
+                if (propertyInfo != null && 
+                    (propertyInfo.PropertyType == typeof(double) || 
+                     propertyInfo.PropertyType == typeof(double[])))
                 {
                     if (FnEditInfluenceLink != null)
                     {

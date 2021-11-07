@@ -7530,7 +7530,12 @@ namespace Whorl
                 using (var frm = new FrmEditPointsRandomOps())
                 {
                     frm.Initialize(pattern.PixelRendering);
-                    frm.ShowDialog();
+                    if (frm.ShowDialog() == DialogResult.OK)
+                    {
+                        Design.IsDirty = true;
+                        pattern.ClearRenderingCache();
+                        RedrawPatterns();
+                    }
                 }
             }
             catch (Exception ex)
@@ -7826,9 +7831,11 @@ namespace Whorl
             }
             using (var frm = new frmInfluenceLink())
             {
-                frm.Initialize(pattern, formulaSettings, parameterKey);
+                if (!frm.Initialize(pattern, formulaSettings, parameterKey))
+                    return false;
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
+                    Design.IsDirty = true;
                     pattern.ComputeSeedPoints();
                     pattern.ClearRenderingCache();
                     RedrawPatterns();

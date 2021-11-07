@@ -873,6 +873,10 @@ namespace Whorl
                             source.FormulaSettings.InfluenceLinkParentCollection.GetCopy(FormulaSettings, pattern);
                     }
                 }
+                if (source.PointsRandomOps != null)
+                {
+                    PointsRandomOps = new PointsRandomOps(source.PointsRandomOps);
+                }
             }
 
             //public RenderingInfo GetCopy()
@@ -1317,6 +1321,13 @@ namespace Whorl
 
             private void InitInfo()
             {
+                if (PointsRandomOps != null)
+                {
+                    PointsRandomOps.UnitScalePoint = new PointF(1F / boundsSize.Width, 1F / boundsSize.Height);
+                    PointsRandomOps.PanPoint = new PointF(0, 0);
+                    if (PointsRandomOps.RandomPoints == null)
+                        PointsRandomOps.ComputePoints();
+                }
                 if (Info.Normalize)
                 {
                     pointRotation = Info.Rotation;
@@ -1413,7 +1424,7 @@ namespace Whorl
                 if (Info.PolarTraversal)
                     success = TraversePolar(caller, patternPixels);
                 else
-                    success = TraverseRectangular(caller, patternPixels, 0, boundsSize.Height, 0);
+                    success = TraverseRectangular(caller, patternPixels);
                 if (success)
                 {
                     if (SmoothedDraft)
@@ -1510,10 +1521,10 @@ namespace Whorl
             //    return success;
             //}
 
-            private bool TraverseRectangular(IRenderCaller caller, int[] patternPixels, int yStart, int yMax, 
-                                             int pixInd)
+            private bool TraverseRectangular(IRenderCaller caller, int[] patternPixels)
             {
-                for (int y = yStart; y < yMax; y++)
+                int pixInd = 0;
+                for (int y = 0; y < boundsSize.Height; y++)
                 {
                     if (caller != null && caller.CancelRender)
                     {
@@ -1523,7 +1534,7 @@ namespace Whorl
                     positionAverage = 0D;
                     for (int x = 0; x < boundsSize.Width; x++)
                     {
-                        if (y == yMax - 1 && x == boundsSize.Width - 1)
+                        if (y == boundsSize.Height - 1 && x == boundsSize.Width - 1)
                         {
                             Info.SetPassType(PixelRenderInfo.PassTypes.LastPass);
                         }
@@ -1633,7 +1644,10 @@ namespace Whorl
                             SetDistancesToPaths(x, y);
                         if (influenceParentCollection != null)
                         {
-                            //var patternPoint = new DoublePoint((double)x - patternCenter.X, (double)y - patternCenter.Y);
+                            if (influenceParentCollection.HasPixelRandom)
+                            {
+                                influenceParentCollection.SetPointForRandom(new PointF(x, y));
+                            }
                             influenceParentCollection.SetParameterValues(patternPoint, forRendering: true);
                         }
                         position = ColorNodeList.NormalizePosition(GetPosition.Invoke());

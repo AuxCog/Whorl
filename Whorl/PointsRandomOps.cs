@@ -163,25 +163,10 @@ namespace Whorl
             if (xmlNodeName == null)
                 xmlNodeName = nameof(PointsRandomOps);
             var xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-            xmlTools.AppendXmlAttributesExcept(xmlNode, this, nameof(RandomPoints), nameof(PointRandomOps), nameof(ValueRandomOps));
+            xmlTools.AppendXmlAttributesExcept(xmlNode, this, 
+                     nameof(RandomPoints), nameof(PointRandomOps), nameof(ValueRandomOps), nameof(UnitScalePoint), nameof(PanPoint));
             PointRandomOps.ToXml(xmlNode, xmlTools, nameof(PointRandomOps));
             ValueRandomOps.ToXml(xmlNode, xmlTools, nameof(ValueRandomOps));
-            //if (RandomPoints != null)
-            //{
-            //    if (RandomPoints.GetLength(0) != HorizCount || RandomPoints.GetLength(1) != VertCount)
-            //        throw new Exception("RandomPoints is not of valid size.");
-            //    XmlNode pointsNode = xmlTools.CreateXmlNode(nameof(RandomPoints));
-            //    for (int yi = 0; yi < VertCount; yi++)
-            //    {
-            //        XmlNode rowPointsNode = xmlTools.CreateXmlNode("RandomPointsRow");
-            //        for (int xi = 0; xi < HorizCount; xi++)
-            //        {
-            //            RandomPoints[xi, yi].ToXml(rowPointsNode, xmlTools);
-            //        }
-            //        pointsNode.AppendChild(rowPointsNode);
-            //    }
-            //    xmlNode.AppendChild(pointsNode);
-            //}
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
 
@@ -198,23 +183,6 @@ namespace Whorl
                     case nameof(ValueRandomOps):
                         ValueRandomOps.FromXml(childNode);
                         break;
-                    //case nameof(RandomPoints):
-                        //RandomPoints = new RandomPoint[HorizCount, VertCount];
-                        //int yi = 0;
-                        //foreach (XmlNode rowPointsNode in childNode.ChildNodes)
-                        //{
-                        //    if (rowPointsNode.Name != "RandomPointsRow")
-                        //        throw new Exception($"Invalid XML row points node name: {childNode.Name}.");
-                        //    int xi = 0;
-                        //    foreach (XmlNode pointNode in rowPointsNode.ChildNodes)
-                        //    {
-                        //        var randomPoint = new RandomPoint(pointNode);
-                        //        RandomPoints[xi, yi] = randomPoint;
-                        //        xi++;
-                        //    }
-                        //    yi++;
-                        //}
-                        //break;
                     default:
                         throw new Exception($"Invalid XML node name: {childNode.Name}.");
                 }

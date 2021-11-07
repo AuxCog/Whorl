@@ -174,7 +174,8 @@ namespace Whorl
             }
             using (var frm = new frmInfluenceLink())
             {
-                frm.Initialize(pattern, formulaSettings, parameterKey);
+                if (!frm.Initialize(pattern, formulaSettings, parameterKey))
+                    return false;
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     PreviewChanges();

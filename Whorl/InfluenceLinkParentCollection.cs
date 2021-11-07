@@ -18,6 +18,10 @@ namespace Whorl
         //public PatternTransform PatternTransform { get; }
         public bool Enabled { get; private set; } = true;
         public bool IsCSharpFormula { get; private set; }
+        public double PixelRenderingRandomValue { get; set; }
+        public PointsRandomOps PointsRandomOps { get; set; }
+        public bool HasPixelRandom { get; private set; }
+
 
         //INFL Legacy
         //public List<BaseInfluenceLinkParent> BaseInfluenceLinkParents { get; } = new List<BaseInfluenceLinkParent>();
@@ -112,13 +116,31 @@ namespace Whorl
                 return null;
         }
 
+        public void SetPointForRandom(PointF point)
+        {
+            if (HasPixelRandom)
+            {
+                PixelRenderingRandomValue = PointsRandomOps.ComputeDistanceValue(point);
+            }
+        }
+
         public void Initialize()
         {
             if (Enabled)
             {
+                if (FormulaSettings.FormulaType == FormulaTypes.PixelRender &&
+                    ParentPattern.PixelRendering != null)
+                {
+                    PointsRandomOps = ParentPattern.PixelRendering.PointsRandomOps;
+                }
+                else
+                    PointsRandomOps = null;
+                HasPixelRandom = false;
                 foreach (var linkParent in GetLinkParents())
                 {
                     linkParent.Initialize();
+                    if (linkParent.RandomMode == BaseInfluenceLinkParent.RandomModes.PixelRendering)
+                        HasPixelRandom = true;
                 }
             }
         }
