@@ -614,6 +614,12 @@ namespace Whorl
                 {
                     PointF pCenter = new PointF(center.X - parent.Center.X,
                                                 center.Y - parent.Center.Y);
+                    if (parent.ZVector != OrigZVector)
+                    {
+                        Complex zScale = OrigZVector / parent.ZVector;
+                        PointF pScale = new PointF((float)zScale.Re, (float)zScale.Im);
+                        pCenter = Tools.RotatePoint(pCenter, pScale);  //Also scales pCenter.
+                    }
                     //PointF pScale = new PointF((float)zScale.Re, (float)zScale.Im);
                     //pCenter = Tools.RotatePoint(pCenter, pScale);  //Also scales pCenter.
                     distancePattern.Center = pCenter;
@@ -1161,12 +1167,13 @@ namespace Whorl
                             {
                                 distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
                             }
+                            distPtn.Center = new PointF(distPtn.Center.X - BoundsRect.Left, distPtn.Center.Y - BoundsRect.Top);
                             distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
                             distanceInfo.DistancePatternCenter = distPtn.Center;
                             distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
-                            PointF[] points = distPtn.CurvePoints.Select(
-                                              p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
-                            InitDistanceSquares(i, points);
+                            //PointF[] points = distPtn.CurvePoints.Select(
+                            //                  p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
+                            InitDistanceSquares(i, distPtn.CurvePoints);
                         }
                     }
                 }
@@ -1304,6 +1311,9 @@ namespace Whorl
                         }
                     }
                 }
+                //For testing center:
+                //if (useFadeOut && modulus < 50)
+                //    minDist *= 10;
                 Info.SetDistanceToPath(index, distanceFactor * Math.Sqrt(minDist));
             }
 

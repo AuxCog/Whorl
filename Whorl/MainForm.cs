@@ -1477,16 +1477,15 @@ namespace Whorl
                                 if (pattern.UsesDistancePattern)
                                 {
                                     int index = 1;
-                                    bool showIndexes = pattern.PixelRendering.GetDistancePatternInfos().Count() > 1;
+                                    bool showIndexes = true;    //pattern.PixelRendering.GetDistancePatternInfos().Count() > 1;
                                     foreach (var info in pattern.PixelRendering.GetDistancePatternInfos())
                                     {
                                         Pattern distancePattern = info.GetDistancePattern(pattern);
                                         distancePattern.DrawSelectionOutline(e.Graphics);
                                         if (showIndexes)
                                         {
-                                            e.Graphics.DrawString(index.ToString(), this.Font, 
+                                            e.Graphics.DrawString((index++).ToString(), this.Font, 
                                                                   Brushes.Black, distancePattern.Center);
-                                            index++;
                                         }
                                         //Tools.DrawSquare(e.Graphics, Color.Red, info.DistancePatternCenter);
                                     }
@@ -2163,6 +2162,7 @@ namespace Whorl
             showInfluencePointsToolStripMenuItem.Checked = false;
             showDistanceInfluencePointsToolStripMenuItem.Checked = false;
             editInfluencePointsModeToolStripMenuItem.Checked = false;
+            ShowRenderingPanels(false);
         }
 
         private async Task OpenDesignFromXml(string fileName)
