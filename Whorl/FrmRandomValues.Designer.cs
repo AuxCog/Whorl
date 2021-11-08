@@ -38,6 +38,8 @@ namespace Whorl
             this.ChkClosed = new System.Windows.Forms.CheckBox();
             this.ChkClipValues = new System.Windows.Forms.CheckBox();
             this.chkReseedRandom = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.cboDomainType = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // btnCancel
@@ -71,7 +73,7 @@ namespace Whorl
             // 
             // txtWeight
             // 
-            this.txtWeight.Location = new System.Drawing.Point(85, 18);
+            this.txtWeight.Location = new System.Drawing.Point(95, 18);
             this.txtWeight.Name = "txtWeight";
             this.txtWeight.Size = new System.Drawing.Size(100, 20);
             this.txtWeight.TabIndex = 7;
@@ -79,7 +81,7 @@ namespace Whorl
             // 
             // txtSmoothness
             // 
-            this.txtSmoothness.Location = new System.Drawing.Point(85, 44);
+            this.txtSmoothness.Location = new System.Drawing.Point(95, 44);
             this.txtSmoothness.Name = "txtSmoothness";
             this.txtSmoothness.Size = new System.Drawing.Size(100, 20);
             this.txtSmoothness.TabIndex = 9;
@@ -97,7 +99,7 @@ namespace Whorl
             // ChkClosed
             // 
             this.ChkClosed.AutoSize = true;
-            this.ChkClosed.Location = new System.Drawing.Point(16, 81);
+            this.ChkClosed.Location = new System.Drawing.Point(16, 110);
             this.ChkClosed.Name = "ChkClosed";
             this.ChkClosed.Size = new System.Drawing.Size(136, 17);
             this.ChkClosed.TabIndex = 10;
@@ -107,7 +109,7 @@ namespace Whorl
             // ChkClipValues
             // 
             this.ChkClipValues.AutoSize = true;
-            this.ChkClipValues.Location = new System.Drawing.Point(16, 114);
+            this.ChkClipValues.Location = new System.Drawing.Point(178, 110);
             this.ChkClipValues.Name = "ChkClipValues";
             this.ChkClipValues.Size = new System.Drawing.Size(116, 17);
             this.ChkClipValues.TabIndex = 11;
@@ -117,18 +119,38 @@ namespace Whorl
             // chkReseedRandom
             // 
             this.chkReseedRandom.AutoSize = true;
-            this.chkReseedRandom.Location = new System.Drawing.Point(16, 146);
+            this.chkReseedRandom.Location = new System.Drawing.Point(16, 133);
             this.chkReseedRandom.Name = "chkReseedRandom";
             this.chkReseedRandom.Size = new System.Drawing.Size(106, 17);
             this.chkReseedRandom.TabIndex = 12;
             this.chkReseedRandom.Text = "Reseed Random";
             this.chkReseedRandom.UseVisualStyleBackColor = true;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(16, 76);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(73, 13);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "Domain Type:";
+            // 
+            // cboDomainType
+            // 
+            this.cboDomainType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDomainType.FormattingEnabled = true;
+            this.cboDomainType.Location = new System.Drawing.Point(95, 73);
+            this.cboDomainType.Name = "cboDomainType";
+            this.cboDomainType.Size = new System.Drawing.Size(125, 21);
+            this.cboDomainType.TabIndex = 14;
+            // 
             // FrmRandomValues
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(306, 177);
+            this.Controls.Add(this.cboDomainType);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.chkReseedRandom);
             this.Controls.Add(this.ChkClipValues);
             this.Controls.Add(this.ChkClosed);
@@ -140,6 +162,7 @@ namespace Whorl
             this.Controls.Add(this.btnOK);
             this.Name = "FrmRandomValues";
             this.Text = "Edit Random Settings";
+            this.Load += new System.EventHandler(this.FrmRandomValues_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -156,5 +179,7 @@ namespace Whorl
         private System.Windows.Forms.CheckBox ChkClosed;
         private System.Windows.Forms.CheckBox ChkClipValues;
         private System.Windows.Forms.CheckBox chkReseedRandom;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.ComboBox cboDomainType;
     }
 }

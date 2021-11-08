@@ -2385,9 +2385,21 @@ namespace Whorl
                 var influenceParent = transform.TransformSettings.InfluenceLinkParentCollection;
                 if (influenceParent != null)
                 {
+                    float randomX;
+                    if (influenceParent.GetRandomValues().Any(r => r.Settings.DomainType == RandomValues.RandomDomainTypes.X))
+                    {
+                        var pc = new PolarCoord((float)angle, (float)modulus);
+                        PointF rp = pc.ToRectangular();
+                        randomX = 0.5F * (1F + rp.X) * RandomValues.RandomSettings.DefaultXLength;
+                    }
+                    else
+                        randomX = 0;
                     foreach (RandomValues randomValues in influenceParent.GetRandomValues())
                     {
-                        randomValues.CurrentXValue = i;
+                        if (randomValues.Settings.DomainType == RandomValues.RandomDomainTypes.Angle)
+                            randomValues.CurrentXValue = i;
+                        else
+                            randomValues.CurrentXValue = randomX;
                     }
                     influenceParent.SetParameterValues(doublePoint, forRendering: false);
                 }

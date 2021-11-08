@@ -19,6 +19,19 @@ namespace Whorl
 
         private RandomValues randomValues { get; set; }
 
+        private void FrmRandomValues_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                cboDomainType.DataSource = Enum.GetValues(typeof(RandomValues.RandomDomainTypes));
+                cboDomainType.SelectedItem = randomValues.Settings.DomainType;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         public void Initialize(RandomValues randomValues)
         {
             try
@@ -55,6 +68,10 @@ namespace Whorl
                 randomValues.Settings.Smoothness = smoothness;
                 randomValues.Settings.Closed = ChkClosed.Checked;
                 randomValues.Settings.ClipYValues = ChkClipValues.Checked;
+                if (cboDomainType.SelectedItem is RandomValues.RandomDomainTypes)
+                {
+                    randomValues.Settings.DomainType = (RandomValues.RandomDomainTypes)cboDomainType.SelectedItem;
+                }
                 if (chkReseedRandom.Checked)
                     randomValues.SetNewSeed();
             }

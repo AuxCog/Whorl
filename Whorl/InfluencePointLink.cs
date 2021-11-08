@@ -194,6 +194,10 @@ namespace Whorl
                     if (RandomValues != null)
                     {
                         RandomMode = RandomModes.Transform;
+                        if (RandomValues.Settings.DomainType == RandomValues.RandomDomainTypes.Angle)
+                        {
+                            RandomValues.Settings.XLength = ParentCollection.ParentPattern.RotationSteps;
+                        }
                         RandomValues.ResetSeed();
                         RandomValues.ComputeRandomValues();
                     }

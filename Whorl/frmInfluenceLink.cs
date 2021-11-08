@@ -677,7 +677,7 @@ namespace Whorl
                 var randomValues = new RandomValues(setNewSeed: true);
                 if (randomValues.Settings.DomainType == RandomValues.RandomDomainTypes.Angle)
                 {
-                    randomValues.Settings.XLength = pattern.RotationSteps;
+                    //XLength is set to pattern.RotationSteps during Initialize.
                     randomValues.Settings.ReferenceXLength = Pattern.DefaultRotationSteps;
                 }
                 else

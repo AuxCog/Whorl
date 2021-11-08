@@ -128,8 +128,7 @@ namespace Whorl
         {
             if (Enabled)
             {
-                if (FormulaSettings.FormulaType == FormulaTypes.PixelRender &&
-                    ParentPattern.PixelRendering != null)
+                if (FormulaSettings.FormulaType == FormulaTypes.PixelRender && ParentPattern.PixelRendering != null)
                 {
                     PointsRandomOps = ParentPattern.PixelRendering.PointsRandomOps;
                 }
