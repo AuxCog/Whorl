@@ -4104,6 +4104,7 @@ namespace Whorl
                 }
                 else
                 {
+                    bool displayedParams = false;
                     Design.ReplacePatterns(patternGroup.PatternsList, ptnsCopy.PatternsList);
                     if (patternForm.EditedTransform != null)
                     {
@@ -4117,13 +4118,14 @@ namespace Whorl
                                 EditedFormulaSettings = transform.TransformSettings;
                                 editedKeyEnumParameters = null;
                                 EditParameters();
+                                displayedParams = true;
                             }
                         }
                     }
                     if (hasEditedPattern)
                     {
                         Design.EditedPattern = Design.EditedPattern.FindByKeyGuid(ptnsCopy.Patterns);
-                        if (Design.EditedPattern != null)
+                        if (Design.EditedPattern != null && !displayedParams)
                         {
                             if (editedKeyEnumParameters != null)
                             {
@@ -4133,24 +4135,24 @@ namespace Whorl
                                 {
                                     EditParameters();
                                     WriteStatus("Redisplayed parameters.");
+                                    displayedParams = true;
                                 }
                             }
-                            else if (Design.EditedPattern.HasPixelRendering && pnlParameters.Visible)
+                            if (!displayedParams && EditedFormulaSettings != null)
                             {
-                                AddRenderingControls(Design.EditedPattern);
-                            }
-                            else
-                            {
-                                if (EditedFormulaSettings != null)
-                                {
-                                    EditedFormulaSettings = EditedFormulaSettings.FindByKeyGuid(
-                                        Design.EditedPattern.GetFormulaSettings());
-                                }
+                                EditedFormulaSettings = EditedFormulaSettings.FindByKeyGuid(
+                                    Design.EditedPattern.GetFormulaSettings());
                                 if (EditedFormulaSettings != null && pnlParameters.Visible)
                                 {
                                     EditParameters();
                                     WriteStatus("Redisplayed parameters.");
+                                    displayedParams = true;
                                 }
+                            }
+                            if (!displayedParams && Design.EditedPattern.HasPixelRendering && pnlParameters.Visible)
+                            {
+                                AddRenderingControls(Design.EditedPattern);
+                                displayedParams = true;
                             }
                         }
                     }
