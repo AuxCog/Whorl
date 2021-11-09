@@ -191,7 +191,7 @@ namespace Whorl
             this.chkMultiply.Checked = true;
             this.chkMultiply.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkMultiply.Enabled = false;
-            this.chkMultiply.Location = new System.Drawing.Point(115, 183);
+            this.chkMultiply.Location = new System.Drawing.Point(115, 177);
             this.chkMultiply.Name = "chkMultiply";
             this.chkMultiply.Size = new System.Drawing.Size(94, 17);
             this.chkMultiply.TabIndex = 13;
@@ -325,13 +325,13 @@ namespace Whorl
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.pasteToolStripMenuItem.Text = "Paste";
             // 
             // frmInfluenceLink
