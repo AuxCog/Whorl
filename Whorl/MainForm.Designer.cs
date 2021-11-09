@@ -179,6 +179,7 @@
             this.pasteTransformsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editRenderParametersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editRenderingRandomSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editColorGradientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ribbonToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scaleRibbonToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -241,7 +242,7 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.editRenderingRandomSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.zoomInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -404,7 +405,8 @@
             this.fillImageWithDefaultPatternToolStripMenuItem,
             this.setSelectedPatternsFromDefaultToolStripMenuItem,
             this.setAllAllowRandomToolStripMenuItem,
-            this.redisplayAllPatternsToolStripMenuItem});
+            this.redisplayAllPatternsToolStripMenuItem,
+            this.zoomInfluencePointsToolStripMenuItem});
             this.patternToolStripMenuItem.Name = "patternToolStripMenuItem";
             this.patternToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
             this.patternToolStripMenuItem.Text = "Pattern";
@@ -1438,7 +1440,7 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 334);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1506,6 +1508,13 @@
             this.editRenderParametersToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.editRenderParametersToolStripMenuItem.Text = "Edit Rendering Parameters";
             this.editRenderParametersToolStripMenuItem.Click += new System.EventHandler(this.editRenderParametersToolStripMenuItem_Click);
+            // 
+            // editRenderingRandomSettingsToolStripMenuItem
+            // 
+            this.editRenderingRandomSettingsToolStripMenuItem.Name = "editRenderingRandomSettingsToolStripMenuItem";
+            this.editRenderingRandomSettingsToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.editRenderingRandomSettingsToolStripMenuItem.Text = "Edit Rendering Random Settings";
+            this.editRenderingRandomSettingsToolStripMenuItem.Click += new System.EventHandler(this.editRenderingRandomSettingsToolStripMenuItem_Click);
             // 
             // editColorGradientToolStripMenuItem
             // 
@@ -2027,12 +2036,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // editRenderingRandomSettingsToolStripMenuItem
+            // zoomInfluencePointsToolStripMenuItem
             // 
-            this.editRenderingRandomSettingsToolStripMenuItem.Name = "editRenderingRandomSettingsToolStripMenuItem";
-            this.editRenderingRandomSettingsToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
-            this.editRenderingRandomSettingsToolStripMenuItem.Text = "Edit Rendering Random Settings";
-            this.editRenderingRandomSettingsToolStripMenuItem.Click += new System.EventHandler(this.editRenderingRandomSettingsToolStripMenuItem_Click);
+            this.zoomInfluencePointsToolStripMenuItem.Name = "zoomInfluencePointsToolStripMenuItem";
+            this.zoomInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
+            this.zoomInfluencePointsToolStripMenuItem.Text = "Zoom Influence Points";
+            this.zoomInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.zoomInfluencePointsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2279,6 +2288,7 @@
         private System.Windows.Forms.ToolStripMenuItem testDistancePatternToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testRandomToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editRenderingRandomSettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem zoomInfluencePointsToolStripMenuItem;
     }
 }
 

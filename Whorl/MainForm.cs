@@ -7976,5 +7976,34 @@ namespace Whorl
             }
         }
 
+        private void zoomInfluencePointsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selectedPatterns = Design.DesignPatterns.Where(p => p.Selected);
+                if (!selectedPatterns.Any())
+                {
+                    MessageBox.Show("No selected patterns found.");
+                    return;
+                }
+                double factor;
+                using (var frm = new ZoomFactorForm())
+                {
+                    if (frm.ShowDialog() != DialogResult.OK)
+                        return;
+                    factor = frm.ZoomFactors.X;
+                }
+                var zFactor = new Complex(factor, 0);
+                foreach (Pattern pattern in selectedPatterns)
+                {
+                    pattern.InfluencePointInfoList.TransformInfluencePoints(zFactor);
+                }
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }
