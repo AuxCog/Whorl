@@ -60,6 +60,9 @@ namespace Whorl
         public double ValueWeight { get; set; }
         public double DistanceOffset { get; set; } = 0.005;
         public double DistancePower { get; set; } = 2.0;
+        public Func1Parameter<double> RandomFunction { get; set; }
+        public double InnerWeight { get; set; } = 1.0;
+        public double InnerOffset { get; set; }
 
         public PointF UnitScalePoint { get; set; }
         public PointF PanPoint { get; set; }
@@ -155,7 +158,10 @@ namespace Whorl
                     value += randomPoint.RandomValue / (DistanceOffset + distance);
                 }
             }
-            return ValueWeight * value / (VertCount * HorizCount);
+            value = value * InnerWeight / (VertCount * HorizCount) + InnerOffset;
+            if (RandomFunction != null)
+                value = RandomFunction.Function(value);
+            return ValueWeight * value;
         }
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
@@ -164,7 +170,8 @@ namespace Whorl
                 xmlNodeName = nameof(PointsRandomOps);
             var xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
             xmlTools.AppendXmlAttributesExcept(xmlNode, this, 
-                     nameof(RandomPoints), nameof(PointRandomOps), nameof(ValueRandomOps), nameof(UnitScalePoint), nameof(PanPoint));
+                     nameof(RandomPoints), nameof(PointRandomOps), nameof(ValueRandomOps), 
+                     nameof(UnitScalePoint), nameof(PanPoint), nameof(RandomFunction));
             PointRandomOps.ToXml(xmlNode, xmlTools, nameof(PointRandomOps));
             ValueRandomOps.ToXml(xmlNode, xmlTools, nameof(ValueRandomOps));
             return xmlTools.AppendToParent(parentNode, xmlNode);

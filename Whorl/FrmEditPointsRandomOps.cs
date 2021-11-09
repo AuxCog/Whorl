@@ -195,6 +195,8 @@ namespace Whorl
             txtValueWeight.Text = editedOps.ValueWeight.ToString("0.####");
             txtOffset.Text = (1000.0 * editedOps.DistanceOffset).ToString("0.####");
             txtPower.Text = editedOps.DistancePower.ToString("0.####");
+            txtInnerWeight.Text = editedOps.InnerWeight.ToString("0.####");
+            txtInnerOffset.Text = editedOps.InnerOffset.ToString("0.####");
         }
 
         private bool PopulateRandomOps(out bool createPoints)
@@ -236,6 +238,14 @@ namespace Whorl
             {
                 sbErrors.AppendLine("Distance Power must be a number.");
             }
+            if (!double.TryParse(txtInnerWeight.Text, out double innerWeight))
+            {
+                sbErrors.AppendLine("Inner Weight must be a number.");
+            }
+            if (!double.TryParse(txtInnerOffset.Text, out double innerOffset))
+            {
+                sbErrors.AppendLine("Inner Offset must be a number.");
+            }
             bool isValid = sbErrors.Length == 0;  //No errors.
             createPoints = editedOps.RandomPoints == null;
             if (isValid)
@@ -258,6 +268,8 @@ namespace Whorl
                 editedOps.ValueWeight = valueWeight;
                 editedOps.DistanceOffset = offset;
                 editedOps.DistancePower = power;
+                editedOps.InnerWeight = innerWeight;
+                editedOps.InnerOffset = innerOffset;
             }
             else
             {

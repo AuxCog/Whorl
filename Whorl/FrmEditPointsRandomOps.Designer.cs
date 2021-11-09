@@ -52,6 +52,10 @@ namespace Whorl
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copySettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.txtInnerOffset = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txtInnerWeight = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -180,7 +184,7 @@ namespace Whorl
             // 
             // BtnDisplay
             // 
-            this.BtnDisplay.Location = new System.Drawing.Point(36, 112);
+            this.BtnDisplay.Location = new System.Drawing.Point(36, 138);
             this.BtnDisplay.Name = "BtnDisplay";
             this.BtnDisplay.Size = new System.Drawing.Size(144, 23);
             this.BtnDisplay.TabIndex = 23;
@@ -193,9 +197,9 @@ namespace Whorl
             this.picDisplay.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.picDisplay.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.picDisplay.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.picDisplay.Location = new System.Drawing.Point(0, 142);
+            this.picDisplay.Location = new System.Drawing.Point(0, 167);
             this.picDisplay.Name = "picDisplay";
-            this.picDisplay.Size = new System.Drawing.Size(568, 402);
+            this.picDisplay.Size = new System.Drawing.Size(568, 377);
             this.picDisplay.TabIndex = 24;
             this.picDisplay.TabStop = false;
             this.picDisplay.Paint += new System.Windows.Forms.PaintEventHandler(this.picDisplay_Paint);
@@ -222,7 +226,7 @@ namespace Whorl
             // 
             // BtnDisplayPoints
             // 
-            this.BtnDisplayPoints.Location = new System.Drawing.Point(211, 112);
+            this.BtnDisplayPoints.Location = new System.Drawing.Point(211, 138);
             this.BtnDisplayPoints.Name = "BtnDisplayPoints";
             this.BtnDisplayPoints.Size = new System.Drawing.Size(144, 23);
             this.BtnDisplayPoints.TabIndex = 27;
@@ -252,22 +256,60 @@ namespace Whorl
             // copySettingsToolStripMenuItem
             // 
             this.copySettingsToolStripMenuItem.Name = "copySettingsToolStripMenuItem";
-            this.copySettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copySettingsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.copySettingsToolStripMenuItem.Text = "Copy Settings";
             this.copySettingsToolStripMenuItem.Click += new System.EventHandler(this.copySettingsToolStripMenuItem_Click);
             // 
             // pasteSettingsToolStripMenuItem
             // 
             this.pasteSettingsToolStripMenuItem.Name = "pasteSettingsToolStripMenuItem";
-            this.pasteSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteSettingsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.pasteSettingsToolStripMenuItem.Text = "Paste Settings";
             this.pasteSettingsToolStripMenuItem.Click += new System.EventHandler(this.pasteSettingsToolStripMenuItem_Click);
+            // 
+            // txtInnerOffset
+            // 
+            this.txtInnerOffset.Location = new System.Drawing.Point(299, 112);
+            this.txtInnerOffset.Name = "txtInnerOffset";
+            this.txtInnerOffset.Size = new System.Drawing.Size(56, 20);
+            this.txtInnerOffset.TabIndex = 32;
+            this.txtInnerOffset.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(228, 115);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(65, 13);
+            this.label7.TabIndex = 31;
+            this.label7.Text = "Inner Offset:";
+            // 
+            // txtInnerWeight
+            // 
+            this.txtInnerWeight.Location = new System.Drawing.Point(124, 112);
+            this.txtInnerWeight.Name = "txtInnerWeight";
+            this.txtInnerWeight.Size = new System.Drawing.Size(56, 20);
+            this.txtInnerWeight.TabIndex = 30;
+            this.txtInnerWeight.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(41, 115);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(71, 13);
+            this.label8.TabIndex = 29;
+            this.label8.Text = "Inner Weight:";
             // 
             // FrmEditPointsRandomOps
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 544);
+            this.Controls.Add(this.txtInnerOffset);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.txtInnerWeight);
+            this.Controls.Add(this.label8);
             this.Controls.Add(this.BtnDisplayPoints);
             this.Controls.Add(this.BtnReseedValues);
             this.Controls.Add(this.BtnReseedPoints);
@@ -324,5 +366,9 @@ namespace Whorl
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copySettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pasteSettingsToolStripMenuItem;
+        private System.Windows.Forms.TextBox txtInnerOffset;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtInnerWeight;
+        private System.Windows.Forms.Label label8;
     }
 }

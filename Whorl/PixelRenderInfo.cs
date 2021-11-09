@@ -21,7 +21,11 @@ namespace Whorl
             this.parent = parent;
         }
 
+        public bool FirstPass => PassType == PassTypes.FirstPass;
+        public bool LastPass => PassType == PassTypes.LastPass;
+
         private Pattern.RenderingInfo parent { get; }
+
         public float Position { get; set; }
         public double Rotation { get; set; }
         public bool PolarTraversal { get; set; }
@@ -33,8 +37,7 @@ namespace Whorl
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
         public double SegmentLength { get; set; } = 0;
-        public bool FirstPass => PassType == PassTypes.FirstPass;
-        public bool LastPass => PassType == PassTypes.LastPass;
+        public Func1Parameter<double> RandomFunction { get; set; }
 
         protected PassTypes PassType { get; set; }
         public double DistanceToPath { get; protected set; }

@@ -1333,6 +1333,7 @@ namespace Whorl
             {
                 if (PointsRandomOps != null)
                 {
+                    PointsRandomOps.RandomFunction = Info.RandomFunction;
                     PointsRandomOps.UnitScalePoint = new PointF(1F / boundsSize.Width, 1F / boundsSize.Height);
                     PointsRandomOps.PanPoint = new PointF(0, 0);
                     if (PointsRandomOps.RandomPoints == null)
@@ -1729,10 +1730,11 @@ namespace Whorl
                     Info.DistanceRows = 10;
                     Info.SegmentLength = 1.0;
                     Info.SetDistanceToPath(0D);
+                    Info.RandomFunction = null;
                     floatScaleFactor = 1F;
                     if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
                     {
-                        FormulaSettings.InitializeGlobals();
+                        FormulaSettings.InitializeGlobals(); //Calls C# formula's Initialize() method, which can set properties of Info object.
                         float maxSize = Math.Max(Info.BoundsSize.Width, Info.BoundsSize.Height);
                         if (Info.Normalize)
                         {
