@@ -63,6 +63,8 @@ namespace Whorl
         public Func1Parameter<double> RandomFunction { get; set; }
         public double InnerWeight { get; set; } = 1.0;
         public double InnerOffset { get; set; }
+        public bool TakeAbsolute { get; set; } = true;
+        public double OuterPower { get; set; } = 1.0;
 
         public PointF UnitScalePoint { get; set; }
         public PointF PanPoint { get; set; }
@@ -161,6 +163,10 @@ namespace Whorl
             value = value * InnerWeight / (VertCount * HorizCount) + InnerOffset;
             if (RandomFunction != null)
                 value = RandomFunction.Function(value);
+            if (TakeAbsolute)
+                value = Math.Abs(value);
+            if (OuterPower != 1.0)
+                value = Math.Pow(value, OuterPower);
             return ValueWeight * value;
         }
 

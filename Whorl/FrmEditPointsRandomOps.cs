@@ -75,7 +75,7 @@ namespace Whorl
         {
             try
             {
-                if (PopulateRandomOps(out _))
+                if (ComputePoints())
                 {
                     if (renderingInfo.PointsRandomOps != null)
                         renderingInfo.PointsRandomOps.ClearValues();
@@ -197,6 +197,8 @@ namespace Whorl
             txtPower.Text = editedOps.DistancePower.ToString("0.####");
             txtInnerWeight.Text = editedOps.InnerWeight.ToString("0.####");
             txtInnerOffset.Text = editedOps.InnerOffset.ToString("0.####");
+            txtOuterPower.Text = editedOps.OuterPower.ToString("0.####");
+            chkTakeAbsolute.Checked = editedOps.TakeAbsolute;
         }
 
         private bool PopulateRandomOps(out bool createPoints)
@@ -246,6 +248,10 @@ namespace Whorl
             {
                 sbErrors.AppendLine("Inner Offset must be a number.");
             }
+            if (!double.TryParse(txtOuterPower.Text, out double outerPower))
+            {
+                sbErrors.AppendLine("Outer Power must be a number.");
+            }
             bool isValid = sbErrors.Length == 0;  //No errors.
             createPoints = editedOps.RandomPoints == null;
             if (isValid)
@@ -270,6 +276,8 @@ namespace Whorl
                 editedOps.DistancePower = power;
                 editedOps.InnerWeight = innerWeight;
                 editedOps.InnerOffset = innerOffset;
+                editedOps.OuterPower = outerPower;
+                editedOps.TakeAbsolute = chkTakeAbsolute.Checked;
             }
             else
             {

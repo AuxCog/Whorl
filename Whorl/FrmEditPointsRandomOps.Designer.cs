@@ -56,6 +56,9 @@ namespace Whorl
             this.label7 = new System.Windows.Forms.Label();
             this.txtInnerWeight = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.txtOuterPower = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.chkTakeAbsolute = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -301,11 +304,41 @@ namespace Whorl
             this.label8.TabIndex = 29;
             this.label8.Text = "Inner Weight:";
             // 
+            // txtOuterPower
+            // 
+            this.txtOuterPower.Location = new System.Drawing.Point(454, 112);
+            this.txtOuterPower.Name = "txtOuterPower";
+            this.txtOuterPower.Size = new System.Drawing.Size(56, 20);
+            this.txtOuterPower.TabIndex = 34;
+            this.txtOuterPower.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(379, 115);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(69, 13);
+            this.label9.TabIndex = 33;
+            this.label9.Text = "Outer Power:";
+            // 
+            // chkTakeAbsolute
+            // 
+            this.chkTakeAbsolute.AutoSize = true;
+            this.chkTakeAbsolute.Location = new System.Drawing.Point(379, 88);
+            this.chkTakeAbsolute.Name = "chkTakeAbsolute";
+            this.chkTakeAbsolute.Size = new System.Drawing.Size(125, 17);
+            this.chkTakeAbsolute.TabIndex = 35;
+            this.chkTakeAbsolute.Text = "Take Absolute Value";
+            this.chkTakeAbsolute.UseVisualStyleBackColor = true;
+            // 
             // FrmEditPointsRandomOps
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(568, 544);
+            this.Controls.Add(this.chkTakeAbsolute);
+            this.Controls.Add(this.txtOuterPower);
+            this.Controls.Add(this.label9);
             this.Controls.Add(this.txtInnerOffset);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.txtInnerWeight);
@@ -370,5 +403,8 @@ namespace Whorl
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox txtInnerWeight;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox txtOuterPower;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.CheckBox chkTakeAbsolute;
     }
 }
