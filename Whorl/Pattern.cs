@@ -581,6 +581,7 @@ namespace Whorl
                 {
                     if (distancePattern == null)
                         throw new NullReferenceException("distancePattern == null");
+                    OrigZVector = parent.ZVector;
                     distancePattern = distancePattern.GetCopy();
                     distancePattern.ClearPixelRendering();
                     if (transform)
@@ -590,7 +591,6 @@ namespace Whorl
                     if (DistancePattern != null)
                         DistancePattern.Dispose();
                     DistancePattern = distancePattern;
-                    OrigZVector = parent.ZVector;
                     parent.ClearRenderingCache();
                 }
 
