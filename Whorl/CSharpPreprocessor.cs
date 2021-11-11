@@ -28,6 +28,7 @@ namespace Whorl
             Function,
             Enum,
             Params,
+            Instance,
             Influence,
             From,
             ArrayLength,
@@ -82,6 +83,7 @@ namespace Whorl
         {
             public string ParameterName { get; }
             public string TypeName { get; set; }
+            public List<string> InstancePropertyNames { get; set; }
             public int StartCharIndex { get; }
             public int EndCharIndex { get; set; }
             public string DecTypeName { get; protected set; }
@@ -201,9 +203,18 @@ namespace Whorl
                 args.Add(DefaultValue == null ? null : $"\"{DefaultValue}\"");
                 args.Add(MethodsClass == null ? null : $"typeof({MethodsClass.FullName})");
                 if (FunctionType == FunctionTypes.Normal)
+                {
                     args.Add(MathFunctionType == MathFunctionTypes.Normal ? null :
-                             $"{nameof(MathFunctionTypes)}.{MathFunctionType}");
-                string allArgs = string.Join(", ", args.Select(s => s ?? "null"));
+                                $"{nameof(MathFunctionTypes)}.{MathFunctionType}");
+                    args.Add(InstancePropertyNames == null ? null :
+                       "instances: new object[] { " + string.Join(", ", InstancePropertyNames) + "}");
+                }
+                int lastI = args.Count - 1;
+                while (lastI >= 0 && args[lastI] == null)
+                {
+                    lastI--;
+                }
+                string allArgs = string.Join(", ", args.Take(lastI + 1).Select(s => s ?? "null"));
                 Initializer = $"new {DecTypeName}({allArgs})";
             }
         }
@@ -1497,10 +1508,43 @@ $@"public void {methodName}()
             return true;
         }
 
+        private List<string> ParseInstancePropertyNames(ref int tokenIndex)
+        {
+            var propNames = new List<string>();
+            Token tok = GetToken(tokenIndex);
+            if (tok.Text != ":")
+            {
+                propNames.Add("this");
+                return propNames;
+            }
+            tokenIndex++;
+            while (true)
+            {
+                tok = GetToken(tokenIndex);
+                if (tok.TokenType == Token.TokenTypes.Identifier)
+                {
+                    propNames.Add(tok.Text);
+                    tokenIndex++;
+                }
+                else
+                {
+                    AddError(tok, "Expecting instance property name, following 'Instance:'.");
+                    return null;
+                }
+                tok = GetToken(tokenIndex);
+                if (tok.Text == ",")
+                    tokenIndex++;
+                else
+                    break;
+            }
+            return propNames;
+        }
+
         private bool ProcessParameterDec(ref int tokenIndex, Token directiveToken, Dictionary<string, ParamInfo> parametersDict)
         {
             ParamCategories paramCategory = ParamCategories.Scalar;
             ParamInfo paramInfo = null;
+            List<string> instancePropertyNames = null;
             int arrayLength = -1;
             string arrayLengthParamName = null;
             string typeName = null;
@@ -1527,9 +1571,11 @@ $@"public void {methodName}()
                 ReservedWords.Min,
                 ReservedWords.Max,
                 ReservedWords.Label,
-                ReservedWords.DistanceCount
+                ReservedWords.DistanceCount,
+                ReservedWords.Instance
             };
             int startCharIndex = directiveToken.CharIndex;
+            Token instanceToken = null;
             Token nameTok = GetToken(tokenIndex++);
             if (nameTok.TokenType != Token.TokenTypes.Identifier)
             {
@@ -1702,6 +1748,10 @@ $@"public void {methodName}()
                             label = stringToken.Value;
                         tokenIndex++;
                         break;
+                    case ReservedWords.Instance:
+                        instanceToken = tok;
+                        instancePropertyNames = ParseInstancePropertyNames(ref tokenIndex);
+                        break;
                 }
                 tok = GetToken(tokenIndex);
             }
@@ -1735,7 +1785,14 @@ $@"public void {methodName}()
                                 else
                                 {
                                     int endInd = tok.CharIndex;
-                                    initializer = sourceCode.Substring(startInd, endInd - startInd);
+                                    if (instancePropertyNames == null)
+                                    {
+                                        initializer = sourceCode.Substring(startInd, endInd - startInd);
+                                    }
+                                    else
+                                    {
+                                        AddError(tok, "Properties with Instance specified cannot have initializers.");
+                                    }
                                 }
                                 break;
                             }
@@ -1762,6 +1819,13 @@ $@"public void {methodName}()
                 isValid = false;
             if (!isValid)
                 AddError(tok, $"The token {tok.Text} is invalid here (expecting ';').");
+            if (paramCategory != ParamCategories.Function && instancePropertyNames != null)
+            {
+                if (instancePropertyNames.Count != 1)
+                    AddError(instanceToken, "Multiple instance properties are only allowed for Function parameters.");
+                if (instancePropertyNames.FirstOrDefault() == "this")
+                    AddError(instanceToken, "Instance property of 'this' is only allowed for Function parameters.");
+            }
             if (paramInfo == null)
                 paramInfo = new ParamInfo(nameTok.Text, typeName, startCharIndex, 
                                           initializer, defaultValue, paramCategory);
@@ -1774,10 +1838,11 @@ $@"public void {methodName}()
             paramInfo.Label = label;
             paramInfo.MinValue = minValue;
             paramInfo.MaxValue = maxValue;
+            paramInfo.InstancePropertyNames = instancePropertyNames;
             if (paramInfo.IsArray && paramCategory == ParamCategories.ArrayLength)
             {
                 AddError(nameTok, "ArrayLength parameters cannot be arrays.");
-                return false;
+                return false;   
             }
             paramInfo.Complete();
             bool success = ErrorMessages.Count == prevErrorCount;
@@ -1886,8 +1951,8 @@ $@"public void {methodName}()
         private FunctionParamInfo ParseFunctionParam(Token nameTok, ref int tokenIndex, string typeName,
                                                      Token directiveToken)
         {
-            var reservedWords = new HashSet<ReservedWords>()
-                { ReservedWords.From, ReservedWords.Params };
+            var reservedWords = new HashSet<ReservedWords>() { ReservedWords.From, ReservedWords.Params };
+
             Token defaultMethod = null, paramsTok = null;
             int paramsCount = 1;
             Type methodsClass = null;
@@ -2003,13 +2068,30 @@ $@"public void {methodName}()
             if (paramInfo.PreviousName != null)
                 sb.Append($"[ArrayBaseName(\"{paramInfo.PreviousName}\", {paramInfo.PreviousStartNumber})] ");
             sb.Append($"public {paramInfo.GetDecType()} {paramInfo.ParameterName} ");
-            if (paramInfo.IsArray)
-                sb.Append("{ get; private set; }");
-            else if (paramInfo.Category == ParamCategories.Scalar || paramInfo.Category == ParamCategories.ArrayLength)
-                //Parameters are set via reflection, and readonly for the Eval method.
-                sb.Append("{ get; private set; }");
+            bool hasSet = paramInfo.IsArray || paramInfo.Category == ParamCategories.Scalar || 
+                          paramInfo.Category == ParamCategories.ArrayLength || paramInfo.InstancePropertyNames != null;
+            if (hasSet)
+            {
+                if (paramInfo.InstancePropertyNames == null)
+                    sb.Append("{ get; private set; }");
+                else
+                {
+                    string propName = paramInfo.InstancePropertyNames.First();
+                    sb.Append($"{{ get => {propName}.{paramInfo.ParameterName};");
+                    sb.Append($" set => {propName}.{paramInfo.ParameterName} = value; }}");
+                }
+            }
             else
+            {
                 sb.Append("{ get; }");
+            }
+            //if (paramInfo.IsArray)
+            //    sb.Append("{ get; private set; }");
+            //else if (paramInfo.Category == ParamCategories.Scalar || paramInfo.Category == ParamCategories.ArrayLength)
+            //    //Parameters are set via reflection, and readonly for the Eval method.
+            //    sb.Append("{ get; private set; }");
+            //else
+            //    sb.Append("{ get; }");
             if (paramInfo.Initializer != null && !paramInfo.IsArray)
                 sb.Append($" = {paramInfo.Initializer};");
             return sb.ToString();
