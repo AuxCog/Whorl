@@ -129,7 +129,7 @@ namespace Whorl
             try
             {
                 foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties()
-                         .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi)))
+                         .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi, allowAllParams: false)))
                 {
                     var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
                     if (attr == null || attr.ParameterSource == ParameterSources.None)
@@ -283,6 +283,7 @@ namespace Whorl
                 controlTag = arrayInfo;
             else
                 controlTag = propertyInfo;
+            bool isNestedParamsParam = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             string selectedItem = null;
             var iOptionsParam = oParam as IOptionsParameter;
             if (iOptionsParam != null)
@@ -304,6 +305,12 @@ namespace Whorl
                 chk.Checked = (bool)oParam;
                 chk.CheckedChanged += ParametersCheckBox_CheckChanged;
                 ctl = chk;
+            }
+            else if (isNestedParamsParam)
+            {
+                var LnkEditNestedParams = new LinkLabel() { Text = "Edit..." };
+                ctl = LnkEditNestedParams;
+                LnkEditNestedParams.Click += LnkEditNestedParams_Click;
             }
             else
             {
@@ -359,6 +366,25 @@ namespace Whorl
             var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
             if (attr != null && !attr.Enabled)
                 ctl.Enabled = false;
+        }
+
+        private FrmNestedParameters frmNestedParameters { get; set; }
+
+        private void LnkEditNestedParams_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var linkLabel = (LinkLabel)sender;
+                var propertyInfo = (PropertyInfo)linkLabel.Tag;
+                if (frmNestedParameters == null || frmNestedParameters.IsDisposed)
+                    frmNestedParameters = new FrmNestedParameters();
+                frmNestedParameters.Initialize(propertyInfo, FormulaSettings, ParamChangedFn);
+                Tools.DisplayForm(frmNestedParameters);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         public override void RefreshComboBoxes()

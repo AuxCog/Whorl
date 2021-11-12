@@ -534,6 +534,7 @@ namespace Whorl
                     }
                 }
                 WhorlSettings.Instance.Save(ifChanged: true);
+                Application.Exit();
             }
             catch (Exception ex)
             {

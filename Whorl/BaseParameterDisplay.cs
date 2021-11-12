@@ -298,6 +298,8 @@ namespace Whorl
         public delegate void ParamChanged(object sender, ParameterChangedEventArgs e);
         public event ParamChanged ParameterChanged;
 
+        public ParamChanged ParamChangedFn { get; }
+
         public delegate void ActionSelectedDelegate(object sender, ParameterActionEventArgs e);
         public event ActionSelectedDelegate ActionSelected;
         public bool SingleColumn { get; }
@@ -322,6 +324,7 @@ namespace Whorl
             critControlWidth = controlWidth;
             critColumnWidth = controlWidth + critLeftMargin;
             ParametersPanel = pnlParameters;
+            ParamChangedFn = paramChangedFn;
             if (paramChangedFn != null)
                 ParameterChanged += paramChangedFn;
             if (actionSelectedFn != null)

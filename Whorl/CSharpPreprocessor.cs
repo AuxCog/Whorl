@@ -20,11 +20,13 @@ namespace Whorl
             Function,
             ArrayLength,
             Random,
-            InfluencePoint
+            InfluencePoint,
+            NestedParameters
         }
 
         public enum ReservedWords
         {
+            None,
             Function,
             Enum,
             Params,
@@ -56,7 +58,8 @@ namespace Whorl
             Label,
             DistanceCount,
             True,
-            False
+            False,
+            NestedParameters
         }
 
         private enum MethodNames
@@ -81,20 +84,34 @@ namespace Whorl
         private const string ParametersPropertyName = "Parms";
         private const string ParmsPropertyAttributeName = "ParmsProperty";
 
-        public class ParamInfo
+        public abstract class BaseParamInfo
         {
+            public ParamCategories Category { get; }
             public string ParameterName { get; }
             public string TypeName { get; set; }
             public int StartCharIndex { get; }
             public int EndCharIndex { get; set; }
-            public string DecTypeName { get; protected set; }
             public string Initializer { get; protected set; }
+            public string DecTypeName { get; protected set; }
+            public string Label { get; set; }
+
+            public BaseParamInfo(string name, string typeName, int startCharIndex, string initializer, 
+                                 ParamCategories category)
+            {
+                ParameterName = name;
+                TypeName = typeName ?? "double";
+                StartCharIndex = startCharIndex;
+                Initializer = initializer;
+                Category = category;
+            }
+        }
+
+        public class ParamInfo: BaseParamInfo
+        {
             public string DefaultValue { get; }
             public string MinValue { get; set; }
             public string MaxValue { get; set; }
             public string SetProperty { get; set; }
-            public string Label { get; set; }
-            public ParamCategories Category { get; }
             public int ArrayLength { get; set; } = -1;
             public string ArrayLengthParamName { get; set; }
             public ParameterSources ParameterSource { get; set; }
@@ -129,14 +146,10 @@ namespace Whorl
 
             public ParamInfo(string name, string typeName, int startCharIndex,
                              string initializer = null, string defaultValue = null,
-                             ParamCategories category = ParamCategories.Scalar)
+                             ParamCategories category = ParamCategories.Scalar):
+                   base(name, typeName, startCharIndex, initializer, category)
             {
-                ParameterName = name;
-                TypeName = typeName ?? "double";
-                StartCharIndex = startCharIndex;
-                Initializer = initializer;
                 DefaultValue = defaultValue;
-                Category = category;
             }
 
             public virtual void Complete()
@@ -225,6 +238,14 @@ namespace Whorl
             }
         }
 
+        private class NestedParamsParamInfo: BaseParamInfo
+        {
+            public NestedParamsParamInfo(string name, string typeName, int startCharIndex)
+                   : base(name, typeName, startCharIndex, initializer: null, ParamCategories.NestedParameters)
+            {
+            }
+        }
+
         public class ElemDecInfo
         {
             public enum ElemTypes
@@ -284,12 +305,12 @@ namespace Whorl
         private class ParamsClassInfo
         {
             public string ClassName { get; }
-            public Dictionary<string, ParamInfo> ParamsDict { get; }
+            public Dictionary<string, BaseParamInfo> ParamsDict { get; }
 
             public ParamsClassInfo(string className)
             {
                 ClassName = className;
-                ParamsDict = CreateDictionary<ParamInfo>();
+                ParamsDict = CreateDictionary<BaseParamInfo>();
             }
         }
 
@@ -320,7 +341,7 @@ namespace Whorl
         private Tokenizer tokenizer { get; }
         private Dictionary<string, ReservedWords> reservedWordsDict { get; }
         private Dictionary<string, FunctionTypes> functionTypesDict { get; }
-        public Dictionary<string, ParamInfo> ParamsDict { get; }
+        public Dictionary<string, BaseParamInfo> ParamsDict { get; }
         public Dictionary<string, ElemDecInfo> ElemDecsDict { get; }
         private Dictionary<string, Type> methodClassesDict { get; }
         //private Dictionary<ReservedWords, string> keptCodeDict { get; } = new Dictionary<ReservedWords, string>();
@@ -369,7 +390,7 @@ namespace Whorl
             //tokenizer.Initialize(tokenTrie, checkCommentChar: false, closeCommentText: "*/");
             reservedWordsDict = Tools.GetCaseInsensitiveEnumDictionary<ReservedWords>();
             functionTypesDict = Tools.GetCaseInsensitiveEnumDictionary<FunctionTypes>();
-            ParamsDict = CreateDictionary<ParamInfo>();
+            ParamsDict = CreateDictionary<BaseParamInfo>();
             //Case sensitive dictionary:
             ElemDecsDict = new Dictionary<string, ElemDecInfo>();
             methodClassesDict = CreateDictionary<Type>();
@@ -453,14 +474,14 @@ namespace Whorl
             int tokenIndex = 0;
             bool checkForMethod = true;
             bool foundParmsAttribute = false;
+            bool requireClassDec = false;
             var parameterRefClasses = new HashSet<string>();
             int bracketLevel = 0;
-            bool atKeyParameters = false;
-            var keyParamClassInfos = new List<ParamsClassInfo>();
-            ParamsClassInfo currentKeyParamClassInfo = null;
-            Token keyParamsToken = null;
-            string keyParamsClassName = null;
-            bool keyParamsError = false;
+            ReservedWords classDecDirectiveWord = ReservedWords.None;
+            //var keyParamClassInfos = new List<ParamsClassInfo>();
+            ParamsClassInfo currentParamClassInfo = null;
+            string className = null;
+            bool classDecError = false;
 
             while (tokenIndex < codeTokens.Count)
             {
@@ -468,8 +489,8 @@ namespace Whorl
                 Token tok = codeTokens[tokenIndex++];
                 if (IsCSharpReservedWord(tok, savedTokenIndex, "enum"))
                 {
-                    if (atKeyParameters)
-                        keyParamsError = true;
+                    if (requireClassDec)
+                        classDecError = true;
                     Token enumStartTok = tok;
                     if (savedTokenIndex > 0)
                     {
@@ -505,8 +526,8 @@ namespace Whorl
                 if (infoType != null && tok.TokenType == Token.TokenTypes.Identifier &&
                     tok.Text == "Info" && tokenIndex < codeTokens.Count - 1)
                 {
-                    if (atKeyParameters)
-                        keyParamsError = true;
+                    if (requireClassDec)
+                        classDecError = true;
                     if (codeTokens[tokenIndex].Text == ".")
                     {
                         Token identTok = codeTokens[tokenIndex + 1];
@@ -531,8 +552,8 @@ namespace Whorl
                                tok.TokenType == Token.TokenTypes.RightBracket;
                 if (handled)
                 {
-                    if (atKeyParameters)
-                        keyParamsError = true;
+                    if (requireClassDec)
+                        classDecError = true;
                     if (tok.TokenType == Token.TokenTypes.LeftBracket)
                     {
                         bracketLevel++;
@@ -551,8 +572,8 @@ namespace Whorl
                     if (tokenDirective != TokenDirectives.None)
                     {
                         handled = true;
-                        if (atKeyParameters)
-                            keyParamsError = true;
+                        if (requireClassDec)
+                            classDecError = true;
                         Token lastTok;
                         if (tokenDirective == TokenDirectives.EscapedChar)
                         {
@@ -573,17 +594,22 @@ namespace Whorl
                                 switch (tokenDirective)
                                 {
                                     case TokenDirectives.Directive:
-                                        isValid = ProcessDirective(ref tokenIndex, out atKeyParameters);
-                                        if (atKeyParameters)
+                                        isValid = ProcessDirective(ref tokenIndex, out ReservedWords directive);
+                                        if (directive == ReservedWords.KeyParameters || directive == ReservedWords.NestedParameters)
                                         {
-                                            keyParamsToken = tok;
-                                            keyParamsClassName = null;
-                                            keyParamsError = false;
+                                            classDecDirectiveWord = directive;
+                                            requireClassDec = true;
+                                            className = null;
+                                            classDecError = false;
+                                            if (classDecDirectiveWord == ReservedWords.NestedParameters)
+                                            {
+                                                newCodeParts.Add("[NestedParameters]");
+                                            }
                                         }
                                         break;
                                     case TokenDirectives.ParameterDec:
                                         isValid = ProcessParameterDec(ref tokenIndex, tok,
-                                                  currentKeyParamClassInfo != null ? currentKeyParamClassInfo.ParamsDict :  ParamsDict);
+                                                  currentParamClassInfo != null ? currentParamClassInfo.ParamsDict :  ParamsDict);
                                         break;
                                     case TokenDirectives.ParameterRef:
                                         isValid = ProcessParameterRef(ref tokenIndex);
@@ -605,36 +631,39 @@ namespace Whorl
                 if (!handled && bracketLevel == 0)
                 {
                     int tokInd = tokenIndex - 1;
-                    handled = ProcessNonDirectiveTokens(tok, ref tokInd, atKeyParameters, ref checkForMethod, 
+                    handled = ProcessNonDirectiveTokens(tok, ref tokInd, requireClassDec, ref checkForMethod, 
                                                         ref foundParmsAttribute, out ElementInfo poppedElemInfo,
-                                                        out keyParamsClassName);
+                                                        out className);
                     if (handled)
                     {
                         tokenIndex = tokInd + 1;
-                        if (atKeyParameters)
+                        if (requireClassDec)
                         {
-                            if (keyParamsClassName != null)
+                            if (className != null)
                             {
-                                atKeyParameters = false;
-                                currentKeyParamClassInfo = new ParamsClassInfo(keyParamsClassName);
-                                keyParamClassInfos.Add(currentKeyParamClassInfo);
+                                currentParamClassInfo = new ParamsClassInfo(className);
+                                //keyParamClassInfos.Add(currentKeyParamClassInfo);
+                                classDecDirectiveWord = ReservedWords.None;
+                                classDecError = false;
                             }
                             else
-                                keyParamsError = true;
+                                classDecError = true;
+                            requireClassDec = false;
                         }
                         if (poppedElemInfo != null && poppedElemInfo.ElementType == ElementTypes.Class)
                         {
-                            if (currentKeyParamClassInfo != null && currentKeyParamClassInfo.ClassName == poppedElemInfo.ElementName)
+                            if (currentParamClassInfo != null && currentParamClassInfo.ClassName == poppedElemInfo.ElementName)
                             {
-                                currentKeyParamClassInfo = null;
+                                currentParamClassInfo = null;
                             }
                         }
                     }
                 }
-                if (keyParamsError)
+                if (classDecError)
                 {
-                    AddError(tok, "Expecting: public class <className> following " + GetDirectiveText(ReservedWords.KeyParameters));
-                    atKeyParameters = keyParamsError = false;
+                    AddError(tok, "Expecting: public class <className> following " + GetDirectiveText(classDecDirectiveWord));
+                    classDecDirectiveWord = ReservedWords.None;
+                    classDecError = requireClassDec = false;
                 }
             }   //while (tokenIndex < codeTokens.Count)
             if (codeCharIndex < sourceCode.Length)
@@ -752,7 +781,7 @@ namespace Whorl
 
         private void AppendModuleCode(StringBuilder sb, string moduleCode,
                                       int startInd, int endInd,
-                                      List<ParamInfo> duplicateParamInfos)
+                                      List<BaseParamInfo> duplicateParamInfos)
         {
             int startI = startInd;
             foreach (ParamInfo dupParamInfo in duplicateParamInfos)
@@ -775,12 +804,11 @@ namespace Whorl
         {
             var insertDirectives = moduleProcessor.InsertDirectives;
             var mergeInfoList = new List<MergeInsertInfo>();
-            var duplicateParamInfos = new List<ParamInfo>();
+            var duplicateParamInfos = new List<BaseParamInfo>();
             foreach (var paramInfo in moduleProcessor.ParamsDict.Values)
             {
-                if (insertDirectives.Exists(
-                           dir => dir.StartCharIndex <= paramInfo.StartCharIndex &&
-                                  paramInfo.EndCharIndex <= dir.EndCharIndex))
+                if (insertDirectives.Exists(dir => dir.StartCharIndex <= paramInfo.StartCharIndex &&
+                                                   paramInfo.EndCharIndex <= dir.EndCharIndex))
                 {
                     if (ParamsDict.ContainsKey(paramInfo.ParameterName))
                     {
@@ -893,15 +921,15 @@ $@"public void {methodName}()
             return className;
         }
 
-        private bool ProcessNonDirectiveTokens(Token tok, ref int tokInd, bool atKeyParameters, ref bool checkForMethod, 
-                                               ref bool foundParmsAttribute, out ElementInfo poppedElemInfo, out string keyParamsClassName)
+        private bool ProcessNonDirectiveTokens(Token tok, ref int tokInd, bool getClassName, ref bool checkForMethod, 
+                                               ref bool foundParmsAttribute, out ElementInfo poppedElemInfo, out string className)
         {
             bool handled = true;
             Token startToken = null;
             Token accessToken = null;
             int accessTokenInd = -1;
             poppedElemInfo = null;
-            keyParamsClassName = null;
+            className = null;
             if (tok.TokenType == Token.TokenTypes.Other)
             {
                 if (tok.Text == "{")
@@ -1039,11 +1067,11 @@ $@"public void {methodName}()
                         if (!elemInfoStack.Any() || elemInfoStack.Peek().ElementType == 
                                                     ElementTypes.NameSpace)
                             currentBaseClassInfo = elemInfo;
-                        if (atKeyParameters)
+                        if (getClassName)
                         {
                             if (accessToken?.Text == "public")
                             {
-                                keyParamsClassName = elemInfo.ElementName;
+                                className = elemInfo.ElementName;
                             }
                             if (!elemInfoStack.Any() || elemInfoStack.Peek() != currentBaseClassInfo)
                             {
@@ -1205,104 +1233,6 @@ $@"public void {methodName}()
             return handled;
         }
 
-        private void ProcessParametersConstructor(ElementInfo paramsClassInfo)
-        {
-            var arrayParams = ParamsDict.Values.Where(pi => pi.IsArray);
-            var instanceFunctionParams = ParamsDict.Values
-                                         .Select(p => p as FunctionParamInfo)
-                                         .Where(p => p != null && p.InstancePropertyNames != null);
-            if (!(arrayParams.Any() || instanceFunctionParams.Any()))
-                return;
-            ElementInfo constructorInfo = elemInfoList.Find(
-                        ei => ei.ElementType == ElementTypes.Constructor && ei.Parent == paramsClassInfo);
-            int codePartsIndex = constructorInfo != null ? constructorInfo.CodePartsIndex : paramsClassInfo.CodePartsIndex;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            indentLevel = paramsClassInfo.Nesting;
-            if (constructorInfo == null)
-            {
-                AppendLine(sb, $"public {paramsClassInfo.ElementName}()");
-                OpenBrace(sb);
-            }
-            AppendLines(sb, instanceFunctionParams.Select(pi => $"{pi.ParameterName} = {pi.Initializer};"));
-            AppendLines(sb, arrayParams.Select(pi => $"{pi.ParameterName} = {pi.GetArrayInitializer()};"));
-            var distinctLens = arrayParams.Select(pi => pi.GetArrayLength()).Distinct();
-            foreach (string len in distinctLens)
-            {
-                var prms = arrayParams.Where(pi => pi.Initializer != null && pi.GetArrayLength() == len);
-                AppendLine(sb, $"for (int i = 0; i < {len}; i++)");
-                OpenBrace(sb);
-                foreach (ParamInfo prm in prms)
-                {
-                    AppendLine(sb, $"{prm.ParameterName}[i] = {prm.Initializer};");
-                }
-                CloseBrace(sb);
-            }
-            if (constructorInfo == null)
-            {
-                CloseBrace(sb);
-            }
-            newCodeParts.Insert(codePartsIndex, sb.ToString());
-            //newCodeParts.Insert(codePartsIndex, "/* " + sb.ToString() + " */");
-        }
-
-        private void ProcessUpdateMethod(ElementInfo paramsClassInfo)
-        {
-            const string methodName = "Update";
-            var arrayParams = ParamsDict.Values.Where(pi => pi.ArrayLengthParamName != null);
-            if (!arrayParams.Any())
-                return;
-            ElementInfo updateInfo = elemInfoList.Find(
-                        ei => ei.ElementType == ElementTypes.Method && ei.ElementName == methodName);
-            int codePartsIndex = updateInfo != null ? updateInfo.CodePartsIndex : paramsClassInfo.CodePartsIndex;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            indentLevel = paramsClassInfo.Nesting;
-            if (updateInfo == null)
-            {
-                AppendLine(sb, $"public void {methodName}()");
-                OpenBrace(sb);
-            }
-            AppendLine(sb, "int previousLength;");
-            var distinctLens = arrayParams.Select(pi => pi.ArrayLengthParamName).Distinct();
-            foreach (string len in distinctLens)
-            {
-                var prms = arrayParams.Where(pi => pi.ArrayLengthParamName == len);
-                var firstParm = prms.First();
-                AppendLine(sb, $"previousLength = {firstParm.ParameterName}.Length;");
-                AppendLine(sb, $"if ({len} != previousLength)");
-                OpenBrace(sb);
-                foreach (ParamInfo prm in prms)
-                {
-                    // WaveFreq = Tools.RedimArray(WaveFreq, WavesCount, 1.0);
-                    var args = new List<string>() { prm.ParameterName, len };
-                    if (prm.Initializer != null && prm.Category == ParamCategories.Scalar)
-                    {
-                        args.Add(prm.Initializer);
-                    }
-                    AppendLine(sb, $"{prm.ParameterName} = Tools.RedimArray({string.Join(", ", args)});");
-                }
-                prms = prms.Where(pi => pi.Category != ParamCategories.Scalar);
-                if (prms.Any())
-                {
-                    AppendLine(sb, $"for (int i = previousLength; i < {len}; i++)");
-                    OpenBrace(sb);
-                    foreach (ParamInfo prm in prms)
-                    {
-                        AppendLine(sb, $"{prm.ParameterName}[i] = {prm.Initializer};");
-                    }
-                    CloseBrace(sb);
-                }
-                CloseBrace(sb);
-            }
-            if (updateInfo == null)
-            {
-                CloseBrace(sb);
-            }
-            newCodeParts.Insert(codePartsIndex, sb.ToString());
-            //newCodeParts.Insert(codePartsIndex, "/* " + sb.ToString() + " */");
-        }
-
         private bool IsCSharpReservedWord(Token token, int tokenIndex, string word)
         {
             bool isReserved = false;
@@ -1383,15 +1313,15 @@ $@"public void {methodName}()
             return includeCode;
         }
 
-        private bool ProcessDirective(ref int tokenIndex, out bool atKeyParameters)
+        private bool ProcessDirective(ref int tokenIndex, out ReservedWords directive)
         {
             Token directiveToken = GetToken(tokenIndex - 1); //"@@" token.
             Token token = GetToken(tokenIndex);
-            bool isValid = atKeyParameters = false;
-            if (ParseReservedWord(token.Text, out ReservedWords directive,
-                                  vws => AddError(token, "Expecting " + Tools.GetEnglishPhrase(vws.Select(rw => GetDirectiveText(rw)))),
-                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters, 
-                                  ReservedWords.KeyEnum))
+            bool isValid = false;
+            if (ParseReservedWord(token.Text, out directive,
+                                  vws => AddError(token, "Expecting one of: " + string.Join(", ", vws.Select(rw => GetDirectiveText(rw)))),
+                                  ReservedWords.InsertStart, ReservedWords.InsertEnd, ReservedWords.KeyParameters,
+                                  ReservedWords.KeyEnum, ReservedWords.NestedParameters))
             {
                 tokenIndex++;
                 switch (directive)
@@ -1400,11 +1330,11 @@ $@"public void {methodName}()
                         if (this.insertDirectiveInfo != null)
                             AddError(token, $"Cannot nest {GetDirectiveText(ReservedWords.InsertStart)} directives.");
                         else
-                           isValid = ProcessInsertStart(ref tokenIndex);
+                            isValid = ProcessInsertStart(ref tokenIndex);
                         break;
                     case ReservedWords.InsertEnd:
                         if (this.insertDirectiveInfo == null)
-                            AddError(token, 
+                            AddError(token,
                                 $"No previous {GetDirectiveText(ReservedWords.InsertStart)} for {GetDirectiveText(ReservedWords.InsertEnd)}.");
                         else
                         {
@@ -1413,9 +1343,6 @@ $@"public void {methodName}()
                             this.insertDirectiveInfo = null;  //Was already added to list.
                             TryParseTokenText(ref tokenIndex, ";");  //Optional semicolon.
                         }
-                        break;
-                    case ReservedWords.KeyParameters:
-                        isValid = atKeyParameters = true;
                         break;
                     case ReservedWords.KeyEnum:
                         token = GetToken(tokenIndex++);
@@ -1463,10 +1390,6 @@ $@"public void {methodName}()
                         break;
                 }
             }
-            //else
-            //{
-            //    AddError(token, $"Expecting {GetDirectiveText(ReservedWords.InsertStart)} or {GetDirectiveText(ReservedWords.InsertEnd)}.");
-            //}
             return isValid;
         }
 
@@ -1550,7 +1473,7 @@ $@"public void {methodName}()
             return propNames;
         }
 
-        private bool ProcessParameterDec(ref int tokenIndex, Token directiveToken, Dictionary<string, ParamInfo> parametersDict)
+        private bool ProcessParameterDec(ref int tokenIndex, Token directiveToken, Dictionary<string, BaseParamInfo> parametersDict)
         {
             ParamCategories paramCategory = ParamCategories.Scalar;
             ParamInfo paramInfo = null;
@@ -1566,6 +1489,7 @@ $@"public void {methodName}()
             string setPropertyName = null;
             ParameterSources parameterSource = ParameterSources.None;
             bool isValid;
+            bool isNestedParamsParam = false;
             int previousStartNumber = 1;
             bool allowMinMax = true;
             bool allowArrayParam = parametersDict == ParamsDict;
@@ -1586,299 +1510,362 @@ $@"public void {methodName}()
             };
             int startCharIndex = directiveToken.CharIndex;
             Token nameTok = GetToken(tokenIndex++);
+            if (nameTok.Text == "@")
+            {
+                nameTok = GetToken(tokenIndex++);
+                if (!ParseReservedWord(nameTok.Text, out _, ReservedWords.NestedParameters))
+                {
+                    AddError(nameTok, "Expecting @NestedParamters.");
+                    return false;
+                }
+                isNestedParamsParam = true;
+                nameTok = GetToken(tokenIndex++);
+            }
             if (nameTok.TokenType != Token.TokenTypes.Identifier)
             {
                 AddError(nameTok, "Expecting name of parameter.");
                 return false;
             }
-            if (parametersDict.ContainsKey(nameTok.Text))
-            {
-                AddError(nameTok, $"{nameTok.Text} is a duplicate parameter name.");
-            }
+            string parameterName = nameTok.Text;
             Token tok = GetToken(tokenIndex);
-            if (tok.TokenType == Token.TokenTypes.LeftBracket)
+            if (isNestedParamsParam)
             {
-                if (!allowArrayParam)
-                {
-                    AddError(tok, "Key Parameter classes cannot have array parameters.");
-                }
-                allowMinMax = false;
-                tokenIndex++;
                 isValid = false;
-                tok = GetToken(tokenIndex++);
-                if (tok.TokenType == Token.TokenTypes.Number)
+                if (tok.Text == ":")
                 {
-                    if (int.TryParse(tok.Text, out arrayLength))
-                        isValid = true;
-                }
-                else if (tok.TokenType == Token.TokenTypes.Identifier)
-                {
-                    if (parametersDict.TryGetValue(tok.Text, out ParamInfo pInfo))
-                    {
-                        if (pInfo.Category == ParamCategories.ArrayLength)
-                        {
-                            arrayLengthParamName = pInfo.ParameterName;
-                            isValid = true;
-                        }
-                    }
-                    if (!isValid)
-                        AddError(tok, $"The ArrayLength parameter {tok.Text} is undefined.");
-                }
-                if (isValid)
-                {
+                    tokenIndex++;
                     tok = GetToken(tokenIndex++);
-                    if (tok.TokenType != Token.TokenTypes.RightBracket)
-                        isValid = false;
-                    else
+                    if (tok.TokenType == Token.TokenTypes.Identifier)
                     {
-                        tok = GetToken(tokenIndex);
-                        validWords.Remove(ReservedWords.ArrayLength);
+                        typeName = tok.Text;
+                        //tok = GetToken(tokenIndex++);
+                        isValid = true;
+                        //if (tok.Text == "=")
+                        //{
+                        //    tok = GetToken(tokenIndex++);
+                        //    if (tok.TokenType == Token.TokenTypes.Identifier)
+                        //    {
+                        //        initializer = tok.Text;
+                        //        isValid = true;
+                        //    }
+                        //}
                     }
                 }
                 if (!isValid)
                 {
-                    AddError(nameTok, "Invalid array declaration.");
-                    return false;
+                    AddError(nameTok, "Expecting <Name>: <NestedParametersClassname> = <NestedParametersObject>");
                 }
-                if (!allowArrayParam)
-                    return false;
             }
-            if (tok.Text == colon)
+            else
             {
-                tokenIndex++;
-                typeName = ParseType(ref tokenIndex, "Expecting type of parameter.");
-                if (typeName == null)
-                    return false;
-                tok = GetToken(tokenIndex);
-            }
-            isValid = true;
-            while (ParseReservedWordOption(tok.Text, out ReservedWords reservedWord, validWords))
-            {
-                tokenIndex++;
-                switch (reservedWord)
+                if (tok.TokenType == Token.TokenTypes.LeftBracket)
                 {
-                    case ReservedWords.ArrayLength:
-                    case ReservedWords.DistanceCount:
-                        if (typeName == null)
-                            typeName = "int";
-                        paramCategory = ParamCategories.ArrayLength;
-                        if (reservedWord == ReservedWords.DistanceCount)
-                            parameterSource = ParameterSources.DistanceCount;
-                        break;
-                    case ReservedWords.Previous:
-                        previousName = nameTok.Text;
-                        tok = GetToken(tokenIndex);
-                        if (tok.Text == ":")
+                    if (!allowArrayParam)
+                    {
+                        AddError(tok, "Other parameter classes cannot have array parameters.");
+                    }
+                    allowMinMax = false;
+                    tokenIndex++;
+                    isValid = false;
+                    tok = GetToken(tokenIndex++);
+                    if (tok.TokenType == Token.TokenTypes.Number)
+                    {
+                        if (int.TryParse(tok.Text, out arrayLength))
+                            isValid = true;
+                    }
+                    else if (tok.TokenType == Token.TokenTypes.Identifier)
+                    {
+                        if (parametersDict.TryGetValue(tok.Text, out BaseParamInfo pInfo))
                         {
-                            tok = GetToken(++tokenIndex);
-                            if (tok.TokenType == Token.TokenTypes.Identifier)
+                            if (pInfo.Category == ParamCategories.ArrayLength)
                             {
-                                previousName = tok.Text;
+                                arrayLengthParamName = pInfo.ParameterName;
+                                isValid = true;
+                            }
+                        }
+                        if (!isValid)
+                            AddError(tok, $"The ArrayLength parameter {tok.Text} is undefined.");
+                    }
+                    if (isValid)
+                    {
+                        tok = GetToken(tokenIndex++);
+                        if (tok.TokenType != Token.TokenTypes.RightBracket)
+                            isValid = false;
+                        else
+                        {
+                            tok = GetToken(tokenIndex);
+                            validWords.Remove(ReservedWords.ArrayLength);
+                        }
+                    }
+                    if (!isValid)
+                    {
+                        AddError(nameTok, "Invalid array declaration.");
+                        return false;
+                    }
+                    if (!allowArrayParam)
+                        return false;
+                }
+                if (tok.Text == colon)
+                {
+                    tokenIndex++;
+                    typeName = ParseType(ref tokenIndex, "Expecting type of parameter.");
+                    if (typeName == null)
+                        return false;
+                    tok = GetToken(tokenIndex);
+                }
+                isValid = true;
+                while (ParseReservedWordOption(tok.Text, out ReservedWords reservedWord, validWords))
+                {
+                    tokenIndex++;
+                    switch (reservedWord)
+                    {
+                        case ReservedWords.ArrayLength:
+                        case ReservedWords.DistanceCount:
+                            if (typeName == null)
+                                typeName = "int";
+                            paramCategory = ParamCategories.ArrayLength;
+                            if (reservedWord == ReservedWords.DistanceCount)
+                                parameterSource = ParameterSources.DistanceCount;
+                            break;
+                        case ReservedWords.Previous:
+                            previousName = parameterName;
+                            tok = GetToken(tokenIndex);
+                            if (tok.Text == ":")
+                            {
+                                tok = GetToken(++tokenIndex);
+                                if (tok.TokenType == Token.TokenTypes.Identifier)
+                                {
+                                    previousName = tok.Text;
+                                    tok = GetToken(++tokenIndex);
+                                }
+                                else
+                                {
+                                    AddError(tok, "Expecting an unquoted identifier for previous name.");
+                                    return false;
+                                }
+                            }
+                            if (ParseReservedWord(tok.Text, ReservedWords.Base0))
+                            {
+                                previousStartNumber = 0;
+                                tokenIndex++;
+                            }
+                            break;
+                        case ReservedWords.Enum:
+                        case ReservedWords.Function:
+                        case ReservedWords.Random:
+                        case ReservedWords.Influence:
+                            allowMinMax = false;
+                            validWords.RemoveWhere(w => w == ReservedWords.Enum ||
+                                                        w == ReservedWords.Function ||
+                                                        w == ReservedWords.Influence ||
+                                                        w == ReservedWords.Random);
+                            switch (reservedWord)
+                            {
+                                case ReservedWords.Enum:
+                                    isValid = typeName == null;
+                                    paramCategory = ParamCategories.Enumerated;
+                                    typeName = ParseType(ref tokenIndex, "Expecting enumerated type.");
+                                    if (typeName == null)
+                                        return false;
+                                    break;
+                                case ReservedWords.Function:
+                                    paramCategory = ParamCategories.Function;
+                                    paramInfo = ParseFunctionParam(nameTok, ref tokenIndex, typeName, directiveToken);
+                                    if (paramInfo == null)
+                                        return false;
+                                    break;
+                                case ReservedWords.Influence:
+                                    paramCategory = ParamCategories.InfluencePoint;
+                                    break;
+                                case ReservedWords.Random:
+                                    isValid = typeName == null;
+                                    paramCategory = ParamCategories.Random;
+                                    paramInfo = new ParamInfo(parameterName, null, startCharIndex, category: paramCategory);
+                                    break;
+                            }
+                            break;
+                        case ReservedWords.Min:
+                        case ReservedWords.Max:
+                            if (!GetSpecificToken(tokenIndex, out tok, "="))
+                                break;
+                            string sVal;
+                            tok = GetToken(++tokenIndex);
+                            if (tok.Text == "-")
+                            {
+                                sVal = "-";
                                 tok = GetToken(++tokenIndex);
                             }
                             else
+                                sVal = string.Empty;
+                            if (tok.TokenType == Token.TokenTypes.Number)
                             {
-                                AddError(tok, "Expecting an unquoted identifier for previous name.");
-                                return false;
+                                sVal += tok.Text;
+                                if (reservedWord == ReservedWords.Min)
+                                    minValue = sVal;
+                                else
+                                    maxValue = sVal;
+                                tokenIndex++;
                             }
-                        }
-                        if (ParseReservedWord(tok.Text, ReservedWords.Base0))
-                        {
-                            previousStartNumber = 0;
-                            tokenIndex++;
-                        }
-                        break;
-                    case ReservedWords.Enum:
-                    case ReservedWords.Function:
-                    case ReservedWords.Random:
-                    case ReservedWords.Influence:
-                        allowMinMax = false;
-                        validWords.RemoveWhere(w => w == ReservedWords.Enum || 
-                                                    w == ReservedWords.Function || 
-                                                    w == ReservedWords.Influence ||
-                                                    w == ReservedWords.Random);
-                        switch (reservedWord)
-                        {
-                            case ReservedWords.Enum:
-                                isValid = typeName == null;
-                                paramCategory = ParamCategories.Enumerated;
-                                typeName = ParseType(ref tokenIndex, "Expecting enumerated type.");
-                                if (typeName == null)
-                                    return false;
-                                break;
-                            case ReservedWords.Function:
-                                paramCategory = ParamCategories.Function;
-                                paramInfo = ParseFunctionParam(nameTok, ref tokenIndex, typeName, directiveToken);
-                                if (paramInfo == null)
-                                    return false;
-                                break;
-                            case ReservedWords.Influence:
-                                paramCategory = ParamCategories.InfluencePoint;
-                                break;
-                            case ReservedWords.Random:
-                                isValid = typeName == null;
-                                paramCategory = ParamCategories.Random;
-                                paramInfo = new ParamInfo(nameTok.Text, null, startCharIndex, category: paramCategory);
-                                break;
-                        }
-                        break;
-                    case ReservedWords.Min:
-                    case ReservedWords.Max:
-                        if (!GetSpecificToken(tokenIndex, out tok, "="))
-                            break;
-                        string sVal;
-                        tok = GetToken(++tokenIndex);
-                        if (tok.Text == "-")
-                        {
-                            sVal = "-";
-                            tok = GetToken(++tokenIndex);
-                        }
-                        else
-                            sVal = string.Empty;
-                        if (tok.TokenType == Token.TokenTypes.Number)
-                        {
-                            sVal += tok.Text;
-                            if (reservedWord == ReservedWords.Min)
-                                minValue = sVal;
                             else
-                                maxValue = sVal;
-                            tokenIndex++;
-                        }
-                        else
-                            AddError($"Expecting number for {reservedWord}.");
-                        break;
-                    case ReservedWords.Label:
-                        if (!GetSpecificToken(tokenIndex, out tok, "="))
+                                AddError($"Expecting number for {reservedWord}.");
                             break;
-                        var stringToken = GetToken(++tokenIndex) as StringToken;
-                        if (stringToken == null)
-                            AddError("Expecting quoted string for label.");
-                        else
-                            label = stringToken.Value;
-                        tokenIndex++;
-                        break;
-                    case ReservedWords.SetProperty:
-                        bool setPropertyValid = true;
-                        Token setPropertyTok = tok;
-                        tok = GetToken(tokenIndex++);
-                        setPropertyValid = tok.Text == ":";
-                        if (setPropertyValid)
-                        {
+                        case ReservedWords.Label:
+                            if (!GetSpecificToken(tokenIndex, out tok, "="))
+                                break;
+                            var stringToken = GetToken(++tokenIndex) as StringToken;
+                            if (stringToken == null)
+                                AddError("Expecting quoted string for label.");
+                            else
+                                label = stringToken.Value;
+                            tokenIndex++;
+                            break;
+                        case ReservedWords.SetProperty:
+                            bool setPropertyValid = true;
+                            Token setPropertyTok = tok;
                             tok = GetToken(tokenIndex++);
-                            setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
+                            setPropertyValid = tok.Text == ":";
                             if (setPropertyValid)
                             {
-                                string instanceName = tok.Text;
                                 tok = GetToken(tokenIndex++);
-                                setPropertyValid = tok.Text == ".";
+                                setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
                                 if (setPropertyValid)
                                 {
+                                    string instanceName = tok.Text;
                                     tok = GetToken(tokenIndex++);
-                                    setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
+                                    setPropertyValid = tok.Text == ".";
                                     if (setPropertyValid)
                                     {
-                                        setPropertyName = $"{instanceName}.{tok.Text}";
+                                        tok = GetToken(tokenIndex++);
+                                        setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
+                                        if (setPropertyValid)
+                                        {
+                                            setPropertyName = $"{instanceName}.{tok.Text}";
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if (!setPropertyValid)
-                        {
-                            AddError(setPropertyTok, "Expecting 'SetProperty: InstancePropertyName.PropertyName'.");
-                        }
-                        break;
-                }
-                tok = GetToken(tokenIndex);
-            }
-            if (!isValid)
-                AddError(tok, $"The token {tok.Text} is invalid here.");
-            else if (!allowMinMax && (minValue != null || maxValue != null))
-                AddError(nameTok, "Min or Max are invalid here.");
-            isValid = true;
-            if (tok.Text == "=")
-            {
-                if (paramInfo != null)
-                    isValid = false;
-                else
-                {
-                    tokenIndex++;
-                    if (paramCategory == ParamCategories.Enumerated)
-                    {
-                        defaultValue = ParseType(ref tokenIndex, "Expecting enumerated value.");
+                            if (!setPropertyValid)
+                            {
+                                AddError(setPropertyTok, "Expecting 'SetProperty: InstancePropertyName.PropertyName'.");
+                            }
+                            break;
                     }
+                    tok = GetToken(tokenIndex);
+                }
+                if (!isValid)
+                    AddError(tok, $"The token {tok.Text} is invalid here.");
+                else if (!allowMinMax && (minValue != null || maxValue != null))
+                    AddError(nameTok, "Min or Max are invalid here.");
+                isValid = true;
+                if (tok.Text == "=")
+                {
+                    if (paramInfo != null)
+                        isValid = false;
                     else
                     {
-                        //var initTokens = new List<Token>();
-                        int startInd = -1;
-                        while (tokenIndex < codeTokens.Count)
+                        tokenIndex++;
+                        if (paramCategory == ParamCategories.Enumerated)
                         {
-                            tok = codeTokens[tokenIndex];
-                            if (tok.Text == ";")
+                            defaultValue = ParseType(ref tokenIndex, "Expecting enumerated value.");
+                        }
+                        else
+                        {
+                            //var initTokens = new List<Token>();
+                            int startInd = -1;
+                            while (tokenIndex < codeTokens.Count)
                             {
-                                if (startInd == -1)
-                                    AddError(tok, "Expecting initializer expression.");
-                                else
+                                tok = codeTokens[tokenIndex];
+                                if (tok.Text == ";")
                                 {
-                                    int endInd = tok.CharIndex;
-                                    if (setPropertyName == null)
-                                    {
-                                        initializer = sourceCode.Substring(startInd, endInd - startInd);
-                                    }
+                                    if (startInd == -1)
+                                        AddError(tok, "Expecting initializer expression.");
                                     else
                                     {
-                                        AddError(tok, "Properties with SetProperty specified cannot have initializers.");
+                                        int endInd = tok.CharIndex;
+                                        if (setPropertyName == null)
+                                        {
+                                            initializer = sourceCode.Substring(startInd, endInd - startInd);
+                                        }
+                                        else
+                                        {
+                                            AddError(tok, "Properties with SetProperty specified cannot have initializers.");
+                                        }
                                     }
+                                    break;
                                 }
-                                break;
+                                else if (tok.TokenType == Token.TokenTypes.Custom ||
+                                         tok.TokenType == Token.TokenTypes.EndOfStream ||
+                                         tok.Text == "}")
+                                {
+                                    isValid = false;
+                                    break;
+                                }
+                                if (startInd == -1)
+                                    startInd = tok.CharIndex;
+                                //initTokens.Add(tok);
+                                tokenIndex++;
                             }
-                            else if (tok.TokenType == Token.TokenTypes.Custom ||
-                                     tok.TokenType == Token.TokenTypes.EndOfStream ||
-                                     tok.Text == "}")
-                            {
-                                isValid = false;
-                                break;
-                            }
-                            if (startInd == -1)
-                                startInd = tok.CharIndex;
-                            //initTokens.Add(tok);
-                            tokenIndex++;
+                            //initializer = string.Join(string.Empty, initTokens.Select(t => t.Text));
                         }
-                        //initializer = string.Join(string.Empty, initTokens.Select(t => t.Text));
                     }
                 }
             }
+            isValid = ErrorMessages.Count == prevErrorCount;
             tok = GetToken(tokenIndex);
             if (tok.Text == ";")
                 tokenIndex++;
-            else
-                isValid = false;
-            if (!isValid)
-                AddError(tok, $"The token {tok.Text} is invalid here (expecting ';').");
-            if (paramInfo == null)
-                paramInfo = new ParamInfo(nameTok.Text, typeName, startCharIndex, 
-                                          initializer, defaultValue, paramCategory);
-            paramInfo.EndCharIndex = tok.CharIndex + tok.Text.Length;
-            paramInfo.ArrayLength = arrayLength;
-            paramInfo.ArrayLengthParamName = arrayLengthParamName;
-            paramInfo.ParameterSource = parameterSource;
-            paramInfo.PreviousName = previousName;
-            paramInfo.PreviousStartNumber = previousStartNumber;
-            paramInfo.Label = label;
-            paramInfo.MinValue = minValue;
-            paramInfo.MaxValue = maxValue;
-            paramInfo.SetProperty = setPropertyName;
-            if (paramInfo.IsArray && paramCategory == ParamCategories.ArrayLength)
+            else if (isValid)
             {
-                AddError(nameTok, "ArrayLength parameters cannot be arrays.");
-                return false;   
+                isValid = false;
+                AddError(tok, $"The token {tok.Text} is invalid here (expecting ';').");
             }
-            paramInfo.Complete();
-            bool success = ErrorMessages.Count == prevErrorCount;
-            if (success)
-                parametersDict.Add(nameTok.Text, paramInfo);
-            string paramCode = GetParameterCode(paramInfo);
-            newCodeParts.Add(paramCode);
-            return success;
+            if (!isValid)
+                return false;
+            BaseParamInfo baseParamInfo;
+            string paramCode;
+            if (isNestedParamsParam)
+            {
+                var nestedParamsInfo = new NestedParamsParamInfo(parameterName, typeName, startCharIndex);
+                paramCode = GetParameterCode(nestedParamsInfo);
+                baseParamInfo = nestedParamsInfo;
+            }
+            else
+            {
+                if (paramInfo == null)
+                    paramInfo = new ParamInfo(parameterName, typeName, startCharIndex,
+                                              initializer, defaultValue, paramCategory);
+                paramInfo.ArrayLength = arrayLength;
+                paramInfo.ArrayLengthParamName = arrayLengthParamName;
+                paramInfo.ParameterSource = parameterSource;
+                paramInfo.PreviousName = previousName;
+                paramInfo.PreviousStartNumber = previousStartNumber;
+                paramInfo.Label = label;
+                paramInfo.MinValue = minValue;
+                paramInfo.MaxValue = maxValue;
+                paramInfo.SetProperty = setPropertyName;
+                if (paramInfo.IsArray && paramCategory == ParamCategories.ArrayLength)
+                {
+                    AddError(nameTok, "ArrayLength parameters cannot be arrays.");
+                    return false;
+                }
+                paramInfo.Complete();
+                paramCode = GetParameterCode(paramInfo);
+                baseParamInfo = paramInfo;
+            }
+            baseParamInfo.EndCharIndex = tok.CharIndex + tok.Text.Length;
+            if (ErrorMessages.Count == prevErrorCount)
+            {
+                newCodeParts.Add(paramCode);
+                if (parametersDict.ContainsKey(parameterName))
+                {
+                    AddError(nameTok, $"{parameterName} is a duplicate parameter name.");
+                }
+                else
+                {
+                    parametersDict.Add(parameterName, baseParamInfo);
+                }
+            }
+            return ErrorMessages.Count == prevErrorCount;
         }
 
         private string ParseType(ref int tokenIndex, string errMsg)
@@ -2100,8 +2087,13 @@ $@"public void {methodName}()
             };
         }
 
-        //[ParameterInfo(UpdateParametersOnChange = true)]
-        //[ArrayBaseName("Get", 0)]
+        private string GetParameterCode(NestedParamsParamInfo nestedParamsParam)
+        {
+            string className = nestedParamsParam.TypeName;
+            return "[NestedParameters] " +
+                   $"public {className} {nestedParamsParam.ParameterName} {{ get; }} = new {className}();";
+        }
+
         private string GetParameterCode(ParamInfo paramInfo)
         {
             StringBuilder sb = new StringBuilder();
@@ -2160,6 +2152,110 @@ $@"public void {methodName}()
             return sb.ToString();
         }
 
+        private void ProcessParametersConstructor(ElementInfo paramsClassInfo)
+        {
+            var arrayParams = GetParamInfos<ParamInfo>(ParamsDict.Values).Where(pi => pi.IsArray);
+            //var nestedParams = GetParamInfos<NestedParamsParamInfo>(ParamsDict.Values);
+            var instanceFunctionParams = GetParamInfos<FunctionParamInfo>(ParamsDict.Values)
+                                         .Where(p => p.InstancePropertyNames != null);
+            if (!(arrayParams.Any() || instanceFunctionParams.Any())) //|| nestedParams.Any()))
+                return;
+            ElementInfo constructorInfo = elemInfoList.Find(
+                        ei => ei.ElementType == ElementTypes.Constructor && ei.Parent == paramsClassInfo);
+            int codePartsIndex = constructorInfo != null ? constructorInfo.CodePartsIndex : paramsClassInfo.CodePartsIndex;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            indentLevel = paramsClassInfo.Nesting;
+            if (constructorInfo == null)
+            {
+                AppendLine(sb, $"public {paramsClassInfo.ElementName}()");
+                OpenBrace(sb);
+            }
+            //AppendLines(sb, nestedParams.Select(pi => $"{pi.ParameterName} = {pi.Initializer};"));
+            AppendLines(sb, instanceFunctionParams.Select(pi => $"{pi.ParameterName} = {pi.Initializer};"));
+            AppendLines(sb, arrayParams.Select(pi => $"{pi.ParameterName} = {pi.GetArrayInitializer()};"));
+            var distinctLens = arrayParams.Select(pi => pi.GetArrayLength()).Distinct();
+            foreach (string len in distinctLens)
+            {
+                var prms = arrayParams.Where(pi => pi.Initializer != null && pi.GetArrayLength() == len);
+                AppendLine(sb, $"for (int i = 0; i < {len}; i++)");
+                OpenBrace(sb);
+                foreach (ParamInfo prm in prms)
+                {
+                    AppendLine(sb, $"{prm.ParameterName}[i] = {prm.Initializer};");
+                }
+                CloseBrace(sb);
+            }
+            if (constructorInfo == null)
+            {
+                CloseBrace(sb);
+            }
+            newCodeParts.Insert(codePartsIndex, sb.ToString());
+            //newCodeParts.Insert(codePartsIndex, "/* " + sb.ToString() + " */");
+        }
+
+        private IEnumerable<T> GetParamInfos<T>(IEnumerable<BaseParamInfo> baseParamInfos) where T : BaseParamInfo
+        {
+            return baseParamInfos.Select(p => p as T).Where(p => p != null);
+        }
+
+        private void ProcessUpdateMethod(ElementInfo paramsClassInfo)
+        {
+            const string methodName = "Update";
+            var arrayParams = GetParamInfos<ParamInfo>(ParamsDict.Values).Where(pi => pi.ArrayLengthParamName != null);
+            if (!arrayParams.Any())
+                return;
+            ElementInfo updateInfo = elemInfoList.Find(
+                        ei => ei.ElementType == ElementTypes.Method && ei.ElementName == methodName);
+            int codePartsIndex = updateInfo != null ? updateInfo.CodePartsIndex : paramsClassInfo.CodePartsIndex;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            indentLevel = paramsClassInfo.Nesting;
+            if (updateInfo == null)
+            {
+                AppendLine(sb, $"public void {methodName}()");
+                OpenBrace(sb);
+            }
+            AppendLine(sb, "int previousLength;");
+            var distinctLens = arrayParams.Select(pi => pi.ArrayLengthParamName).Distinct();
+            foreach (string len in distinctLens)
+            {
+                var prms = arrayParams.Where(pi => pi.ArrayLengthParamName == len);
+                var firstParm = prms.First();
+                AppendLine(sb, $"previousLength = {firstParm.ParameterName}.Length;");
+                AppendLine(sb, $"if ({len} != previousLength)");
+                OpenBrace(sb);
+                foreach (ParamInfo prm in prms)
+                {
+                    // WaveFreq = Tools.RedimArray(WaveFreq, WavesCount, 1.0);
+                    var args = new List<string>() { prm.ParameterName, len };
+                    if (prm.Initializer != null && prm.Category == ParamCategories.Scalar)
+                    {
+                        args.Add(prm.Initializer);
+                    }
+                    AppendLine(sb, $"{prm.ParameterName} = Tools.RedimArray({string.Join(", ", args)});");
+                }
+                prms = prms.Where(pi => pi.Category != ParamCategories.Scalar);
+                if (prms.Any())
+                {
+                    AppendLine(sb, $"for (int i = previousLength; i < {len}; i++)");
+                    OpenBrace(sb);
+                    foreach (ParamInfo prm in prms)
+                    {
+                        AppendLine(sb, $"{prm.ParameterName}[i] = {prm.Initializer};");
+                    }
+                    CloseBrace(sb);
+                }
+                CloseBrace(sb);
+            }
+            if (updateInfo == null)
+            {
+                CloseBrace(sb);
+            }
+            newCodeParts.Insert(codePartsIndex, sb.ToString());
+            //newCodeParts.Insert(codePartsIndex, "/* " + sb.ToString() + " */");
+        }
+
         private bool ProcessParameterRef(ref int tokenIndex)
         {
             Token nameTok = GetToken(tokenIndex);
@@ -2168,7 +2264,7 @@ $@"public void {methodName}()
                 return false;
             }
             string paramName;
-            ParamInfo paramInfo;
+            BaseParamInfo paramInfo;
             if (ParamsDict.TryGetValue(nameTok.Text, out paramInfo))
             {
                 paramName = paramInfo.ParameterName;
@@ -2229,6 +2325,8 @@ $@"public void {methodName}()
                 if (isValid)
                     validWords.Remove(reservedWord);
             }
+            else
+                reservedWord = ReservedWords.None;
             return isValid;
         }
 

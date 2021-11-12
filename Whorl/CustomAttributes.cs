@@ -50,6 +50,10 @@ namespace Whorl
         public bool Enabled { get; set; } = true;
     }
 
+    public class NestedParametersAttribute : Attribute
+    {
+    }
+
     [AttributeUsage(AttributeTargets.Property)]
     public class ArrayBaseNameAttribute : Attribute
     {

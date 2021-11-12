@@ -65,13 +65,13 @@ namespace Whorl
                 return true;
             }
 
-            public IEnumerable<PropertyInfo> GetParameterPropertyInfos()
+            public IEnumerable<PropertyInfo> GetParameterPropertyInfos(bool allowAllParams = true)
             {
                 if (ParamsObj == null)
                     return null;
                 else
                     return ParamsObj.GetType().GetProperties()
-                                    .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi));
+                                    .Where(pi => CSharpCompiledInfo.ParamPropInfoIsValid(pi, allowAllParams));
             }
 
             public List<ParamInfo> GetParamInfos()
@@ -79,7 +79,7 @@ namespace Whorl
                 var keys = new List<ParamInfo>();
                 if (ParamsObj != null)
                 {
-                    foreach (var propertyInfo in GetParameterPropertyInfos())
+                    foreach (var propertyInfo in GetParameterPropertyInfos(allowAllParams: false))
                     {
                         if (propertyInfo.PropertyType.IsArray)
                         {
@@ -169,11 +169,17 @@ namespace Whorl
             Errors.Add(new ErrorInfo(message, errorType: ErrorType.Warning));
         }
 
-        public static bool ParamPropInfoIsValid(PropertyInfo propInfo)
+        public static bool ParamPropInfoIsValid(PropertyInfo propInfo, bool allowAllParams = true)
         {
             return propInfo.CanRead &&
                    ((ParamTypeIsScalar(propInfo.PropertyType) && propInfo.CanWrite) ||
-                     ParamTypeIsNonScalar(propInfo.PropertyType));
+                     ParamTypeIsNonScalar(propInfo.PropertyType) ||
+                     (allowAllParams && ParamPropIsNestedParams(propInfo)));
+        }
+
+        public static bool ParamPropIsNestedParams(PropertyInfo propInfo)
+        {
+            return propInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
         }
 
         public static bool ParamTypeIsScalar(Type paramType)

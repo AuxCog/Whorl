@@ -822,7 +822,14 @@ namespace Whorl
                 {
                     object sourceParam = propInfo.GetValue(sourceParamsObj);
                     object targetParam = targetPropInfo.GetValue(targetParamsObj);
-                    if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
+                    if (propInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
+                    {
+                        if (sourceParam != null && targetParam != null)
+                        {
+                            CopyCSharpParameters(sourceParam, targetParam);
+                        }
+                    }
+                    else if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
                     {
                         var sourceArray = (Array)sourceParam;
                         var targetArray = (Array)targetParam;
@@ -877,7 +884,7 @@ namespace Whorl
                 {
                     if (paramArray != null)
                         paramArray.SetValue(sourceParam, index);
-                    else
+                    else if (targetPropInfo.CanWrite)
                         targetPropInfo.SetValue(targetParamsObj, sourceParam);
                 }
             }
