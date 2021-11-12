@@ -1222,15 +1222,13 @@ namespace Whorl
                 return;
             foreach (XmlNode subNode in node.ChildNodes)
             {
-                string parameterName =
-                    (string)Tools.GetXmlAttribute("Name", typeof(string), subNode);
+                string parameterName = Tools.GetXmlAttribute<string>(subNode, "Name");
                 var propInfo = paramsObj.GetType().GetProperty(parameterName);
                 if (propInfo == null)
                     continue;
                 if (forArrayParams != propInfo.PropertyType.IsArray)
                     continue;
-                string typeName = Tools.GetXmlAttribute("TypeName", typeof(string), subNode,
-                                                        required: false) as string;
+                string typeName = Tools.GetXmlAttribute<string>(subNode, defaultValue: null, "TypeName");
                 if (typeName != null && propInfo.PropertyType.Name != typeName)
                 {
                     throw new Exception("Invalid parameter type read from XML file.");
@@ -1248,6 +1246,17 @@ namespace Whorl
         private static void ParseCSharpParamXml(XmlNode subNode, object oParam, PropertyInfo propInfo, 
                                                 Array paramArray, ref bool updateParams, object paramsObj)
         {
+            bool isNestedParams = Tools.GetXmlAttribute(subNode, defaultValue: false, "NestedParameters");
+            if (isNestedParams)
+            {
+                if (oParam != null)
+                {
+                    if (subNode.FirstChild?.Name != "Parameters")
+                        throw new Exception("Expecting XmlNode named Parameters.");
+                    ParseCSharpParamsXml(subNode.FirstChild, paramsObj: oParam);
+                }
+                return;
+            }
             int index = -1;
             Type paramType;
             ParameterInfoAttribute infoAttr;
@@ -1361,13 +1370,14 @@ namespace Whorl
             node.AppendChild(childNode);
         }
 
-        private static void AppendCSharpParameterToXml(XmlNode childNode, object oVal, PropertyInfo propInfo, XmlTools xmlTools, int index = -1)
+        private static void AppendCSharpParameterToXml(XmlNode childNode, object paramValue, PropertyInfo propInfo, XmlTools xmlTools, int index = -1)
         {
-            if (oVal == null || oVal is RandomParameter)
+            if (paramValue == null || paramValue is RandomParameter)
                 return;
+            bool isNestedParams = propInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             XmlNode subNode;
             string sValue;
-            var iOptionsParam = oVal as IOptionsParameter;
+            var iOptionsParam = paramValue as IOptionsParameter;
             if (iOptionsParam != null)
             {
                 sValue = iOptionsParam.SelectedText;
@@ -1376,14 +1386,22 @@ namespace Whorl
                 //    return;
                 //sValue = selOption.ToString();
             }
+            else if (isNestedParams)
+                sValue = null;
             else
-                sValue = oVal.ToString();
+                sValue = paramValue.ToString();
             subNode = xmlTools.CreateXmlNode("Parameter");
             xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
             xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
-            xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
+            if (sValue != null)
+                xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
             if  (index != -1)
                 xmlTools.AppendXmlAttribute(subNode, "Index", index);
+            if (isNestedParams)
+            {
+                xmlTools.AppendXmlAttribute(subNode, "NestedParameters", true);
+                AppendCSharpParametersToXml(subNode, xmlTools, paramsObject: paramValue);
+            }
             childNode.AppendChild(subNode);
         }
 
