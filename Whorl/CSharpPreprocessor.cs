@@ -29,6 +29,8 @@ namespace Whorl
             Enum,
             Params,
             Instance,
+            SetProperty,
+            Inherit,
             Influence,
             From,
             ArrayLength,
@@ -83,7 +85,6 @@ namespace Whorl
         {
             public string ParameterName { get; }
             public string TypeName { get; set; }
-            public List<string> InstancePropertyNames { get; set; }
             public int StartCharIndex { get; }
             public int EndCharIndex { get; set; }
             public string DecTypeName { get; protected set; }
@@ -91,6 +92,7 @@ namespace Whorl
             public string DefaultValue { get; }
             public string MinValue { get; set; }
             public string MaxValue { get; set; }
+            public string SetProperty { get; set; }
             public string Label { get; set; }
             public ParamCategories Category { get; }
             public int ArrayLength { get; set; } = -1;
@@ -174,6 +176,8 @@ namespace Whorl
             public Type MethodsClass { get; }
             public FunctionTypes FunctionType { get; }
             public MathFunctionTypes MathFunctionType { get; }
+            public List<string> InstancePropertyNames { get; set; }
+            public bool AddDefaultMethodTypes { get; set; }
 
             public FunctionParamInfo(string name, string defaultMethodName, int paramsCount,
                                      string typeName, int startCharIndex,
@@ -207,7 +211,9 @@ namespace Whorl
                     args.Add(MathFunctionType == MathFunctionTypes.Normal ? null :
                                 $"{nameof(MathFunctionTypes)}.{MathFunctionType}");
                     args.Add(InstancePropertyNames == null ? null :
-                       "instances: new object[] { " + string.Join(", ", InstancePropertyNames) + "}");
+                       "instances: new object[] { " + string.Join(", ", InstancePropertyNames) + " }");
+                    if (!AddDefaultMethodTypes)
+                        args.Add("addDefaultMethodTypes: false");
                 }
                 int lastI = args.Count - 1;
                 while (lastI >= 0 && args[lastI] == null)
@@ -1202,7 +1208,10 @@ $@"public void {methodName}()
         private void ProcessParametersConstructor(ElementInfo paramsClassInfo)
         {
             var arrayParams = ParamsDict.Values.Where(pi => pi.IsArray);
-            if (!arrayParams.Any())
+            var instanceFunctionParams = ParamsDict.Values
+                                         .Select(p => p as FunctionParamInfo)
+                                         .Where(p => p != null && p.InstancePropertyNames != null);
+            if (!(arrayParams.Any() || instanceFunctionParams.Any()))
                 return;
             ElementInfo constructorInfo = elemInfoList.Find(
                         ei => ei.ElementType == ElementTypes.Constructor && ei.Parent == paramsClassInfo);
@@ -1215,6 +1224,7 @@ $@"public void {methodName}()
                 AppendLine(sb, $"public {paramsClassInfo.ElementName}()");
                 OpenBrace(sb);
             }
+            AppendLines(sb, instanceFunctionParams.Select(pi => $"{pi.ParameterName} = {pi.Initializer};"));
             AppendLines(sb, arrayParams.Select(pi => $"{pi.ParameterName} = {pi.GetArrayInitializer()};"));
             var distinctLens = arrayParams.Select(pi => pi.GetArrayLength()).Distinct();
             foreach (string len in distinctLens)
@@ -1544,7 +1554,6 @@ $@"public void {methodName}()
         {
             ParamCategories paramCategory = ParamCategories.Scalar;
             ParamInfo paramInfo = null;
-            List<string> instancePropertyNames = null;
             int arrayLength = -1;
             string arrayLengthParamName = null;
             string typeName = null;
@@ -1554,6 +1563,7 @@ $@"public void {methodName}()
             string maxValue = null;
             string previousName = null;
             string label = null;
+            string setPropertyName = null;
             ParameterSources parameterSource = ParameterSources.None;
             bool isValid;
             int previousStartNumber = 1;
@@ -1572,10 +1582,9 @@ $@"public void {methodName}()
                 ReservedWords.Max,
                 ReservedWords.Label,
                 ReservedWords.DistanceCount,
-                ReservedWords.Instance
+                ReservedWords.SetProperty
             };
             int startCharIndex = directiveToken.CharIndex;
-            Token instanceToken = null;
             Token nameTok = GetToken(tokenIndex++);
             if (nameTok.TokenType != Token.TokenTypes.Identifier)
             {
@@ -1748,9 +1757,35 @@ $@"public void {methodName}()
                             label = stringToken.Value;
                         tokenIndex++;
                         break;
-                    case ReservedWords.Instance:
-                        instanceToken = tok;
-                        instancePropertyNames = ParseInstancePropertyNames(ref tokenIndex);
+                    case ReservedWords.SetProperty:
+                        bool setPropertyValid = true;
+                        Token setPropertyTok = tok;
+                        tok = GetToken(tokenIndex++);
+                        setPropertyValid = tok.Text == ":";
+                        if (setPropertyValid)
+                        {
+                            tok = GetToken(tokenIndex++);
+                            setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
+                            if (setPropertyValid)
+                            {
+                                string instanceName = tok.Text;
+                                tok = GetToken(tokenIndex++);
+                                setPropertyValid = tok.Text == ".";
+                                if (setPropertyValid)
+                                {
+                                    tok = GetToken(tokenIndex++);
+                                    setPropertyValid = tok.TokenType == Token.TokenTypes.Identifier;
+                                    if (setPropertyValid)
+                                    {
+                                        setPropertyName = $"{instanceName}.{tok.Text}";
+                                    }
+                                }
+                            }
+                        }
+                        if (!setPropertyValid)
+                        {
+                            AddError(setPropertyTok, "Expecting 'SetProperty: InstancePropertyName.PropertyName'.");
+                        }
                         break;
                 }
                 tok = GetToken(tokenIndex);
@@ -1785,13 +1820,13 @@ $@"public void {methodName}()
                                 else
                                 {
                                     int endInd = tok.CharIndex;
-                                    if (instancePropertyNames == null)
+                                    if (setPropertyName == null)
                                     {
                                         initializer = sourceCode.Substring(startInd, endInd - startInd);
                                     }
                                     else
                                     {
-                                        AddError(tok, "Properties with Instance specified cannot have initializers.");
+                                        AddError(tok, "Properties with SetProperty specified cannot have initializers.");
                                     }
                                 }
                                 break;
@@ -1819,13 +1854,6 @@ $@"public void {methodName}()
                 isValid = false;
             if (!isValid)
                 AddError(tok, $"The token {tok.Text} is invalid here (expecting ';').");
-            if (paramCategory != ParamCategories.Function && instancePropertyNames != null)
-            {
-                if (instancePropertyNames.Count != 1)
-                    AddError(instanceToken, "Multiple instance properties are only allowed for Function parameters.");
-                if (instancePropertyNames.FirstOrDefault() == "this")
-                    AddError(instanceToken, "Instance property of 'this' is only allowed for Function parameters.");
-            }
             if (paramInfo == null)
                 paramInfo = new ParamInfo(nameTok.Text, typeName, startCharIndex, 
                                           initializer, defaultValue, paramCategory);
@@ -1838,7 +1866,7 @@ $@"public void {methodName}()
             paramInfo.Label = label;
             paramInfo.MinValue = minValue;
             paramInfo.MaxValue = maxValue;
-            paramInfo.InstancePropertyNames = instancePropertyNames;
+            paramInfo.SetProperty = setPropertyName;
             if (paramInfo.IsArray && paramCategory == ParamCategories.ArrayLength)
             {
                 AddError(nameTok, "ArrayLength parameters cannot be arrays.");
@@ -1951,13 +1979,15 @@ $@"public void {methodName}()
         private FunctionParamInfo ParseFunctionParam(Token nameTok, ref int tokenIndex, string typeName,
                                                      Token directiveToken)
         {
-            var reservedWords = new HashSet<ReservedWords>() { ReservedWords.From, ReservedWords.Params };
+            var reservedWords = new HashSet<ReservedWords>() { ReservedWords.From, ReservedWords.Params, ReservedWords.Instance, ReservedWords.Inherit };
 
             Token defaultMethod = null, paramsTok = null;
             int paramsCount = 1;
             Type methodsClass = null;
             var mathType = MathFunctionTypes.Normal;
             FunctionTypes functionType = FunctionTypes.Normal;
+            List<string> instancePropertyNames = null;
+            bool? inherit = null;
             Token tok;
             while (true)
             {
@@ -2002,6 +2032,29 @@ $@"public void {methodName}()
                                 return null;
                             }
                             break;
+                        case ReservedWords.Instance:
+                            instancePropertyNames = ParseInstancePropertyNames(ref tokenIndex);
+                            break;
+                        case ReservedWords.Inherit:
+                            tok = GetToken(tokenIndex++);
+                            if (tok.Text == ":")
+                            {
+                                tok = GetToken(tokenIndex++);
+                                string text = tok.Text.ToLower();
+                                if (text == "true" || text == "false")
+                                {
+                                    inherit = text == "true";
+                                }
+                                else
+                                {
+                                    AddError(tok, "Expecting True or False following 'Inherit:'.");
+                                }
+                            }
+                            else
+                            {
+                                AddError(tok, "Expecting ':' following Inherit.");
+                            }
+                            break;
                     }
                 }
                 else if (functionTypesDict.TryGetValue(tok.Text, out FunctionTypes fnType))
@@ -2036,9 +2089,15 @@ $@"public void {methodName}()
                     return null;
                 }
             }
-            return new FunctionParamInfo(nameTok.Text, defaultMethod?.Text, paramsCount, 
-                                         typeName, directiveToken.CharIndex, methodsClass, 
-                                         functionType, mathType);
+            if (inherit == null)
+                inherit = instancePropertyNames == null;
+            return new FunctionParamInfo(nameTok.Text, defaultMethod?.Text, paramsCount,
+                                         typeName, directiveToken.CharIndex, methodsClass,
+                                         functionType, mathType)
+            {
+                InstancePropertyNames = instancePropertyNames,
+                AddDefaultMethodTypes = (bool)inherit
+            };
         }
 
         //[ParameterInfo(UpdateParametersOnChange = true)]
@@ -2068,17 +2127,17 @@ $@"public void {methodName}()
             if (paramInfo.PreviousName != null)
                 sb.Append($"[ArrayBaseName(\"{paramInfo.PreviousName}\", {paramInfo.PreviousStartNumber})] ");
             sb.Append($"public {paramInfo.GetDecType()} {paramInfo.ParameterName} ");
-            bool hasSet = paramInfo.IsArray || paramInfo.Category == ParamCategories.Scalar || 
-                          paramInfo.Category == ParamCategories.ArrayLength || paramInfo.InstancePropertyNames != null;
+            bool hasSet = paramInfo.Category == ParamCategories.Scalar || 
+                          paramInfo.IsArray || 
+                          paramInfo.Category == ParamCategories.ArrayLength;
             if (hasSet)
             {
-                if (paramInfo.InstancePropertyNames == null)
+                if (paramInfo.SetProperty == null)
                     sb.Append("{ get; private set; }");
                 else
                 {
-                    string propName = paramInfo.InstancePropertyNames.First();
-                    sb.Append($"{{ get => {propName}.{paramInfo.ParameterName};");
-                    sb.Append($" set => {propName}.{paramInfo.ParameterName} = value; }}");
+                    sb.Append($"{{ get => {paramInfo.SetProperty};");
+                    sb.Append($" private set => {paramInfo.SetProperty} = value; }}");
                 }
             }
             else
@@ -2092,8 +2151,12 @@ $@"public void {methodName}()
             //    sb.Append("{ get; private set; }");
             //else
             //    sb.Append("{ get; }");
-            if (paramInfo.Initializer != null && !paramInfo.IsArray)
-                sb.Append($" = {paramInfo.Initializer};");
+            if (paramInfo.Initializer != null && !paramInfo.IsArray && paramInfo.SetProperty == null)
+            {
+                var functionParamInfo = paramInfo as FunctionParamInfo;
+                if (functionParamInfo == null || functionParamInfo.InstancePropertyNames == null)
+                    sb.Append($" = {paramInfo.Initializer};");
+            }
             return sb.ToString();
         }
 

@@ -215,8 +215,8 @@ namespace Whorl
         public MathFunctionTypes? MathFunctionType { get; }
 
         public BaseFuncParameter(int paramCount, Type[] methodTypes, string defaultFunctionName, 
-                                 MathFunctionTypes? mathFunctionType = null, object[] instances = null, 
-                                 bool addIdent = false, bool addDefaultMethodTypes = true)
+                                 MathFunctionTypes? mathFunctionType = null, object[] instances = null,
+                                 bool addDefaultMethodTypes = true, bool addIdent = false)
         {
             ParamCount = paramCount;
             MathFunctionType = mathFunctionType;
@@ -329,8 +329,9 @@ namespace Whorl
 
     public class Func1Parameter<T>: BaseFuncParameter<Func<T, T>, T>
     {
-        public Func1Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null) 
-            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addIdent: true)
+        public Func1Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
+                              bool addDefaultMethodTypes = true) 
+            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addDefaultMethodTypes, addIdent: true)
         {
         }
 
@@ -342,8 +343,9 @@ namespace Whorl
 
     public class Func2Parameter<T> : BaseFuncParameter<Func<T, T, T>, T>
     {
-        public Func2Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null)
-            : base(paramCount: 2, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances)
+        public Func2Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
+                              bool addDefaultMethodTypes = true)
+            : base(paramCount: 2, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addDefaultMethodTypes)
         {
         }
 
