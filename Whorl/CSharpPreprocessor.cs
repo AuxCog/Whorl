@@ -352,6 +352,8 @@ namespace Whorl
         private List<Token> codeTokens { get; set; }
         private int codeCharIndex { get; set; }
         private int nesting { get; set; }
+        private int bracketLevel { get; set; }
+
         private List<ElementInfo> elemInfoList { get; } = new List<ElementInfo>();
         private Stack<ElementInfo> elemInfoStack { get; } = new Stack<ElementInfo>();
         private ElementInfo currentBaseClassInfo { get; set; }
@@ -476,7 +478,7 @@ namespace Whorl
             bool foundParmsAttribute = false;
             bool requireClassDec = false;
             var parameterRefClasses = new HashSet<string>();
-            int bracketLevel = 0;
+            bracketLevel = 0;
             ReservedWords classDecDirectiveWord = ReservedWords.None;
             //var keyParamClassInfos = new List<ParamsClassInfo>();
             ParamsClassInfo currentParamClassInfo = null;
@@ -560,9 +562,10 @@ namespace Whorl
                     }
                     else //if (tok.TokenType == Token.TokenTypes.RightBracket)
                     {
-                        if (bracketLevel == 0)
-                            AddError(tok, "Extra ']' found.");
-                        else
+                        //if (bracketLevel == 0)
+                        //    AddError(tok, "Extra ']' found.");
+                        //else
+                        if (bracketLevel > 0)
                             bracketLevel--;
                     }
                 }
@@ -595,15 +598,18 @@ namespace Whorl
                                 {
                                     case TokenDirectives.Directive:
                                         isValid = ProcessDirective(ref tokenIndex, out ReservedWords directive);
-                                        if (directive == ReservedWords.KeyParameters || directive == ReservedWords.NestedParameters)
+                                        if (isValid)
                                         {
-                                            classDecDirectiveWord = directive;
-                                            requireClassDec = true;
-                                            className = null;
-                                            classDecError = false;
-                                            if (classDecDirectiveWord == ReservedWords.NestedParameters)
+                                            if (directive == ReservedWords.KeyParameters || directive == ReservedWords.NestedParameters)
                                             {
-                                                newCodeParts.Add("[NestedParameters]");
+                                                classDecDirectiveWord = directive;
+                                                requireClassDec = true;
+                                                className = null;
+                                                classDecError = false;
+                                                if (classDecDirectiveWord == ReservedWords.NestedParameters)
+                                                {
+                                                    newCodeParts.Add("[NestedParameters]");
+                                                }
                                             }
                                         }
                                         break;
@@ -631,7 +637,7 @@ namespace Whorl
                 if (!handled && bracketLevel == 0)
                 {
                     int tokInd = tokenIndex - 1;
-                    handled = ProcessNonDirectiveTokens(tok, ref tokInd, requireClassDec, ref checkForMethod, 
+                    handled = ProcessNonDirectiveTokens(tok, ref tokInd, classDecDirectiveWord, ref checkForMethod, 
                                                         ref foundParmsAttribute, out ElementInfo poppedElemInfo,
                                                         out className);
                     if (handled)
@@ -688,6 +694,10 @@ namespace Whorl
                     throw new Exception($"Couldn't retrieve info for class {parametersClassName}");
                 ProcessUpdateMethod(paramsClassInfo);
                 ProcessParametersConstructor(paramsClassInfo);
+            }
+            else if (ParamsDict.Any())
+            {
+                AddError(null, "Couldn't find parameters class name.");
             }
             if (InsertDirectives.Any(dir =>
                                  dir.EndCharIndex < dir.StartCharIndex || dir.EndCharIndex > code.Length - 1))
@@ -921,7 +931,101 @@ $@"public void {methodName}()
             return className;
         }
 
-        private bool ProcessNonDirectiveTokens(Token tok, ref int tokInd, bool getClassName, ref bool checkForMethod, 
+        private void CheckToken(Token tok, ref bool checkForMethod, out ElementInfo poppedElemInfo)
+        {
+            poppedElemInfo = null;
+            if (tok.Text == "{")
+            {
+                if (elemInfoStack.Any())
+                {
+                    ElementInfo elementInfo = elemInfoStack.Peek();
+                    if (elementInfo.Nesting == nesting)
+                    {
+                        elementInfo.InsertCharIndex = tok.CharIndex + tok.Text.Length;
+                        if (elementInfo.ElementType == ElementTypes.Class)
+                            checkForMethod = true;
+                    }
+                }
+                nesting++;
+            }
+            else if (tok.Text == "}")
+            {
+                nesting--;
+                if (elemInfoStack.Any())
+                {
+                    ElementInfo elementInfo = elemInfoStack.Peek();
+                    if (elementInfo.Nesting == nesting)
+                    {
+                        //string elemName = elementInfo.ElementName;
+                        poppedElemInfo = elementInfo;
+                        elemInfoStack.Pop();
+                        if (elementInfo == currentBaseClassInfo)
+                            currentBaseClassInfo = null;
+                        else if (currentBaseClassInfo != null &&
+                                 elementInfo.ElementType == ElementTypes.Class)
+                        {
+                            if (currentBaseClassInfo.Nesting == nesting - 1)
+                                currentBaseClassInfo.InsertCharIndex = tok.CharIndex + 1;
+                        }
+                        newCodeParts.Add(sourceCode.Substring(codeCharIndex,
+                                         tok.CharIndex - codeCharIndex));
+                        codeCharIndex = tok.CharIndex;
+                        elementInfo.CodePartsIndex = newCodeParts.Count;
+                        elementInfo.AppendCharIndex = tok.CharIndex;
+                        elementInfo.EndCharIndex = tok.CharIndex + tok.Text.Length;
+                        if (elementInfo.ElementType == ElementTypes.Method ||
+                            elementInfo.ElementType == ElementTypes.Constructor)
+                        {
+                            checkForMethod = true;
+                            if (elementInfo.ElementType == ElementTypes.Method &&
+                                elementInfo.StartCharIndex != -1 &&
+                                elementInfo.EndCharIndex != -1)
+                            {
+                                var elemDecInfo = new ElemDecInfo(
+                                    ElemDecInfo.ElemTypes.Method,
+                                    elementInfo.ElementName,
+                                    elementInfo.StartCharIndex,
+                                    elementInfo.EndCharIndex,
+                                    elemInfoStack);
+                                if (ElemDecsDict.TryGetValue(elemDecInfo.FullName,
+                                                             out var currInfo))
+                                {
+                                    currInfo.Occurrences++;
+                                }
+                                else
+                                {
+                                    ElemDecsDict[elemDecInfo.FullName] = elemDecInfo;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private Token CheckGetToken(int tokenIndex, out ElementInfo poppedElemInfo, bool checkBrackets = true)
+        {
+            bool check = false;
+            Token tok = GetToken(tokenIndex);
+            if (tok.TokenType == Token.TokenTypes.Other)
+            {
+                CheckToken(tok, ref check, out poppedElemInfo);
+            }
+            else
+            {
+                poppedElemInfo = null;
+                if (checkBrackets)
+                {
+                    if (tok.TokenType == Token.TokenTypes.LeftBracket)
+                        bracketLevel++;
+                    else if (tok.TokenType == Token.TokenTypes.RightBracket)
+                        bracketLevel--;
+                }
+            }
+            return tok;
+        }
+
+        private bool ProcessNonDirectiveTokens(Token tok, ref int tokInd, ReservedWords getClassDirective, ref bool checkForMethod, 
                                                ref bool foundParmsAttribute, out ElementInfo poppedElemInfo, out string className)
         {
             bool handled = true;
@@ -932,74 +1036,8 @@ $@"public void {methodName}()
             className = null;
             if (tok.TokenType == Token.TokenTypes.Other)
             {
-                if (tok.Text == "{")
-                {
-                    if (elemInfoStack.Any())
-                    {
-                        ElementInfo elementInfo = elemInfoStack.Peek();
-                        if (elementInfo.Nesting == nesting)
-                        {
-                            elementInfo.InsertCharIndex = tok.CharIndex + tok.Text.Length;
-                            if (elementInfo.ElementType == ElementTypes.Class)
-                                checkForMethod = true;
-                        }
-                    }
-                    nesting++;
-                }
-                else if (tok.Text == "}")
-                {
-                    nesting--;
-                    if (elemInfoStack.Any())
-                    {
-                        ElementInfo elementInfo = elemInfoStack.Peek();
-                        if (elementInfo.Nesting == nesting)
-                        {
-                            //string elemName = elementInfo.ElementName;
-                            poppedElemInfo = elementInfo;
-                            elemInfoStack.Pop();
-                            if (elementInfo == currentBaseClassInfo)
-                                currentBaseClassInfo = null;
-                            else if (currentBaseClassInfo != null && 
-                                     elementInfo.ElementType == ElementTypes.Class)
-                            {
-                                if (currentBaseClassInfo.Nesting == nesting - 1)
-                                    currentBaseClassInfo.InsertCharIndex = tok.CharIndex + 1;
-                            }
-                            newCodeParts.Add(sourceCode.Substring(codeCharIndex, 
-                                             tok.CharIndex - codeCharIndex));
-                            codeCharIndex = tok.CharIndex;
-                            elementInfo.CodePartsIndex = newCodeParts.Count;
-                            elementInfo.AppendCharIndex = tok.CharIndex;
-                            elementInfo.EndCharIndex = tok.CharIndex + tok.Text.Length;
-                            if (elementInfo.ElementType == ElementTypes.Method ||
-                                elementInfo.ElementType == ElementTypes.Constructor)
-                            {
-                                checkForMethod = true;
-                                if (elementInfo.ElementType == ElementTypes.Method && 
-                                    elementInfo.StartCharIndex != -1 &&
-                                    elementInfo.EndCharIndex != -1)
-                                {
-                                    var elemDecInfo = new ElemDecInfo(
-                                        ElemDecInfo.ElemTypes.Method,
-                                        elementInfo.ElementName,
-                                        elementInfo.StartCharIndex,
-                                        elementInfo.EndCharIndex,
-                                        elemInfoStack);
-                                    if (ElemDecsDict.TryGetValue(elemDecInfo.FullName, 
-                                                                 out var currInfo))
-                                    {
-                                        currInfo.Occurrences++;
-                                    }
-                                    else
-                                    {
-                                        ElemDecsDict[elemDecInfo.FullName] = elemDecInfo;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else if (tok.Text == "=") // || tok.Text == "(")
+                CheckToken(tok, ref checkForMethod, out poppedElemInfo);
+                if (tok.Text == "=") // || tok.Text == "(")
                     checkForMethod = false;
                 else if (tok.Text == ";")
                     checkForMethod = true;
@@ -1035,11 +1073,11 @@ $@"public void {methodName}()
                 accessTokenInd = tokInd;
                 startToken = tok;
                 checkForMethod = true;
-                tok = GetToken(++tokInd);
+                tok = CheckGetToken(++tokInd, out _);
             }
             if (IsCSharpReservedWord(tok, tokInd, "static"))
             {
-                tok = GetToken(++tokInd);
+                tok = CheckGetToken(++tokInd, out _);
                 checkForMethod = true;
                 if (startToken == null)
                     startToken = tok;
@@ -1049,9 +1087,9 @@ $@"public void {methodName}()
             {
                 if (startToken == null)
                     startToken = tok;
-                ElementTypes elementType = tok.Text == "class" ? 
+                ElementTypes elementType = tok.Text == "class" ?
                              ElementTypes.Class : ElementTypes.NameSpace;
-                tok = GetToken(++tokInd);
+                tok = CheckGetToken(++tokInd, out _);
                 if (tok.TokenType == Token.TokenTypes.Identifier)
                 {
                     var elemInfo = new ElementInfo()
@@ -1064,16 +1102,17 @@ $@"public void {methodName}()
                         elemInfo.StartCharIndex = startToken.CharIndex;
                     if (elementType == ElementTypes.Class)
                     {
-                        if (!elemInfoStack.Any() || elemInfoStack.Peek().ElementType == 
+                        if (!elemInfoStack.Any() || elemInfoStack.Peek().ElementType ==
                                                     ElementTypes.NameSpace)
                             currentBaseClassInfo = elemInfo;
-                        if (getClassName)
+                        if (getClassDirective != ReservedWords.None)
                         {
                             if (accessToken?.Text == "public")
                             {
                                 className = elemInfo.ElementName;
                             }
-                            if (!elemInfoStack.Any() || elemInfoStack.Peek() != currentBaseClassInfo)
+                            if (getClassDirective == ReservedWords.KeyParameters &&
+                                (!elemInfoStack.Any() || elemInfoStack.Peek() != currentBaseClassInfo))
                             {
                                 AddError(tok, "Key Parameters class must be nested within the main formula class.");
                             }
@@ -1083,17 +1122,26 @@ $@"public void {methodName}()
                     elemInfoStack.Push(elemInfo);
                 }
             }
-            else if (checkForMethod && tok.TokenType == Token.TokenTypes.Identifier &&
-                     elemInfoStack.Any() && elemInfoStack.Peek().ElementType == ElementTypes.Class)
+            else if (!elemInfoStack.Any())
             {
-                bool? isType = TryParseType(ref tokInd, out List<Token> typeTokens);
+                if (tok.TokenType == Token.TokenTypes.Identifier && ParamsDict.Any())
+                {
+                    AddError(tok, "Element stack is empty.");
+                }
+            }
+            else if (tok.TokenType == Token.TokenTypes.Identifier &&
+                     elemInfoStack.Peek().ElementType == ElementTypes.Class)
+            {
+                int tokI = tokInd;
+                bool? isType = TryParseType(ref tokI, out List<Token> typeTokens);
                 if (isType == false || typeTokens.Count == 0)
                     return false;
                 if (startToken == null)
                     startToken = typeTokens.First();
-                Token nameTok;
-                tok = GetToken(tokInd);
-                int tokI = tokInd;
+                Token nameTok = null;
+                int saveNesting = nesting;
+                int saveBracket = bracketLevel;
+                tok = CheckGetToken(tokI, out _);
                 ElementInfo classInfo = elemInfoStack.Peek();
                 ElementTypes elementType = ElementTypes.Method;
                 bool haveType = tok.TokenType == Token.TokenTypes.Identifier;
@@ -1110,61 +1158,75 @@ $@"public void {methodName}()
                         elementType = ElementTypes.Constructor;
                     }
                     else
-                        return false;
+                        handled = false;
                 }
                 else
-                    return false;
-                if (tok.Text == "(")
+                    handled = false;
+                if (handled)
                 {
-                    int i = tokI + 1;
-                    Token braceTok = FindNextToken(ref i, t => t.Text == "{" || t.Text == ";");
-                    if (braceTok?.Text == "{")
+                    if (tok.Text == "(")
                     {
-                        var info = new ElementInfo()
+                        int i = tokI + 1;
+                        Token braceTok = FindNextToken(ref i, t => t.Text == "{" || t.Text == ";");
+                        if (braceTok?.Text == "{")
                         {
-                            ElementName = nameTok.Text,
-                            ElementType = elementType,
-                            Nesting = nesting,
-                            Parent = classInfo
-                        };
-                        if (startToken != null)
-                            info.StartCharIndex = startToken.CharIndex;
-                        elemInfoList.Add(info);
-                        elemInfoStack.Push(info);
-                        tokInd = tokI;
-                    }
-                }
-                else if (tok.Text == "{")
-                {
-                    nesting++;
-                    tok = GetToken(++tokI);
-                    if (tok.Text == "get")
-                    {
-                        if (!foundParmsAttribute && nameTok.Text == ParametersPropertyName)
-                        {
-                            this.parametersClassName = typeTokens.Last().Text;
-                            this.mainClassName = classInfo.ElementName;
-                            if (accessToken?.Text != "public")
+                            var info = new ElementInfo()
                             {
-                                AddError(accessToken,
-                                    $"The {ParametersPropertyName} property must be public.");
-                            }
-                            if (accessToken != null)
-                            {
-                                int i = accessTokenInd - 1;
-                                if (MatchPrevTokens(ref i, "[", ParmsPropertyAttributeName, "]"))
-                                    foundParmsAttribute = true;
-                            }
-                        }
-                        tokI++;
-                        if (FindNextToken(ref tokI, tkn => tkn.Text == "}") != null)
-                        {
-                            nesting--;
+                                ElementName = nameTok.Text,
+                                ElementType = elementType,
+                                Nesting = nesting,
+                                Parent = classInfo
+                            };
+                            if (startToken != null)
+                                info.StartCharIndex = startToken.CharIndex;
+                            elemInfoList.Add(info);
+                            elemInfoStack.Push(info);
                             tokInd = tokI;
                         }
+                        else
+                            handled = false;
                     }
-                    else
-                        handled = false;
+                    else if (tok.Text == "{")
+                    {
+                        int propNesting = nesting;
+                        nesting++;
+                        Token braceToken = tok;
+                        tok = GetToken(++tokI);
+                        if (tok.Text == "get")
+                        {
+                            if (!foundParmsAttribute && nameTok.Text == ParametersPropertyName)
+                            {
+                                this.parametersClassName = typeTokens.Last().Text;
+                                this.mainClassName = classInfo.ElementName;
+                                if (accessToken?.Text != "public")
+                                {
+                                    AddError(accessToken,
+                                        $"The {ParametersPropertyName} property must be public.");
+                                }
+                                if (accessToken != null)
+                                {
+                                    int i = accessTokenInd - 1;
+                                    if (MatchPrevTokens(ref i, "[", ParmsPropertyAttributeName, "]"))
+                                        foundParmsAttribute = true;
+                                }
+                            }
+                            tokI++;
+                            while (nesting > propNesting)
+                            {
+                                tok = CheckGetToken(tokI++, out _);
+                                if (tok.TokenType == Token.TokenTypes.EndOfStream)
+                                    break;
+                            }
+                            if (nesting == propNesting)
+                                tokInd = tokI;
+                            else
+                            {
+                                AddError(braceToken, "Closing '}' was not found.");
+                            }
+                        }
+                        else
+                            handled = false;
+                    }
                     //int tokI = tokInd + 1;
                     //if (MatchNextTokens(ref tokI, "{", "get"))
                     //{
@@ -1178,16 +1240,23 @@ $@"public void {methodName}()
                     //            foundParmsAttribute = true;
                     //    }
                     //}
+
                 }
                 else
                     handled = false;
+                if (!handled)
+                {
+                    nesting = saveNesting;
+                    bracketLevel = saveBracket;
+                }
+
                 //else if (checkForMethod && tok.TokenType == Token.TokenTypes.Identifier &&
                 //         !IsAccessToken(tok, indexOfTok) &&
                 //         elemInfoStack.Any() && elemInfoStack.Peek().ElementType == ElementTypes.Class)
                 //{
                 //    ElementInfo classInfo = elemInfoStack.Peek();
                 //    ElementTypes elementType;
-                //    Token nextTok = GetToken(tokenIndex);
+                //    Token nextTok = CheckGetToken(tokenIndex);
                 //    if (nextTok.Text == "(")
                 //    {
                 //        int prevI = tokenIndex - 2;
@@ -1326,6 +1395,10 @@ $@"public void {methodName}()
                 tokenIndex++;
                 switch (directive)
                 {
+                    case ReservedWords.KeyParameters:
+                    case ReservedWords.NestedParameters:
+                        isValid = true;
+                        break;
                     case ReservedWords.InsertStart:
                         if (this.insertDirectiveInfo != null)
                             AddError(token, $"Cannot nest {GetDirectiveText(ReservedWords.InsertStart)} directives.");
@@ -1978,9 +2051,10 @@ $@"public void {methodName}()
             Token tok;
             while (true)
             {
-                tok = GetToken(tokenIndex++);
+                tok = GetToken(tokenIndex);
                 if (tok.TokenType != Token.TokenTypes.Identifier)
                     break;
+                tokenIndex++;
                 bool isValid = true;
                 if (ParseReservedWordOption(tok.Text, out ReservedWords reservedWord, reservedWords))
                 {
@@ -2069,6 +2143,7 @@ $@"public void {methodName}()
             }
             if (tok.Text == "=")
             {
+                tokenIndex++;
                 defaultMethod = GetToken(tokenIndex++);
                 if (defaultMethod.TokenType != Token.TokenTypes.Identifier)
                 {

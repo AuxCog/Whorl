@@ -944,7 +944,12 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(node, "PictureHeight", PreviousPictureSize.Height);
             xmlTools.AppendXmlAttribute(node, "BackgroundImageMode", BackgroundImageMode);
             xmlTools.AppendXmlAttribute(node, "ScaleToFit", ScaleToFit);
-            XmlNode childNode;
+            XmlNode  childNode = xmlTools.CreateXmlNode("DesignPatterns");
+            foreach (Pattern ptn in designPatternsList)
+            {
+                ptn.ToXml(childNode, xmlTools);
+            }
+            node.AppendChild(childNode);
             if (!string.IsNullOrEmpty(this.StartupAnimationNames))
             {
                 childNode = xmlTools.CreateXmlNode("Settings");
@@ -975,12 +980,6 @@ namespace Whorl
                 xmlTools.AppendChildNode(node, nameof(BackgroundImageFileName), BackgroundImageFileName);
             if (this.DefaultPatternGroup != null)
                 DefaultPatternGroup.ToXml(node, xmlTools, "DefaultPatternGroup");
-            childNode = xmlTools.CreateXmlNode("DesignPatterns");
-            foreach (Pattern ptn in designPatternsList)
-            {
-                ptn.ToXml(childNode, xmlTools);
-            }
-            node.AppendChild(childNode);
             if (DesignLayerList.DesignLayers.Any())
             {
                 DesignLayerList.BeforeSaveToXml(designPatternsList);

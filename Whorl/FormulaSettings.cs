@@ -818,18 +818,23 @@ namespace Whorl
                 if (handledPropertyNames.Contains(propInfo.Name))
                     continue;
                 var targetPropInfo = typesMatch ? propInfo : targetType.GetProperty(propInfo.Name);
-                if (typesMatch || (targetPropInfo != null && Tools.TypesMatch(targetPropInfo.PropertyType, propInfo.PropertyType)))
+                if (targetPropInfo == null)
+                    continue;
+                object sourceParam = propInfo.GetValue(sourceParamsObj);
+                object targetParam = targetPropInfo.GetValue(targetParamsObj);
+                if (propInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
                 {
-                    object sourceParam = propInfo.GetValue(sourceParamsObj);
-                    object targetParam = targetPropInfo.GetValue(targetParamsObj);
-                    if (propInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
+                    if (sourceParam != null && targetParam != null)
                     {
-                        if (sourceParam != null && targetParam != null)
+                        if (typesMatch || targetPropInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
                         {
                             CopyCSharpParameters(sourceParam, targetParam);
                         }
                     }
-                    else if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
+                }
+                else if (typesMatch || Tools.TypesMatch(targetPropInfo.PropertyType, propInfo.PropertyType))
+                {
+                    if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
                     {
                         var sourceArray = (Array)sourceParam;
                         var targetArray = (Array)targetParam;
