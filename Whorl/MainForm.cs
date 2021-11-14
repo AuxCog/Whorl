@@ -474,6 +474,7 @@ namespace Whorl
         {
             try
             {
+                if (ignoreEvents) return;
                 if (!CheckSaveDesign())
                 {
                     e.Cancel = true;
@@ -534,6 +535,7 @@ namespace Whorl
                     }
                 }
                 WhorlSettings.Instance.Save(ifChanged: true);
+                ignoreEvents = true;
                 Application.Exit();
             }
             catch (Exception ex)
