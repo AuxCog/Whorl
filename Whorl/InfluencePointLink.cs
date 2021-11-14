@@ -173,10 +173,18 @@ namespace Whorl
                 double value = RandomWeight * randomVal;
                 foreach (InfluenceLink influenceLink in InfluenceLinks)
                 {
-                    double paramVal = influenceLink.GetParameterValue(patternPoint, forRendering);
+                    double influenceVal = influenceLink.GetInfluenceValue(patternPoint, forRendering);
+                    double paramVal = influenceLink.GetParameterValue(influenceVal);
                     value += paramVal;
-                    if (randomVal != 0.0)
-                        value += influenceLink.RandomWeight * randomVal * paramVal;
+                    if (randomVal != 0.0 && influenceLink.RandomWeight != 0.0)
+                    {
+                        double randomAdd = influenceLink.RandomWeight * randomVal;
+                        if (influenceLink.ScaleRandomWeightByLinkFactor)
+                            randomAdd *= paramVal;
+                        else
+                            randomAdd *= influenceVal;
+                        value += randomAdd;
+                    }
                 }
                 _SetParameterValue(OrigValue + value);
             }
@@ -487,6 +495,8 @@ namespace Whorl
         /// </summary>
         public double RandomWeight { get; set; } = 0.0;
 
+        public bool ScaleRandomWeightByLinkFactor { get; set; } = true;
+
         private InfluencePointInfo _influencePointInfo;
         public InfluencePointInfo InfluencePointInfo
         {
@@ -559,6 +569,7 @@ namespace Whorl
             copy.LinkFactor = LinkFactor;
             copy.Multiply = Multiply;
             copy.RandomWeight = RandomWeight;
+            copy.ScaleRandomWeightByLinkFactor = ScaleRandomWeightByLinkFactor;
             return copy;
         }
 
@@ -593,19 +604,18 @@ namespace Whorl
             return null;
         }
 
-        public double GetParameterValue(DoublePoint patternPoint, bool forRendering)
+
+        public double GetParameterValue(double influenceValue)
         {
-            double val;
-            if (InfluencePointInfo == null)
-                val = 0.0;
-            else
-            {
-                double influenceValue = InfluencePointInfo.ComputeValue(patternPoint, forRendering);
-                val = LinkFactor * influenceValue;
-                if (Multiply)
-                    val *= Parent.OrigValue;
-            }
-            return val;
+            influenceValue *= LinkFactor;
+            if (Multiply)
+                influenceValue *= Parent.OrigValue;
+            return influenceValue;
+        }
+
+        public double GetInfluenceValue(DoublePoint patternPoint, bool forRendering)
+        {
+            return InfluencePointInfo == null ? 0.0 : InfluencePointInfo.ComputeValue(patternPoint, forRendering);
         }
 
         //protected abstract InfluenceLink _GetCopy(BaseInfluenceLinkParent parent);
@@ -631,6 +641,8 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(LinkFactor), LinkFactor);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(Multiply), Multiply);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(RandomWeight), RandomWeight);
+            if (!ScaleRandomWeightByLinkFactor)
+                xmlTools.AppendXmlAttribute(xmlNode, nameof(ScaleRandomWeightByLinkFactor), ScaleRandomWeightByLinkFactor);
             //AddXml(xmlNode, xmlTools);  //Derived classes can add XML.
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
@@ -644,6 +656,7 @@ namespace Whorl
             LinkFactor = Tools.GetXmlAttribute<double>(xmlNode, nameof(LinkFactor));
             Multiply = Tools.GetXmlAttribute<bool>(xmlNode, true, nameof(Multiply));
             RandomWeight = Tools.GetXmlAttribute<double>(xmlNode, defaultValue: 0.0, nameof(RandomWeight));
+            ScaleRandomWeightByLinkFactor = Tools.GetXmlAttribute(xmlNode, defaultValue: true, nameof(ScaleRandomWeightByLinkFactor));
             //FromAddedXml(xmlNode);
         }
     }

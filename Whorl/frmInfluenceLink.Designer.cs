@@ -58,6 +58,7 @@ namespace Whorl
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ChkScaleRandomWeight = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -127,7 +128,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(280, 39);
+            this.BtnOK.Location = new System.Drawing.Point(296, 36);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(75, 23);
             this.BtnOK.TabIndex = 7;
@@ -137,7 +138,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(280, 68);
+            this.BtnCancel.Location = new System.Drawing.Point(296, 65);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(75, 23);
             this.BtnCancel.TabIndex = 8;
@@ -260,11 +261,11 @@ namespace Whorl
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(20, 248);
+            this.label6.Location = new System.Drawing.Point(5, 248);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(121, 13);
+            this.label6.Size = new System.Drawing.Size(132, 13);
             this.label6.TabIndex = 20;
-            this.label6.Text = "Parent Random Weight:";
+            this.label6.Text = "Parent Random Weight %:";
             // 
             // txtPointRandomWeight
             // 
@@ -278,11 +279,11 @@ namespace Whorl
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(27, 277);
+            this.label7.Location = new System.Drawing.Point(12, 277);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(114, 13);
+            this.label7.Size = new System.Drawing.Size(125, 13);
             this.label7.TabIndex = 22;
-            this.label7.Text = "Point Random Weight:";
+            this.label7.Text = "Point Random Weight %:";
             // 
             // txtParentRandomWeight
             // 
@@ -295,7 +296,7 @@ namespace Whorl
             // 
             // BtnApply
             // 
-            this.BtnApply.Location = new System.Drawing.Point(280, 99);
+            this.BtnApply.Location = new System.Drawing.Point(296, 96);
             this.BtnApply.Name = "BtnApply";
             this.BtnApply.Size = new System.Drawing.Size(75, 23);
             this.BtnApply.TabIndex = 25;
@@ -309,7 +310,7 @@ namespace Whorl
             this.editToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(363, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(384, 24);
             this.menuStrip1.TabIndex = 26;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -334,11 +335,22 @@ namespace Whorl
             this.pasteToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
             this.pasteToolStripMenuItem.Text = "Paste";
             // 
+            // ChkScaleRandomWeight
+            // 
+            this.ChkScaleRandomWeight.AutoSize = true;
+            this.ChkScaleRandomWeight.Location = new System.Drawing.Point(229, 276);
+            this.ChkScaleRandomWeight.Name = "ChkScaleRandomWeight";
+            this.ChkScaleRandomWeight.Size = new System.Drawing.Size(147, 17);
+            this.ChkScaleRandomWeight.TabIndex = 27;
+            this.ChkScaleRandomWeight.Text = "Scale by Influence Factor";
+            this.ChkScaleRandomWeight.UseVisualStyleBackColor = true;
+            // 
             // frmInfluenceLink
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(363, 301);
+            this.ClientSize = new System.Drawing.Size(384, 301);
+            this.Controls.Add(this.ChkScaleRandomWeight);
             this.Controls.Add(this.BtnApply);
             this.Controls.Add(this.txtParentRandomWeight);
             this.Controls.Add(this.txtPointRandomWeight);
@@ -406,5 +418,6 @@ namespace Whorl
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pasteToolStripMenuItem;
+        private System.Windows.Forms.CheckBox ChkScaleRandomWeight;
     }
 }

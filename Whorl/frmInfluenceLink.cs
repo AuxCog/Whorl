@@ -121,7 +121,7 @@ namespace Whorl
                             ignoreEvents = false;
                         }
                     }
-                    txtParentRandomWeight.Text = _influenceLinkParent.RandomWeight.ToString("0.####");
+                    txtParentRandomWeight.Text = (100.0 * _influenceLinkParent.RandomWeight).ToString("0.##");
                 }
             }
         }
@@ -141,7 +141,8 @@ namespace Whorl
                 {
                     txtInfluenceFactor.Text = _influenceLink.LinkFactor.ToString("0.####");
                     chkMultiply.Checked = _influenceLink.Multiply;
-                    txtPointRandomWeight.Text = _influenceLink.RandomWeight.ToString("0.####");
+                    txtPointRandomWeight.Text = (100.0 * _influenceLink.RandomWeight).ToString("0.##");
+                    ChkScaleRandomWeight.Checked = _influenceLink.ScaleRandomWeightByLinkFactor;
                 }
             }
         }
@@ -544,7 +545,7 @@ namespace Whorl
             {
                 if (double.TryParse(txtParentRandomWeight.Text, out double weight))
                 {
-                    influenceLinkParent.RandomWeight = weight;
+                    influenceLinkParent.RandomWeight = 0.01 * weight;
                 }
                 var randomValues = GetRandomValues();
                 influenceLinkParent.RandomValues = randomValues;
@@ -581,8 +582,9 @@ namespace Whorl
                     influenceLink.Multiply = chkMultiply.Checked;
                     if (double.TryParse(txtPointRandomWeight.Text, out double weight))
                     {
-                        influenceLink.RandomWeight = weight;
+                        influenceLink.RandomWeight = 0.01 * weight;
                     }
+                    influenceLink.ScaleRandomWeightByLinkFactor = ChkScaleRandomWeight.Checked;
                 }
             }
             return true;
