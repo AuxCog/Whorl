@@ -44,6 +44,8 @@ namespace Whorl
             this.label5 = new System.Windows.Forms.Label();
             this.cboInfluencePointId = new System.Windows.Forms.ComboBox();
             this.ChkEnabled = new System.Windows.Forms.CheckBox();
+            this.ChkCenterSlope = new System.Windows.Forms.CheckBox();
+            this.txtCenterSlope = new System.Windows.Forms.TextBox();
             this.pnlFadeOut.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -70,7 +72,7 @@ namespace Whorl
             // ChkUseFadeout
             // 
             this.ChkUseFadeout.AutoSize = true;
-            this.ChkUseFadeout.Location = new System.Drawing.Point(12, 81);
+            this.ChkUseFadeout.Location = new System.Drawing.Point(12, 115);
             this.ChkUseFadeout.Name = "ChkUseFadeout";
             this.ChkUseFadeout.Size = new System.Drawing.Size(236, 17);
             this.ChkUseFadeout.TabIndex = 12;
@@ -89,7 +91,7 @@ namespace Whorl
             this.pnlFadeOut.Controls.Add(this.label2);
             this.pnlFadeOut.Controls.Add(this.txtStartPercentage);
             this.pnlFadeOut.Controls.Add(this.label1);
-            this.pnlFadeOut.Location = new System.Drawing.Point(12, 106);
+            this.pnlFadeOut.Location = new System.Drawing.Point(12, 140);
             this.pnlFadeOut.Name = "pnlFadeOut";
             this.pnlFadeOut.Size = new System.Drawing.Size(246, 164);
             this.pnlFadeOut.TabIndex = 13;
@@ -191,11 +193,30 @@ namespace Whorl
             this.ChkEnabled.Text = "Enabled";
             this.ChkEnabled.UseVisualStyleBackColor = true;
             // 
+            // ChkCenterSlope
+            // 
+            this.ChkCenterSlope.AutoSize = true;
+            this.ChkCenterSlope.Location = new System.Drawing.Point(15, 83);
+            this.ChkCenterSlope.Name = "ChkCenterSlope";
+            this.ChkCenterSlope.Size = new System.Drawing.Size(90, 17);
+            this.ChkCenterSlope.TabIndex = 17;
+            this.ChkCenterSlope.Text = "Center Slope:";
+            this.ChkCenterSlope.UseVisualStyleBackColor = true;
+            // 
+            // txtCenterSlope
+            // 
+            this.txtCenterSlope.Location = new System.Drawing.Point(111, 81);
+            this.txtCenterSlope.Name = "txtCenterSlope";
+            this.txtCenterSlope.Size = new System.Drawing.Size(84, 20);
+            this.txtCenterSlope.TabIndex = 18;
+            // 
             // FrmEditDistancePatternSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(271, 298);
+            this.ClientSize = new System.Drawing.Size(271, 315);
+            this.Controls.Add(this.txtCenterSlope);
+            this.Controls.Add(this.ChkCenterSlope);
             this.Controls.Add(this.ChkEnabled);
             this.Controls.Add(this.cboInfluencePointId);
             this.Controls.Add(this.label5);
@@ -229,5 +250,7 @@ namespace Whorl
         private System.Windows.Forms.ComboBox cboInfluencePointId;
         private System.Windows.Forms.CheckBox ChkAutoEnd;
         private System.Windows.Forms.CheckBox ChkEnabled;
+        private System.Windows.Forms.CheckBox ChkCenterSlope;
+        private System.Windows.Forms.TextBox txtCenterSlope;
     }
 }

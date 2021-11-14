@@ -29,6 +29,8 @@ namespace Whorl
             txtEndPercentage.Text = (100.0 * distancePatternSettings.FadeEndRatio).ToString("0.##");
             txtEndValue.Text = distancePatternSettings.EndDistanceValue.ToString("0.##");
             ChkAutoEnd.Checked = distancePatternSettings.AutoEndValue;
+            txtCenterSlope.Text = (100.0 * distancePatternSettings.CenterSlope).ToString("0.##");
+            ChkCenterSlope.Checked = distancePatternSettings.CenterSlope != 0.0;
             pnlFadeOut.Enabled = ChkUseFadeout.Checked;
             var idItems = new List<object>() { "(None)" };
             idItems.AddRange(pattern.InfluencePointInfoList.InfluencePointInfos.OrderBy(ip => ip.Id));
@@ -54,14 +56,18 @@ namespace Whorl
         private bool PopulateSettings()
         {
             var sbErrors = new StringBuilder();
-            double startRatio = 0, endRatio = 0, endValue = 0;
+            double startRatio = 0, endRatio = 0, endValue = 0, centerSlope;
+            if (ChkCenterSlope.Checked)
+            {
+                ValueParser.TryParseDouble(txtCenterSlope.Text, out centerSlope, val => val >= 0,
+                                           "Center Slope must be a non-negative number.", sbErrors);
+            }
+            else
+                centerSlope = 0;
             if (ChkUseFadeout.Checked)
             {
-                if (!ValueParser.TryParseDouble(txtStartPercentage.Text, out startRatio, val => val > 0,
-                                               "Start Percentage must be a non-negative number.", sbErrors))
-                {
-                    startRatio = 0;
-                }
+                ValueParser.TryParseDouble(txtStartPercentage.Text, out startRatio, val => val > 0,
+                                           "Start Percentage must be a non-negative number.", sbErrors);
                 ValueParser.TryParseDouble(txtEndPercentage.Text, out endRatio, val => val > startRatio,
                                            "End Percentage must be a number greater than Start Percentage.", sbErrors);
                 if (!ChkAutoEnd.Checked)
@@ -78,6 +84,7 @@ namespace Whorl
             {
                 distancePatternSettings.Enabled = ChkEnabled.Checked;
                 distancePatternSettings.UseFadeOut = ChkUseFadeout.Checked;
+                distancePatternSettings.CenterSlope = 0.01 * centerSlope;
                 if (distancePatternSettings.UseFadeOut)
                 {
                     distancePatternSettings.FadeStartRatio = 0.01 * startRatio;

@@ -15,7 +15,10 @@ namespace Whorl
             if (isValid)
                 isValid = validatePredicate(val);
             if (!isValid)
+            {
+                val = double.NaN;
                 sbErrors.AppendLine(errorMessage);
+            }
             return isValid;
         }
     }

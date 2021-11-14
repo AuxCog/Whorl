@@ -497,6 +497,7 @@ namespace Whorl
                 public double FadeEndRatio { get; set; } = 1.25;
                 public double EndDistanceValue { get; set; } = 10000.0;
                 public bool AutoEndValue { get; set; } = true;
+                public double CenterSlope { get; set; }
                 public int? InfluencePointId { get; set; }
                 public bool Enabled { get; set; } = true;
 
@@ -1263,20 +1264,32 @@ namespace Whorl
                 bool computeDist = true;
                 double modulus = 0;
                 double endFade = 0;
+                bool useCenterSlope = false;
+                double distanceScale = 1.0;
+                PointF center = PointF.Empty;
                 if (index < distancePatternInfos.Count)
                 {
                     distInfo = distancePatternInfos[index];
                     settings = distInfo.DistancePatternSettings;
                     useFadeOut = settings.UseFadeOut;
+                    useCenterSlope = settings.CenterSlope > 0;
+                    center = distInfo.DistancePatternCenter;
                 }
-                if (useFadeOut)
+                if (useFadeOut || useCenterSlope)
                 {
-                    modulus = Tools.Distance(p, distInfo.DistancePatternCenter);
-                    endFade = settings.FadeEndRatio * distInfo.MaxModulus;
-                    if (modulus >= endFade && settings.EndDistanceValue != 0)
+                    modulus = Tools.Distance(p, center);
+                    if (useCenterSlope)
                     {
-                        minDist = settings.EndDistanceValue;
-                        computeDist = false;
+                        distanceScale = Math.Tanh(settings.CenterSlope * modulus / distInfo.MaxModulus);
+                    }
+                    if (useFadeOut)
+                    {
+                        endFade = settings.FadeEndRatio * distInfo.MaxModulus;
+                        if (modulus >= endFade && settings.EndDistanceValue != 0)
+                        {
+                            minDist = settings.EndDistanceValue;
+                            computeDist = false;
+                        }
                     }
                 }
                 if (computeDist)
@@ -1286,13 +1299,25 @@ namespace Whorl
                     {
                         distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
                     }
-                    double dist;
+                    //PointF nearestPoint = PointF.Empty;
                     foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
                              .Take(Info.DistanceCount))
                     {
-                        dist = minSquare.Points.Select(pf => Tools.DistanceSquared(pf, p)).Min();
-                        if (dist < minDist)
-                            minDist = dist;
+                        for (int i = 0; i < minSquare.Points.Length; i++)
+                        {
+                            //PointF currP = minSquare.Points[i];
+                            //if (useCenterSlope)
+                            //{
+                            //    currP = new PointF(center.X + pointScale * (currP.X - center.X),
+                            //                       center.Y + pointScale * (currP.Y - center.Y));
+                            //}
+                            double dist = Tools.DistanceSquared(minSquare.Points[i], p);
+                            if (dist < minDist)
+                            {
+                                minDist = dist;
+                                //nearestPoint = currP;
+                            }
+                        }
                     }
                     if (useFadeOut)
                     {
@@ -1312,7 +1337,7 @@ namespace Whorl
                 //For testing center:
                 //if (useFadeOut && modulus < 50)
                 //    minDist *= 10;
-                Info.SetDistanceToPath(index, distanceFactor * Math.Sqrt(minDist));
+                Info.SetDistanceToPath(index, distanceFactor * distanceScale * Math.Sqrt(minDist));
             }
 
 
