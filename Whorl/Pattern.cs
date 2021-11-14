@@ -1167,7 +1167,8 @@ namespace Whorl
                             {
                                 distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
                             }
-                            distPtn.Center = distanceInfo.DistancePatternCenter;
+                            PointF distCenter = distanceInfo.DistancePatternCenter;
+                            distPtn.Center = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
                             distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
                             distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
                             InitDistanceSquares(i, distPtn.CurvePoints);
