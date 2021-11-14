@@ -16,15 +16,17 @@ namespace Whorl
             Normal,
             LastPass
         }
-        public PixelRenderInfo(Pattern.RenderingInfo parent)
+        public PixelRenderInfo(Pattern.RenderingInfo parent, List<Pattern.RenderingInfo.DistancePatternInfo> distancePatternsInfo)
         {
             this.parent = parent;
+            this.distancePatternsInfo = distancePatternsInfo;
         }
 
         public bool FirstPass => PassType == PassTypes.FirstPass;
         public bool LastPass => PassType == PassTypes.LastPass;
 
         private Pattern.RenderingInfo parent { get; }
+        private List<Pattern.RenderingInfo.DistancePatternInfo> distancePatternsInfo { get; }
 
         public float Position { get; set; }
         public double Rotation { get; set; }
@@ -127,6 +129,11 @@ namespace Whorl
             string enumKey = Tools.GetEnumKey(enumVal);
             var copiedPointsList = new InfluencePointInfoList(parent.ParentPattern.InfluencePointInfoList, parent.ParentPattern);
             return copiedPointsList.GetFilteredInfluencePointInfos(enumKey).ToArray();
+        }
+
+        public double GetModulus(int distanceIndex, double angle)
+        {
+            return distancePatternsInfo[distanceIndex].DistancePattern.ComputeModulus(angle);
         }
 
         public T GetKeyParams<T>(object keyEnumValue, InfluencePointInfo influencePointInfo = null) where T: class

@@ -387,7 +387,7 @@ namespace Whorl
             //private const int distanceSquareRows = 10;
             private class InfoExt: PixelRenderInfo
             {
-                public InfoExt(Pattern.RenderingInfo parent): base(parent)
+                public InfoExt(Pattern.RenderingInfo parent, List<DistancePatternInfo> distancePatternInfos): base(parent, distancePatternInfos)
                 {
                 }
 
@@ -787,11 +787,11 @@ namespace Whorl
                 }
             }
             public bool UseDistanceOutline { get; set; }
-            private List<DistancePatternInfo> distancePatternsInfo { get; } = 
+            private List<DistancePatternInfo> distancePatternInfos { get; } = 
                new List<DistancePatternInfo>();
             public IEnumerable<DistancePatternInfo> GetDistancePatternInfos()
             {
-                return distancePatternsInfo;
+                return distancePatternInfos;
             }
 
             public int PatternLayerIndex { get; set; }
@@ -848,7 +848,7 @@ namespace Whorl
                 //    throw new NullReferenceException("design cannot be null.");
                 ParentPattern = pattern;
                 //Design = pattern.Design;
-                Info = new InfoExt(this);
+                Info = new InfoExt(this, distancePatternInfos);
                 if (createColorNodes)
                 {
                     ColorNodes = new ColorNodeList();
@@ -867,7 +867,7 @@ namespace Whorl
                 ZoomFactor = source.ZoomFactor;
                 SmoothedDraft = source.SmoothedDraft;
                 UseDistanceOutline = source.UseDistanceOutline;
-                distancePatternsInfo.AddRange(source.distancePatternsInfo.Select(dp => dp.GetCopy()));
+                distancePatternInfos.AddRange(source.distancePatternInfos.Select(dp => dp.GetCopy()));
                 if (source.SeedPattern != null)
                     SetSeedPattern(source.SeedPattern);
                 if (source.FormulaSettings != null)
@@ -898,7 +898,7 @@ namespace Whorl
             public DistancePatternInfo AddDistancePattern(Pattern parent, Pattern distancePattern) //, Complex prevZVector)
             {
                 var distancePatternInfo = new DistancePatternInfo(parent, distancePattern);
-                distancePatternsInfo.Add(distancePatternInfo);
+                distancePatternInfos.Add(distancePatternInfo);
                 ClearCache();
                 DistancePatternsCountChanged?.Invoke(this, EventArgs.Empty);
                 return distancePatternInfo;
@@ -906,7 +906,7 @@ namespace Whorl
 
             public void DeleteDistancePattern(DistancePatternInfo distancePatternInfo)
             {
-                if (distancePatternsInfo.Remove(distancePatternInfo))
+                if (distancePatternInfos.Remove(distancePatternInfo))
                 {
                     distancePatternInfo.DistancePattern.Dispose();
                     ClearCache();
@@ -919,7 +919,7 @@ namespace Whorl
             public void ZoomDistancePatterns(double factor, bool zoomCenters = true)
             {
                 float fFac = (float)factor;
-                foreach (var info in distancePatternsInfo)
+                foreach (var info in distancePatternInfos)
                 {
                     if (zoomCenters)
                     {
@@ -1141,10 +1141,10 @@ namespace Whorl
             public int GetDistancePathsCount()
             {
                 int count;
-                if (distancePatternsInfo.Count == 0)
+                if (distancePatternInfos.Count == 0)
                     count = 1;
                 else
-                    count = distancePatternsInfo.Count;
+                    count = distancePatternInfos.Count;
                 return count;
             }
 
@@ -1152,13 +1152,13 @@ namespace Whorl
             {
                 int count = GetDistancePathsCount();
                 distanceSquaresArray = new List<DistanceSquare>[count];
-                if (distancePatternsInfo.Count == 0)
+                if (distancePatternInfos.Count == 0)
                     InitDistanceSquares(0, patternPoints);
                 else
                 {
-                    for (int i = 0; i < distancePatternsInfo.Count; i++)
+                    for (int i = 0; i < distancePatternInfos.Count; i++)
                     {
-                        var distanceInfo = distancePatternsInfo[i];
+                        var distanceInfo = distancePatternInfos[i];
                         if (!distanceInfo.DistancePatternSettings.Enabled)
                             continue;
                         using (Pattern distPtn = distanceInfo.GetDistancePattern(parentPattern))
@@ -1167,12 +1167,9 @@ namespace Whorl
                             {
                                 distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
                             }
-                            distPtn.Center = new PointF(distPtn.Center.X - BoundsRect.Left, distPtn.Center.Y - BoundsRect.Top);
+                            distPtn.Center = distanceInfo.DistancePatternCenter;
                             distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                            distanceInfo.DistancePatternCenter = distPtn.Center;
                             distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
-                            //PointF[] points = distPtn.CurvePoints.Select(
-                            //                  p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
                             InitDistanceSquares(i, distPtn.CurvePoints);
                         }
                     }
@@ -1265,9 +1262,9 @@ namespace Whorl
                 bool computeDist = true;
                 double modulus = 0;
                 double endFade = 0;
-                if (index < distancePatternsInfo.Count)
+                if (index < distancePatternInfos.Count)
                 {
-                    distInfo = distancePatternsInfo[index];
+                    distInfo = distancePatternInfos[index];
                     settings = distInfo.DistancePatternSettings;
                     useFadeOut = settings.UseFadeOut;
                 }
@@ -1364,17 +1361,17 @@ namespace Whorl
                                                subtractCenter: false);
                     influencePointInfo.TransformedPoint = new DoublePoint(pt.X, pt.Y);
                 }
-                if (Info.ComputeDistance)
+                if (Info.DistancePatternCenters != null)
                 {
                     for (int i = 0; i < Info.DistancePatternCenters.Length; i++)
                     {
-                        if (i == 0 && distancePatternsInfo.Count == 0)
+                        if (i == 0 && distancePatternInfos.Count == 0)
                         {
                             Info.DistancePatternCenters[i] = Info.Center;
                         }
                         else
                         {
-                            PointF distCenter = distancePatternsInfo[i].DistancePatternCenter;
+                            PointF distCenter = distancePatternInfos[i].DistancePatternCenter;
                             if (Info.Normalize)
                             {
                                 distCenter.X -= ParentPattern.Center.X;
@@ -1742,11 +1739,17 @@ namespace Whorl
                             floatScaleFactor = 1F / (ZoomFactor * maxSize);
                             Info.SetScaleFactor(1.0);
                         }
+                        Info.AllocateDistancesToPaths(GetDistancePathsCount());
+                        for (int i = 0; i < distancePatternInfos.Count; i++)
+                        {
+                            var distanceInfo = distancePatternInfos[i];
+                            PointF distCenter = distanceInfo.GetDistancePatternCenter(pattern);
+                            //distCenter = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
+                            distanceInfo.DistancePatternCenter = distCenter;
+                        }
                         if (Info.ComputeDistance)
                         {
-                            int count = GetDistancePathsCount();
                             InitDistanceSquares(pattern, points);
-                            Info.AllocateDistancesToPaths(distanceSquaresArray.Length);
                             distanceFactor = 1D / maxSize;
                         }
                     }
@@ -1783,7 +1786,7 @@ namespace Whorl
                     SeedPattern.ToXml(seedNode, xmlTools);
                     node.AppendChild(seedNode);
                 }
-                foreach (var distancePatternInfo in distancePatternsInfo)
+                foreach (var distancePatternInfo in distancePatternInfos)
                 {
                     distancePatternInfo.ToXml(node, xmlTools);
                 }
@@ -1835,7 +1838,7 @@ namespace Whorl
                             PanXY = Tools.GetPointFFromXml(childNode);
                             break;
                         case "DistancePatternInfo":
-                            distancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design, ParentPattern, childNode));
+                            distancePatternInfos.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design, ParentPattern, childNode));
                             break;
                         case nameof(PointsRandomOps):
                             PointsRandomOps = new PointsRandomOps(childNode);
@@ -1864,7 +1867,7 @@ namespace Whorl
                 if (distancePattern != null)
                 {
                     //Legacy code:
-                    distancePatternsInfo.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design,
+                    distancePatternInfos.Add(DistancePatternInfo.CreateFromXml(ParentPattern.Design,
                                              distancePattern, origZVector, origCenter));
                 }
                 if (ColorNodes == null)
@@ -2334,6 +2337,35 @@ namespace Whorl
             }
         }
 
+        public double ComputeModulus(double angle, bool normalize = true)
+        {
+            if (seedOutlines == null)
+                ComputeSeedPoints();
+            double modulus = ComputeModulusHelper(angle);
+            if (normalize)
+                modulus = Math.Abs(seedUnitFactor * modulus);
+            return modulus;
+        }
+
+        private double ComputeModulusHelper(double angle)
+        {
+            double modulus;
+            switch (MergeOperation)
+            {
+                case MergeOperations.Sum:
+                default:
+                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Sum();
+                    break;
+                case MergeOperations.Max:
+                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Max();
+                    break;
+                case MergeOperations.Min:
+                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Min();
+                    break;
+            }
+            return modulus;
+        }
+
         public PolarPoint ComputeSeedPoint(double angle)
         {
             double angle1 = ParserTools.Normalize(angle, 2.0 * Math.PI);
@@ -2362,20 +2394,21 @@ namespace Whorl
                 {
                     modulus = seedPolygonOutline.ComputePolygonPoint(i, out angle);
                 }
-                double angle1 = angle;  //Can't use ref parameter below.
-                switch (MergeOperation)
-                {
-                    case MergeOperations.Sum:
-                    default:
-                        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Sum();
-                        break;
-                    case MergeOperations.Max:
-                        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Max();
-                        break;
-                    case MergeOperations.Min:
-                        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Min();
-                        break;
-                }
+                modulus += ComputeModulusHelper(angle);
+                //double angle1 = angle;  //Can't use ref parameter below.
+                //switch (MergeOperation)
+                //{
+                //    case MergeOperations.Sum:
+                //    default:
+                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Sum();
+                //        break;
+                //    case MergeOperations.Max:
+                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Max();
+                //        break;
+                //    case MergeOperations.Min:
+                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Min();
+                //        break;
+                //}
             }
             modulus *= seedUnitFactor;
             if (!seedPatternIsPath)
