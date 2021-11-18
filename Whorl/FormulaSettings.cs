@@ -74,8 +74,8 @@ namespace Whorl
                 if (_testCSharpEvalType != null)
                 {
                     if (testCSharpCompiledInfo == null)
-                        testCSharpCompiledInfo = new CSharpCompiledInfo();
-                    testCSharpCompiledInfo.UseCompiledType(_testCSharpEvalType);
+                        testCSharpCompiledInfo = new CSharpCompiledInfo(new CSharpSharedCompiledInfo());
+                    testCSharpCompiledInfo.CSharpSharedCompiledInfo.UseCompiledType(_testCSharpEvalType);
                     _testEvalInstance = testCSharpCompiledInfo.CreateEvalInstance();
                     if (_evalInstance != null)
                         CopyCSharpParams(_evalInstance.ParamsObj, _testEvalInstance);
@@ -120,7 +120,10 @@ namespace Whorl
             get
             {
                 if (IsCSharpFormula)
-                    return EvalInstance != null && !CSharpCompiledInfo.Errors.Any();
+                {
+                    var compiledInfo = CSharpCompiledInfo;
+                    return EvalInstance != null && compiledInfo != null && !compiledInfo.CSharpSharedCompiledInfo.Errors.Any();
+                }
                 //return CSharpCompiledInfo.EvalClassType != null && !CSharpCompiledInfo.Errors.Any();
                 else
                     return FormulaExpression != null;
@@ -236,7 +239,7 @@ namespace Whorl
         {
             FormulaType = formulaType;
             ParentPattern = pattern;
-            cSharpCompiledInfo = new CSharpCompiledInfo();
+            //cSharpCompiledInfo = new CSharpCompiledInfo();
             if (parser == null)
                 parser = CreateExpressionParser();
             Parser = parser;
@@ -266,7 +269,8 @@ namespace Whorl
                 {
                     SavedParamsObj = source.EvalInstance != null ?
                                      source.EvalInstance.ParamsObj : source.SavedParamsObj;
-                    _evalInstance = cSharpCompiledInfo.CreateEvalInstance();
+                    if (cSharpCompiledInfo != null)
+                        _evalInstance = cSharpCompiledInfo.CreateEvalInstance();
                     SetEvalInstance();
                     CopyCSharpParams(SavedParamsObj);
                     RefreshKeyEnumParams(source);
@@ -399,12 +403,15 @@ namespace Whorl
                     {
                         MessageBox.Show(string.Join(Environment.NewLine, processor.Warnings), "Preprocessor Warnings");
                     }
-                    compiledInfo = new CSharpCompiledInfo();
-                    compiledInfo.CompileCode(cSharpCode);
-                    //compiledInfo = CSharpCompiler.Instance.CompileCode(cSharpCode);
-                    if (!isModule)
-                        cSharpCompiledInfo = compiledInfo;
-                    isValid = compiledInfo.EvalClassType != null && !compiledInfo.Errors.Any();
+                    var sharedCompiledInfo = CSharpCompiler.Instance.CompileFormula(cSharpCode);
+                    //sharedCompiledInfo.CompileCode(cSharpCode);
+                    isValid = sharedCompiledInfo.EvalClassType != null && !sharedCompiledInfo.Errors.Any();
+                    if (isValid)
+                    {
+                        compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
+                        if (!isModule)
+                            cSharpCompiledInfo = compiledInfo;
+                    }
                     if (!isModule)
                     {
                         if (isValid)
@@ -466,7 +473,7 @@ namespace Whorl
                         if (preprocessorErrors)
                             errMsg = string.Join(Environment.NewLine, processor.ErrorMessages.Select(e => e.Message));
                         else if (compiledInfo != null)
-                            errMsg = compiledInfo.ErrorsText;
+                            errMsg = compiledInfo.CSharpSharedCompiledInfo.ErrorsText;
                         else
                             errMsg = "Unknown error.";
                     }
@@ -490,13 +497,13 @@ namespace Whorl
                         {
                             if (preprocessorErrors)
                                 cSharpCode = formula;
-                            if (preprocessorErrors || compiledInfo.Errors.Any())
+                            if (preprocessorErrors || compiledInfo.CSharpSharedCompiledInfo.Errors.Any())
                             {
                                 frm.Initialize(this, formulaForm, preprocessorErrors,
                                                compiledInfo, cSharpCode);
                                 Tools.DisplayForm(frm);
                             }
-                            else if (compiledInfo.EvalClassType == null)
+                            else if (compiledInfo.CSharpSharedCompiledInfo.EvalClassType == null)
                             {
                                 MessageBox.Show("Couldn't retrieve type of compiled object.");
                             }
@@ -589,16 +596,16 @@ namespace Whorl
             {
                 foreach (Type enumType in keyedEnumTypes)
                 {
-                    Type enumType2 = formulaSettings.CSharpCompiledInfo.EvalClassType.GetNestedType(enumType.Name);
+                    Type enumType2 = formulaSettings.CSharpCompiledInfo.CSharpSharedCompiledInfo.EvalClassType.GetNestedType(enumType.Name);
                     if (enumType2?.GetCustomAttribute<KeyEnumAttribute>() != null)
                     {
                         errMessages.Add($"The keyed enum type name {enumType.Name} is a duplicate.");
                     }
                 }
             }
-            if (errMessages.Any())
+            if (errMessages.Any() && CSharpCompiledInfo != null)
             {
-                CSharpCompiledInfo.Errors.AddRange(errMessages.Select(s => new CSharpCompiledInfo.ErrorInfo(s)));
+                CSharpCompiledInfo.CSharpSharedCompiledInfo.Errors.AddRange(errMessages.Select(s => new CSharpSharedCompiledInfo.ErrorInfo(s)));
             }
             return errMessages.Count == 0;
         }
@@ -612,10 +619,10 @@ namespace Whorl
 
         private Type GetKeyEnumParamsClassType(KeyEnumAttribute attribute)
         {
-            if (attribute.ParamsClassName == null)
+            if (attribute.ParamsClassName == null || CSharpCompiledInfo == null)
                 return null;
             else
-                return CSharpCompiledInfo.EvalClassType.GetNestedType(attribute.ParamsClassName);
+                return CSharpCompiledInfo.CSharpSharedCompiledInfo.EvalClassType.GetNestedType(attribute.ParamsClassName);
         }
 
         private void PopulateKeyParamDictionary()
@@ -664,9 +671,9 @@ namespace Whorl
         public IEnumerable<Type> GetKeyedEnumTypes()
         {
             var compiledInfo = CSharpCompiledInfo;
-            if (!IsCSharpFormula || compiledInfo?.EvalClassType == null)
+            if (!IsCSharpFormula || compiledInfo == null || compiledInfo.CSharpSharedCompiledInfo.EvalClassType == null)
                 return new Type[] { };
-            return compiledInfo.EvalClassType.GetNestedTypes()
+            return compiledInfo.CSharpSharedCompiledInfo.EvalClassType.GetNestedTypes()
                    .Where(t => t.IsEnum && t.GetCustomAttribute<KeyEnumAttribute>() != null);
         }
 

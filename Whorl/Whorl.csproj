@@ -104,7 +104,9 @@
     <Compile Include="ColorTransparencyForm.Designer.cs">
       <DependentUpon>ColorTransparencyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CSharpCompiledInfo.cs" />
     <Compile Include="CSharpPreprocessor.cs" />
+    <Compile Include="CSharpSharedCompiledInfo.cs" />
     <Compile Include="CubicSpline.cs" />
     <Compile Include="CustomAttributes.cs" />
     <Compile Include="CustomParseAttribute.cs" />

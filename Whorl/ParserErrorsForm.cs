@@ -71,8 +71,8 @@ namespace Whorl
                     int nextIndex = -1;
                     string code = cSharpCode ?? formulaSettings.Formula;
                     int codeLength = code.Length;
-                    foreach (var errInfo in compiledInfo.Errors.OrderBy(ei => ei.Line)
-                                                               .ThenBy(ei => ei.Column))
+                    foreach (var errInfo in compiledInfo.CSharpSharedCompiledInfo.Errors
+                                            .OrderBy(ei => ei.Line).ThenBy(ei => ei.Column))
                     {
                         while (currLineNo < errInfo.Line && currIndex < codeLength)
                         {
