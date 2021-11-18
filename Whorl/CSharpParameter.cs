@@ -34,6 +34,7 @@ namespace Whorl
         object SelectedOptionObject { get; set; }
         string SelectedText { get; set; }
         object GetOptionByText(string text);
+        object[] GetInstances();
     }
 
     public class ParamOption<TValue>
@@ -87,6 +88,11 @@ namespace Whorl
         public string SelectedText { get; set; }
 
         public List<string> OptionTexts { get; private set; }
+
+        public virtual object[] GetInstances()
+        {
+            return null;
+        }
 
         protected void FinishOptions(bool setSelected = true)
         {
@@ -205,6 +211,7 @@ namespace Whorl
     {
         public int ParamCount { get; }
         public FuncT Function { get; private set; }
+        public object[] Instances { get; }
 
         protected override void SelectedOptionChanged()
         {
@@ -227,6 +234,7 @@ namespace Whorl
                     throw new NullReferenceException("instances cannot contain null.");
                 typesList.AddRange(instances.Select(o => o.GetType()));
             }
+            Instances = instances;
             if (methodTypes != null && methodTypes.Length > 0)
                 typesList.AddRange(methodTypes);
             else if (addDefaultMethodTypes)
@@ -266,6 +274,11 @@ namespace Whorl
         public BaseFuncParameter(int paramCount)
         {
             ParamCount = paramCount;
+        }
+
+        public override object[] GetInstances()
+        {
+            return Instances;
         }
 
         protected IEnumerable<MethodInfo> GetValidMethods(Type methodType, bool forInstance = false)

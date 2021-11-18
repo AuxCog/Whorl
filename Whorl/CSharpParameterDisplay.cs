@@ -69,7 +69,7 @@ namespace Whorl
 
         }
 
-        private class ArrayInfo
+        public class ArrayInfo
         {
             public Array ParamArray { get; }
             public int Index { get; }
@@ -276,6 +276,7 @@ namespace Whorl
             Control ctl;
             ComboBox cbo = null;
             LinkLabel lnkInfluence = null;
+            LinkLabel lnkEditFunctionParams = null;
             bool useLabel = true;
             //TextBox customTextBox = null;
             object controlTag;
@@ -283,6 +284,7 @@ namespace Whorl
                 controlTag = arrayInfo;
             else
                 controlTag = propertyInfo;
+            object origTag = controlTag;
             bool isNestedParamsParam = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             string selectedItem = null;
             var iOptionsParam = oParam as IOptionsParameter;
@@ -296,20 +298,27 @@ namespace Whorl
                 cbo.Width = comboboxWidth;
                 selectedItem = iOptionsParam.SelectedText;
                 ctl = cbo;
+                var fnParam = oParam as Func1Parameter<double>;
+                if (fnParam?.Instances != null && fnParam.Instances.Length > 0)
+                {
+                    lnkEditFunctionParams = CreateLinkLabel("Edit...", origTag);
+                    lnkEditFunctionParams.Click += LnkEditNestedParams_Click;
+                }
             }
             else if (oParam is bool)
             {
                 useLabel = false;
-                var chk = new CheckBox();
+                var chk = new CheckBox() { AutoSize = false };
                 chk.Text = labelText;
+                chk.Width = chk.MinimumSize.Width + TextRenderer.MeasureText(labelText, chk.Font).Width;
                 chk.Checked = (bool)oParam;
                 chk.CheckedChanged += ParametersCheckBox_CheckChanged;
                 ctl = chk;
             }
             else if (isNestedParamsParam)
             {
-                var LnkEditNestedParams = new LinkLabel() { Text = "Edit..." };
-                ctl = LnkEditNestedParams;
+                var LnkEditNestedParams = CreateLinkLabel("Edit...", origTag);
+                ctl = LnkEditNestedParams;  //ctl.Tag will be set to controlTag.
                 LnkEditNestedParams.Click += LnkEditNestedParams_Click;
             }
             else
@@ -338,16 +347,18 @@ namespace Whorl
             {
                 AddLabel(labelText, labelSpan, top, ref left);
             }
-            ctl.Tag = controlTag;
+            if (ctl.Tag == null)
+                ctl.Tag = controlTag;
             ctl.Top = top;
             ctl.Left = left;
             left += ctl.Width + critLeftMargin;
             ParametersPanel.Controls.Add(ctl);
-            if (lnkInfluence != null)
+            LinkLabel linkLabel = lnkInfluence ?? lnkEditFunctionParams;
+            if (linkLabel != null)
             {
-                lnkInfluence.Top = top;
-                lnkInfluence.Left = left;
-                ParametersPanel.Controls.Add(lnkInfluence);
+                linkLabel.Top = top;
+                linkLabel.Left = left;
+                ParametersPanel.Controls.Add(linkLabel);
             }
             //if (customTextBox != null)
             //{
@@ -368,6 +379,15 @@ namespace Whorl
                 ctl.Enabled = false;
         }
 
+        private LinkLabel CreateLinkLabel(string text, object tag)
+        {
+            var lnk = new LinkLabel() { AutoSize = false };
+            lnk.Text = text;
+            lnk.Tag = tag;
+            lnk.Width = TextRenderer.MeasureText(text, lnk.Font).Width;
+            return lnk;
+        }
+
         private FrmNestedParameters frmNestedParameters { get; set; }
 
         private void LnkEditNestedParams_Click(object sender, EventArgs e)
@@ -375,10 +395,19 @@ namespace Whorl
             try
             {
                 var linkLabel = (LinkLabel)sender;
-                var propertyInfo = (PropertyInfo)linkLabel.Tag;
+                var propertyInfo = linkLabel.Tag as PropertyInfo;
+                int index = -1;
+                if (propertyInfo == null)
+                {
+                    var arrayInfo = linkLabel.Tag as ArrayInfo;
+                    if (arrayInfo == null)
+                        throw new Exception("Invalid nested params link tag.");
+                    propertyInfo = arrayInfo.PropertyInfo;
+                    index = arrayInfo.Index;
+                }
                 if (frmNestedParameters == null || frmNestedParameters.IsDisposed)
                     frmNestedParameters = new FrmNestedParameters();
-                frmNestedParameters.Initialize(propertyInfo, FormulaSettings, ParamChangedFn);
+                frmNestedParameters.Initialize(propertyInfo, FormulaSettings, ParamChangedFn, index);
                 Tools.DisplayForm(frmNestedParameters);
             }
             catch (Exception ex)

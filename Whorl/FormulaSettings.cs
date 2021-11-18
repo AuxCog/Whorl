@@ -392,6 +392,7 @@ namespace Whorl
             var processor = CSharpPreprocessor.Instance;
             ParserErrorsForm.ResetForm();
             string cSharpCode = null;
+            CSharpSharedCompiledInfo sharedCompiledInfo = null;
             if (IsCSharpFormula)
             {
                 cSharpCode = PreprocessCSharp(formula);
@@ -403,7 +404,7 @@ namespace Whorl
                     {
                         MessageBox.Show(string.Join(Environment.NewLine, processor.Warnings), "Preprocessor Warnings");
                     }
-                    var sharedCompiledInfo = CSharpCompiler.Instance.CompileFormula(cSharpCode);
+                    sharedCompiledInfo = CSharpCompiler.Instance.CompileFormula(cSharpCode);
                     //sharedCompiledInfo.CompileCode(cSharpCode);
                     isValid = sharedCompiledInfo.EvalClassType != null && !sharedCompiledInfo.Errors.Any();
                     if (isValid)
@@ -442,7 +443,7 @@ namespace Whorl
                 }
                 SetEvalInstance();
             }
-            else
+            else  //Legacy, not a C# formula.
             {
                 if (FormulaExpression != null)
                 {
@@ -472,8 +473,8 @@ namespace Whorl
                     {
                         if (preprocessorErrors)
                             errMsg = string.Join(Environment.NewLine, processor.ErrorMessages.Select(e => e.Message));
-                        else if (compiledInfo != null)
-                            errMsg = compiledInfo.CSharpSharedCompiledInfo.ErrorsText;
+                        else if (sharedCompiledInfo != null)
+                            errMsg = sharedCompiledInfo.ErrorsText;
                         else
                             errMsg = "Unknown error.";
                     }
@@ -489,7 +490,7 @@ namespace Whorl
                     var frm = ParserErrorsForm.DefaultForm;
                     if (IsCSharpFormula)
                     {
-                        if (!preprocessorErrors && compiledInfo == null)
+                        if (!preprocessorErrors && sharedCompiledInfo == null)
                         {
                             MessageBox.Show("Couldn't compile C# code.");
                         }
@@ -497,13 +498,12 @@ namespace Whorl
                         {
                             if (preprocessorErrors)
                                 cSharpCode = formula;
-                            if (preprocessorErrors || compiledInfo.CSharpSharedCompiledInfo.Errors.Any())
+                            if (preprocessorErrors || (sharedCompiledInfo != null && sharedCompiledInfo.Errors.Any()))
                             {
-                                frm.Initialize(this, formulaForm, preprocessorErrors,
-                                               compiledInfo, cSharpCode);
+                                frm.Initialize(this, formulaForm, preprocessorErrors, sharedCompiledInfo, cSharpCode);
                                 Tools.DisplayForm(frm);
                             }
-                            else if (compiledInfo.CSharpSharedCompiledInfo.EvalClassType == null)
+                            else if (sharedCompiledInfo?.EvalClassType == null)
                             {
                                 MessageBox.Show("Couldn't retrieve type of compiled object.");
                             }
@@ -813,7 +813,7 @@ namespace Whorl
                             if (sourcePropInfo != null && Tools.TypesMatch(sourcePropInfo.PropertyType, elemType))
                             {
                                 object sourceElemParam = sourcePropInfo.GetValue(sourceParamsObj);
-                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, targetParamsObj, targetArray, i);
+                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, sourcePropInfo, targetParamsObj, targetArray, i);
                                 handledPropertyNames.Add(sourcePropInfo.Name);
                             }
                         }
@@ -829,17 +829,7 @@ namespace Whorl
                     continue;
                 object sourceParam = propInfo.GetValue(sourceParamsObj);
                 object targetParam = targetPropInfo.GetValue(targetParamsObj);
-                if (propInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
-                {
-                    if (sourceParam != null && targetParam != null)
-                    {
-                        if (typesMatch || targetPropInfo.GetCustomAttribute<NestedParametersAttribute>() != null)
-                        {
-                            CopyCSharpParameters(sourceParam, targetParam);
-                        }
-                    }
-                }
-                else if (typesMatch || Tools.TypesMatch(targetPropInfo.PropertyType, propInfo.PropertyType))
+                if (typesMatch || Tools.TypesMatch(targetPropInfo.PropertyType, propInfo.PropertyType))
                 {
                     if (sourceParam != null && propInfo.PropertyType.IsArray && targetParam != null)
                     {
@@ -849,20 +839,22 @@ namespace Whorl
                         {
                             object sourceElemParam = sourceArray.GetValue(i);
                             object targetElemParam = targetArray.GetValue(i);
-                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, targetParamsObj, targetArray, i);
+                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, propInfo, targetParamsObj, targetArray, i);
                         }
                     }
                     else
                     {
-                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, targetParamsObj);
+                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, propInfo, targetParamsObj);
                     }
                 }
             }
         }
 
-        private void CopyCSharpParameter(object sourceParam, object targetParam, PropertyInfo targetPropInfo,
+        private void CopyCSharpParameter(object sourceParam, object targetParam, PropertyInfo targetPropInfo, PropertyInfo propertyInfo,
                                          object targetParamsObj, Array paramArray = null, int index = 0)
         {
+            bool hasNestedParams = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
+            object sourceNestedParamsObj = null, targetNestedParamsObj = null;
             var iOptionsParam = sourceParam as IOptionsParameter;
             if (iOptionsParam != null)
             {
@@ -877,6 +869,21 @@ namespace Whorl
                             iTargetOptionsParam.SelectedOptionObject = selOption;
                     }
                 }
+                if (hasNestedParams)
+                {
+                    var sourceInstances = iOptionsParam.GetInstances();
+                    var targetInstances = iTargetOptionsParam.GetInstances();
+                    if (sourceInstances != null && targetInstances != null)
+                    {
+                        sourceNestedParamsObj = sourceInstances.FirstOrDefault();
+                        targetNestedParamsObj = targetInstances.FirstOrDefault();
+                    }
+                }
+            }
+            else if (hasNestedParams)
+            {
+                sourceNestedParamsObj = sourceParam;
+                targetNestedParamsObj = targetParam;
             }
             else
             {
@@ -899,6 +906,10 @@ namespace Whorl
                     else if (targetPropInfo.CanWrite)
                         targetPropInfo.SetValue(targetParamsObj, sourceParam);
                 }
+            }
+            if (sourceNestedParamsObj != null && targetNestedParamsObj != null)
+            {
+                CopyCSharpParameters(sourceNestedParamsObj, targetNestedParamsObj);
             }
         }
 
@@ -1259,16 +1270,6 @@ namespace Whorl
                                                 Array paramArray, ref bool updateParams, object paramsObj)
         {
             bool isNestedParams = Tools.GetXmlAttribute(subNode, defaultValue: false, "NestedParameters");
-            if (isNestedParams)
-            {
-                if (oParam != null)
-                {
-                    if (subNode.FirstChild?.Name != "Parameters")
-                        throw new Exception("Expecting XmlNode named Parameters.");
-                    ParseCSharpParamsXml(subNode.FirstChild, paramsObj: oParam);
-                }
-                return;
-            }
             int index = -1;
             Type paramType;
             ParameterInfoAttribute infoAttr;
@@ -1286,25 +1287,28 @@ namespace Whorl
                 paramType = propInfo.PropertyType;
                 infoAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
             }
-            string sVal = (string)Tools.GetXmlAttribute("Value", typeof(string), subNode);
             var iOptionsParam = oParam as IOptionsParameter;
+            string sVal = (string)Tools.GetXmlAttribute("Value", typeof(string), subNode, required: !isNestedParams);
             //var iFnParam = oParam as IFuncParameter;
             if (iOptionsParam != null)
             {
-                try
+                if (sVal != null)
                 {
-                    iOptionsParam.SelectedText = sVal;
-                    if (!(oParam is OptionsParameter<InfluencePointInfo>))
+                    try
                     {
-                        object prevVal = iOptionsParam.SelectedOptionObject;
-                        iOptionsParam.SelectedOptionObject = iOptionsParam.GetOptionByText(sVal);
-                        if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
-                            updateParams = true;
+                        iOptionsParam.SelectedText = sVal;
+                        if (!(oParam is OptionsParameter<InfluencePointInfo>))
+                        {
+                            object prevVal = iOptionsParam.SelectedOptionObject;
+                            iOptionsParam.SelectedOptionObject = iOptionsParam.GetOptionByText(sVal);
+                            if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
+                                updateParams = true;
+                        }
                     }
+                    catch { }
                 }
-                catch { }
             }
-            else if (!(oParam is RandomParameter))
+            else if (!isNestedParams && !(oParam is RandomParameter))
             {
                 object oVal = Tools.GetCSharpParameterValue(sVal, paramType, out bool isValid);
                 //try
@@ -1325,6 +1329,25 @@ namespace Whorl
                         if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(oVal, oParam))
                             updateParams = true;
                     }
+                }
+            }
+            if (isNestedParams)
+            {
+                if (oParam != null)
+                {
+                    if (subNode.FirstChild?.Name != "Parameters")
+                        throw new Exception("Expecting XmlNode named Parameters.");
+                    object nestedParamsObj = oParam;
+                    var fnParam = oParam as Func1Parameter<double>;
+                    if (fnParam != null)
+                    {
+                        if (fnParam.Instances != null)
+                            nestedParamsObj = fnParam.Instances.FirstOrDefault();
+                        else
+                            nestedParamsObj = null;
+                    }
+                    if (nestedParamsObj != null)
+                        ParseCSharpParamsXml(subNode.FirstChild, paramsObj: nestedParamsObj);
                 }
             }
         }
@@ -1349,10 +1372,9 @@ namespace Whorl
                 if (oVal.GetType().IsArray)
                 {
                     var paramArray = (Array)oVal;
-                    int index = 0;
-                    foreach (object elem in paramArray)
+                    for (int index = 0; index < paramArray.Length; index++)
                     {
-                        AppendCSharpParameterToXml(childNode, elem, propInfo, xmlTools, index++);
+                        AppendCSharpParameterToXml(childNode, paramArray.GetValue(index), propInfo, xmlTools, index);
                     }
                 }
                 else
@@ -1389,19 +1411,27 @@ namespace Whorl
             bool isNestedParams = propInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             XmlNode subNode;
             string sValue;
+            object nestedParamsObj = null;
             var iOptionsParam = paramValue as IOptionsParameter;
             if (iOptionsParam != null)
             {
                 sValue = iOptionsParam.SelectedText;
-                //object selOption = iOptionsParam.SelectedOptionObject;
-                //if (selOption == null)
-                //    return;
-                //sValue = selOption.ToString();
+                if (isNestedParams)
+                {
+                    var fnParam = iOptionsParam as Func1Parameter<double>;
+                    if (fnParam?.Instances != null)
+                        nestedParamsObj = fnParam.Instances.FirstOrDefault();
+                }
             }
             else if (isNestedParams)
+            {
+                nestedParamsObj = paramValue;
                 sValue = null;
+            }
             else
+            {
                 sValue = paramValue.ToString();
+            }
             subNode = xmlTools.CreateXmlNode("Parameter");
             xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
             xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
@@ -1412,7 +1442,7 @@ namespace Whorl
             if (isNestedParams)
             {
                 xmlTools.AppendXmlAttribute(subNode, "NestedParameters", true);
-                AppendCSharpParametersToXml(subNode, xmlTools, paramsObject: paramValue);
+                AppendCSharpParametersToXml(subNode, xmlTools, paramsObject: nestedParamsObj);
             }
             childNode.AppendChild(subNode);
         }

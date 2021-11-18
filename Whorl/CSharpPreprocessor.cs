@@ -31,6 +31,7 @@ namespace Whorl
             Enum,
             Params,
             Instance,
+            ParametersClass,
             SetProperty,
             Inherit,
             Influence,
@@ -117,6 +118,7 @@ namespace Whorl
             public ParameterSources ParameterSource { get; set; }
             public string PreviousName { get; set; }
             public int PreviousStartNumber { get; set; }
+            public bool HasNestedParameters { get; protected set; }
 
             public string GetDecType()
             {
@@ -190,6 +192,7 @@ namespace Whorl
             public FunctionTypes FunctionType { get; }
             public MathFunctionTypes MathFunctionType { get; }
             public List<string> InstancePropertyNames { get; set; }
+            public string ParametersClassName { get; set; }
             public bool AddDefaultMethodTypes { get; set; }
 
             public FunctionParamInfo(string name, string defaultMethodName, int paramsCount,
@@ -206,6 +209,7 @@ namespace Whorl
 
             public override void Complete()
             {
+                HasNestedParameters = ParametersClassName != null;
                 string functionName;
                 if (FunctionType == FunctionTypes.Derivative)
                 {
@@ -223,8 +227,16 @@ namespace Whorl
                 {
                     args.Add(MathFunctionType == MathFunctionTypes.Normal ? null :
                                 $"{nameof(MathFunctionTypes)}.{MathFunctionType}");
-                    args.Add(InstancePropertyNames == null ? null :
-                       "instances: new object[] { " + string.Join(", ", InstancePropertyNames) + " }");
+                    if (InstancePropertyNames != null)
+                    {
+                        args.Add("instances: new object[] { " + string.Join(", ", InstancePropertyNames) + " }");
+                    }
+                    else if (ParametersClassName != null)
+                    {
+                        args.Add("instances: new object[] { " + $"new {ParametersClassName}()" + " }");
+                    }
+                    else
+                        args.Add(null);
                     if (!AddDefaultMethodTypes)
                         args.Add("addDefaultMethodTypes: false");
                 }
@@ -2039,7 +2051,8 @@ $@"public void {methodName}()
         private FunctionParamInfo ParseFunctionParam(Token nameTok, ref int tokenIndex, string typeName,
                                                      Token directiveToken)
         {
-            var reservedWords = new HashSet<ReservedWords>() { ReservedWords.From, ReservedWords.Params, ReservedWords.Instance, ReservedWords.Inherit };
+            var reservedWords = new HashSet<ReservedWords>() { ReservedWords.From, ReservedWords.Params, ReservedWords.Instance, 
+                                                               ReservedWords.ParametersClass, ReservedWords.Inherit };
 
             Token defaultMethod = null, paramsTok = null;
             int paramsCount = 1;
@@ -2047,6 +2060,7 @@ $@"public void {methodName}()
             var mathType = MathFunctionTypes.Normal;
             FunctionTypes functionType = FunctionTypes.Normal;
             List<string> instancePropertyNames = null;
+            string paramClassName = null;
             bool? inherit = null;
             Token tok;
             while (true)
@@ -2094,7 +2108,26 @@ $@"public void {methodName}()
                             }
                             break;
                         case ReservedWords.Instance:
+                            reservedWords.Remove(ReservedWords.ParametersClass);
                             instancePropertyNames = ParseInstancePropertyNames(ref tokenIndex);
+                            break;
+                        case ReservedWords.ParametersClass:
+                            reservedWords.Remove(ReservedWords.Instance);
+                            bool isCurrValid = false;
+                            tok = GetToken(tokenIndex++);
+                            if (tok.Text == ":")
+                            {
+                                tok = GetToken(tokenIndex++);
+                                if (tok.TokenType == Token.TokenTypes.Identifier)
+                                {
+                                    paramClassName = tok.Text;
+                                    isCurrValid = true;
+                                }
+                            }
+                            if (!isCurrValid)
+                            {
+                                AddError(tok, "Expecting 'ParametersClass: className'.");
+                            }
                             break;
                         case ReservedWords.Inherit:
                             tok = GetToken(tokenIndex++);
@@ -2158,6 +2191,7 @@ $@"public void {methodName}()
                                          functionType, mathType)
             {
                 InstancePropertyNames = instancePropertyNames,
+                ParametersClassName = paramClassName,
                 AddDefaultMethodTypes = (bool)inherit
             };
         }
@@ -2187,6 +2221,8 @@ $@"public void {methodName}()
                 paramInfoParams.Add(
                     $"ParameterSource={paramInfo.ParameterSource.GetType().Name}.{paramInfo.ParameterSource}");
             }
+            if (paramInfo.HasNestedParameters)
+                sb.Append("[NestedParameters] ");
             if (paramInfo.Label != null)
                 sb.Append($"[ParameterLabel(@\"{paramInfo.Label.Replace("\"", "\\\"")}\")] ");
             if (paramInfoParams.Count > 0)

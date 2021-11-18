@@ -50,7 +50,7 @@ namespace Whorl
         public bool IsInitialized { get; private set; }
 
         public void Initialize(FormulaSettings formulaSettings, IFormulaForm formulaForm, 
-                               bool preprocessorErrors = false, CSharpCompiledInfo compiledInfo = null,
+                               bool preprocessorErrors = false, CSharpSharedCompiledInfo sharedCompiledInfo = null,
                                string cSharpCode = null)
         {
             try
@@ -63,16 +63,16 @@ namespace Whorl
                 }
                 else if (formulaSettings.IsCSharpFormula)
                 {
-                    if (compiledInfo == null)
-                        throw new Exception("compiledInfo == null");
+                    if (sharedCompiledInfo == null)
+                        throw new Exception("sharedCompiledInfo == null");
                     errorInfoList = new List<ErrorInfo>();
                     int currLineNo = 1;
                     int currIndex = 0;
                     int nextIndex = -1;
                     string code = cSharpCode ?? formulaSettings.Formula;
                     int codeLength = code.Length;
-                    foreach (var errInfo in compiledInfo.CSharpSharedCompiledInfo.Errors
-                                            .OrderBy(ei => ei.Line).ThenBy(ei => ei.Column))
+                    foreach (var errInfo in sharedCompiledInfo.Errors
+                             .OrderBy(ei => ei.Line).ThenBy(ei => ei.Column))
                     {
                         while (currLineNo < errInfo.Line && currIndex < codeLength)
                         {

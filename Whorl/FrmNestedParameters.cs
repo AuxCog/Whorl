@@ -19,8 +19,10 @@ namespace Whorl
         }
 
         private CSharpParameterDisplay cSharpParameterDisplay { get; set; }
+        //private Panel parametersPanel { get; set; }
 
-        public void Initialize(PropertyInfo propertyInfo, FormulaSettings formulaSettings, CSharpParameterDisplay.ParamChanged paramChanged)
+        public void Initialize(PropertyInfo propertyInfo, FormulaSettings formulaSettings, 
+                               CSharpParameterDisplay.ParamChanged paramChanged, int index = -1)
         {
             try
             {
@@ -28,7 +30,28 @@ namespace Whorl
                     throw new Exception("formulaSettings must be for C# formula.");
                 if (formulaSettings.EvalInstance?.ParamsObj == null)
                     throw new Exception("Parent parameters object cannot be null.");
-                object paramsObj = propertyInfo.GetValue(formulaSettings.EvalInstance.ParamsObj);
+                //parametersPanel = pnlParams;
+                object paramsObj;
+                string label = propertyInfo.Name;
+                object propertyVal = propertyInfo.GetValue(formulaSettings.EvalInstance.ParamsObj);
+                if (propertyVal == null)
+                    paramsObj = null;
+                else
+                {
+                    if (propertyVal.GetType().IsArray)
+                    {
+                        var array = (Array)propertyVal;
+                        propertyVal = array.GetValue(index);
+                        label += $"[{index + 1}]";
+                    }
+                    var fnParam = propertyVal as Func1Parameter<double>;
+                    if (fnParam == null)
+                        paramsObj = propertyVal;
+                    else if (fnParam.Instances != null)
+                        paramsObj = fnParam.Instances.FirstOrDefault();
+                    else
+                        paramsObj = null;
+                }
                 if (paramsObj == null)
                     throw new Exception("Target parameters object cannot be null.");
                 lblParentParameterName.Text = propertyInfo.Name;
@@ -45,6 +68,11 @@ namespace Whorl
 
         private void BtnClose_Click(object sender, EventArgs e)
         {
+            //try
+            //{
+            //    parametersPanel.HorizontalScroll.Value = 0;
+            //}
+            //catch { }
             Close();
         }
     }
