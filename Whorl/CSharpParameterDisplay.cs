@@ -310,7 +310,7 @@ namespace Whorl
                 useLabel = false;
                 var chk = new CheckBox() { AutoSize = false };
                 chk.Text = labelText;
-                chk.Width = chk.MinimumSize.Width + TextRenderer.MeasureText(labelText, chk.Font).Width;
+                chk.Width = 50 + TextRenderer.MeasureText(labelText, chk.Font).Width;
                 chk.Checked = (bool)oParam;
                 chk.CheckedChanged += ParametersCheckBox_CheckChanged;
                 ctl = chk;
