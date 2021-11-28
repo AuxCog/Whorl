@@ -133,10 +133,17 @@ namespace Whorl
 
         public double GetModulus(int distanceIndex, double angle)
         {
+            Pattern pattern;
             if (distanceIndex < 0 || distanceIndex >= distancePatternsInfo.Count)
-                return 0;
+            {
+                if (distanceIndex == 0 && distancePatternsInfo.Count == 0)
+                    pattern = parent.ParentPattern;
+                else
+                    return 0;
+            }
             else
-                return distancePatternsInfo[distanceIndex].DistancePattern.ComputeModulus(angle);
+                pattern = distancePatternsInfo[distanceIndex].DistancePattern;
+            return pattern.ComputeModulus(angle);
         }
 
         public T GetKeyParams<T>(object keyEnumValue, InfluencePointInfo influencePointInfo = null) where T: class

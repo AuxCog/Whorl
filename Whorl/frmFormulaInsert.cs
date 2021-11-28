@@ -33,6 +33,7 @@ namespace Whorl
                 dgvClipboard.AutoGenerateColumns = false;
                 dgvMemberInfo.AutoGenerateColumns = false;
                 var registeredTypes = ExpressionParser.GetRegisteredTypes().ToList();
+                registeredTypes.Add(new ExpressionParser.RegType(typeof(PixelRenderInfo)));
                 registeredTypes.Insert(0, new ExpressionParser.RegType(type: null, name: string.Empty));
                 cboType.DataSource = registeredTypes;
             }
