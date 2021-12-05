@@ -770,6 +770,7 @@ namespace Whorl
             }
             public const int RandomRangeCount = 1000;
             public Pattern ParentPattern { get; }
+            private Pattern parentPatternCopy { get; set; }
             public int DraftSize { get; private set; } = 3;
             public bool SmoothedDraft { get; set; } = true;
 
@@ -855,6 +856,13 @@ namespace Whorl
                     ColorNodes = new ColorNodeList();
                     ColorNodes.AddDefaultNodes();
                 }
+            }
+
+            public Pattern GetParentPatternCopy()
+            {
+                if (parentPatternCopy == null)
+                    parentPatternCopy = ParentPattern.GetCopy();
+                return parentPatternCopy;
             }
 
             public RenderingInfo(RenderingInfo source, Pattern pattern): this(pattern, createColorNodes: false)

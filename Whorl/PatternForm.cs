@@ -2952,8 +2952,11 @@ namespace Whorl
 
         PatternForm editRecursionPatternForm = null;
 
-        private void EditRecursionPattern(Pattern recursionPattern)
+        private void EditRecursionPattern(Pattern recursionPattern, int index)
         {
+            Pattern editedPattern = EditedPattern;
+            if (index < 0 || index >= editedPattern.Recursion.RecursionPatterns.Count)
+                throw new Exception("Recursion index out of bounds.");
             PatternList ptnList = new PatternList(design);
             ptnList.AddPattern(recursionPattern);
             if (editRecursionPatternForm == null || editRecursionPatternForm.IsDisposed)
@@ -2961,8 +2964,8 @@ namespace Whorl
             editRecursionPatternForm.Initialize(ptnList, selectPatternForm, design, forRecursionPattern: true);
             if (editRecursionPatternForm.ShowDialog() == DialogResult.OK)
             {
-                int ind = EditedPattern.Recursion.RecursionPatterns.IndexOf(recursionPattern);
-                EditedPattern.Recursion.RecursionPatterns[ind] =
+                //int ind = EditedPattern.Recursion.RecursionPatterns.IndexOf(recursionPattern);
+                editedPattern.Recursion.RecursionPatterns[index] =
                     editRecursionPatternForm.EditedPatternGroup.Patterns.First();
                 PreviewChanges();
             }
@@ -2976,7 +2979,7 @@ namespace Whorl
                 Pattern recursionPattern =
                     pattern.Recursion.AddRecursionPattern(origPattern: EditedPattern);
                 cboRecursionPatternIndex.DataSource = Enumerable.Range(1, pattern.Recursion.RecursionPatterns.Count).ToList();
-                EditRecursionPattern(recursionPattern);
+                EditRecursionPattern(recursionPattern, index: pattern.Recursion.RecursionPatterns.Count - 1);
             }
             catch (Exception ex)
             {
@@ -3010,7 +3013,7 @@ namespace Whorl
                     return;
                 int ind = (int)cboRecursionPatternIndex.SelectedItem - 1;
                 Pattern recursionPattern = EditedPattern.Recursion.RecursionPatterns[ind];
-                EditRecursionPattern(recursionPattern);
+                EditRecursionPattern(recursionPattern, ind);
             }
             catch (Exception ex)
             {

@@ -137,7 +137,7 @@ namespace Whorl
             if (distanceIndex < 0 || distanceIndex >= distancePatternsInfo.Count)
             {
                 if (distanceIndex == 0 && distancePatternsInfo.Count == 0)
-                    pattern = parent.ParentPattern;
+                    pattern = parent.GetParentPatternCopy();
                 else
                     return 0;
             }
