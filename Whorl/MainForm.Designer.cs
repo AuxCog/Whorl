@@ -85,6 +85,7 @@
             this.setAllowRandomOnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setAllowRandomOffToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redisplayAllPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.zoomInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.designToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scaleToFitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startupAnimationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -242,7 +243,7 @@
             this.deleteInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.repeatInfluencePointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.zoomInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.appendBasicOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -705,6 +706,13 @@
             this.redisplayAllPatternsToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
             this.redisplayAllPatternsToolStripMenuItem.Text = "Redisplay All Patterns";
             this.redisplayAllPatternsToolStripMenuItem.Click += new System.EventHandler(this.redisplayAllPatternsToolStripMenuItem_Click);
+            // 
+            // zoomInfluencePointsToolStripMenuItem
+            // 
+            this.zoomInfluencePointsToolStripMenuItem.Name = "zoomInfluencePointsToolStripMenuItem";
+            this.zoomInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
+            this.zoomInfluencePointsToolStripMenuItem.Text = "Zoom Influence Points";
+            this.zoomInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.zoomInfluencePointsToolStripMenuItem_Click);
             // 
             // designToolStripMenuItem
             // 
@@ -1440,7 +1448,7 @@
             this.pasteDefaultPatternToolStripMenuItem,
             this.pasteCopiedPatternsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 334);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1462,7 +1470,8 @@
             this.pasteFillToolStripMenuItem,
             this.pastePatternToolStripMenuItem,
             this.pasteBasicOutlinesToolStripMenuItem,
-            this.pasteTransformsToolStripMenuItem});
+            this.pasteTransformsToolStripMenuItem,
+            this.appendBasicOutlinesToolStripMenuItem});
             this.setPatternFromDefaultToolStripMenuItem.Name = "setPatternFromDefaultToolStripMenuItem";
             this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.setPatternFromDefaultToolStripMenuItem.Text = "Set Pattern From Default";
@@ -1470,28 +1479,28 @@
             // pasteFillToolStripMenuItem
             // 
             this.pasteFillToolStripMenuItem.Name = "pasteFillToolStripMenuItem";
-            this.pasteFillToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.pasteFillToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pasteFillToolStripMenuItem.Text = "Only Fill";
             this.pasteFillToolStripMenuItem.Click += new System.EventHandler(this.pasteFillToolStripMenuItem_Click);
             // 
             // pastePatternToolStripMenuItem
             // 
             this.pastePatternToolStripMenuItem.Name = "pastePatternToolStripMenuItem";
-            this.pastePatternToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.pastePatternToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pastePatternToolStripMenuItem.Text = "Entire Pattern";
             this.pastePatternToolStripMenuItem.Click += new System.EventHandler(this.setPatternFromDefaultToolStripMenuItem_Click);
             // 
             // pasteBasicOutlinesToolStripMenuItem
             // 
             this.pasteBasicOutlinesToolStripMenuItem.Name = "pasteBasicOutlinesToolStripMenuItem";
-            this.pasteBasicOutlinesToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.pasteBasicOutlinesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pasteBasicOutlinesToolStripMenuItem.Text = "Basic Outlines";
             this.pasteBasicOutlinesToolStripMenuItem.Click += new System.EventHandler(this.pasteBasicOutlinesToolStripMenuItem_Click);
             // 
             // pasteTransformsToolStripMenuItem
             // 
             this.pasteTransformsToolStripMenuItem.Name = "pasteTransformsToolStripMenuItem";
-            this.pasteTransformsToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.pasteTransformsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pasteTransformsToolStripMenuItem.Text = "Transforms";
             this.pasteTransformsToolStripMenuItem.Click += new System.EventHandler(this.PasteTransformsToolStripMenuItem_Click);
             // 
@@ -2036,12 +2045,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // zoomInfluencePointsToolStripMenuItem
+            // appendBasicOutlinesToolStripMenuItem
             // 
-            this.zoomInfluencePointsToolStripMenuItem.Name = "zoomInfluencePointsToolStripMenuItem";
-            this.zoomInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(253, 22);
-            this.zoomInfluencePointsToolStripMenuItem.Text = "Zoom Influence Points";
-            this.zoomInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.zoomInfluencePointsToolStripMenuItem_Click);
+            this.appendBasicOutlinesToolStripMenuItem.Name = "appendBasicOutlinesToolStripMenuItem";
+            this.appendBasicOutlinesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.appendBasicOutlinesToolStripMenuItem.Text = "Append Outlines";
+            this.appendBasicOutlinesToolStripMenuItem.Click += new System.EventHandler(this.appendBasicOutlinesToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2289,6 +2298,7 @@
         private System.Windows.Forms.ToolStripMenuItem testRandomToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editRenderingRandomSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomInfluencePointsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem appendBasicOutlinesToolStripMenuItem;
     }
 }
 

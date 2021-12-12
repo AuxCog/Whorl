@@ -211,8 +211,7 @@ namespace Whorl
                     setCurve = false;
                 else
                 {
-                    pathVertices = CubicSpline.FitParametricClosed(segmentPoints,
-                                                        (int)pathLength).ToList();
+                    pathVertices = CubicSpline.FitParametricClosed(segmentPoints, (int)pathLength).ToList();
                 }
             }
             if (!setCurve)
@@ -331,7 +330,7 @@ namespace Whorl
             }
         }
 
-        public override bool InitComputeAmplitude()
+        public override bool InitComputeAmplitude(int rotationSteps)
         {
             if (PathOutlineType == PathOutlineTypes.Cartesian)
                 //PathPattern.ComputeSeedPoints() does nothing in this case.
@@ -342,7 +341,7 @@ namespace Whorl
                 retVal = SegmentVertices != null && SegmentVertices.Count >= 3;
                 if (retVal)
                 {
-                    InitComputePolygon();
+                    InitComputePolygon(rotationSteps);
                     computeAmplitude = null;
                 }
             }
@@ -352,18 +351,10 @@ namespace Whorl
                 if (retVal)
                 {
                     VertexIndices = new int[pathVertices.Count - 1];
-                    if (PolygonUserVertices)
-                    {
-                        InitComputePolygon();
-                        computeAmplitude = null;
-                    }
-                    else
-                    {
-                        verticesIndex = 0;
-                        pathIndex = 0;
-                        prevVerticesIndex = -1;
-                        computeAmplitude = ComputePathAmplitude;
-                    }
+                    verticesIndex = 0;
+                    pathIndex = 0;
+                    prevVerticesIndex = -1;
+                    computeAmplitude = ComputePathAmplitude;
                 }
                 else
                 {
@@ -374,7 +365,11 @@ namespace Whorl
             return retVal;
         }
 
-        private void InitComputePolygon()
+        /// <summary>
+        /// Initialize userVertexInfos array.  Already determined SegmentVertices.Count >= 3.
+        /// </summary>
+        /// <param name="rotationSteps"></param>
+        private void InitComputePolygon(int rotationSteps)
         {
             const double newMaxModulus = 800.0;
             userVertexInfos = new UserVertexInfo[SegmentVertices.Count];
@@ -382,21 +377,47 @@ namespace Whorl
             double maxModulus = GetPolygonMaxModulus();
             float scaleFactor = (float)(newMaxModulus / maxModulus);
             maxModulus = newMaxModulus;
+            //Scale vertices:
+            List<PointF> vertices = SegmentVertices.Select(v => Tools.ScalePoint(v, scaleFactor, SegmentVerticesCenter)).ToList();
+            //Add first vertex to end of list:
+            vertices.Add(vertices[0]);
             int index = 0;
-            for (int i = 0; i < SegmentVertices.Count; i++)
+            for (int i = 0; i < vertices.Count - 1; i++)
             {
-                PointF vertex = Tools.ScalePoint(SegmentVertices[i], scaleFactor, SegmentVerticesCenter);
-                PointF nextVertex = (i < SegmentVertices.Count - 1) ?
-                                     SegmentVertices[i + 1] : SegmentVertices[0];
-                nextVertex = Tools.ScalePoint(nextVertex, scaleFactor, SegmentVerticesCenter);
-                int steps = (int)Math.Ceiling(Tools.Distance(vertex, nextVertex));
-                PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps, 
+                PointF vertex = vertices[i];
+                PointF nextVertex = vertices[i + 1];
+                int steps = Math.Max(1, (int)Math.Ceiling(Tools.Distance(vertex, nextVertex)));
+                PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
                                                (nextVertex.Y - vertex.Y) / steps);
                 userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
                 index += steps;
             }
             polygonUnitFactor = 1.0 / maxModulus;
         }
+
+        //private void InitComputePolygon(int rotationSteps)
+        //{
+        //    const double newMaxModulus = 800.0;
+        //    userVertexInfos = new UserVertexInfo[SegmentVertices.Count];
+        //    verticesIndex = 0;
+        //    double maxModulus = GetPolygonMaxModulus();
+        //    float scaleFactor = (float)(newMaxModulus / maxModulus);
+        //    maxModulus = newMaxModulus;
+        //    int index = 0;
+        //    for (int i = 0; i < SegmentVertices.Count; i++)
+        //    {
+        //        PointF vertex = Tools.ScalePoint(SegmentVertices[i], scaleFactor, SegmentVerticesCenter);
+        //        PointF nextVertex = (i < SegmentVertices.Count - 1) ?
+        //                             SegmentVertices[i + 1] : SegmentVertices[0];
+        //        nextVertex = Tools.ScalePoint(nextVertex, scaleFactor, SegmentVerticesCenter);
+        //        int steps = (int)Math.Ceiling(Tools.Distance(vertex, nextVertex));
+        //        PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps, 
+        //                                       (nextVertex.Y - vertex.Y) / steps);
+        //        userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
+        //        index += steps;
+        //    }
+        //    polygonUnitFactor = 1.0 / maxModulus;
+        //}
 
         private double GetPolygonMaxModulus()
         {
@@ -411,7 +432,7 @@ namespace Whorl
         public double ComputePolygonPoint(int ind, out double angle)
         {
             UserVertexInfo pInfo = userVertexInfos[verticesIndex];
-            if (ind == pInfo.Index + pInfo.Steps)
+            if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
             {
                 pInfo = userVertexInfos[++verticesIndex];
             }

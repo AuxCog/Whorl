@@ -2429,20 +2429,6 @@ namespace Whorl
                     modulus = seedPolygonOutline.ComputePolygonPoint(i, out angle);
                 }
                 modulus += ComputeModulusHelper(angle);
-                //double angle1 = angle;  //Can't use ref parameter below.
-                //switch (MergeOperation)
-                //{
-                //    case MergeOperations.Sum:
-                //    default:
-                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Sum();
-                //        break;
-                //    case MergeOperations.Max:
-                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Max();
-                //        break;
-                //    case MergeOperations.Min:
-                //        modulus += seedOutlines.Select(otl => otl.ComputeAmplitude(angle1)).Min();
-                //        break;
-                //}
             }
             modulus *= seedUnitFactor;
             if (!seedPatternIsPath)
@@ -2535,7 +2521,7 @@ namespace Whorl
                     {
                         pathOutline.AddVertices();
                     }
-                    if (outline.InitComputeAmplitude())
+                    if (outline.InitComputeAmplitude(RotationSteps))
                     {
                         seedCustomOutline = null;  //SeedPoints computed from path vertices.
                         if (pathOutline != null)

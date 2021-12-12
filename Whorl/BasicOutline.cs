@@ -543,7 +543,7 @@ namespace Whorl
             return customOutline.ComputeMaxAmplitude();
         }
 
-        public virtual bool InitComputeAmplitude()
+        public virtual bool InitComputeAmplitude(int rotationSteps)
         {
             if (customOutline != null)
                 customOutline.Initialize();

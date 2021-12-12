@@ -4567,31 +4567,71 @@ namespace Whorl
             }
         }
 
+        private bool IsPolygonOutline(BasicOutline basicOutline)
+        {
+            var pathOutline = basicOutline as PathOutline;
+            return pathOutline != null && pathOutline.PolygonUserVertices;
+        }
+
+        private void AddBasicOutlines(bool append)
+        {
+            Pattern sourcePattern = Design.DefaultPatternGroup.Patterns.FirstOrDefault();
+            if (sourcePattern == null)
+            {
+                MessageBox.Show("Please choose a default pattern.");
+                return;
+            }
+            PatternList patterns = GetPatternOrGroup(dragStart, (append ? "Append" : "Paste") + " basic outlines to a pattern group?");
+            if (patterns == null)
+                return;
+            List<Pattern> targetPatterns = patterns.PatternsList;
+            var newPatterns = new List<Pattern>();
+            bool isChanged = false;
+            foreach (Pattern pattern in targetPatterns)
+            {
+                Pattern ptnCopy = pattern.GetCopy();
+                if (!append && ptnCopy.BasicOutlines.Count > 0)
+                {
+                    ptnCopy.BasicOutlines.Clear();
+                    isChanged = true;
+                }
+                bool hasPolygonOutline = ptnCopy.BasicOutlines.Any(otl => IsPolygonOutline(otl));
+                var newOutlines = sourcePattern.BasicOutlines
+                                  .Where(otl => !(hasPolygonOutline && IsPolygonOutline(otl)));
+                if (newOutlines.Any())
+                {
+                    ptnCopy.BasicOutlines.AddRange(newOutlines.Select(otl => (BasicOutline)otl.Clone()));
+                    isChanged = true;
+                }
+                ptnCopy.ComputeSeedPoints();
+                newPatterns.Add(ptnCopy);
+            }
+            if (isChanged)
+            {
+                Design.ReplacePatterns(targetPatterns, newPatterns);
+                RedrawPatterns();
+            }
+            else
+                MessageBox.Show("No changes were made.");
+        }
+
         private void pasteBasicOutlinesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                Pattern sourcePattern = Design.DefaultPatternGroup.Patterns.FirstOrDefault();
-                if (sourcePattern == null)
-                {
-                    MessageBox.Show("Please choose a default pattern.");
-                    return;
-                }
-                PatternList patterns = GetPatternOrGroup(dragStart, "Paste basic outlines to a pattern group?");
-                if (patterns == null)
-                    return;
-                List<Pattern> targetPatterns = patterns.PatternsList;
-                var newPatterns = new List<Pattern>();
-                foreach (Pattern pattern in targetPatterns)
-                {
-                    Pattern ptnCopy = pattern.GetCopy();
-                    ptnCopy.BasicOutlines.Clear();
-                    ptnCopy.BasicOutlines.AddRange(sourcePattern.BasicOutlines.Select(otl => (BasicOutline)otl.Clone()));
-                    ptnCopy.ComputeSeedPoints();
-                    newPatterns.Add(ptnCopy);
-                }
-                Design.ReplacePatterns(targetPatterns, newPatterns);
-                RedrawPatterns();
+                AddBasicOutlines(append: false);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void appendBasicOutlinesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AddBasicOutlines(append: true);
             }
             catch (Exception ex)
             {
@@ -8008,5 +8048,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }
