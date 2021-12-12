@@ -261,7 +261,7 @@ namespace Whorl
             //center = centroid;
             if (PolygonUserVertices)
             {
-                return new Complex(1.0, 0.0);
+                return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
             }
             PointF center = SegmentVerticesCenter;
             pathVertices = pathVertices.Select(

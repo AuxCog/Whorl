@@ -8005,11 +8005,14 @@ namespace Whorl
                 PointF p = GetPolygonVertex(dragStart);
                 int index = -1;
                 double minDistance = double.MaxValue;
-                for (int i = 0; i < editedPolygonPathOutline.SegmentVertices.Count - 1; i++)
+                var vertices = new List<PointF>(editedPolygonPathOutline.SegmentVertices);
+                if (vertices.Last() != vertices.First())
                 {
-                    PointF vertex1 = editedPolygonPathOutline.SegmentVertices[i];
-                    PointF vertex2 = editedPolygonPathOutline.SegmentVertices[i + 1];
-                    PointF nearestPoint = Tools.ClosestPointToSegment(p, vertex1, vertex2);
+                    vertices.Add(vertices.First());
+                }
+                for (int i = 0; i < vertices.Count - 1; i++)
+                {
+                    PointF nearestPoint = Tools.ClosestPointToSegment(p, vertices[i], vertices[i + 1]);
                     double distSq = Tools.DistanceSquared(p, nearestPoint);
                     if (distSq < minDistance)
                     {
@@ -8018,7 +8021,7 @@ namespace Whorl
                     }
                 }
                 if (index == -1) return;
-                editedPolygonPathOutline.SegmentVertices.Insert(index + 1, p);
+                editedPolygonPathOutline.SegmentVertices.Insert(Math.Min(index + 1, editedPolygonPathOutline.SegmentVertices.Count), p);
                 UpdatePolygonOutlineHelper();
                 editedPolygonPattern.ComputeSeedPoints();
                 RedrawPatterns();
