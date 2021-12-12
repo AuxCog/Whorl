@@ -200,6 +200,7 @@ namespace Whorl
         private CSharpParameterDisplay cSharpParamsDisplay { get; }
      
         private InfluencePointInfo nearestInfluencePoint { get; set; }
+        private DrawnPoint nearestPolygonVertex { get; set; }
 
         private void OnDistancePatternsCountChanged(object sender, EventArgs e)
         {
@@ -691,7 +692,7 @@ namespace Whorl
                     dragState = DragStates.Dragging;
                     mouseDownPoint = new Point(e.X, e.Y);
                     dragStart = new Point(e.X, e.Y);
-                    if (moveInfluencePoint)
+                    if (moveInfluencePoint || (moveVertexToolStripMenuItem.Checked && nearestPolygonVertex != null))
                     {
                         dragEnd = dragStart;
                         return;
@@ -775,6 +776,11 @@ namespace Whorl
                         picDesign.Invalidate();
                         return;
                     }
+                    else if (moveVertexToolStripMenuItem.Checked)
+                    {
+                        EndMoveVertex();
+                        return;
+                    }
                     if (DrawUserVertices && polygonOutline != null)
                     {
                         polygonOutline.SegmentVertices.Add(new PointF(e.X, e.Y));
@@ -802,6 +808,16 @@ namespace Whorl
                         }
                         influenceContextMenuStrip.Show(picDesign, dragStart);
                     }
+                    else if (editPolygonVerticesToolStripMenuItem.Checked && polygonVertexInfos != null)
+                    {
+                        nearestPolygonVertex = GetNearestPolygonVertex(dragStart);
+                        foreach (ToolStripMenuItem item in polygonMenuStrip.Items)
+                        {
+                            if (item != addVertexToolStripMenuItem && item != endEditingVerticesToolStripMenuItem)
+                                item.Visible = nearestPolygonVertex != null;
+                        }
+                        polygonMenuStrip.Show(picDesign, dragStart);
+                    }
                     else
                     {
                         ConfigureContextMenuItems();
@@ -809,6 +825,14 @@ namespace Whorl
                     }
                 }
             }
+        }
+
+        private void EndMoveVertex()
+        {
+            moveVertexToolStripMenuItem.Checked = false;
+            if (nearestPolygonVertex != null)
+                nearestPolygonVertex.Selected = false;
+            picDesign.Refresh();
         }
 
         private void ConfigureContextMenuItems()
@@ -918,16 +942,17 @@ namespace Whorl
         {
             polygonOutline = new PathOutline();
             if (!drawClosedCurveToolStripMenuItem.Checked)
-                polygonOutline.PolygonUserVertices = WhorlSettings.Instance.UseNewPolygonVersion;
+                polygonOutline.PolygonUserVertices = true; //WhorlSettings.Instance.UseNewPolygonVersion;
             polygonOutline.InitUserDefinedVertices(drawClosedCurveToolStripMenuItem.Checked);
             getPolygonCenter = false;
         }
 
         private void FinishDrawnPolygon(PointF center)
         {
-            if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count() >= 3)
+            if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count >= 3)
             {
-                polygonOutline.SegmentVerticesCenter = center;
+                //polygonOutline.SegmentVerticesCenter = center;
+                polygonOutline.FinishUserDefinedVertices(center);
                 polygonOutline.SetClosedVertices(polygonOutline.SegmentVertices,
                                                  drawClosedCurveToolStripMenuItem.Checked);
                 Complex zVector = polygonOutline.NormalizePathVertices();
@@ -1018,6 +1043,10 @@ namespace Whorl
                 {
                     MoveInfluencePoint(e.X - dragEnd.X, e.Y - dragEnd.Y);
                 }
+                else if (moveVertexToolStripMenuItem.Checked)
+                {
+                    MovePolygonVertex(e.X - dragEnd.X, e.Y - dragEnd.Y);
+                }
                 dragEnd = new Point(e.X, e.Y);
                 picDesign.Invalidate();
             }
@@ -1028,6 +1057,69 @@ namespace Whorl
             nearestInfluencePoint.InfluencePoint = new DoublePoint(
                                   nearestInfluencePoint.InfluencePoint.X + xDiff,
                                   nearestInfluencePoint.InfluencePoint.Y + yDiff);
+        }
+
+        private void MovePolygonVertex(float xDiff, float yDiff)
+        {
+            if (nearestPolygonVertex != null)
+            {
+                nearestPolygonVertex.Location = new PointF(nearestPolygonVertex.Location.X + xDiff,
+                                                           nearestPolygonVertex.Location.Y + yDiff);
+            }
+        }
+
+        private PointF GetPolygonVertex(PointF p)
+        {
+            PointF center = editedPolygonPattern.Center;
+            var zP = new Complex(p.X - center.X, p.Y - center.Y) / editedPolygonPattern.ZVector;
+            p = new PointF((float)zP.Re, (float)zP.Im);
+            return editedPolygonPathOutline.GetOrigSegmentVertex(p);
+        }
+
+
+        private void UpdatePolygonOutlineHelper()
+        {
+            editedPolygonPathOutline.FinishUserDefinedVertices();
+            if (editedPolygonPathOutline.ClosedCurveVertices)
+            {
+                editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                editedPolygonPathOutline.NormalizePathVertices();
+            }
+        }
+
+        private void UpdatePolygonOutline()
+        {
+            if (nearestPolygonVertex == null) return;
+            int index = polygonVertexInfos.IndexOf(nearestPolygonVertex);
+            if (index == -1)
+                throw new Exception("Couldn't find polygon vertex.");
+            bool isCenter = index == 0;  //Center point.
+            index--;
+            PointF p = nearestPolygonVertex.Location;
+            double prevMax = editedPolygonPathOutline.GetPolygonMaxModulus(editedPolygonPathOutline.SegmentVerticesCenter);
+            if (isCenter)
+            {
+                PointF center = editedPolygonPattern.Center;
+                PointF pDiff = new PointF(p.X - center.X, p.Y - center.Y);
+                PointF vCenter = editedPolygonPathOutline.SegmentVerticesCenter;
+                editedPolygonPathOutline.SegmentVerticesCenter = new PointF(vCenter.X + pDiff.X, vCenter.Y + pDiff.Y);
+                editedPolygonPattern.Center = p;
+            }
+            else
+            {
+                p = GetPolygonVertex(p);
+                editedPolygonPathOutline.SegmentVertices[index] = p;
+            }
+            UpdatePolygonOutlineHelper();
+            if (isCenter)
+            {
+                InitPolygonVertexInfos();
+            }
+            else
+            {
+                double scale = editedPolygonPathOutline.GetPolygonMaxModulus(editedPolygonPathOutline.SegmentVerticesCenter) / prevMax;
+                editedPolygonPattern.ZVector *= scale;
+            }
         }
 
         private void continueRibbonToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1096,6 +1188,19 @@ namespace Whorl
                     picDesign.Refresh();
                     moveInfluencePoint = false;
                     Design.IsDirty = true;
+                    return;
+                }
+                if (moveVertexToolStripMenuItem.Checked)
+                {
+                    MovePolygonVertex(e.X - saveDragEnd.X, e.Y - saveDragEnd.Y);
+                    if (editedPolygonPattern != null)
+                    {
+                        UpdatePolygonOutline();
+                        editedPolygonPattern.ComputeSeedPoints();
+                        RedrawPatterns();
+                        Design.IsDirty = true;
+                        EndMoveVertex();
+                    }
                     return;
                 }
                 if (moveSelectedPatternsToolStripMenuItem.Checked)
@@ -1374,7 +1479,7 @@ namespace Whorl
                     displayInterpolatedPatterns = false;
                     return;
                 }
-                else if (dragState == DragStates.Dragging && !moveInfluencePoint)
+                else if (dragState == DragStates.Dragging && !moveInfluencePoint && !editPolygonVerticesToolStripMenuItem.Checked)
                 {
                     if (selectingRectangle)
                     {
@@ -1494,6 +1599,14 @@ namespace Whorl
                                     }
                                 }
                             }
+                        }
+                        if (editPolygonVerticesToolStripMenuItem.Checked && polygonVertexInfos != null)
+                        {
+                            foreach (var vertexInfo in polygonVertexInfos)
+                            {
+                                vertexInfo.Draw(e.Graphics, currentBitmap, this.Font);
+                            }
+
                         }
                     }
                     if (setGradientCenterPattern != null)
@@ -4567,10 +4680,10 @@ namespace Whorl
             }
         }
 
-        private bool IsPolygonOutline(BasicOutline basicOutline)
+        private bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
         {
             var pathOutline = basicOutline as PathOutline;
-            return pathOutline != null && pathOutline.PolygonUserVertices;
+            return pathOutline != null && (allowCurve || pathOutline.PolygonUserVertices) && pathOutline.UserDefinedVertices;
         }
 
         private void AddBasicOutlines(bool append)
@@ -7635,19 +7748,34 @@ namespace Whorl
             }
         }
 
-        private InfluencePointInfo GetNearestInfluencePoint(PointF point, double bufferSize = 10.0)
+        private TPoint GetNearestPoint<TPoint>(IEnumerable<TPoint> list, Func<TPoint, PointF> locationFunc, PointF point, double bufferSize = 10.0) where TPoint: class
         {
-            if (influencePointsPattern == null)
+            if (list == null)
                 return null;
             bufferSize *= bufferSize;
-            DoublePoint doublePoint = new DoublePoint(point.X - influencePointsPattern.Center.X, point.Y - influencePointsPattern.Center.Y);
-            //INFMOD
-            var sortedList = influencePointsPattern.InfluencePointInfoList.InfluencePointInfos.Select(
-                             ip => new Tuple<InfluencePointInfo, double>(ip, doublePoint.DistanceSquared(ip.InfluencePoint)))
+            var sortedList = list.Select(
+                             ip => new Tuple<TPoint, double>(ip, Tools.DistanceSquared(point, locationFunc(ip))))
                              .Where(tpl => tpl.Item2 <= bufferSize)
                              .OrderBy(tpl => tpl.Item2);
             var tuple = sortedList.FirstOrDefault();
             return tuple?.Item1;
+        }
+
+        private InfluencePointInfo GetNearestInfluencePoint(PointF point, double bufferSize = 10.0)
+        {
+            if (influencePointsPattern == null)
+                return null;
+            point = new PointF(point.X - influencePointsPattern.Center.X, point.Y - influencePointsPattern.Center.Y);
+            return GetNearestPoint(influencePointsPattern.InfluencePointInfoList.InfluencePointInfos,
+                                   ip => new PointF((float)ip.InfluencePoint.X, (float)ip.InfluencePoint.Y), 
+                                   point, bufferSize);
+        }
+
+        private DrawnPoint GetNearestPolygonVertex(PointF point, double bufferSize = 10.0)
+        {
+            if (polygonVertexInfos == null)
+                return null;
+            return GetNearestPoint(polygonVertexInfos, v => v.Location, point, bufferSize);
         }
 
         private void addInfluencePointToolStripMenuItem_Click(object sender, EventArgs e)
@@ -7787,6 +7915,164 @@ namespace Whorl
                     editInfluencePointsModeToolStripMenuItem.Checked = true;
                     picDesign.Refresh();
                 }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private Pattern editedPolygonPattern { get; set; }
+        private PathOutline editedPolygonPathOutline { get; set; }
+        private List<DrawnPoint> polygonVertexInfos { get; set; }
+
+        private void InitPolygonVertexInfos()
+        {
+            polygonVertexInfos = new List<DrawnPoint>();
+            PointF center = editedPolygonPattern.Center;
+            //PointF vertexCenter = editedPolygonPathOutline.SegmentVerticesCenter;
+            polygonVertexInfos.Add(new DrawnPoint() { IdText = "C", Location = center });
+            List<PointF> vertices = editedPolygonPathOutline.PolygonVertices;
+            PointF vertex1 = vertices[0];
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                PointF vertex = vertices[i];
+                if (i == vertices.Count - 1 && vertex == vertex1)
+                    break;
+                Complex vec = editedPolygonPattern.ZVector * new Complex(vertex.X, vertex.Y);
+                vertex = new PointF((float)vec.Re + center.X, (float)vec.Im + center.Y);
+                polygonVertexInfos.Add(new DrawnPoint() { IdText = (i + 1).ToString(), Location = vertex });
+            }
+            picDesign.Refresh();
+        }
+
+        private void editPolygonVerticesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                editedPolygonPattern = null;
+                editedPolygonPathOutline = null;
+                polygonVertexInfos = null;
+                if (!editPolygonVerticesToolStripMenuItem.Checked)
+                {
+                    picDesign.Refresh();
+                    return;
+                }
+                var patternInfo = NearestPattern(dragStart);
+                Pattern pattern = patternInfo?.Pattern;
+                if (pattern == null) return;
+                editedPolygonPathOutline = pattern.BasicOutlines.FirstOrDefault(otl => IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
+                if (editedPolygonPathOutline?.PolygonVertices == null)
+                {
+                    editedPolygonPathOutline = null;
+                    editPolygonVerticesToolStripMenuItem.Checked = false;
+                    return;
+                }
+                editedPolygonPattern = pattern;
+                InitPolygonVertexInfos();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void moveVertexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!moveVertexToolStripMenuItem.Checked)
+                    return;
+                if (nearestPolygonVertex == null)
+                {
+                    moveVertexToolStripMenuItem.Checked = false;
+                    return;
+                }
+                nearestPolygonVertex.Selected = true;
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void addVertexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (editedPolygonPathOutline == null) return;
+                PointF p = GetPolygonVertex(dragStart);
+                int index = -1;
+                double minDistance = double.MaxValue;
+                for (int i = 0; i < editedPolygonPathOutline.SegmentVertices.Count - 1; i++)
+                {
+                    PointF vertex1 = editedPolygonPathOutline.SegmentVertices[i];
+                    PointF vertex2 = editedPolygonPathOutline.SegmentVertices[i + 1];
+                    PointF nearestPoint = Tools.ClosestPointToSegment(p, vertex1, vertex2);
+                    double distSq = Tools.DistanceSquared(p, nearestPoint);
+                    if (distSq < minDistance)
+                    {
+                        minDistance = distSq;
+                        index = i;
+                    }
+                }
+                if (index == -1) return;
+                editedPolygonPathOutline.SegmentVertices.Insert(index + 1, p);
+                UpdatePolygonOutlineHelper();
+                editedPolygonPattern.ComputeSeedPoints();
+                RedrawPatterns();
+                InitPolygonVertexInfos();
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void deleteVertexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (nearestPolygonVertex == null) return;
+                int index = polygonVertexInfos.IndexOf(nearestPolygonVertex);
+                if (index <= 0) return;
+                if (editedPolygonPathOutline.SegmentVertices.Count <= 3)
+                {
+                    WriteStatus("Must have at least 3 vertices.");
+                    return;
+                }
+                index--;
+                editedPolygonPathOutline.SegmentVertices.RemoveAt(index);
+                editedPolygonPathOutline.FinishUserDefinedVertices();
+                if (editedPolygonPathOutline.ClosedCurveVertices)
+                {
+                    editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                    editedPolygonPathOutline.NormalizePathVertices();
+                }
+                editedPolygonPattern.ComputeSeedPoints();
+                RedrawPatterns();
+                InitPolygonVertexInfos();
+                picDesign.Refresh();
+                Design.IsDirty = true;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void endEditingVerticesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                editPolygonVerticesToolStripMenuItem.Checked = false;
+                editedPolygonPattern = null;
+                editedPolygonPathOutline = null;
+                polygonVertexInfos = null;
+                RedrawPatterns();
+                picDesign.Refresh();
             }
             catch (Exception ex)
             {

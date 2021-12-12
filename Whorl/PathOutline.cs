@@ -17,8 +17,10 @@ namespace Whorl
         Polar
     }
 
-    public class PathOutline: BasicOutline, ICloneable
+    public class PathOutline : BasicOutline, ICloneable
     {
+        public const double MaxModulus = 800.0;
+        public const double PolygonUnitFactor = 1.0 / MaxModulus;
         private class UserVertexInfo
         {
             public int Index { get; }
@@ -60,13 +62,11 @@ namespace Whorl
 
         private List<PointF> pathVertices { get; set; }
 
-        public IEnumerable<PointF> PathVertices
-        {
-            get { return pathVertices; }
-        }
+        public IEnumerable<PointF> PathVertices => pathVertices;
 
         public List<PointF> SegmentVertices { get; private set; }
-        public PointF SegmentVerticesCenter { get; set; }
+        public List<PointF> PolygonVertices { get; private set; }
+        public PointF SegmentVerticesCenter { get; set; } = PointF.Empty;
         public bool UseVertices { get; set; }
         public bool UserDefinedVertices { get; set; }
         public bool ClosedCurveVertices { get; set; }
@@ -101,7 +101,7 @@ namespace Whorl
         }
         //private ValidIdentifier addDenomIdent, petalsIdent, angleOffsetIdent;
 
-        public PathOutline(): base(BasicOutlineTypes.Path)
+        public PathOutline() : base(BasicOutlineTypes.Path)
         {
             GlobalInfo = new PathOutlineVars(this);
             VerticesSettings = new FormulaSettings(FormulaTypes.PathVertices); // parseOnChanges: true);
@@ -115,13 +115,15 @@ namespace Whorl
         {
             GlobalInfo = new PathOutlineVars(this);
             VerticesSettings = source.VerticesSettings.GetCopy(ConfigureParser);
-            CopyProperties(source, excludedPropertyNames: 
+            CopyProperties(source, excludedPropertyNames:
                 new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
-                               nameof(SegmentVertices) });
+                               nameof(SegmentVertices), nameof(PolygonVertices) });
             if (source.pathVertices != null)
                 pathVertices = new List<PointF>(source.pathVertices);
             if (source.SegmentVertices != null)
                 SegmentVertices = new List<PointF>(source.SegmentVertices);
+            if (source.PolygonVertices != null)
+                PolygonVertices = new List<PointF>(source.PolygonVertices);
         }
 
         static PathOutline()
@@ -130,7 +132,7 @@ namespace Whorl
         }
         private void ConfigureParser(ExpressionParser parser)
         {
-            parser.DeclareVariable(nameof(GlobalInfo), GlobalInfo.GetType(), GlobalInfo, 
+            parser.DeclareVariable(nameof(GlobalInfo), GlobalInfo.GetType(), GlobalInfo,
                                    isGlobal: true, isReadOnly: true);
             //MethodInfo fnMethod = typeof(PathOutline).GetMethod(nameof(AddVertex),
             //                      BindingFlags.NonPublic | BindingFlags.Instance);
@@ -169,13 +171,41 @@ namespace Whorl
 
         public void InitUserDefinedVertices(bool forClosedCurve)
         {
-            //if (pathVertices == null)
-            //    pathVertices = new List<PointF>();
-            //else
-            //    pathVertices.Clear();
             this.UserDefinedVertices = this.UseVertices = true;
             this.ClosedCurveVertices = forClosedCurve;
             SegmentVertices = new List<PointF>();
+        }
+
+        /// <summary>
+        /// Normalize SegmentVertices.
+        /// </summary>
+        /// <param name="center"></param>
+        public void FinishUserDefinedVertices(PointF center)
+        {
+            SegmentVerticesCenter = center;
+            FinishUserDefinedVertices();
+        }
+
+        public void FinishUserDefinedVertices()
+        {
+            PointF center = SegmentVerticesCenter;
+            if (UserDefinedVertices)
+            {
+                float scale = (float)(1.0 / GetPolygonMaxModulus(center));
+                var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
+                PolygonVertices = scaledVertices.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Get the un-normalized Segment Vertex for a normalized vertex, p.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public PointF GetOrigSegmentVertex(PointF p)
+        {
+            float scale = (float)GetPolygonMaxModulus(SegmentVerticesCenter);
+            return new PointF(scale * p.X + SegmentVerticesCenter.X, scale * p.Y + SegmentVerticesCenter.Y);
         }
 
         public bool FormulaIsValid
@@ -206,7 +236,7 @@ namespace Whorl
             Tools.ClosePoints(segmentPoints);
             if (setCurve)
             {
-                double pathLength = Tools.PathLength(segmentPoints.ToArray());
+                double pathLength = Tools.PathLength(segmentPoints);
                 if (pathLength < 3D)
                     setCurve = false;
                 else
@@ -217,6 +247,8 @@ namespace Whorl
             if (!setCurve)
                 pathVertices = new List<PointF>(segmentPoints);
         }
+
+        public float MaxPathFactor { get; private set; }
 
         /// <summary>
         /// Translate vertices so center is at (0, 0), and scale to have max dimension of 1.
@@ -229,7 +261,7 @@ namespace Whorl
             //center = centroid;
             if (PolygonUserVertices)
             {
-                return new Complex(GetPolygonMaxModulus(), 0.0);
+                return new Complex(1.0, 0.0);
             }
             PointF center = SegmentVerticesCenter;
             pathVertices = pathVertices.Select(
@@ -239,8 +271,8 @@ namespace Whorl
             float yMax = Math.Max(Math.Abs(pathVertices.Select(p => p.Y).Min()),
                                   Math.Abs(pathVertices.Select(p => p.Y).Max()));
             float xyMax = Math.Max(xMax, yMax);
-            float maxFactor = xyMax == 0 ? 1 : xyMax;
-            float factor = 1 / maxFactor;
+            MaxPathFactor = xyMax == 0 ? 1 : xyMax;
+            float factor = 1 / MaxPathFactor;
             pathVertices = pathVertices.Select(
                 p => new PointF(factor * p.X, factor * p.Y)).ToList();
             if (pathVertices.Count >= 2)
@@ -258,7 +290,7 @@ namespace Whorl
                         pathVertices.Reverse();
                 }
             }
-            return new Complex(maxFactor, 0);
+            return new Complex(MaxPathFactor, 0);
         }
 
         public override double GetRotationSpan()
@@ -293,6 +325,7 @@ namespace Whorl
                     else if (PolygonUserVertices)
                     {
                         SegmentVertices = new List<PointF>(pathVertices);
+                        FinishUserDefinedVertices(PointF.Empty);
                     }
                 }
             }
@@ -338,7 +371,7 @@ namespace Whorl
             bool retVal;
             if (PolygonUserVertices)
             {
-                retVal = SegmentVertices != null && SegmentVertices.Count >= 3;
+                retVal = PolygonVertices != null && PolygonVertices.Count >= 3;
                 if (retVal)
                 {
                     InitComputePolygon(rotationSteps);
@@ -365,20 +398,23 @@ namespace Whorl
             return retVal;
         }
 
+        //public List<PointF> GetScaledSegmentVertices()
+        //{
+        //    double maxModulus = GetPolygonMaxModulus();
+        //    float scaleFactor = (float)(MaxModulus / maxModulus);
+        //    //Scale vertices:
+        //    return SegmentVertices.Select(v => Tools.ScalePoint(v, scaleFactor, SegmentVerticesCenter)).ToList();
+        //}
+
         /// <summary>
         /// Initialize userVertexInfos array.  Already determined SegmentVertices.Count >= 3.
         /// </summary>
         /// <param name="rotationSteps"></param>
         private void InitComputePolygon(int rotationSteps)
         {
-            const double newMaxModulus = 800.0;
-            userVertexInfos = new UserVertexInfo[SegmentVertices.Count];
+            userVertexInfos = new UserVertexInfo[PolygonVertices.Count];
             verticesIndex = 0;
-            double maxModulus = GetPolygonMaxModulus();
-            float scaleFactor = (float)(newMaxModulus / maxModulus);
-            maxModulus = newMaxModulus;
-            //Scale vertices:
-            List<PointF> vertices = SegmentVertices.Select(v => Tools.ScalePoint(v, scaleFactor, SegmentVerticesCenter)).ToList();
+            List<PointF> vertices = new List<PointF>(PolygonVertices); //GetScaledSegmentVertices();
             //Add first vertex to end of list:
             vertices.Add(vertices[0]);
             int index = 0;
@@ -386,13 +422,12 @@ namespace Whorl
             {
                 PointF vertex = vertices[i];
                 PointF nextVertex = vertices[i + 1];
-                int steps = Math.Max(1, (int)Math.Ceiling(Tools.Distance(vertex, nextVertex)));
+                int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
                 PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
                                                (nextVertex.Y - vertex.Y) / steps);
                 userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
                 index += steps;
             }
-            polygonUnitFactor = 1.0 / maxModulus;
         }
 
         //private void InitComputePolygon(int rotationSteps)
@@ -419,9 +454,9 @@ namespace Whorl
         //    polygonUnitFactor = 1.0 / maxModulus;
         //}
 
-        private double GetPolygonMaxModulus()
+        public double GetPolygonMaxModulus(PointF center)
         {
-            return SegmentVertices.Select(p => Tools.Distance(p, SegmentVerticesCenter)).Max();
+            return SegmentVertices.Select(p => Tools.Distance(p, center)).Max();
         }
 
         public int GetPolygonSteps()
@@ -446,15 +481,13 @@ namespace Whorl
                     currPolygonPoint.X + pInfo.UnitVector.X,
                     currPolygonPoint.Y + pInfo.UnitVector.Y);
             }
-            var pVec = new PointF(currPolygonPoint.X - SegmentVerticesCenter.X,
-                                  currPolygonPoint.Y - SegmentVerticesCenter.Y);
-            double modulus = polygonUnitFactor * Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
+            var pVec = currPolygonPoint;
+            double modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
             angle = modulus == 0 ? 0.0 : Math.Atan2(pVec.Y, pVec.X);
             return modulus;
         }
 
         private PointF currPolygonPoint { get; set; }
-        private double polygonUnitFactor { get; set; }
         private UserVertexInfo[] userVertexInfos { get; set; }
         private int verticesIndex = 0;
         private int prevVerticesIndex = -1;
@@ -517,19 +550,25 @@ namespace Whorl
             return amplitude;
         }
 
+        private void AppendPointsXml(List<PointF> points, XmlNode parentNode, string nodeName, XmlTools xmlTools)
+        {
+            XmlNode childNode = xmlTools.CreateXmlNode(nodeName);
+            foreach (PointF p in points)
+            {
+                childNode.AppendChild(xmlTools.CreateXmlNode("Vertex", p));
+            }
+            parentNode.AppendChild(childNode);
+        }
+
         protected override void AppendExtraXml(XmlNode parentNode, XmlTools xmlTools)
         {
             base.AppendExtraXml(parentNode, xmlTools);
             xmlTools.AppendAttributeChildNode(parentNode, "PathOutlineType", PathOutlineType);
             VerticesSettings.ToXml(parentNode, xmlTools, nameof(VerticesSettings));
-            if (UserDefinedVertices && SegmentVertices != null)
+            if (UserDefinedVertices)
             {
-                XmlNode childNode = xmlTools.CreateXmlNode("SegmentVertices");
-                foreach (PointF p in SegmentVertices)
-                {
-                    childNode.AppendChild(xmlTools.CreateXmlNode("Vertex", p));
-                }
-                parentNode.AppendChild(childNode);
+                if (SegmentVertices != null)
+                    AppendPointsXml(SegmentVertices, parentNode, "SegmentVertices", xmlTools);
                 parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(SegmentVerticesCenter), SegmentVerticesCenter));
             }
         }
@@ -543,8 +582,12 @@ namespace Whorl
             {
                 if (UserDefinedVertices)
                 {
-                    SetClosedVertices(SegmentVertices, ClosedCurveVertices);
-                    NormalizePathVertices();
+                    FinishUserDefinedVertices();
+                    if (!PolygonUserVertices)
+                    {
+                        SetClosedVertices(SegmentVertices, ClosedCurveVertices);
+                        NormalizePathVertices();
+                    }
                 }
                 else
                     AddVertices();

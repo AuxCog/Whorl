@@ -127,6 +127,7 @@
       <DependentUpon>DesignLayersForm.cs</DependentUpon>
     </Compile>
     <Compile Include="DrawDesign.cs" />
+    <Compile Include="DrawnPoint.cs" />
     <Compile Include="FillInfo.cs" />
     <Compile Include="FormulaEntry.cs" />
     <Compile Include="FormulaEntryList.cs" />

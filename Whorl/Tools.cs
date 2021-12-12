@@ -196,6 +196,39 @@ namespace Whorl
             return points.Select(p => RotatePoint(p, rotationVector));
         }
 
+
+        /// <summary>
+        /// Find closest point on line segment (A, B) to point P.
+        /// </summary>
+        /// <param name="P"></param>
+        /// <param name="A"></param>
+        /// <param name="B"></param>
+        /// <returns></returns>
+        public static PointF ClosestPointToSegment(PointF P, PointF A, PointF B)
+        {
+            var v = new PointF(B.X - A.X, B.Y - A.Y);
+            var u = new PointF(A.X - P.X, A.Y - P.Y);
+            float vu = v.X * u.X + v.Y * u.Y;
+            float vv = VectorLength(v);
+            float t = -vu / vv;
+            if (t >= 0 && t <= 1)
+                return VectorToSegment2D(t, PointF.Empty, A, B);
+            float g0 = VectorLength(VectorToSegment2D(0, P, A, B));
+            float g1 = VectorLength(VectorToSegment2D(1, P, A, B));
+            return g0 <= g1 ? A : B;
+        }
+
+        private static PointF VectorToSegment2D(float t, PointF P, PointF A, PointF B)
+        {
+            return new PointF((1 - t) * A.X + t * B.X - P.X,
+                              (1 - t) * A.Y + t * B.Y - P.Y);
+        }
+
+        public static float VectorLength(PointF P)
+        {
+            return P.X * P.X + P.Y * P.Y;
+        }
+
         //Adjust angle to be >= 0.
         public static double AdjustAngle(double angle)
         {

@@ -664,7 +664,7 @@ namespace Whorl
             this.BasicOutlineType = outlineType;
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: 
                 new string[] { nameof(BasicOutlineType), nameof(AddDenom),
-                               "SegmentVerticesCenter"  });
+                               "SegmentVerticesCenter", "SegmentVerticesAreNormalized"  });
             if (outlineType == BasicOutlineTypes.Custom || 
                 outlineType == BasicOutlineTypes.Path)
             {

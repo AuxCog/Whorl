@@ -322,44 +322,45 @@ namespace Whorl
 
         public void Draw(Graphics g, Bitmap designBitmap, Font font)
         {
-            const float crossWidth = 1F;
-            const float rectWidth = 2F;
-            PointF p = GetOrigLocation();
-            Color penColor = Color.Black;
-            if (designBitmap != null)
-            {
-                int pX = (int)p.X, 
-                    pY = (int)p.Y;
-                if (pX >= 0 && pY >= 0 && pX < designBitmap.Width && pY < designBitmap.Height)
-                {
-                    if (!Tools.ColorIsLight(designBitmap.GetPixel(pX, pY)))
-                        penColor = Color.White;
-                }
-            }
-            using (var pen = new Pen(penColor))
-            {
-                string idText = Id.ToString();
-                SizeF textSize = g.MeasureString(idText, font);
-                var rectF = new RectangleF(new PointF(p.X - crossWidth, p.Y - crossWidth),
-                                           new SizeF(rectWidth, rectWidth));
-                //Draw Id:
-                using (var brush = new SolidBrush(penColor))
-                {
-                    g.DrawString(idText, font, brush, new PointF(rectF.Left - textSize.Width, rectF.Top));
-                }
-                //Draw a cross at point's location:
-                g.DrawLine(pen,
-                           new PointF(rectF.Left, p.Y),
-                           new PointF(rectF.Right, p.Y));
-                g.DrawLine(pen,
-                           new PointF(p.X, rectF.Top),
-                           new PointF(p.X, rectF.Bottom));
-                if (Selected)
-                {
-                    //Draw a circle around the cross:
-                    g.DrawEllipse(pen, rectF);
-                }
-            }
+            DrawnPoint.Draw(g, designBitmap, font, GetOrigLocation(), Id.ToString(), Selected);
+            //const float crossWidth = 1F;
+            //const float rectWidth = 2F;
+            //PointF p = GetOrigLocation();
+            //Color penColor = Color.Black;
+            //if (designBitmap != null)
+            //{
+            //    int pX = (int)p.X, 
+            //        pY = (int)p.Y;
+            //    if (pX >= 0 && pY >= 0 && pX < designBitmap.Width && pY < designBitmap.Height)
+            //    {
+            //        if (!Tools.ColorIsLight(designBitmap.GetPixel(pX, pY)))
+            //            penColor = Color.White;
+            //    }
+            //}
+            //using (var pen = new Pen(penColor))
+            //{
+            //    string idText = Id.ToString();
+            //    SizeF textSize = g.MeasureString(idText, font);
+            //    var rectF = new RectangleF(new PointF(p.X - crossWidth, p.Y - crossWidth),
+            //                               new SizeF(rectWidth, rectWidth));
+            //    //Draw Id:
+            //    using (var brush = new SolidBrush(penColor))
+            //    {
+            //        g.DrawString(idText, font, brush, new PointF(rectF.Left - textSize.Width, rectF.Top));
+            //    }
+            //    //Draw a cross at point's location:
+            //    g.DrawLine(pen,
+            //               new PointF(rectF.Left, p.Y),
+            //               new PointF(rectF.Right, p.Y));
+            //    g.DrawLine(pen,
+            //               new PointF(p.X, rectF.Top),
+            //               new PointF(p.X, rectF.Bottom));
+            //    if (Selected)
+            //    {
+            //        //Draw a circle around the cross:
+            //        g.DrawEllipse(pen, rectF);
+            //    }
+            //}
         }
 
         /// <summary>
