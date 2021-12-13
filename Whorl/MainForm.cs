@@ -1108,6 +1108,10 @@ namespace Whorl
             else
             {
                 p = GetPolygonVertex(p);
+                if (index == 0 && editedPolygonPathOutline.SegmentVertices.First() == editedPolygonPathOutline.SegmentVertices.Last())
+                {
+                    editedPolygonPathOutline.SegmentVertices.RemoveAt(editedPolygonPathOutline.SegmentVertices.Count - 1);
+                }
                 editedPolygonPathOutline.SegmentVertices[index] = p;
             }
             UpdatePolygonOutlineHelper();

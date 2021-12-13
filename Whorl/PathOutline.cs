@@ -456,7 +456,7 @@ namespace Whorl
 
         public double GetPolygonMaxModulus(PointF center)
         {
-            return SegmentVertices.Select(p => Tools.Distance(p, center)).Max();
+            return Math.Sqrt(SegmentVertices.Select(p => Tools.DistanceSquared(p, center)).Max());
         }
 
         public int GetPolygonSteps()
