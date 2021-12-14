@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,11 @@ namespace Whorl
         public List<AngleInfo> AngleInfos { get; private set; }
         public double ModuloBase { get; private set; }
         public double Phase { get; set; }
+
+        public void Initialize(double modulo, IEnumerable<PointF> points)
+        {
+            Initialize(modulo, points.Select(p => new DoublePoint(p.X, p.Y)));
+        }
 
         public void Initialize(double modulo, IEnumerable<DoublePoint> points)
         {

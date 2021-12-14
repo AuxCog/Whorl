@@ -1,6 +1,7 @@
 ﻿using ParserEngine;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,9 +13,20 @@ namespace Whorl
     {
         public class FormulaInfo
         {
+            public PatternTransform Parent { get; }
             public double Angle { get; set; }
             public double Amplitude { get; set; }
             public PolarPoint PreviousPoint { get; set; }
+
+            public FormulaInfo(PatternTransform parentTransform)
+            {
+                Parent = parentTransform;
+            }
+
+            public IEnumerable<PointF> GetVertices(bool allowCurve = false)
+            {
+                return Parent.ParentPattern.GetPolygonVertices(allowCurve);
+            }
         }
         private enum GlobalVarNames
         {
@@ -50,7 +62,7 @@ namespace Whorl
         //private ValidIdentifier angleIdent;
         //private ValidIdentifier amplitudeIdent;
         //private ValidIdentifier previousPointIdent;
-        private FormulaInfo Info { get; } = new FormulaInfo();
+        private FormulaInfo Info { get; }
 
         static PatternTransform()
         {
@@ -62,6 +74,7 @@ namespace Whorl
             if (parentPattern == null)
                 throw new NullReferenceException("parentPattern cannot be null.");
             ParentPattern = parentPattern;
+            Info = new FormulaInfo(this);
             TransformSettings = new FormulaSettings(FormulaTypes.Transform, pattern: ParentPattern);
             TransformSettings.TokensTransformInfo = new TokensTransformInfo(
                               nameof(Info), Enum.GetNames(typeof(GlobalVarNames)));
@@ -73,6 +86,7 @@ namespace Whorl
             if (parentPattern == null)
                 throw new NullReferenceException("parentPattern cannot be null.");
             ParentPattern = parentPattern;
+            Info = new FormulaInfo(this);
             TransformName = source.TransformName;
             SequenceNumber = source.SequenceNumber;
             Enabled = source.Enabled;

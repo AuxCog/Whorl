@@ -4684,12 +4684,6 @@ namespace Whorl
             }
         }
 
-        private bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
-        {
-            var pathOutline = basicOutline as PathOutline;
-            return pathOutline != null && (allowCurve || pathOutline.PolygonUserVertices) && pathOutline.UserDefinedVertices;
-        }
-
         private void AddBasicOutlines(bool append)
         {
             Pattern sourcePattern = Design.DefaultPatternGroup.Patterns.FirstOrDefault();
@@ -4712,9 +4706,9 @@ namespace Whorl
                     ptnCopy.BasicOutlines.Clear();
                     isChanged = true;
                 }
-                bool hasPolygonOutline = ptnCopy.BasicOutlines.Any(otl => IsPolygonOutline(otl));
+                bool hasPolygonOutline = ptnCopy.BasicOutlines.Any(otl => Tools.IsPolygonOutline(otl));
                 var newOutlines = sourcePattern.BasicOutlines
-                                  .Where(otl => !(hasPolygonOutline && IsPolygonOutline(otl)));
+                                  .Where(otl => !(hasPolygonOutline && Tools.IsPolygonOutline(otl)));
                 if (newOutlines.Any())
                 {
                     ptnCopy.BasicOutlines.AddRange(newOutlines.Select(otl => (BasicOutline)otl.Clone()));
@@ -7965,7 +7959,7 @@ namespace Whorl
                 var patternInfo = NearestPattern(dragStart);
                 Pattern pattern = patternInfo?.Pattern;
                 if (pattern == null) return;
-                editedPolygonPathOutline = pattern.BasicOutlines.FirstOrDefault(otl => IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
+                editedPolygonPathOutline = pattern.BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
                 if (editedPolygonPathOutline?.PolygonVertices == null)
                 {
                     editedPolygonPathOutline = null;

@@ -279,4 +279,35 @@ namespace WhorlEvalTest
             }
         }
     }
+
+    public class TransformEvalClass
+    {
+        public class EvalParameters
+        {
+            public Func2Parameter<double> fnOutline { get; } = 
+                   new Func2Parameter<double>(nameof(OutlineMethods.PointedRound), methodType: typeof(OutlineMethods), addDefaultMethodTypes: false);
+            public double Pointiness { get; set; } = 3;
+            [ParameterLabel(@"Weight %")]  public double WeightPct { get; set; }
+            public double Phase { get; set; }
+        }
+
+        [ParmsProperty]
+        public EvalParameters Parms { get; } = new EvalParameters();
+        public PatternTransform.FormulaInfo Info { get; set; }
+
+        private InfluenceAngle influenceAngle { get; } = new InfluenceAngle();
+
+        public void Initialize()
+        {
+            influenceAngle.Phase = Tools.DegreesToRadians(Parms.Phase);
+            influenceAngle.Initialize(Math.PI, Info.GetVertices(allowCurve: true));
+        }
+
+        public void Eval()
+        {
+            double angle = influenceAngle.ComputeAngle(Info.Angle);
+            double outlineAdd = Parms.fnOutline.Function(angle, 1.0 / Parms.Pointiness);
+            Info.Amplitude += outlineAdd;
+        }
+    }
 }

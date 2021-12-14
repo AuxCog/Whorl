@@ -240,6 +240,12 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
+        public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
+        {
+            var pathOutline = basicOutline as PathOutline;
+            return pathOutline != null && (allowCurve || pathOutline.PolygonUserVertices) && pathOutline.UserDefinedVertices;
+        }
+
         public static RectangleF RectangleFromVertices(PointF topLeft, PointF bottomRight)
         {
             return new RectangleF(topLeft, new SizeF(bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y));

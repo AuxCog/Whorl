@@ -2646,6 +2646,20 @@ namespace Whorl
             return retVal;
         }
 
+        public PathOutline GetPolygonOutline(bool allowCurve = false)
+        {
+            return BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve)) as PathOutline;
+        }
+
+        public IEnumerable<PointF> GetPolygonVertices(bool allowCurve = false)
+        {
+            PathOutline polygonOutline = GetPolygonOutline(allowCurve);
+            if (polygonOutline?.PolygonVertices == null)
+                return new PointF[] { };
+            else
+                return polygonOutline.PolygonVertices;
+        }
+
         private void ApplyShrink(bool shrink = true)
         {
             ApplyPatternShrink(SeedPoints, shrink ? 0.005F * ShrinkPadding : 0F, 
