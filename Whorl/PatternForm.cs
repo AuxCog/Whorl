@@ -2608,7 +2608,7 @@ namespace Whorl
                     Complex mouseVec = new Complex(mousePoint.X - colorModeCenter.X,
                                                    mousePoint.Y - colorModeCenter.Y);
                     mouseVec /= previewPattern.ZVector;  //Subtract ZVector angle.
-                    double angle = Tools.AdjustAngle(mouseVec.GetArgument());
+                    double angle = Tools.NormalizeAngle(mouseVec.GetArgument());
                     position = (float)(angle / (2 * Math.PI));
                     break;
             }

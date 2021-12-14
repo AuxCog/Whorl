@@ -3735,7 +3735,7 @@ namespace Whorl
                             double distance = zVec.GetModulus();
                             double angle = 0;
                             if (distance > 0)
-                                angle = Tools.AdjustAngle(zVec.GetArgument() - patternAngle);
+                                angle = Tools.NormalizeAngle(zVec.GetArgument() - patternAngle);
                             if (coordInd == -1)
                             {
                                 coordInd = sortedCoords.FindIndex(p => p.Angle >= angle);

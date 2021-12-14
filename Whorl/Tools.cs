@@ -229,12 +229,10 @@ namespace Whorl
             return P.X * P.X + P.Y * P.Y;
         }
 
-        //Adjust angle to be >= 0.
-        public static double AdjustAngle(double angle)
+        //Adjust angle to be >= 0 and < 2 * PI.
+        public static double NormalizeAngle(double angle)
         {
-            while (angle < 0)
-                angle += 2D * Math.PI;
-            return angle;
+            return Normalize(angle, 2.0 * Math.PI);
         }
 
         public static bool InBounds(Rectangle boundsRect, Point p)
@@ -856,6 +854,14 @@ namespace Whorl
                 //    index -= count;
             }
             return index;
+        }
+
+        public static double Normalize(double x, double n)
+        {
+            double v = x % n;
+            if (v < 0)
+                v += n;
+            return v;
         }
 
         public static object ConvertNumericInput(string textInput, Type targetType, string label,

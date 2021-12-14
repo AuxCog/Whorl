@@ -242,6 +242,7 @@
     </Compile>
     <Compile Include="ImproviseConfig.cs" />
     <Compile Include="ImproviseFlags.cs" />
+    <Compile Include="InfluenceAngle.cs" />
     <Compile Include="InfluenceLinkParentCollection.cs" />
     <Compile Include="InfluenceParameter.cs" />
     <Compile Include="InfluencePointInfo.cs" />
