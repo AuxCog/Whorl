@@ -189,7 +189,7 @@ namespace Whorl
         public void FinishUserDefinedVertices()
         {
             PointF center = SegmentVerticesCenter;
-            if (UserDefinedVertices)
+            if (UserDefinedVertices || PolygonUserVertices)
             {
                 float scale = (float)(1.0 / GetPolygonMaxModulus(center));
                 var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
