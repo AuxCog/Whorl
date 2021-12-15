@@ -56,6 +56,11 @@ namespace ParserEngine
             return 0.5 * (x + y);
         }
 
+        public static double SmoothRound(double x)
+        {
+            return CMath.SmoothRound(x, 7.0);
+        }
+
         public static double XtoX(double x)
         {
             return Math.Pow(Math.Abs(x), x);
