@@ -2653,11 +2653,11 @@ namespace Whorl
 
         public IEnumerable<PointF> GetPolygonVertices(bool allowCurve = false)
         {
-            PathOutline polygonOutline = GetPolygonOutline(allowCurve);
-            if (polygonOutline?.PolygonVertices == null)
+            PathOutline outline = BasicOutlines.Select(otl => otl as PathOutline).FirstOrDefault(po => po != null && po.PolygonVertices != null);
+            if (outline == null)
                 return new PointF[] { };
             else
-                return polygonOutline.PolygonVertices;
+                return outline.PolygonVertices;
         }
 
         private void ApplyShrink(bool shrink = true)
