@@ -131,6 +131,8 @@
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -174,6 +176,7 @@
             this.label19 = new System.Windows.Forms.Label();
             this.chkIsSection = new System.Windows.Forms.CheckBox();
             this.tabPatternLayers = new System.Windows.Forms.TabPage();
+            this.BtnEditPatternLayerInMainForm = new System.Windows.Forms.Button();
             this.chkEditLayers = new System.Windows.Forms.CheckBox();
             this.dgvLayers = new System.Windows.Forms.DataGridView();
             this.colLayerModulusPercentage = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -289,9 +292,7 @@
             this.label56 = new System.Windows.Forms.Label();
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.BtnEditPatternLayerInMainForm = new System.Windows.Forms.Button();
+            this.ChkFlipX = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -304,6 +305,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -318,7 +320,6 @@
             this.tabStringPattern.SuspendLayout();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
@@ -1315,6 +1316,18 @@
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
             // 
+            // transformNameDataGridViewTextBoxColumn
+            // 
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
+            // 
             // tabRibbon
             // 
             this.tabRibbon.Controls.Add(this.chkRibbonLinearGradientPerSegment);
@@ -1751,6 +1764,16 @@
             this.tabPatternLayers.TabIndex = 5;
             this.tabPatternLayers.Text = "Pattern Layers";
             this.tabPatternLayers.UseVisualStyleBackColor = true;
+            // 
+            // BtnEditPatternLayerInMainForm
+            // 
+            this.BtnEditPatternLayerInMainForm.Location = new System.Drawing.Point(211, 36);
+            this.BtnEditPatternLayerInMainForm.Name = "BtnEditPatternLayerInMainForm";
+            this.BtnEditPatternLayerInMainForm.Size = new System.Drawing.Size(105, 23);
+            this.BtnEditPatternLayerInMainForm.TabIndex = 46;
+            this.BtnEditPatternLayerInMainForm.Text = "Edit in Main Form";
+            this.BtnEditPatternLayerInMainForm.UseVisualStyleBackColor = true;
+            this.BtnEditPatternLayerInMainForm.Click += new System.EventHandler(this.BtnEditPatternLayerInMainForm_Click);
             // 
             // chkEditLayers
             // 
@@ -2874,33 +2897,22 @@
             this.chkSmoothedDraft.UseVisualStyleBackColor = true;
             this.chkSmoothedDraft.CheckedChanged += new System.EventHandler(this.chkSmoothedDraft_CheckedChanged);
             // 
-            // transformNameDataGridViewTextBoxColumn
+            // ChkFlipX
             // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
-            // 
-            // BtnEditPatternLayerInMainForm
-            // 
-            this.BtnEditPatternLayerInMainForm.Location = new System.Drawing.Point(211, 36);
-            this.BtnEditPatternLayerInMainForm.Name = "BtnEditPatternLayerInMainForm";
-            this.BtnEditPatternLayerInMainForm.Size = new System.Drawing.Size(105, 23);
-            this.BtnEditPatternLayerInMainForm.TabIndex = 46;
-            this.BtnEditPatternLayerInMainForm.Text = "Edit in Main Form";
-            this.BtnEditPatternLayerInMainForm.UseVisualStyleBackColor = true;
-            this.BtnEditPatternLayerInMainForm.Click += new System.EventHandler(this.BtnEditPatternLayerInMainForm_Click);
+            this.ChkFlipX.AutoSize = true;
+            this.ChkFlipX.Location = new System.Drawing.Point(237, 499);
+            this.ChkFlipX.Name = "ChkFlipX";
+            this.ChkFlipX.Size = new System.Drawing.Size(52, 17);
+            this.ChkFlipX.TabIndex = 59;
+            this.ChkFlipX.Text = "Flip X";
+            this.ChkFlipX.UseVisualStyleBackColor = true;
             // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(637, 711);
+            this.Controls.Add(this.ChkFlipX);
             this.Controls.Add(this.chkSmoothedDraft);
             this.Controls.Add(this.chkPreviewFullSize);
             this.Controls.Add(this.txtPreviewRotation);
@@ -2954,6 +2966,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -2977,7 +2990,6 @@
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3247,5 +3259,6 @@
         private System.Windows.Forms.Button btnEditTransformInMainForm;
         private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
         private System.Windows.Forms.Button BtnEditPatternLayerInMainForm;
+        private System.Windows.Forms.CheckBox ChkFlipX;
     }
 }

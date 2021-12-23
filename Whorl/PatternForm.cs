@@ -604,6 +604,7 @@ namespace Whorl
                 Pattern pattern = EditedPattern;
                 if (pattern == null)
                     return;
+                ChkFlipX.Checked = pattern.FlipX;
                 ClearParameterControls(pnlOutlineParameters);
                 ClearParameterControls(pnlTransformParameters);
                 txtPatternName.Text = EditedPatternGroup.PatternListName;
@@ -1135,6 +1136,7 @@ namespace Whorl
             Pattern pattern = EditedPattern;
             if (pattern == null)
                 return true;
+            pattern.FlipX = ChkFlipX.Checked;
             pattern.ClearRenderingCache();
             if (pattern.PixelRendering != null)
             {

@@ -2137,6 +2137,8 @@ namespace Whorl
 
         public double ZoomFactor { get; set; } = 1D;
 
+        public bool FlipX { get; set; }
+
         public Complex OutlineZVector { get; set; }
 
         public bool Selected { get; set; }
@@ -2976,6 +2978,16 @@ namespace Whorl
                 if (!(this is PathPattern))
                     curvePointsList[curvePointsList.Count - 1] = curvePointsList[0]; //Close curve.
                 curvePoints = curvePointsList.ToArray();
+            }
+            if (FlipX && curvePoints != null && curvePoints.Length != 0)
+            {
+                float minX = curvePoints.Select(p => p.X).Min();
+                float maxX = curvePoints.Select(p => p.X).Max();
+                float xC2 = minX + maxX;  //2 * middle X
+                for (int i = 0; i < curvePoints.Length; i++)
+                {
+                    curvePoints[i].X = xC2 - curvePoints[i].X;
+                }
             }
             curvePointsList = null;
             return curvePoints;
@@ -4075,7 +4087,7 @@ namespace Whorl
             Tools.SetXmlVersion(node, xmlTools);
             xmlTools.AppendXmlAttributes(node, this, nameof(RotationSteps), nameof(MergeOperation), nameof(DrawCurve),
                                          nameof(RenderMode), nameof(StainBlendType), nameof(StainWidth), 
-                                         nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid),
+                                         nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid), nameof(FlipX),
                                          nameof(ShrinkPattern), nameof(ShrinkPatternLayers), nameof(ShrinkClipCenterFactor),
                                          nameof(ShrinkPadding), nameof(ShrinkClipFactor),
                                          nameof(IsBackgroundPattern), nameof(AllowRandom), nameof(InfluenceScaleFactor),
