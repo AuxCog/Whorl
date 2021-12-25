@@ -210,16 +210,22 @@ namespace Whorl
             public override void Complete()
             {
                 HasNestedParameters = ParametersClassName != null;
-                string functionName;
+                string paramTypeName;
+                string typeArgs = $"<{TypeName}>";
                 if (FunctionType == FunctionTypes.Derivative)
                 {
-                    functionName = "DerivFuncParameter";
+                    paramTypeName = "DerivFuncParameter";
+                }
+                else if (ParamsCount == 1 && (TypeName == "double" || TypeName == "Double"))
+                {
+                    paramTypeName = "DoubleFuncParameter";
+                    typeArgs = string.Empty;
                 }
                 else
                 {
-                    functionName = $"Func{ParamsCount}Parameter";
+                    paramTypeName = $"Func{ParamsCount}Parameter";
                 }
-                DecTypeName = $"{functionName}<{TypeName}>";
+                DecTypeName = $"{paramTypeName}{typeArgs}";
                 List<string> args = new List<string>();
                 args.Add(DefaultValue == null ? null : $"\"{DefaultValue}\"");
                 args.Add(MethodsClass == null ? null : $"typeof({MethodsClass.FullName})");

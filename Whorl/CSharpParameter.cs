@@ -210,7 +210,7 @@ namespace Whorl
     public abstract class BaseFuncParameter<FuncT, ParamType>: BaseOptionsParameter<FuncT> //, IFuncParameter
     {
         public int ParamCount { get; }
-        public FuncT Function { get; private set; }
+        public FuncT Function { get; protected set; }
         public object[] Instances { get; }
 
         protected override void SelectedOptionChanged()
@@ -337,6 +337,34 @@ namespace Whorl
         protected static Type[] GetMethodTypesArray(Type type)
         {
             return type == null ? null : new Type[] { type };
+        }
+    }
+
+    public class DoubleFuncParameter: Func1Parameter<double>
+    {
+        private DoubleFuncLibrary funcLibrary { get; }
+
+        public DoubleFuncParameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
+                                   bool addDefaultMethodTypes = true)
+                                   : base(defaultFunctionName, methodType, mathFunctionType, instances, addDefaultMethodTypes)
+        {
+            if (instances != null)
+                funcLibrary = instances.Select(o => o as DoubleFuncLibrary).FirstOrDefault(o => o != null);
+        }
+
+        protected override void SelectedOptionChanged()
+        {
+            base.SelectedOptionChanged();
+            if (SelectedOption == null) return;
+            if (funcLibrary != null)
+            {
+                if (!Instances.SelectMany(o => GetValidMethods(o.GetType(), forInstance: true))
+                                         .Any(m => m.Name == SelectedText))
+                {
+                    funcLibrary.SetBaseFunction(SelectedOption.Value);
+                    Function = funcLibrary.DefaultFunction;
+                }
+            }
         }
     }
 

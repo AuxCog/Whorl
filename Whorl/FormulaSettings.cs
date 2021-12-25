@@ -1254,7 +1254,10 @@ namespace Whorl
                 string typeName = Tools.GetXmlAttribute<string>(subNode, defaultValue: null, "TypeName");
                 if (typeName != null && propInfo.PropertyType.Name != typeName)
                 {
-                    throw new Exception("Invalid parameter type read from XML file.");
+                    if (typeName.Replace("Func1Parameter`1", "DoubleFuncParameter") != propInfo.PropertyType.Name)
+                    {
+                        throw new Exception("Invalid parameter type read from XML file.");
+                    }
                 }
                 object oParam = propInfo.GetValue(paramsObj);
                 Array paramArray = null;
@@ -1311,14 +1314,6 @@ namespace Whorl
             else if (!isNestedParams && !(oParam is RandomParameter))
             {
                 object oVal = Tools.GetCSharpParameterValue(sVal, paramType, out bool isValid);
-                //try
-                //{
-                //    oVal = Convert.ChangeType(sVal, paramType);
-                //}
-                //catch
-                //{
-                //    return;
-                //}
                 if (isValid)
                 {
                     if (paramArray != null)

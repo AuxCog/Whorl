@@ -224,6 +224,7 @@
     <Compile Include="frmVaryProperties.Designer.cs">
       <DependentUpon>frmVaryProperties.cs</DependentUpon>
     </Compile>
+    <Compile Include="DoubleFuncLibrary.cs" />
     <Compile Include="GetValueForm.cs">
       <SubType>Form</SubType>
     </Compile>
