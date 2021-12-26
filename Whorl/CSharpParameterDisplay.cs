@@ -177,7 +177,7 @@ namespace Whorl
                     return;
                 int parameterIndex = 0;
                 AddActionComboBox(ref parameterIndex);
-                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties()
+                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                          .Where(pi => CSharpSharedCompiledInfo.ParamPropInfoIsValid(pi)))
                 {
                     object oParam = propertyInfo.GetValue(ParametersObject);

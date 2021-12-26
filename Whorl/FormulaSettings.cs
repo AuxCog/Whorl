@@ -1318,12 +1318,14 @@ namespace Whorl
                 {
                     if (paramArray != null)
                         paramArray.SetValue(oVal, index);
-                    else
+                    else if (propInfo.CanWrite)
                     {
                         propInfo.SetValue(paramsObj, oVal);
                         if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(oVal, oParam))
                             updateParams = true;
                     }
+                    else
+                        throw new Exception($"Property {paramsObj.GetType().Name}.{propInfo.Name} is not writable.");
                 }
             }
             if (isNestedParams)

@@ -2242,11 +2242,11 @@ $@"public void {methodName}()
             if (hasSet)
             {
                 if (paramInfo.SetProperty == null)
-                    sb.Append("{ get; private set; }");
+                    sb.Append("{ get; set; }");
                 else
                 {
                     sb.Append($"{{ get => {paramInfo.SetProperty};");
-                    sb.Append($" private set => {paramInfo.SetProperty} = value; }}");
+                    sb.Append($" set => {paramInfo.SetProperty} = value; }}");
                 }
             }
             else
