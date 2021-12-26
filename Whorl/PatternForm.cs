@@ -777,7 +777,7 @@ namespace Whorl
                 int petals = (int)otl.Petals; //(int)(2 * otl.UsedFrequency);
                 double weight = Math.Round(otl.AmplitudeFactor, 4);
                 double phase = Math.Round(Tools.RadiansToDegrees(otl.AngleOffset), 1);
-                double pointiness = Math.Round(otl.GetPointiness(), 2);
+                double pointiness = Math.Round(otl.GetPointiness(), 4);
                 //string formula = otl.customOutline == null ? string.Empty
                 //            : otl.customOutline.AmplitudeSettings.Formula;
                 //string maxFormula = otl.customOutline == null ? string.Empty
