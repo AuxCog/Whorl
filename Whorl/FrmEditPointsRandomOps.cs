@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,9 +35,7 @@ namespace Whorl
                     editedOps = new PointsRandomOps();
                 else
                     editedOps = new PointsRandomOps(renderingInfo.PointsRandomOps); //Create copy.
-                seedsChanged = displayPoints = false;
                 PopulateControls();
-                pasteSettingsToolStripMenuItem.Enabled = copiedPointsRandomOps != null;
             }
             catch (Exception ex)
             {
@@ -189,6 +188,8 @@ namespace Whorl
 
         private void PopulateControls()
         {
+            seedsChanged = displayPoints = false;
+            pasteSettingsToolStripMenuItem.Enabled = copiedPointsRandomOps != null;
             txtHorizCount.Text = editedOps.HorizCount.ToString();
             txtVertCount.Text = editedOps.VertCount.ToString();
             txtPointRandomWeight.Text = (100.0 * editedOps.PointRandomWeight).ToString("0.##");
@@ -308,6 +309,53 @@ namespace Whorl
                     editedOps = new PointsRandomOps(copiedPointsRandomOps);
                     PopulateControls();
                 }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private string GetSettingsFileFolder()
+        {
+            return Path.Combine(WhorlSettings.Instance.FilesFolder, "RandomSettings");
+        }
+
+        private void saveSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string folder = GetSettingsFileFolder();
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+                string fileName = Tools.GetSaveXmlFileName("Random Settings File (*.xml)", folder, null, this);
+                if (fileName == null)
+                    return;  //User cancelled.
+                var xmlTools = new XmlTools();
+                xmlTools.CreateDocument();
+                xmlTools.XmlDoc.AppendChild(editedOps.ToXml(null, xmlTools));
+                xmlTools.SaveXml(fileName);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void readSettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string folder = GetSettingsFileFolder();
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+                string fileName = Tools.GetOpenXmlFileName("Random Settings File (*.xml)", folder, this);
+                if (fileName == null)
+                    return;  //User cancelled.
+                var xmlTools = new XmlTools();
+                xmlTools.LoadXmlDocument(fileName);
+                editedOps = new PointsRandomOps(xmlTools.XmlDoc.FirstChild);
+                PopulateControls();
             }
             catch (Exception ex)
             {

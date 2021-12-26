@@ -1939,7 +1939,7 @@ namespace Whorl
                 if (patternForm == null || patternForm.IsDisposed)
                     patternForm = new PatternForm();
                 patternForm.Initialize(patternGroup, selectPatternForm, Design);
-                return (patternForm.ShowDialog() == DialogResult.OK);
+                return (patternForm.ShowDialog(this) == DialogResult.OK);
             }
             catch (Exception ex)
             {
@@ -1984,7 +1984,7 @@ namespace Whorl
         {
             return Tools.GetSaveXmlFileName("Design xml file (*.xml)", 
                          fileFolder ?? WhorlSettings.Instance.FilesFolder, 
-                         currentFileName);
+                         currentFileName, this);
         }
 
         private bool SaveDesign(bool saveAs, string fileFolder = null)
@@ -2243,7 +2243,7 @@ namespace Whorl
             {
                 Invoke((Func<OpenFileDialog, DialogResult>)ShowDialog, dialog);
             }
-            return dialog.ShowDialog();
+            return dialog.ShowDialog(this);
         }
 
         /// <summary>
@@ -2475,7 +2475,7 @@ namespace Whorl
                 {
                     dlg.FileName = GetDefaultImageFileName();
                 }
-                if (dlg.ShowDialog() == DialogResult.OK)
+                if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
                     Bitmap bmp;
                     if (removeBorderLinesOnSavingToolStripMenuItem.Checked)
@@ -2505,7 +2505,7 @@ namespace Whorl
                 dlg.Filter = "Improvisations file (*.improv)|*.improv";
                 if (FilesFolderExists())
                     dlg.InitialDirectory = WhorlSettings.Instance.FilesFolder;
-                if (dlg.ShowDialog() == DialogResult.OK)
+                if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
                     WhorlDesign.WriteDesignListXml(dlg.FileName, improvDesigns);
                     WriteStatus("Saved improvisations file.");
@@ -2527,7 +2527,7 @@ namespace Whorl
                     dlg.Filter = "Improvisations file (*.improv)|*.improv";
                     if (FilesFolderExists())
                         dlg.InitialDirectory = WhorlSettings.Instance.FilesFolder;
-                    if (dlg.ShowDialog() == DialogResult.OK)
+                    if (dlg.ShowDialog(this) == DialogResult.OK)
                     {
                         improvDesigns = WhorlDesign.ReadDesignListFromXmlFile(dlg.FileName, ContainerSize);
                         replayImprovisationsToolStripMenuItem.Checked = true;
@@ -4828,7 +4828,7 @@ namespace Whorl
                 if (backgroundForm == null || backgroundForm.IsDisposed)
                     backgroundForm = new BackgroundForm();
                 backgroundForm.Initialize(Design);
-                if (backgroundForm.ShowDialog() == DialogResult.OK)
+                if (backgroundForm.ShowDialog(this) == DialogResult.OK)
                 {
                     RedrawPatterns();
                 }
@@ -4900,7 +4900,7 @@ namespace Whorl
             {
                 Cursor = cursor;
             }
-            bool ok = selectPtnForm.ShowDialog() == DialogResult.OK;
+            bool ok = selectPtnForm.ShowDialog(this) == DialogResult.OK;
             if (ok)
             {
                 this.Design.DefaultPatternGroup =
@@ -5113,7 +5113,7 @@ namespace Whorl
                 if (repeatSettingsForm == null || repeatSettingsForm.IsDisposed)
                     repeatSettingsForm = new RepeatSettingsForm();
                 repeatSettingsForm.Initialize(patternGroup);
-                if (repeatSettingsForm.ShowDialog() == DialogResult.OK)
+                if (repeatSettingsForm.ShowDialog(this) == DialogResult.OK)
                 {
                     if (repeatSettingsForm.RepeatAtVertices)
                     {
@@ -5457,7 +5457,7 @@ namespace Whorl
                 settingsForm = new SettingsForm();
             int prevDraftSize = WhorlSettings.Instance.DraftSize;
             settingsForm.Initialize();
-            bool retVal = settingsForm.ShowDialog() == DialogResult.OK;
+            bool retVal = settingsForm.ShowDialog(this) == DialogResult.OK;
             if (retVal)
             {
                 string newPatternChoicesFilePath = PatternChoicesFilePath;
@@ -5496,7 +5496,7 @@ namespace Whorl
         //    {
         //        WaveGraphForm frm = new WaveGraphForm();
         //        frm.Initialize(pattern);
-        //        frm.ShowDialog();
+        //        frm.ShowDialog(this);
         //    }
         //}
 
@@ -5718,7 +5718,7 @@ namespace Whorl
                 if (imageSizeForm == null || imageSizeForm.IsDisposed)
                     imageSizeForm = new ImageSizeForm();
                 imageSizeForm.Initialize(picDesign.Size);
-                if (imageSizeForm.ShowDialog() == DialogResult.OK)
+                if (imageSizeForm.ShowDialog(this) == DialogResult.OK)
                 {
                     Size prevSize = picDesign.Size;
                     if (imageSizeForm.DockImage)
@@ -6142,7 +6142,7 @@ namespace Whorl
                 renderDesignForm.Initialize(Design, currentBitmap.Size, imgFileName, 
                                             renderStainedToolStripMenuItem.Checked);
                 Tools.DisplayForm(renderDesignForm, this);
-                //if (renderDesignForm.ShowDialog() != DialogResult.OK)
+                //if (renderDesignForm.ShowDialog(this) != DialogResult.OK)
                 //    return;
                 //Stopwatch stopwatch = new Stopwatch();
                 //stopwatch.Start();
@@ -6189,7 +6189,7 @@ namespace Whorl
                     patternZOrderForm = new PatternZOrderForm();
                 int zOrder = Design.IndexOfPattern(pattern);
                 patternZOrderForm.Initialize(zOrder, Design.DesignPatterns.Count());
-                if (patternZOrderForm.ShowDialog() == DialogResult.OK)
+                if (patternZOrderForm.ShowDialog(this) == DialogResult.OK)
                 {
                     if (patternZOrderForm.ZOrder != zOrder)
                     {
@@ -6261,7 +6261,7 @@ namespace Whorl
         {
             if (zoomFactorForm == null || zoomFactorForm.IsDisposed)
                 zoomFactorForm = new ZoomFactorForm();
-            cancelled = zoomFactorForm.ShowDialog() != DialogResult.OK;
+            cancelled = zoomFactorForm.ShowDialog(this) != DialogResult.OK;
             if (cancelled)
             {
                 keepCenters = false;
@@ -6529,7 +6529,7 @@ namespace Whorl
         private void MergeDesign(bool above)
         {
             OpenFileDialog dlg = GetOpenDesignFileDialog();
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dlg.ShowDialog(this) == DialogResult.OK)
             {
                 WhorlDesign mergedDesign = new WhorlDesign(OnDistancePatternsCountChanged);
                 mergedDesign.ReadDesignFromXmlFile(dlg.FileName);
@@ -6569,7 +6569,7 @@ namespace Whorl
                 using (var frm = new ImprovConfigForm())
                 {
                     frm.Initialize(Design);
-                    frm.ShowDialog();
+                    frm.ShowDialog(this);
                 }
             }
             catch (Exception ex)
@@ -6591,7 +6591,7 @@ namespace Whorl
             using (var frm = new PatternImprovConfigForm())
             {
                 frm.Initialize(pattern);
-                frm.ShowDialog();
+                frm.ShowDialog(this);
             }
         }
 
@@ -6641,7 +6641,7 @@ namespace Whorl
             //        dlg.InitialDirectory = videoFolder;
             //        if (!string.IsNullOrEmpty(VideoOps.FileName))
             //            dlg.FileName = Path.GetFileName(VideoOps.FileName);
-            //        if (dlg.ShowDialog() != DialogResult.OK)
+            //        if (dlg.ShowDialog(this) != DialogResult.OK)
             //            return;  //User cancelled.
             //        VideoOps.OpenWriter(dlg.FileName, currentBitmap.Size);
             //        VideoOps.IsRecording = true;
@@ -6669,7 +6669,7 @@ namespace Whorl
                 if (randomSeedForm == null || randomSeedForm.IsDisposed)
                     randomSeedForm = new NamedRandomSeedForm();
                 randomSeedForm.Initialize(this.seededRandom, this.Design);
-                randomSeedForm.ShowDialog();
+                randomSeedForm.ShowDialog(this);
             }
             catch (Exception ex)
             {
@@ -7313,7 +7313,7 @@ namespace Whorl
                 using (var frm = new frmTextEditor())
                 {
                     frm.DisplayText(cSharpCode);
-                    frm.ShowDialog();
+                    frm.ShowDialog(this);
                 }
             }
             catch (Exception ex)
@@ -7536,7 +7536,7 @@ namespace Whorl
                 using (var frm = new FrmEditDistancePatternSettings())
                 {
                     frm.Initialize(mouseDistancePatternInfo.DistancePatternSettings, mouseDistanceParentPattern);
-                    if (frm.ShowDialog() == DialogResult.OK)
+                    if (frm.ShowDialog(this) == DialogResult.OK)
                     {
                         mouseDistanceParentPattern.ClearRenderingCache();
                         RedrawPatterns();
@@ -7686,7 +7686,7 @@ namespace Whorl
                 using (var frm = new FrmEditPointsRandomOps())
                 {
                     frm.Initialize(pattern.PixelRendering);
-                    if (frm.ShowDialog() == DialogResult.OK)
+                    if (frm.ShowDialog(this) == DialogResult.OK)
                     {
                         Design.IsDirty = true;
                         pattern.ClearRenderingCache();
@@ -7742,7 +7742,7 @@ namespace Whorl
             using (var frm = new frmInfluencePoint())
             {
                 frm.Initialize(influencePointInfo);
-                return frm.ShowDialog() == DialogResult.OK;
+                return frm.ShowDialog(this) == DialogResult.OK;
             }
         }
 
@@ -7887,7 +7887,7 @@ namespace Whorl
                 //using (var frm = new frmInflenceLink())
                 //{
                 //    frm.Initialize(transformParent.ParentCollection.ParentPattern, transformParent.ParentCollection.PatternTransform, transformParent.TargetParameter);
-                //    if (frm.ShowDialog() == DialogResult.OK)
+                //    if (frm.ShowDialog(this) == DialogResult.OK)
                 //    {
                 //        design.IsDirty = true;
                 //        await Task.Run(() => RedrawPatterns(computeSeedPoints: true));
@@ -8094,7 +8094,7 @@ namespace Whorl
                     if (frmEditKeyEnumParameters == null || frmEditKeyEnumParameters.IsDisposed)
                         frmEditKeyEnumParameters = new FrmEditKeyEnumParameters();
                     frmEditKeyEnumParameters.Initialize(pattern);
-                    frmEditKeyEnumParameters.ShowDialog();
+                    frmEditKeyEnumParameters.ShowDialog(this);
                     if (frmEditKeyEnumParameters.ParametersChanged)
                     {
                         Design.IsDirty = true;
@@ -8165,7 +8165,7 @@ namespace Whorl
             {
                 if (!frm.Initialize(pattern, formulaSettings, parameterKey))
                     return false;
-                if (frm.ShowDialog() == DialogResult.OK)
+                if (frm.ShowDialog(this) == DialogResult.OK)
                 {
                     Design.IsDirty = true;
                     pattern.ComputeSeedPoints();
@@ -8190,7 +8190,7 @@ namespace Whorl
         //    using (var frm = new frmInfluenceLink())
         //    {
         //        frm.Initialize(pattern, pattern.PixelRendering.FormulaSettings, parameterKey);
-        //        if (frm.ShowDialog() == DialogResult.OK)
+        //        if (frm.ShowDialog(this) == DialogResult.OK)
         //        {
         //            pattern.ClearRenderingCache();
         //            RedrawPatterns();
@@ -8319,7 +8319,7 @@ namespace Whorl
                 double factor;
                 using (var frm = new ZoomFactorForm())
                 {
-                    if (frm.ShowDialog() != DialogResult.OK)
+                    if (frm.ShowDialog(this) != DialogResult.OK)
                         return;
                     factor = frm.ZoomFactors.X;
                 }

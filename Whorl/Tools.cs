@@ -982,7 +982,7 @@ namespace Whorl
             return info.Item1;
         }
 
-        public static string GetSaveXmlFileName(string description, string folder, string currentFileName)
+        public static string GetSaveXmlFileName(string description, string folder, string currentFileName, Form owner = null)
         {
             SaveFileDialog dlg = new SaveFileDialog();
             dlg.Filter = description + "|*.xml";
@@ -991,8 +991,22 @@ namespace Whorl
             dlg.InitialDirectory = folder;
             if (currentFileName != null)
                 dlg.FileName = Path.GetFileName(currentFileName);
-            bool selectedFile = dlg.ShowDialog() == DialogResult.OK;
-            return selectedFile ? dlg.FileName : null;
+            if (dlg.ShowDialog(owner) == DialogResult.OK)
+                return dlg.FileName;
+            else
+                return null;
+        }
+
+        public static string GetOpenXmlFileName(string description, string folder, Form owner = null)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = $"{description}|*.xml";
+            if (Directory.Exists(folder))
+                dlg.InitialDirectory = folder;
+            if (dlg.ShowDialog(owner) == DialogResult.OK)
+                return dlg.FileName;
+            else
+                return null;
         }
 
         public static void DisplayForm(Form frm, Form owner = null)

@@ -192,7 +192,7 @@ namespace Whorl
             {
                 //Browse for fileName.
                 fileName = Tools.GetSaveXmlFileName("Blend file (*.xml)",
-                                  GetFilesFolder(), currentFileName);
+                                  GetFilesFolder(), currentFileName, this);
                 if (fileName == null) 
                     return;  //User cancelled.
                 currentFileName = fileName;

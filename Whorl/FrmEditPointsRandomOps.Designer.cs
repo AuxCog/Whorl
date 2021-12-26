@@ -59,6 +59,9 @@ namespace Whorl
             this.txtOuterPower = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.chkTakeAbsolute = new System.Windows.Forms.CheckBox();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.readSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -240,6 +243,7 @@ namespace Whorl
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
             this.editToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -259,14 +263,14 @@ namespace Whorl
             // copySettingsToolStripMenuItem
             // 
             this.copySettingsToolStripMenuItem.Name = "copySettingsToolStripMenuItem";
-            this.copySettingsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.copySettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.copySettingsToolStripMenuItem.Text = "Copy Settings";
             this.copySettingsToolStripMenuItem.Click += new System.EventHandler(this.copySettingsToolStripMenuItem_Click);
             // 
             // pasteSettingsToolStripMenuItem
             // 
             this.pasteSettingsToolStripMenuItem.Name = "pasteSettingsToolStripMenuItem";
-            this.pasteSettingsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.pasteSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pasteSettingsToolStripMenuItem.Text = "Paste Settings";
             this.pasteSettingsToolStripMenuItem.Click += new System.EventHandler(this.pasteSettingsToolStripMenuItem_Click);
             // 
@@ -330,6 +334,29 @@ namespace Whorl
             this.chkTakeAbsolute.TabIndex = 35;
             this.chkTakeAbsolute.Text = "Take Absolute Value";
             this.chkTakeAbsolute.UseVisualStyleBackColor = true;
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveSettingsToolStripMenuItem,
+            this.readSettingsToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // saveSettingsToolStripMenuItem
+            // 
+            this.saveSettingsToolStripMenuItem.Name = "saveSettingsToolStripMenuItem";
+            this.saveSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveSettingsToolStripMenuItem.Text = "Save Settings";
+            this.saveSettingsToolStripMenuItem.Click += new System.EventHandler(this.saveSettingsToolStripMenuItem_Click);
+            // 
+            // readSettingsToolStripMenuItem
+            // 
+            this.readSettingsToolStripMenuItem.Name = "readSettingsToolStripMenuItem";
+            this.readSettingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.readSettingsToolStripMenuItem.Text = "Read Settings";
+            this.readSettingsToolStripMenuItem.Click += new System.EventHandler(this.readSettingsToolStripMenuItem_Click);
             // 
             // FrmEditPointsRandomOps
             // 
@@ -406,5 +433,8 @@ namespace Whorl
         private System.Windows.Forms.TextBox txtOuterPower;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.CheckBox chkTakeAbsolute;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveSettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem readSettingsToolStripMenuItem;
     }
 }
