@@ -8,12 +8,13 @@ namespace Whorl
 {
     public class DoubleFuncLibrary
     {
-        public double XWeight { get; set; } = 1.0;
-        public double XOffset { get; set; }
-        public double YWeight { get; set; } = 1.0;
+        public double XWeight { get; protected set; } = 1.0;
+        public double XOffset { get; protected set; }
+        public double YWeight { get; protected set; } = 1.0;
 
         private Func<double, double> baseFunction { get; set; }
 
+        [ParserEngine.ExcludeMethod]
         public double DefaultFunction(double x)
         {
             return YWeight * baseFunction(XWeight * x + XOffset);
