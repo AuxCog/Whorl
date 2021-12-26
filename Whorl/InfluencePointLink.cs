@@ -404,7 +404,7 @@ namespace Whorl
 
         protected override BaseInfluenceLinkParent _GetCopy(InfluenceLinkParentCollection parentCollection, string parameterName = null)
         {
-            return new PropertyInfluenceLinkParent(parentCollection, parameterName ?? ParameterName);
+            return new PropertyInfluenceLinkParent(parentCollection, parameterName ?? ParameterName, ArrayIndex);
         }
 
         protected override string SetTargetParameter(string parameterName, bool throwException = true)

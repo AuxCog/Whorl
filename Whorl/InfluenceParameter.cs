@@ -86,8 +86,9 @@ namespace Whorl
         {
             if (PropertyInfo.PropertyType != typeof(double))
             {
+                Type type = PropertyInfo.PropertyType;
                 PropertyInfo = null;
-                return $"Parameter property named {PropertyName} is not of type double.";
+                return $"Parameter property named {PropertyName} is of type {type.FullName}, not double.";
             }
             return null;
         }
