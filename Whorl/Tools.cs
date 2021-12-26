@@ -436,6 +436,19 @@ namespace Whorl
             }
         }
 
+        public static string GetValidTextureFileName(string fileName)
+        {
+            string baseFileName = Path.GetFileName(fileName);
+            if (!WhorlSettings.Instance.TextureFileNames.Contains(baseFileName))
+            {
+                string fileName2 = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.TexturesFolder, WhorlSettings.AllTexturesFolder, 
+                                                baseFileName);
+                if (File.Exists(fileName2))
+                    fileName = fileName2;
+            }
+            return fileName;
+        }
+
         public static uint GetBitmapBit(int i)
         {
             return 1u << (i & 0x1F);

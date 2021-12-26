@@ -12,6 +12,7 @@ namespace Whorl
     public class WhorlSettings : ChangeTracker
     {
         public const string TexturesFolder = "Textures";
+        public const string AllTexturesFolder = "AllTextures";
         public static WhorlSettings Instance { get; } = new WhorlSettings();
 
         private WhorlSettings()
@@ -59,6 +60,8 @@ namespace Whorl
         {
             IsChanged = false;
         }
+
+        public HashSet<string> TextureFileNames { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private Int32 _animationRate;
         [InitialSettingValue("1")]

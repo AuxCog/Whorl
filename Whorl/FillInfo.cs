@@ -920,7 +920,7 @@ namespace Whorl
                 switch (childNode.Name)
                 {
                     case nameof(TextureImageFileName):
-                        TextureImageFileName = Tools.GetXmlNodeValue(childNode);
+                        TextureImageFileName = Tools.GetValidTextureFileName(Tools.GetXmlNodeValue(childNode));
                         break;
                     case nameof(TextureOffset):
                         TextureOffset = Tools.GetPointFromXml(childNode);

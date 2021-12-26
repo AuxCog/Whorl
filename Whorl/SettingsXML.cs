@@ -130,6 +130,11 @@ namespace Whorl
                 }
             }
             whorlSettings.AfterSaveOrRead();
+            string filesFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.TexturesFolder);
+            if (Directory.Exists(filesFolder))
+            {
+                WhorlSettings.Instance.TextureFileNames.UnionWith(Directory.EnumerateFiles(filesFolder).Select(f => Path.GetFileName(f)));
+            }
         }
 
         private static bool GetPropertyValue(string valueString, Type valueType, out object value, List<string> errors)

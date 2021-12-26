@@ -1034,7 +1034,7 @@ namespace Whorl
                             BackgroundGradientColors.FromXml(childNode);
                             break;
                         case nameof(BackgroundImageFileName):
-                            BackgroundImageFileName = Tools.GetXmlNodeValue(childNode);
+                            BackgroundImageFileName = Tools.GetValidTextureFileName(Tools.GetXmlNodeValue(childNode));
                             break;
                         case "DefaultPatternGroup":
                             this.DefaultPatternGroup = new PatternList(this);
