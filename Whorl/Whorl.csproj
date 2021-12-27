@@ -104,6 +104,7 @@
     <Compile Include="ColorTransparencyForm.Designer.cs">
       <DependentUpon>ColorTransparencyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CopyPasteInfo.cs" />
     <Compile Include="CSharpCompiledInfo.cs" />
     <Compile Include="CSharpPreprocessor.cs" />
     <Compile Include="CSharpSharedCompiledInfo.cs" />
@@ -145,6 +146,12 @@
     </Compile>
     <Compile Include="frmColorGradient.Designer.cs">
       <DependentUpon>frmColorGradient.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCopyPaste.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCopyPaste.Designer.cs">
+      <DependentUpon>FrmCopyPaste.cs</DependentUpon>
     </Compile>
     <Compile Include="FrmEditDistancePatternSettings.cs">
       <SubType>Form</SubType>
@@ -289,6 +296,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ParameterDisplay.cs" />
+    <Compile Include="ParameterDisplaysContainer.cs" />
     <Compile Include="ParameterImproviseConfig.cs" />
     <Compile Include="ParamInfo.cs" />
     <Compile Include="ParserErrorsForm.cs">
@@ -398,6 +406,9 @@
     <EmbeddedResource Include="frmColorGradient.resx">
       <DependentUpon>frmColorGradient.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCopyPaste.resx">
+      <DependentUpon>FrmCopyPaste.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmEditDistancePatternSettings.resx">
       <DependentUpon>FrmEditDistancePatternSettings.cs</DependentUpon>

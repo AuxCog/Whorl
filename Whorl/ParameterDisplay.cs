@@ -269,6 +269,8 @@ namespace Whorl
         {
             try
             {
+                if (!handleEvents)
+                    return;
                 var chkBox = (CheckBox)sender;
                 BooleanParameter parameter = (BooleanParameter)chkBox.Tag;
                 if (parameter.BooleanValue != chkBox.Checked)
@@ -383,7 +385,7 @@ namespace Whorl
         {
             try
             {
-                if (e.KeyChar == '\r')
+                if (handleEvents && e.KeyChar == '\r')
                 {
                     e.Handled = true;
                     SetParameterFromTextBox((TextBox)sender, refresh: true);
@@ -399,7 +401,8 @@ namespace Whorl
         {
             try
             {
-                SetParameterFromTextBox((TextBox)sender, refresh: false);
+                if (handleEvents)
+                    SetParameterFromTextBox((TextBox)sender, refresh: false);
             }
             catch (Exception ex)
             {

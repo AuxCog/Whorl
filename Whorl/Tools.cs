@@ -1070,5 +1070,54 @@ namespace Whorl
             }
             return string.Join(", ", list);
         }
+
+        public static bool SetCopyForPaste<TObj>(CopyPasteInfo copyPasteInfo, TObj copiedObject, Form owner = null)
+        {
+            if (WhorlSettings.Instance.ChooseCopyPasteObjects)
+            {
+                using (var frm = new FrmCopyPaste())
+                {
+                    frm.Initialize(forPaste: false, copyPasteInfo);
+                    bool ok = frm.ShowDialog(owner) == DialogResult.OK;
+                    if (ok)
+                    {
+                        copyPasteInfo.SetCopy(copiedObject);
+                    }
+                    return ok;
+                }
+            }
+            else
+            {
+                copyPasteInfo.CurrentIndex = 0;
+                copyPasteInfo.SetCopy(copiedObject);
+                return true;
+            }
+        }
+
+        public static TObj GetCopyForPaste<TObj>(CopyPasteInfo copyPasteInfo, out bool cancelled, Form owner = null)
+        {
+            bool ok;
+            if (WhorlSettings.Instance.ChooseCopyPasteObjects)
+            {
+                using (var frm = new FrmCopyPaste())
+                {
+                    frm.Initialize(forPaste: true, copyPasteInfo);
+                    ok = frm.ShowDialog(owner) == DialogResult.OK;
+                }
+            }
+            else
+            {
+                copyPasteInfo.CurrentIndex = 0;
+                ok = copyPasteInfo.CurrentIndex < copyPasteInfo.Count;
+            }
+            cancelled = !ok;
+            TObj obj;
+            if (ok)
+                obj = (TObj)copyPasteInfo.GetCopy();
+            else
+                obj = default;
+            return obj;
+        }
+
     }
 }

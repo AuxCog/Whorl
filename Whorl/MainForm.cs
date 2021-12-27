@@ -57,11 +57,11 @@ namespace Whorl
                 savedRandomSeed = seededRandom.RandomSeed;
                 renderCaller = new RenderCaller(RenderCallback);
                 cboDraftSize.DataSource = Enumerable.Range(2, 19).ToList();
-                
+
+                chooseCopyPasteObjectsToolStripMenuItem.Checked = WhorlSettings.Instance.ChooseCopyPasteObjects;
+
                 var parametersPanels = new Panel[] { pnlParameters };
-                parameterDisplaysContainer = new ParameterDisplaysContainer(
-                                             parametersPanels, OnParameterChanged, OnParameterActionSelected,
-                                             singleColumn: true);
+                parameterDisplaysContainer = new ParameterDisplaysContainer(parametersPanels, OnParameterChanged, singleColumn: true);
                 paramDisplays = parameterDisplaysContainer.GetParameterDisplays(pnlParameters);
                 paramDisplays.SetIsCSharp(true);
                 cSharpParamsDisplay = paramDisplays.CSharpParameterDisplay;
@@ -8336,5 +8336,16 @@ namespace Whorl
             }
         }
 
+        private void chooseCopyPasteObjectsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                WhorlSettings.Instance.ChooseCopyPasteObjects = chooseCopyPasteObjectsToolStripMenuItem.Checked;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

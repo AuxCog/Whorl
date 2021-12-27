@@ -988,9 +988,10 @@ namespace Whorl
                     }
                     else
                     {
-                        if (copyPrm is Parameter)
+                        var oParam = copyPrm as Parameter;
+                        if (oParam != null)
                         {
-                            ((Parameter)copyPrm).Guid = ((Parameter)prm).Guid;
+                            oParam.Guid = ((Parameter)prm).Guid;
                             SetParameterOrCustomValue(copyPrm, prm.Value);
                         }
                         else

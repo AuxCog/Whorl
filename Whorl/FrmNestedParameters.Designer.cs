@@ -33,11 +33,14 @@ namespace Whorl
             this.label1 = new System.Windows.Forms.Label();
             this.lblParentParameterName = new System.Windows.Forms.Label();
             this.pnlParameters = new System.Windows.Forms.Panel();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // BtnClose
             // 
-            this.BtnClose.Location = new System.Drawing.Point(288, 12);
+            this.BtnClose.Location = new System.Drawing.Point(293, 30);
             this.BtnClose.Name = "BtnClose";
             this.BtnClose.Size = new System.Drawing.Size(53, 23);
             this.BtnClose.TabIndex = 12;
@@ -48,7 +51,7 @@ namespace Whorl
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(13, 17);
+            this.label1.Location = new System.Drawing.Point(18, 35);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(123, 13);
             this.label1.TabIndex = 13;
@@ -57,7 +60,7 @@ namespace Whorl
             // lblParentParameterName
             // 
             this.lblParentParameterName.AutoSize = true;
-            this.lblParentParameterName.Location = new System.Drawing.Point(142, 17);
+            this.lblParentParameterName.Location = new System.Drawing.Point(147, 35);
             this.lblParentParameterName.Name = "lblParentParameterName";
             this.lblParentParameterName.Size = new System.Drawing.Size(124, 13);
             this.lblParentParameterName.TabIndex = 14;
@@ -68,10 +71,26 @@ namespace Whorl
             this.pnlParameters.AutoScroll = true;
             this.pnlParameters.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlParameters.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlParameters.Location = new System.Drawing.Point(0, 41);
+            this.pnlParameters.Location = new System.Drawing.Point(0, 61);
             this.pnlParameters.Name = "pnlParameters";
-            this.pnlParameters.Size = new System.Drawing.Size(353, 430);
+            this.pnlParameters.Size = new System.Drawing.Size(353, 410);
             this.pnlParameters.TabIndex = 15;
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.editToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(353, 24);
+            this.menuStrip1.TabIndex = 16;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
             // 
             // FrmNestedParameters
             // 
@@ -82,8 +101,12 @@ namespace Whorl
             this.Controls.Add(this.lblParentParameterName);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.BtnClose);
+            this.Controls.Add(this.menuStrip1);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "FrmNestedParameters";
             this.Text = "Edit Nested Parameters";
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -95,5 +118,7 @@ namespace Whorl
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblParentParameterName;
         private System.Windows.Forms.Panel pnlParameters;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
     }
 }

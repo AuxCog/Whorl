@@ -79,6 +79,14 @@ namespace Whorl
             set { SetProperty(ref _bufferSize, value); }
         }
 
+        private bool _chooseCopyPasteObjects;
+        [InitialSettingValue("True")]
+        public bool ChooseCopyPasteObjects
+        {
+            get => _chooseCopyPasteObjects;
+            set => SetProperty(ref _chooseCopyPasteObjects, value);
+        }
+
         [InitialSettingValue("CustomFolders")]
         [ReadOnly]
         public string CustomDesignParentFolder { get; private set; }
