@@ -182,7 +182,12 @@ namespace Whorl
                 {
                     object oParam = propertyInfo.GetValue(ParametersObject);
                     if (oParam == null)
-                        continue;
+                    {
+                        if (propertyInfo.PropertyType == typeof(string))
+                            oParam = string.Empty;
+                        else
+                            continue;
+                    }
                     if (oParam.GetType().IsArray)
                     {
                         var paramArray = oParam as Array;

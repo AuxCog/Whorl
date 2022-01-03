@@ -21,20 +21,33 @@ namespace Whorl
         public double ModuloBase { get; private set; }
         public double Phase { get; set; }
 
-        public void Initialize(double modulo, IEnumerable<PointF> points)
+        public void Initialize(double modulo, IEnumerable<PointF> points, string skippedPointIdsCsv = null)
         {
-            Initialize(modulo, points.Select(p => new DoublePoint(p.X, p.Y)));
+            Initialize(modulo, points.Select(p => new DoublePoint(p.X, p.Y)), skippedPointIdsCsv);
         }
 
-        public void Initialize(double modulo, IEnumerable<DoublePoint> points)
+        public void Initialize(double modulo, IEnumerable<DoublePoint> points, string skippedPointIdsCsv = null)
         {
             AngleInfos = new List<AngleInfo>();
             if (!points.Any())
                 return;
+            var skippedIds = new HashSet<int>();
+            if (!string.IsNullOrWhiteSpace(skippedPointIdsCsv))
+            {
+                try
+                {
+                    skippedIds.UnionWith(skippedPointIdsCsv.Split(',').Select(s => int.Parse(s)));
+                }
+                catch { }
+            }
             ModuloBase = modulo;
             var polarPoints = new List<PolarPoint>();
+            int id = 0;
             foreach (DoublePoint point in points)
             {
+                ++id;
+                if (skippedIds.Contains(id))
+                    continue;
                 PolarPoint polarPoint = point.ToPolar();
                 polarPoint.Angle = Tools.NormalizeAngle(polarPoint.Angle);
                 polarPoints.Add(polarPoint);
