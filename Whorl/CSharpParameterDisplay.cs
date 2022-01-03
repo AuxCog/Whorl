@@ -448,7 +448,7 @@ namespace Whorl
             if (value == null)
                 return string.Empty;
             string sVal = value.ToString();
-            if (double.TryParse(sVal, out double val))
+            if (value is double && double.TryParse(sVal, out double val))
             {
                 sVal = Math.Round(val, 5).ToString();
             }
