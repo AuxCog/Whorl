@@ -55,6 +55,11 @@ namespace Whorl
             this.label11 = new System.Windows.Forms.Label();
             this.txtKeyFactor = new System.Windows.Forms.TextBox();
             this.BtnApplyKeyFactor = new System.Windows.Forms.Button();
+            this.BtnGraph = new System.Windows.Forms.Button();
+            this.picGraph = new System.Windows.Forms.PictureBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.txtMaxGraphX = new System.Windows.Forms.TextBox();
+            ((System.ComponentModel.ISupportInitialize)(this.picGraph)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -93,7 +98,7 @@ namespace Whorl
             // 
             // txtDivisor
             // 
-            this.txtDivisor.Location = new System.Drawing.Point(108, 73);
+            this.txtDivisor.Location = new System.Drawing.Point(389, 47);
             this.txtDivisor.Name = "txtDivisor";
             this.txtDivisor.Size = new System.Drawing.Size(58, 20);
             this.txtDivisor.TabIndex = 5;
@@ -101,7 +106,7 @@ namespace Whorl
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(60, 76);
+            this.label3.Location = new System.Drawing.Point(341, 50);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(42, 13);
             this.label3.TabIndex = 4;
@@ -109,7 +114,7 @@ namespace Whorl
             // 
             // txtOffset
             // 
-            this.txtOffset.Location = new System.Drawing.Point(108, 101);
+            this.txtOffset.Location = new System.Drawing.Point(108, 73);
             this.txtOffset.Name = "txtOffset";
             this.txtOffset.Size = new System.Drawing.Size(58, 20);
             this.txtOffset.TabIndex = 7;
@@ -117,7 +122,7 @@ namespace Whorl
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(60, 104);
+            this.label4.Location = new System.Drawing.Point(60, 76);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(38, 13);
             this.label4.TabIndex = 6;
@@ -125,7 +130,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(108, 333);
+            this.BtnOK.Location = new System.Drawing.Point(467, 9);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 8;
@@ -135,7 +140,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(180, 333);
+            this.BtnCancel.Location = new System.Drawing.Point(530, 9);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 9;
@@ -155,7 +160,7 @@ namespace Whorl
             // 
             // txtPower
             // 
-            this.txtPower.Location = new System.Drawing.Point(270, 73);
+            this.txtPower.Location = new System.Drawing.Point(512, 47);
             this.txtPower.Name = "txtPower";
             this.txtPower.Size = new System.Drawing.Size(58, 20);
             this.txtPower.TabIndex = 12;
@@ -163,7 +168,7 @@ namespace Whorl
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(222, 76);
+            this.label5.Location = new System.Drawing.Point(464, 50);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(40, 13);
             this.label5.TabIndex = 11;
@@ -172,7 +177,7 @@ namespace Whorl
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(5, 135);
+            this.label6.Location = new System.Drawing.Point(342, 76);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(101, 13);
             this.label6.TabIndex = 13;
@@ -182,14 +187,14 @@ namespace Whorl
             // 
             this.cboTransformFunction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboTransformFunction.FormattingEnabled = true;
-            this.cboTransformFunction.Location = new System.Drawing.Point(108, 132);
+            this.cboTransformFunction.Location = new System.Drawing.Point(445, 73);
             this.cboTransformFunction.Name = "cboTransformFunction";
             this.cboTransformFunction.Size = new System.Drawing.Size(135, 21);
             this.cboTransformFunction.TabIndex = 14;
             // 
             // txtFunctionOffset
             // 
-            this.txtFunctionOffset.Location = new System.Drawing.Point(270, 101);
+            this.txtFunctionOffset.Location = new System.Drawing.Point(270, 73);
             this.txtFunctionOffset.Name = "txtFunctionOffset";
             this.txtFunctionOffset.Size = new System.Drawing.Size(58, 20);
             this.txtFunctionOffset.TabIndex = 16;
@@ -197,7 +202,7 @@ namespace Whorl
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(182, 104);
+            this.label7.Location = new System.Drawing.Point(182, 76);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(82, 13);
             this.label7.TabIndex = 15;
@@ -222,7 +227,7 @@ namespace Whorl
             // clbEnumKeys
             // 
             this.clbEnumKeys.FormattingEnabled = true;
-            this.clbEnumKeys.Location = new System.Drawing.Point(108, 171);
+            this.clbEnumKeys.Location = new System.Drawing.Point(17, 117);
             this.clbEnumKeys.Name = "clbEnumKeys";
             this.clbEnumKeys.Size = new System.Drawing.Size(220, 94);
             this.clbEnumKeys.TabIndex = 19;
@@ -230,7 +235,7 @@ namespace Whorl
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(39, 171);
+            this.label9.Location = new System.Drawing.Point(14, 101);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(63, 13);
             this.label9.TabIndex = 20;
@@ -239,7 +244,7 @@ namespace Whorl
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(48, 274);
+            this.label10.Location = new System.Drawing.Point(260, 120);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(58, 13);
             this.label10.TabIndex = 22;
@@ -249,7 +254,7 @@ namespace Whorl
             // 
             this.cboEnumKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboEnumKey.FormattingEnabled = true;
-            this.cboEnumKey.Location = new System.Drawing.Point(108, 271);
+            this.cboEnumKey.Location = new System.Drawing.Point(320, 117);
             this.cboEnumKey.Name = "cboEnumKey";
             this.cboEnumKey.Size = new System.Drawing.Size(220, 21);
             this.cboEnumKey.TabIndex = 23;
@@ -258,7 +263,7 @@ namespace Whorl
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(44, 304);
+            this.label11.Location = new System.Drawing.Point(256, 150);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(61, 13);
             this.label11.TabIndex = 24;
@@ -266,14 +271,14 @@ namespace Whorl
             // 
             // txtKeyFactor
             // 
-            this.txtKeyFactor.Location = new System.Drawing.Point(108, 301);
+            this.txtKeyFactor.Location = new System.Drawing.Point(320, 147);
             this.txtKeyFactor.Name = "txtKeyFactor";
             this.txtKeyFactor.Size = new System.Drawing.Size(58, 20);
             this.txtKeyFactor.TabIndex = 25;
             // 
             // BtnApplyKeyFactor
             // 
-            this.BtnApplyKeyFactor.Location = new System.Drawing.Point(180, 299);
+            this.BtnApplyKeyFactor.Location = new System.Drawing.Point(392, 145);
             this.BtnApplyKeyFactor.Name = "BtnApplyKeyFactor";
             this.BtnApplyKeyFactor.Size = new System.Drawing.Size(66, 23);
             this.BtnApplyKeyFactor.TabIndex = 26;
@@ -281,11 +286,54 @@ namespace Whorl
             this.BtnApplyKeyFactor.UseVisualStyleBackColor = true;
             this.BtnApplyKeyFactor.Click += new System.EventHandler(this.BtnApplyKeyFactor_Click);
             // 
+            // BtnGraph
+            // 
+            this.BtnGraph.Location = new System.Drawing.Point(402, 9);
+            this.BtnGraph.Name = "BtnGraph";
+            this.BtnGraph.Size = new System.Drawing.Size(56, 23);
+            this.BtnGraph.TabIndex = 27;
+            this.BtnGraph.Text = "Graph";
+            this.BtnGraph.UseVisualStyleBackColor = true;
+            this.BtnGraph.Click += new System.EventHandler(this.BtnGraph_Click);
+            // 
+            // picGraph
+            // 
+            this.picGraph.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.picGraph.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.picGraph.Location = new System.Drawing.Point(17, 227);
+            this.picGraph.Name = "picGraph";
+            this.picGraph.Size = new System.Drawing.Size(579, 200);
+            this.picGraph.TabIndex = 28;
+            this.picGraph.TabStop = false;
+            this.picGraph.Paint += new System.Windows.Forms.PaintEventHandler(this.picGraph_Paint);
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(456, 204);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(64, 13);
+            this.label12.TabIndex = 29;
+            this.label12.Text = "Maximum X:";
+            // 
+            // txtMaxGraphX
+            // 
+            this.txtMaxGraphX.Location = new System.Drawing.Point(530, 201);
+            this.txtMaxGraphX.Name = "txtMaxGraphX";
+            this.txtMaxGraphX.Size = new System.Drawing.Size(66, 20);
+            this.txtMaxGraphX.TabIndex = 30;
+            this.txtMaxGraphX.Text = "500";
+            this.txtMaxGraphX.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 365);
+            this.ClientSize = new System.Drawing.Size(608, 439);
+            this.Controls.Add(this.txtMaxGraphX);
+            this.Controls.Add(this.label12);
+            this.Controls.Add(this.picGraph);
+            this.Controls.Add(this.BtnGraph);
             this.Controls.Add(this.BtnApplyKeyFactor);
             this.Controls.Add(this.txtKeyFactor);
             this.Controls.Add(this.label11);
@@ -315,6 +363,7 @@ namespace Whorl
             this.Name = "frmInfluencePoint";
             this.Text = "Edit Influence Point";
             this.Load += new System.EventHandler(this.frmInfluencePoint_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.picGraph)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -348,5 +397,9 @@ namespace Whorl
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.TextBox txtKeyFactor;
         private System.Windows.Forms.Button BtnApplyKeyFactor;
+        private System.Windows.Forms.Button BtnGraph;
+        private System.Windows.Forms.PictureBox picGraph;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox txtMaxGraphX;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParserEngine;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -175,6 +176,63 @@ namespace Whorl
                 //    return;
                 //}
                 //editedInfluencePointInfo.FactorsByKey[key] = factor;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private PointF[] graphPoints { get; set; }
+
+        private void BtnGraph_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!float.TryParse(txtMaxGraphX.Text, out float maxX))
+                {
+                    maxX = 0;
+                }
+                if (maxX <= 0)
+                {
+                    MessageBox.Show("Please enter a positive number for Maximum X.");
+                    return;
+                }
+                string errMessage = PopulateObject();
+                if (errMessage != null)
+                {
+                    MessageBox.Show(errMessage);
+                    return;
+                }
+                float xInc = maxX / picGraph.ClientSize.Width;
+                var yVals = new List<float>();
+                for (float x = 0; x <= maxX; x += xInc)
+                {
+                    var dp = new DoublePoint(x, 0);
+                    double val = Math.Abs(editedInfluencePointInfo.ComputeValue(dp, forRendering: false));
+                    yVals.Add((float)val);
+                }
+                float yMax = yVals.Max();
+                yVals = yVals.Select(v => yMax - v).ToList();
+                float yScale = yMax == 0 ? 1F : 0.95F * picGraph.ClientSize.Height / yMax;
+                float xScale = (float)picGraph.ClientSize.Width / yVals.Count;
+                graphPoints = Enumerable.Range(0, yVals.Count).Select(i => new PointF(xScale * i, yScale * yVals[i])).ToArray();
+                picGraph.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void picGraph_Paint(object sender, PaintEventArgs e)
+        {
+            try
+            {
+                if (graphPoints != null)
+                {
+                    e.Graphics.DrawLines(Pens.Red, graphPoints);
+                }
             }
             catch (Exception ex)
             {
