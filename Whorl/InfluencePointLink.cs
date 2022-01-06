@@ -505,10 +505,11 @@ namespace Whorl
             {
                 if (_influencePointInfo == value)
                     return;
-                bool addToParent = _influencePointInfo != null;
+                BaseInfluenceLinkParent parent = Parent;  //RemoveInfluenceLink sets Parent to null.
+                bool addToParent = _influencePointInfo != null && parent != null;
                 if (addToParent)
                 {
-                    Parent.RemoveInfluenceLink(this);
+                    parent.RemoveInfluenceLink(this);
                 }
                 _influencePointInfo = value;
                 if (_influencePointInfo != null)
@@ -517,7 +518,7 @@ namespace Whorl
                     _influencePointInfo.RemovedFromList += InfluencePointInfo_RemovedFromList;
                     if (addToParent)
                     {
-                        Parent.AddInfluenceLink(this);
+                        parent.AddInfluenceLink(this);
                     }
                 }
             }
