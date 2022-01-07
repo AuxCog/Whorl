@@ -950,6 +950,7 @@ namespace Whorl
         public override FillTypes FillType => FillTypes.Background;
         public Image BackgroundSectionImage { get; private set; }
 
+        private RectangleF bounds { get; set; }
         private GraphicsPath backgroundGrPath;
         private PathGradientBrush backgroundPthGrBrush;
 
@@ -964,6 +965,7 @@ namespace Whorl
                 BackgroundSectionImage.Dispose();
                 BackgroundSectionImage = null;
             }
+            SetFillBrushToNull();
         }
 
         private void SetBackgroundImage()
@@ -975,7 +977,7 @@ namespace Whorl
             ClearBackgroundImage();
             ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
             Size size = design.PictureBoxSize;
-            RectangleF bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
+            bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
             bounds = Tools.RectangleFromVertices(new PointF(Math.Max(0, bounds.Left), Math.Max(0, bounds.Top)),
                                                  new PointF(Math.Min(size.Width, bounds.Right), Math.Min(size.Height, bounds.Bottom)));
             if (bounds.Width < 1 || bounds.Height < 1)
@@ -1002,8 +1004,11 @@ namespace Whorl
         {
             if (BackgroundSectionImage == null)
                 SetBackgroundImage();
-                //throw new NullReferenceException($"{nameof(BackgroundSectionImage)} cannot be null.");
-            FillBrush = new TextureBrush(BackgroundSectionImage);
+            SetFillBrushToNull();
+            var txtrBrush = new TextureBrush(BackgroundSectionImage, WrapMode.Clamp);
+            //txtrBrush.ResetTransform();
+            txtrBrush.TranslateTransform(bounds.Left, bounds.Top);
+            FillBrush = txtrBrush;
         }
 
         public override void FromXml(XmlNode node)
