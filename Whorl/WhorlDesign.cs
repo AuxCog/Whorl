@@ -423,6 +423,11 @@ namespace Whorl
                 if (mode != ScalePatternMode.KeepCenter)
                     pattern.Center = ScalePoint(pattern.Center, picCenter, newPicCenter, pScale, mode == ScalePatternMode.ScaleCenter);
                 pattern.ZVector *= (double)scaleFactor;
+                var bkFillInfo = pattern.FillInfo as BackgroundFillInfo;
+                if (bkFillInfo != null)
+                {
+                    bkFillInfo.ClearBackgroundImage();
+                }
                 pattern.FillInfo.ApplyTransforms();
                 Ribbon ribbon;
                 PathPattern pathPattern = pattern as PathPattern;
@@ -900,6 +905,18 @@ namespace Whorl
             finally
             {
                 Initializing = false;
+            }
+        }
+
+        public void InitBackgroundFillInfos()
+        {
+            foreach (Pattern pattern in DesignPatterns)
+            {
+                var backgroundFillInfo = pattern.FillInfo as BackgroundFillInfo;
+                if (backgroundFillInfo != null)
+                {
+                    backgroundFillInfo.ClearBackgroundImage();
+                }
             }
         }
 
