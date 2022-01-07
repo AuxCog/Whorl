@@ -2226,12 +2226,13 @@ namespace Whorl
         }
 
         public Pattern(Pattern sourcePattern, bool isRecursivePattern, Pattern recursiveParent = null,
-                       bool copySharedPatternID = true): base(sourcePattern)
+                       bool copySharedPatternID = true, WhorlDesign design = null): base(sourcePattern)
         {
-            Initialize(sourcePattern.Design, recursiveParent);
+            Initialize(design ?? sourcePattern.Design, recursiveParent);
             this.CopyProperties(sourcePattern, 
                                 copySharedPatternID: copySharedPatternID, 
-                                setRecursiveParent: recursiveParent == null);
+                                setRecursiveParent: recursiveParent == null,
+                                design: design);
             Recursion.IsRecursivePattern = isRecursivePattern;
         }
 
@@ -2245,16 +2246,18 @@ namespace Whorl
             PatternLayers = new PatternLayerList(this);
             if (fillType == FillInfo.FillTypes.Path)
                 FillInfo = new PathFillInfo(this);
-            else
+            else if (fillType == FillInfo.FillTypes.Texture)
                 FillInfo = new TextureFillInfo(this);
+            else
+                FillInfo = new BackgroundFillInfo(this);
             RandomGenerator = new RandomGenerator();
         }
 
-        public virtual Pattern GetCopy(bool keepRecursiveParent = false)
+        public virtual Pattern GetCopy(bool keepRecursiveParent = false, WhorlDesign design = null)
         {
             return new Pattern(this, Recursion.IsRecursivePattern, 
                                keepRecursiveParent ? Recursion.ParentPattern : null, 
-                               copySharedPatternID: true);
+                               copySharedPatternID: true, design: design);
         }
 
         public virtual object Clone()
@@ -3985,7 +3988,7 @@ namespace Whorl
         private static readonly HashSet<string> excludedCopyProperties = new HashSet<string>()
         { 
             nameof(FillInfo), nameof(CurvePoints), nameof(SeedPoints),
-            nameof(Transforms), nameof(Recursion), nameof(MaxPoint),
+            nameof(Transforms), nameof(Recursion), nameof(MaxPoint), nameof(Design),
             nameof(BasicOutlines), nameof(DesignLayer), //nameof(PrevCenter),
             nameof(RandomGenerator), nameof(PatternLayers), nameof(KeyGuid),
             nameof(CenterOffsetVector), // nameof(CenterPathPattern),
@@ -3996,10 +3999,12 @@ namespace Whorl
                                       bool copyFillInfo = true,
                                       bool copySharedPatternID = true,
                                       bool copySeedPoints = true,
-                                      bool setRecursiveParent = true)
+                                      bool setRecursiveParent = true,
+                                      WhorlDesign design = null)
         {
-            InfluencePointInfoList = new InfluencePointInfoList(sourcePattern.InfluencePointInfoList, this);
+            Design = design ?? sourcePattern.Design;
             Tools.CopyProperties(this, sourcePattern, excludedPropertyNames: excludedCopyProperties);
+            InfluencePointInfoList = new InfluencePointInfoList(sourcePattern.InfluencePointInfoList, this);
             if (copySharedPatternID)
                 SetKeyGuid(sourcePattern);
             //this.PrevCenter = sourcePattern.PrevCenter;

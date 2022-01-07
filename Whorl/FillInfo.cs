@@ -971,12 +971,11 @@ namespace Whorl
         private void SetBackgroundImage()
         {
             var design = ParentPattern.Design;
-            //int index = design.designPatternsList.IndexOf(ParentPattern);
-            //if (index == -1)
-            //    throw new Exception("Didn't find parent pattern in Design.");
             ClearBackgroundImage();
             ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
-            Size size = design.PictureBoxSize;
+            Size size = design.DesignSize;
+            if (size.Width == 0 || size.Height == 0)
+                throw new Exception("DesignSize was not set.");
             bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
             bounds = Tools.RectangleFromVertices(new PointF(Math.Max(0, bounds.Left), Math.Max(0, bounds.Top)),
                                                  new PointF(Math.Min(size.Width, bounds.Right), Math.Min(size.Height, bounds.Bottom)));
@@ -1006,7 +1005,6 @@ namespace Whorl
                 SetBackgroundImage();
             SetFillBrushToNull();
             var txtrBrush = new TextureBrush(BackgroundSectionImage, WrapMode.Clamp);
-            //txtrBrush.ResetTransform();
             txtrBrush.TranslateTransform(bounds.Left, bounds.Top);
             FillBrush = txtrBrush;
         }

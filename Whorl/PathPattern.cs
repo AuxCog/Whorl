@@ -17,8 +17,8 @@ namespace Whorl
             FromXml(node);
         }
 
-        public PathPattern(Pattern sourcePattern, bool copySharedPatternID = true) 
-               : base(sourcePattern.Design, FillInfo.FillTypes.Path)
+        public PathPattern(Pattern sourcePattern, bool copySharedPatternID = true, WhorlDesign design = null) 
+               : base(design ?? sourcePattern.Design, FillInfo.FillTypes.Path)
         {
             this.CopyProperties(sourcePattern, copySharedPatternID: copySharedPatternID);
         }
@@ -186,9 +186,9 @@ namespace Whorl
             }
         }
 
-        public override Pattern GetCopy(bool keepRecursiveParent = false)
+        public override Pattern GetCopy(bool keepRecursiveParent = false, WhorlDesign design = null)
         {
-            return new PathPattern(this);
+            return new PathPattern(this, design: design);
         }
 
         public override object Clone()

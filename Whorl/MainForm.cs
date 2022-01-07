@@ -2586,7 +2586,7 @@ namespace Whorl
                         {
                             isAnimating = true;
                             origDesign = Design;
-                            SetDesign(new WhorlDesign(Design));  //Clone design
+                            SetDesign(new WhorlDesign(Design, Design.DesignSize));  //Clone design
                             parameterIncrements.Clear();
                             defaultImprovFlags = new ImproviseFlags();
                             //parameterImprovStep = 0;
@@ -2888,7 +2888,7 @@ namespace Whorl
                     dgn.Dispose();
                     improvDesigns.RemoveAt(0);
                 }
-                var designCopy = new WhorlDesign(Design);  //Clone design
+                var designCopy = new WhorlDesign(Design, Design.DesignSize);  //Clone design
                 improvDesigns.Add(designCopy);
                 improvDesignsIndex = improvDesigns.Count - 1;
 

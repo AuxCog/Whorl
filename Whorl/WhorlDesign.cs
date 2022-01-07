@@ -48,6 +48,8 @@ namespace Whorl
         public Size PreviousPictureSize { get; private set; }
         public Size PictureBoxSize { get; set; }
         public Size XmlPictureBoxSize { get; set; } = Size.Empty;
+        public Size DesignSize { get; private set; }
+
         public static Size StaticPictureBoxSize { get; private set; }
         private bool _scaleToFit;
         public bool ScaleToFit
@@ -207,18 +209,19 @@ namespace Whorl
         /// Create copy of source design.
         /// </summary>
         /// <param name="source"></param>
-        public WhorlDesign(WhorlDesign source)
+        public WhorlDesign(WhorlDesign source, Size designSize)
         {
             try
             {
                 this.Initializing = true;
+                DesignSize = designSize;
                 OnDistancePatternsCountChanged = source.OnDistancePatternsCountChanged;
                 if (UndoHandlerFn != null)
                     UndoOps.UndoInfoChanged += UndoHandlerFn;
                 Tools.CopyProperties(this, source, excludedPropertyNames:
-                    new string[] { nameof(BackgroundColor), nameof(DesignLayerList),
+                    new string[] { nameof(BackgroundColor), nameof(DesignLayerList), nameof(DesignSize),
                                    nameof(DefaultDesignLayer), nameof(Initializing), nameof(IsDirty) });
-                this.designPatternsList.AddRange(source.designPatternsList.Select(ptn => ptn.GetCopy()));
+                this.designPatternsList.AddRange(source.designPatternsList.Select(ptn => ptn.GetCopy(design: this)));
                 this.DesignLayerList = new DesignLayerList(this, source);
                 if (source.DefaultDesignLayer != null)
                 {
@@ -374,6 +377,7 @@ namespace Whorl
                                          ref PathGradientBrush backgroundPthGrBrush,
                                          float scaleFactor = 1F)
         {
+            DesignSize = new Size(width, height);
             if (!string.IsNullOrEmpty(BackgroundImageFileName) &&
                           File.Exists(BackgroundImageFileName))
                 return CreateDesignBitmapFromImageFile(width, height, scaleFactor);
@@ -480,17 +484,14 @@ namespace Whorl
             //if (caller == null)
             //    caller = RenderCallback;
             float scaleFactor = (float)size.Width / prevSize.Width;
-            using (WhorlDesign designCopy = new WhorlDesign(this))  //Clone design
+            using (WhorlDesign designCopy = new WhorlDesign(this, size))  //Clone design
             {
                 var patterns = new List<Pattern>(designCopy.designPatternsList);
                 ScalePatterns(patterns, prevSize, size, scalePenWidth);
                 GraphicsPath grPath = null;
                 PathGradientBrush pthGrBrush = null;
-                Bitmap bitmap = CreateDesignBitmap(size.Width, size.Height,
-                                                   ref grPath, ref pthGrBrush, scaleFactor);
-                DrawDesign.DrawDesignLayers(designCopy, bitmap, caller, scaleFactor, enableCache: false, 
-                                            draftMode: draftMode);
-                //DrawPatterns(bitmap, copiedPatterns);
+                Bitmap bitmap = designCopy.CreateDesignBitmap(size.Width, size.Height, ref grPath, ref pthGrBrush, scaleFactor);
+                DrawDesign.DrawDesignLayers(designCopy, bitmap, caller, scaleFactor, enableCache: false, draftMode: draftMode);
                 if (renderStained)
                     Pattern.RenderStained(designCopy.designPatternsList, bitmap,
                                           squareSize: draftMode ? 5 : 1);
@@ -498,20 +499,6 @@ namespace Whorl
             }
         }
         
-        //public async Task<Bitmap> RenderRawDesignAsync(Size size, bool scalePenWidth,
-        //                          bool draftMode, float textureScale = 0, bool computeRandom = false,
-        //                          IEnumerable<Pattern> overridePatterns = null, bool renderStained = true, 
-        //                          IRenderCaller caller = null)
-        //{
-        //    GraphicsPath grPath = null;
-        //    PathGradientBrush pthGrBrush = null;
-        //    Bitmap bitmap = CreateDesignBitmap(size.Width, size.Height,
-        //                                       ref grPath, ref pthGrBrush);
-        //    await Task.Run(() => DrawDesign.DrawDesignLayers(this, bitmap, caller, textureScale, computeRandom, 
-        //                                overridePatterns, draftMode: draftMode));
-        //    return bitmap;
-        //}
-
         public async Task RenderDesignAsync(string fileName, Size prevSize, Size size, bool scalePenWidth,
                           bool draftMode, IRenderCaller caller, int qualitySize = 0, bool renderStained = true)
         {
