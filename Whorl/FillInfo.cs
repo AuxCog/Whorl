@@ -24,7 +24,8 @@ namespace Whorl
         public enum FillTypes
         {
             Path,
-            Texture
+            Texture,
+            Background
         }
 
         public enum PathColorModes
@@ -752,10 +753,7 @@ namespace Whorl
         private static Dictionary<string, Image> TextureImagesByFileName =
                    new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
 
-        public override FillTypes FillType
-        {
-            get { return FillTypes.Texture; }
-        }
+        public override FillTypes FillType => FillTypes.Texture;
 
         public string TextureImageFileName
         {
@@ -946,4 +944,84 @@ namespace Whorl
             //ApplyTransforms();
         }
     }
+
+    public class BackgroundFillInfo : FillInfo
+    {
+        public override FillTypes FillType => FillTypes.Background;
+        public Image BackgroundSectionImage { get; private set; }
+
+        private GraphicsPath backgroundGrPath;
+        private PathGradientBrush backgroundPthGrBrush;
+
+        public BackgroundFillInfo(Pattern parent) : base(parent)
+        {
+        }
+
+        public void ClearBackgroundImage()
+        {
+            if (BackgroundSectionImage != null)
+            {
+                BackgroundSectionImage.Dispose();
+                BackgroundSectionImage = null;
+            }
+        }
+
+        private void SetBackgroundImage()
+        {
+            var design = ParentPattern.Design;
+            int index = design.designPatternsList.IndexOf(ParentPattern);
+            if (index == -1)
+                throw new Exception("Didn't find parent pattern in Design.");
+            ClearBackgroundImage();
+            ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
+            Size size = design.PictureBoxSize;
+            RectangleF bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
+            bounds = Tools.RectangleFromVertices(new PointF(Math.Max(0, bounds.Left), Math.Max(0, bounds.Top)),
+                                                 new PointF(Math.Min(size.Width, bounds.Right), Math.Min(size.Height, bounds.Bottom)));
+            if (bounds.Width < 1 || bounds.Height < 1)
+            {
+                BackgroundSectionImage = new Bitmap(1, 1);
+            }
+            else
+            {
+                BackgroundSectionImage = new Bitmap((int)bounds.Width, (int)bounds.Height);
+                Bitmap bitmap = design.CreateDesignBitmap(size.Width, size.Height, ref backgroundGrPath, ref backgroundPthGrBrush);
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    DrawDesign.DrawPatterns(g, null, design.DesignPatterns.Take(index), bitmap.Size);
+                }
+                using (Graphics g = Graphics.FromImage(BackgroundSectionImage))
+                {
+                    g.DrawImage(bitmap, new RectangleF(PointF.Empty, bounds.Size), bounds, GraphicsUnit.Pixel);
+                }
+            }
+        }
+
+        public override void CreateFillBrush()
+        {
+            if (BackgroundSectionImage == null)
+                SetBackgroundImage();
+                //throw new NullReferenceException($"{nameof(BackgroundSectionImage)} cannot be null.");
+            FillBrush = new TextureBrush(BackgroundSectionImage);
+        }
+
+        public override void FromXml(XmlNode node)
+        {
+        }
+
+        public override FillInfo GetCopy(Pattern parentPattern)
+        {
+            return new BackgroundFillInfo(parentPattern)
+            {
+                BackgroundSectionImage = this.BackgroundSectionImage
+            };
+        }
+
+        public override XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
+        {
+            XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName ?? nameof(BackgroundFillInfo));
+            return xmlTools.AppendToParent(parentNode, xmlNode);
+        }
+    }
+
 }

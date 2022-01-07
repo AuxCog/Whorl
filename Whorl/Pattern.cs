@@ -3967,9 +3967,11 @@ namespace Whorl
 
         public BasicOutline GetSingleBasicOutline(BasicOutlineTypes basicOutlineType)
         {
-            BasicOutline basicOutline = null;
+            BasicOutline basicOutline;
             if (BasicOutlines.Count == 1 && BasicOutlines[0].BasicOutlineType == basicOutlineType)
                 basicOutline = BasicOutlines[0];
+            else
+                basicOutline = null;
             return basicOutline;
         }
 
