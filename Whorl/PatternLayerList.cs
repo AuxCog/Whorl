@@ -193,6 +193,9 @@ namespace Whorl
                         case nameof(TextureFillInfo):
                             layer.FillInfo = new TextureFillInfo(this.ParentPattern);
                             break;
+                        case nameof(BackgroundFillInfo):
+                            layer.FillInfo = new BackgroundFillInfo(this.ParentPattern);
+                            break;
                         default:
                             throw new Exception("Expecting PatternLayer FillInfo in XML.");
                     }

@@ -4261,6 +4261,10 @@ namespace Whorl
                     case nameof(TextureFillInfo):
                         textureFillNode = childNode;
                         break;
+                    case nameof(BackgroundFillInfo):
+                        fillInfo = new BackgroundFillInfo(this);
+                        fillInfo.FromXml(childNode);
+                        break;
                     case nameof(PatternLayerList):
                         this.PatternLayers = new PatternLayerList(this);
                         this.PatternLayers.FromXml(childNode);

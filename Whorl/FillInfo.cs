@@ -969,9 +969,9 @@ namespace Whorl
         private void SetBackgroundImage()
         {
             var design = ParentPattern.Design;
-            int index = design.designPatternsList.IndexOf(ParentPattern);
-            if (index == -1)
-                throw new Exception("Didn't find parent pattern in Design.");
+            //int index = design.designPatternsList.IndexOf(ParentPattern);
+            //if (index == -1)
+            //    throw new Exception("Didn't find parent pattern in Design.");
             ClearBackgroundImage();
             ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
             Size size = design.PictureBoxSize;
@@ -988,7 +988,8 @@ namespace Whorl
                 Bitmap bitmap = design.CreateDesignBitmap(size.Width, size.Height, ref backgroundGrPath, ref backgroundPthGrBrush);
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    DrawDesign.DrawPatterns(g, null, design.DesignPatterns.Take(index), bitmap.Size);
+                    var patterns = design.DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
+                    DrawDesign.DrawPatterns(g, null, patterns, bitmap.Size);
                 }
                 using (Graphics g = Graphics.FromImage(BackgroundSectionImage))
                 {

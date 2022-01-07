@@ -1172,10 +1172,19 @@ namespace Whorl
                 if (fillType != iFillInfoParent.FillInfo.FillType)
                 {
                     iFillInfoParent.FillInfo.Dispose();
-                    if (fillType == FillInfo.FillTypes.Path)
-                        iFillInfoParent.FillInfo = new PathFillInfo(pattern);
-                    else
-                        iFillInfoParent.FillInfo = new TextureFillInfo(pattern);
+                    switch (fillType)
+                    {
+                        case FillInfo.FillTypes.Path:
+                        default:
+                            iFillInfoParent.FillInfo = new PathFillInfo(pattern);
+                            break;
+                        case FillInfo.FillTypes.Texture:
+                            iFillInfoParent.FillInfo = new TextureFillInfo(pattern);
+                            break;
+                        case FillInfo.FillTypes.Background:
+                            iFillInfoParent.FillInfo = new BackgroundFillInfo(pattern);
+                            break;
+                    }
                 }
                 PathFillInfo pathFillInfo = iFillInfoParent.FillInfo as PathFillInfo;
                 if (pathFillInfo != null)

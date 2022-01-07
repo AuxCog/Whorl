@@ -135,6 +135,7 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveImagesAsJpegFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chooseCopyPasteObjectsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAllDesignThumbnailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setPatternsToHighResolutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timeRedrawsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -250,7 +251,7 @@
             this.deleteVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.endEditingVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.chooseCopyPasteObjectsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.initializeBackgroundFillsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -731,7 +732,8 @@
             this.randomSettingsToolStripMenuItem,
             this.designLayersToolStripMenuItem,
             this.mergeDesignToolStripMenuItem,
-            this.qualityModeToolStripMenuItem});
+            this.qualityModeToolStripMenuItem,
+            this.initializeBackgroundFillsToolStripMenuItem});
             this.designToolStripMenuItem.Name = "designToolStripMenuItem";
             this.designToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
             this.designToolStripMenuItem.Text = "Design";
@@ -740,14 +742,14 @@
             // 
             this.scaleToFitToolStripMenuItem.CheckOnClick = true;
             this.scaleToFitToolStripMenuItem.Name = "scaleToFitToolStripMenuItem";
-            this.scaleToFitToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.scaleToFitToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.scaleToFitToolStripMenuItem.Text = "Scale To Fit";
             this.scaleToFitToolStripMenuItem.Click += new System.EventHandler(this.scaleToFitToolStripMenuItem_Click);
             // 
             // startupAnimationsToolStripMenuItem
             // 
             this.startupAnimationsToolStripMenuItem.Name = "startupAnimationsToolStripMenuItem";
-            this.startupAnimationsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.startupAnimationsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.startupAnimationsToolStripMenuItem.Text = "Startup Animations";
             // 
             // renderStainedToolStripMenuItem
@@ -756,7 +758,7 @@
             this.renderStainedToolStripMenuItem.CheckOnClick = true;
             this.renderStainedToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.renderStainedToolStripMenuItem.Name = "renderStainedToolStripMenuItem";
-            this.renderStainedToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.renderStainedToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.renderStainedToolStripMenuItem.Text = "Render Stained";
             this.renderStainedToolStripMenuItem.Click += new System.EventHandler(this.RedrawPatterns_Click);
             // 
@@ -766,7 +768,7 @@
             this.keepNewRandomSettingsToolStripMenuItem,
             this.revertToOriginalRandomSettingsToolStripMenuItem});
             this.randomSettingsToolStripMenuItem.Name = "randomSettingsToolStripMenuItem";
-            this.randomSettingsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.randomSettingsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.randomSettingsToolStripMenuItem.Text = "Random Settings";
             // 
             // keepNewRandomSettingsToolStripMenuItem
@@ -786,7 +788,7 @@
             // designLayersToolStripMenuItem
             // 
             this.designLayersToolStripMenuItem.Name = "designLayersToolStripMenuItem";
-            this.designLayersToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.designLayersToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.designLayersToolStripMenuItem.Text = "Design Layers...";
             this.designLayersToolStripMenuItem.Click += new System.EventHandler(this.designLayersToolStripMenuItem_Click);
             // 
@@ -796,7 +798,7 @@
             this.mergeDesignBelowToolStripMenuItem,
             this.mergeDesignAboveToolStripMenuItem});
             this.mergeDesignToolStripMenuItem.Name = "mergeDesignToolStripMenuItem";
-            this.mergeDesignToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.mergeDesignToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.mergeDesignToolStripMenuItem.Text = "Merge Design";
             // 
             // mergeDesignBelowToolStripMenuItem
@@ -817,7 +819,7 @@
             // 
             this.qualityModeToolStripMenuItem.CheckOnClick = true;
             this.qualityModeToolStripMenuItem.Name = "qualityModeToolStripMenuItem";
-            this.qualityModeToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.qualityModeToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.qualityModeToolStripMenuItem.Text = "Quality Mode";
             this.qualityModeToolStripMenuItem.Click += new System.EventHandler(this.RedrawPatterns_Click);
             // 
@@ -1154,6 +1156,16 @@
             this.saveImagesAsJpegFilesToolStripMenuItem.Name = "saveImagesAsJpegFilesToolStripMenuItem";
             this.saveImagesAsJpegFilesToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.saveImagesAsJpegFilesToolStripMenuItem.Text = "Save images as jpeg files";
+            // 
+            // chooseCopyPasteObjectsToolStripMenuItem
+            // 
+            this.chooseCopyPasteObjectsToolStripMenuItem.Checked = true;
+            this.chooseCopyPasteObjectsToolStripMenuItem.CheckOnClick = true;
+            this.chooseCopyPasteObjectsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chooseCopyPasteObjectsToolStripMenuItem.Name = "chooseCopyPasteObjectsToolStripMenuItem";
+            this.chooseCopyPasteObjectsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.chooseCopyPasteObjectsToolStripMenuItem.Text = "Choose Copy/Paste Objects";
+            this.chooseCopyPasteObjectsToolStripMenuItem.Click += new System.EventHandler(this.chooseCopyPasteObjectsToolStripMenuItem_Click);
             // 
             // saveAllDesignThumbnailsToolStripMenuItem
             // 
@@ -2109,15 +2121,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // chooseCopyPasteObjectsToolStripMenuItem
+            // initializeBackgroundFillsToolStripMenuItem
             // 
-            this.chooseCopyPasteObjectsToolStripMenuItem.Checked = true;
-            this.chooseCopyPasteObjectsToolStripMenuItem.CheckOnClick = true;
-            this.chooseCopyPasteObjectsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chooseCopyPasteObjectsToolStripMenuItem.Name = "chooseCopyPasteObjectsToolStripMenuItem";
-            this.chooseCopyPasteObjectsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.chooseCopyPasteObjectsToolStripMenuItem.Text = "Choose Copy/Paste Objects";
-            this.chooseCopyPasteObjectsToolStripMenuItem.Click += new System.EventHandler(this.chooseCopyPasteObjectsToolStripMenuItem_Click);
+            this.initializeBackgroundFillsToolStripMenuItem.Name = "initializeBackgroundFillsToolStripMenuItem";
+            this.initializeBackgroundFillsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.initializeBackgroundFillsToolStripMenuItem.Text = "Initialize Background Fills";
+            this.initializeBackgroundFillsToolStripMenuItem.Click += new System.EventHandler(this.initializeBackgroundFillsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2374,6 +2383,7 @@
         private System.Windows.Forms.ToolStripMenuItem editPolygonVerticesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem endEditingVerticesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chooseCopyPasteObjectsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem initializeBackgroundFillsToolStripMenuItem;
     }
 }
 

@@ -8347,5 +8347,17 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private void initializeBackgroundFillsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Design.InitBackgroundFillInfos();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }
