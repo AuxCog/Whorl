@@ -98,7 +98,6 @@
             this.mergeDesignBelowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mergeDesignAboveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.qualityModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.initializeBackgroundFillsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.animateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.swayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -251,8 +250,8 @@
             this.addVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.endEditingVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.initializeBackgroundFillsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.testBackgroundFillToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -824,13 +823,6 @@
             this.qualityModeToolStripMenuItem.Text = "Quality Mode";
             this.qualityModeToolStripMenuItem.Click += new System.EventHandler(this.RedrawPatterns_Click);
             // 
-            // initializeBackgroundFillsToolStripMenuItem
-            // 
-            this.initializeBackgroundFillsToolStripMenuItem.Name = "initializeBackgroundFillsToolStripMenuItem";
-            this.initializeBackgroundFillsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.initializeBackgroundFillsToolStripMenuItem.Text = "Initialize Background Fills";
-            this.initializeBackgroundFillsToolStripMenuItem.Click += new System.EventHandler(this.initializeBackgroundFillsToolStripMenuItem_Click);
-            // 
             // animateToolStripMenuItem
             // 
             this.animateToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1137,7 +1129,6 @@
             this.showAppPathToolStripMenuItem,
             this.testDistancePatternToolStripMenuItem,
             this.testRandomToolStripMenuItem,
-            this.testBackgroundFillToolStripMenuItem,
             this.scanForPatternsToolStripMenuItem,
             this.fixPatternsToolStripMenuItem,
             this.inferFormulaTypesToolStripMenuItem,
@@ -2115,6 +2106,13 @@
             this.endEditingVerticesToolStripMenuItem.Text = "End Editing Vertices";
             this.endEditingVerticesToolStripMenuItem.Click += new System.EventHandler(this.endEditingVerticesToolStripMenuItem_Click);
             // 
+            // initializeBackgroundFillsToolStripMenuItem
+            // 
+            this.initializeBackgroundFillsToolStripMenuItem.Name = "initializeBackgroundFillsToolStripMenuItem";
+            this.initializeBackgroundFillsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.initializeBackgroundFillsToolStripMenuItem.Text = "Initialize Background Fills";
+            this.initializeBackgroundFillsToolStripMenuItem.Click += new System.EventHandler(this.initializeBackgroundFillsToolStripMenuItem_Click);
+            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2129,13 +2127,6 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
-            // 
-            // testBackgroundFillToolStripMenuItem
-            // 
-            this.testBackgroundFillToolStripMenuItem.Name = "testBackgroundFillToolStripMenuItem";
-            this.testBackgroundFillToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.testBackgroundFillToolStripMenuItem.Text = "Test Background Fill";
-            this.testBackgroundFillToolStripMenuItem.Click += new System.EventHandler(this.testBackgroundFillToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2393,7 +2384,6 @@
         private System.Windows.Forms.ToolStripMenuItem endEditingVerticesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chooseCopyPasteObjectsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem initializeBackgroundFillsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem testBackgroundFillToolStripMenuItem;
     }
 }
 

@@ -8348,29 +8348,38 @@ namespace Whorl
             }
         }
 
+        //private void initializeBackgroundFillsToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        Design.InitBackgroundFillInfos();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
         private void initializeBackgroundFillsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                Design.InitBackgroundFillInfos();
-            }
-            catch (Exception ex)
-            {
-                Tools.HandleException(ex);
-            }
-        }
-
-        private void testBackgroundFillToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //Pattern pattern = Design.DesignPatterns.FirstOrDefault(p => p.Selected && p.FillInfo.FillType == FillInfo.FillTypes.Background);
-                //var bkFillInfo = pattern?.FillInfo as BackgroundFillInfo;
-                //if (bkFillInfo == null)
-                //    return;
-                //if (bkFillInfo.BackgroundSectionImage == null)
-                //    bkFillInfo.CreateFillBrush();
-                //picDesign.Image = bkFillInfo.BackgroundSectionImage;
+                bool setFill = false;
+                foreach (Pattern pattern in Design.DesignPatterns)
+                {
+                    foreach (FillInfo fillInfo in pattern.GetFillInfos())
+                    {
+                        if (fillInfo.FillType == FillInfo.FillTypes.Background)
+                        {
+                            fillInfo.SetFillBrushToNull();
+                            setFill = true;
+                        }
+                    }
+                }
+                if (setFill)
+                    RedrawPatterns();
+                else
+                    MessageBox.Show("No background fills were found.");
             }
             catch (Exception ex)
             {

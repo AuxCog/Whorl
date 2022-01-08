@@ -2665,6 +2665,18 @@ namespace Whorl
                 return outline.PolygonVertices;
         }
 
+        public IEnumerable<FillInfo> GetFillInfos()
+        {
+            if (PatternLayers != null)
+            {
+                return PatternLayers.PatternLayers.Select(l => l.FillInfo);
+            }
+            else
+            {
+                return new FillInfo[] { this.FillInfo };
+            }
+        }
+
         private void ApplyShrink(bool shrink = true)
         {
             ApplyPatternShrink(SeedPoints, shrink ? 0.005F * ShrinkPadding : 0F, 

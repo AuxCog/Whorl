@@ -306,7 +306,7 @@ namespace Whorl
             if (BackgroundImageMode == TextureImageModes.Stretch)
             {
                 bitmap = (Bitmap)BitmapTools.ScaleImage(imgBitmap, new Size(width, height));
-                BackgroundImageScale = new PointF(1, 1);
+                //BackgroundImageScale = new PointF(1, 1);
             }
             else 
             {   //Tile background image:
@@ -330,7 +330,7 @@ namespace Whorl
                         }
                         else
                             scaleY = scaleX;
-                        BackgroundImageScale = new PointF(scaleX, scaleY);
+                        //BackgroundImageScale = new PointF(scaleX, scaleY);
                         if (scaleX != 1F || scaleY != 1F)
                         {
                             txtrBr.ScaleTransform(scaleX, scaleY);
@@ -376,7 +376,7 @@ namespace Whorl
             return bitmap;
         }
 
-        public PointF BackgroundImageScale { get; private set; }
+        //public PointF BackgroundImageScale { get; private set; }
 
         public Bitmap CreateDesignBitmap(int width, int height,
                                          ref GraphicsPath backgroundGrPath,
@@ -389,14 +389,14 @@ namespace Whorl
                 bitmap = CreateDesignBitmapFromImageFile(width, height, scaleFactor);
             else
             {
-                BackgroundImageScale = new PointF(1, 1);
+                //BackgroundImageScale = new PointF(1, 1);
                 bitmap = CreateDesignGradientBitmap(width, height,
                                                   ref backgroundGrPath,
                                                   ref backgroundPthGrBrush);
             }
             if (BackgroundBitmap != null)
                 BackgroundBitmap.Dispose();
-            bool haveBackgroundFills = DesignPatterns.Any(p => p.FillInfo.FillType == FillInfo.FillTypes.Background);
+            bool haveBackgroundFills = DesignPatterns.Any(p => p.GetFillInfos().Any(f => f.FillType == FillInfo.FillTypes.Background));
             if (haveBackgroundFills)
             {
                 BackgroundBitmap = (Bitmap)bitmap.Clone();
@@ -451,11 +451,11 @@ namespace Whorl
                 if (mode != ScalePatternMode.KeepCenter)
                     pattern.Center = ScalePoint(pattern.Center, picCenter, newPicCenter, pScale, mode == ScalePatternMode.ScaleCenter);
                 pattern.ZVector *= (double)scaleFactor;
-                var bkFillInfo = pattern.FillInfo as BackgroundFillInfo;
-                if (bkFillInfo != null)
-                {
-                    bkFillInfo.ClearBackgroundImage();
-                }
+                //var bkFillInfo = pattern.FillInfo as BackgroundFillInfo;
+                //if (bkFillInfo != null)
+                //{
+                //    bkFillInfo.ClearBackgroundImage();
+                //}
                 pattern.FillInfo.ApplyTransforms();
                 Ribbon ribbon;
                 PathPattern pathPattern = pattern as PathPattern;
@@ -921,17 +921,17 @@ namespace Whorl
             }
         }
 
-        public void InitBackgroundFillInfos()
-        {
-            foreach (Pattern pattern in DesignPatterns)
-            {
-                var backgroundFillInfo = pattern.FillInfo as BackgroundFillInfo;
-                if (backgroundFillInfo != null)
-                {
-                    backgroundFillInfo.ClearBackgroundImage();
-                }
-            }
-        }
+        //public void InitBackgroundFillInfos()
+        //{
+        //    //foreach (Pattern pattern in DesignPatterns)
+        //    //{
+        //    //    var backgroundFillInfo = pattern.FillInfo as BackgroundFillInfo;
+        //    //    if (backgroundFillInfo != null)
+        //    //    {
+        //    //        backgroundFillInfo.ClearBackgroundImage();
+        //    //    }
+        //    //}
+        //}
 
         //public override object Clone()
         //{
