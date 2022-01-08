@@ -304,7 +304,10 @@ namespace Whorl
             Bitmap bitmap;
             Image imgBitmap = TextureFillInfo.GetTextureImage(BackgroundImageFileName);
             if (BackgroundImageMode == TextureImageModes.Stretch)
+            {
                 bitmap = (Bitmap)BitmapTools.ScaleImage(imgBitmap, new Size(width, height));
+                BackgroundImageScale = new PointF(1, 1);
+            }
             else 
             {   //Tile background image:
                 bitmap = BitmapTools.CreateFormattedBitmap(new Size(width, height));
@@ -327,6 +330,7 @@ namespace Whorl
                         }
                         else
                             scaleY = scaleX;
+                        BackgroundImageScale = new PointF(scaleX, scaleY);
                         if (scaleX != 1F || scaleY != 1F)
                         {
                             txtrBr.ScaleTransform(scaleX, scaleY);
@@ -372,19 +376,39 @@ namespace Whorl
             return bitmap;
         }
 
+        public PointF BackgroundImageScale { get; private set; }
+
         public Bitmap CreateDesignBitmap(int width, int height,
                                          ref GraphicsPath backgroundGrPath,
                                          ref PathGradientBrush backgroundPthGrBrush,
                                          float scaleFactor = 1F)
         {
             DesignSize = new Size(width, height);
-            if (!string.IsNullOrEmpty(BackgroundImageFileName) &&
-                          File.Exists(BackgroundImageFileName))
-                return CreateDesignBitmapFromImageFile(width, height, scaleFactor);
+            Bitmap bitmap;
+            if (!string.IsNullOrEmpty(BackgroundImageFileName) && File.Exists(BackgroundImageFileName))
+                bitmap = CreateDesignBitmapFromImageFile(width, height, scaleFactor);
             else
-                return CreateDesignGradientBitmap(width, height,
+            {
+                BackgroundImageScale = new PointF(1, 1);
+                bitmap = CreateDesignGradientBitmap(width, height,
                                                   ref backgroundGrPath,
                                                   ref backgroundPthGrBrush);
+            }
+            if (BackgroundBitmap != null)
+                BackgroundBitmap.Dispose();
+            bool haveBackgroundFills = DesignPatterns.Any(p => p.FillInfo.FillType == FillInfo.FillTypes.Background);
+            if (haveBackgroundFills)
+            {
+                BackgroundBitmap = (Bitmap)bitmap.Clone();
+                using (Graphics g = Graphics.FromImage(BackgroundBitmap))
+                {
+                    var patterns = DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
+                    DrawDesign.DrawPatterns(g, null, patterns, BackgroundBitmap.Size);
+                }
+            }
+            else
+                BackgroundBitmap = null;
+            return bitmap;
         }
 
         //private void RenderCallback(int steps, bool initial = false)
@@ -477,6 +501,8 @@ namespace Whorl
                 }
             }
         }
+
+        public Bitmap BackgroundBitmap { get; private set; }
 
         public Bitmap RenderDesign(Size prevSize, Size size, bool scalePenWidth,
                                    bool draftMode, bool renderStained = true, IRenderCaller caller = null)

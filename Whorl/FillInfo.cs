@@ -948,11 +948,11 @@ namespace Whorl
     public class BackgroundFillInfo : FillInfo
     {
         public override FillTypes FillType => FillTypes.Background;
-        public Image BackgroundSectionImage { get; private set; }
+        //public Image BackgroundSectionImage { get; private set; }
 
         private RectangleF bounds { get; set; }
-        private GraphicsPath backgroundGrPath;
-        private PathGradientBrush backgroundPthGrBrush;
+        //private GraphicsPath backgroundGrPath;
+        //private PathGradientBrush backgroundPthGrBrush;
 
         public BackgroundFillInfo(Pattern parent) : base(parent)
         {
@@ -960,52 +960,64 @@ namespace Whorl
 
         public void ClearBackgroundImage()
         {
-            if (BackgroundSectionImage != null)
-            {
-                BackgroundSectionImage.Dispose();
-                BackgroundSectionImage = null;
-            }
-            SetFillBrushToNull();
+            //if (BackgroundSectionImage != null)
+            //{
+            //    BackgroundSectionImage.Dispose();
+            //    BackgroundSectionImage = null;
+            //}
+            //SetFillBrushToNull();
         }
 
         private void SetBackgroundImage()
         {
-            var design = ParentPattern.Design;
-            ClearBackgroundImage();
-            ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
-            Size size = design.DesignSize;
-            if (size.Width == 0 || size.Height == 0)
-                throw new Exception("DesignSize was not set.");
-            bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
-            bounds = Tools.RectangleFromVertices(new PointF(Math.Max(0, bounds.Left), Math.Max(0, bounds.Top)),
-                                                 new PointF(Math.Min(size.Width, bounds.Right), Math.Min(size.Height, bounds.Bottom)));
-            if (bounds.Width < 1 || bounds.Height < 1)
-            {
-                BackgroundSectionImage = new Bitmap(1, 1);
-            }
-            else
-            {
-                BackgroundSectionImage = new Bitmap((int)bounds.Width, (int)bounds.Height);
-                Bitmap bitmap = design.CreateDesignBitmap(size.Width, size.Height, ref backgroundGrPath, ref backgroundPthGrBrush);
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    var patterns = design.DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
-                    DrawDesign.DrawPatterns(g, null, patterns, bitmap.Size);
-                }
-                using (Graphics g = Graphics.FromImage(BackgroundSectionImage))
-                {
-                    g.DrawImage(bitmap, new RectangleF(PointF.Empty, bounds.Size), bounds, GraphicsUnit.Pixel);
-                }
-            }
+            //var design = ParentPattern.Design;
+            //ClearBackgroundImage();
+            //ParentPattern.ComputeCurvePoints(ParentPattern.ZVector);
+            //Size size = design.DesignSize;
+            //if (size.Width == 0 || size.Height == 0)
+            //    throw new Exception("DesignSize was not set.");
+            //bounds = Tools.GetBoundingRectangle(ParentPattern.CurvePoints);
+            //bounds = Tools.RectangleFromVertices(new PointF(Math.Max(0, bounds.Left), Math.Max(0, bounds.Top)),
+            //                                     new PointF(Math.Min(size.Width, bounds.Right), Math.Min(size.Height, bounds.Bottom)));
+            //BackgroundSectionImage = design.CreateDesignBitmap(size.Width, size.Height, ref backgroundGrPath, ref backgroundPthGrBrush);
+            //using (Graphics g = Graphics.FromImage(BackgroundSectionImage))
+            //{
+            //    var patterns = design.DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
+            //    DrawDesign.DrawPatterns(g, null, patterns, size);
+            //}
+            //if (bounds.Width < 1 || bounds.Height < 1)
+            //{
+            //    BackgroundSectionImage = new Bitmap(1, 1);
+            //}
+            //else
+            //{
+            //    BackgroundSectionImage = new Bitmap((int)bounds.Width, (int)bounds.Height);
+            //    Bitmap bitmap = design.CreateDesignBitmap(size.Width, size.Height, ref backgroundGrPath, ref backgroundPthGrBrush);
+            //    using (Graphics g = Graphics.FromImage(bitmap))
+            //    {
+            //        var patterns = design.DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
+            //        DrawDesign.DrawPatterns(g, null, patterns, bitmap.Size);
+            //    }
+            //    using (Graphics g = Graphics.FromImage(BackgroundSectionImage))
+            //    {
+            //        g.DrawImage(bitmap, new RectangleF(PointF.Empty, bounds.Size), bounds, GraphicsUnit.Pixel);
+            //    }
+            //}
         }
 
         public override void CreateFillBrush()
         {
-            if (BackgroundSectionImage == null)
-                SetBackgroundImage();
+            //if (BackgroundSectionImage == null)
+            //    SetBackgroundImage();
+            Bitmap bitmap = ParentPattern.Design.BackgroundBitmap;
+            if (bitmap == null)
+                throw new NullReferenceException("BackgroundBitmap was not created.");
             SetFillBrushToNull();
-            var txtrBrush = new TextureBrush(BackgroundSectionImage, WrapMode.Clamp);
-            txtrBrush.TranslateTransform(bounds.Left, bounds.Top);
+            var txtrBrush = new TextureBrush(bitmap, WrapMode.Tile);
+            //PointF pScale = ParentPattern.Design.BackgroundImageScale;
+            //if (pScale.X != 1 || pScale.Y != 1)
+            //    txtrBrush.ScaleTransform(pScale.X, pScale.Y);
+            //txtrBrush.TranslateTransform(bounds.Left, bounds.Top);
             FillBrush = txtrBrush;
         }
 
@@ -1017,7 +1029,7 @@ namespace Whorl
         {
             return new BackgroundFillInfo(parentPattern)
             {
-                BackgroundSectionImage = this.BackgroundSectionImage
+                //BackgroundSectionImage = this.BackgroundSectionImage
             };
         }
 

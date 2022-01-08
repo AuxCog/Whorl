@@ -8364,13 +8364,13 @@ namespace Whorl
         {
             try
             {
-                Pattern pattern = Design.DesignPatterns.FirstOrDefault(p => p.Selected && p.FillInfo.FillType == FillInfo.FillTypes.Background);
-                var bkFillInfo = pattern?.FillInfo as BackgroundFillInfo;
-                if (bkFillInfo == null)
-                    return;
-                if (bkFillInfo.BackgroundSectionImage == null)
-                    bkFillInfo.CreateFillBrush();
-                picDesign.Image = bkFillInfo.BackgroundSectionImage;
+                //Pattern pattern = Design.DesignPatterns.FirstOrDefault(p => p.Selected && p.FillInfo.FillType == FillInfo.FillTypes.Background);
+                //var bkFillInfo = pattern?.FillInfo as BackgroundFillInfo;
+                //if (bkFillInfo == null)
+                //    return;
+                //if (bkFillInfo.BackgroundSectionImage == null)
+                //    bkFillInfo.CreateFillBrush();
+                //picDesign.Image = bkFillInfo.BackgroundSectionImage;
             }
             catch (Exception ex)
             {
