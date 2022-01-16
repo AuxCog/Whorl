@@ -33,7 +33,9 @@ namespace Whorl
         public bool PolarTraversal { get; set; }
         public bool Normalize { get; set; }
         public bool NormalizeAngle { get; set; }
+        public bool ComputeAllDistances { get; set; }
         public bool ComputeDistance { get; set; }
+
         public bool ComputeInfluence { get; set; }
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;

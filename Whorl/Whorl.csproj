@@ -331,6 +331,7 @@
     <Compile Include="PropertyAction.cs" />
     <Compile Include="PropertyActionAttribute.cs" />
     <Compile Include="PropertyInfoPath.cs" />
+    <Compile Include="RaggedArrayRow.cs" />
     <Compile Include="RandomOps.cs" />
     <Compile Include="RandomValues.cs" />
     <Compile Include="RenderCaller.cs" />

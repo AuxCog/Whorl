@@ -382,12 +382,12 @@ namespace Whorl
             }
         }
 
-        public class RenderingInfo: BaseObject, IXml, IColorNodeList
+        public class RenderingInfo : BaseObject, IXml, IColorNodeList
         {
             //private const int distanceSquareRows = 10;
-            private class InfoExt: PixelRenderInfo
+            private class InfoExt : PixelRenderInfo
             {
-                public InfoExt(Pattern.RenderingInfo parent, List<DistancePatternInfo> distancePatternInfos): base(parent, distancePatternInfos)
+                public InfoExt(Pattern.RenderingInfo parent, List<DistancePatternInfo> distancePatternInfos) : base(parent, distancePatternInfos)
                 {
                 }
 
@@ -404,7 +404,7 @@ namespace Whorl
                 {
                     PassType = passType;
                 }
-                public void SetInfo(SizeF boundsSize, PointF center, double maxPosition, 
+                public void SetInfo(SizeF boundsSize, PointF center, double maxPosition,
                                     double scaleFactor, int maxModulusStep)
                 {
                     BoundsSize = boundsSize;
@@ -558,7 +558,7 @@ namespace Whorl
                     Design = design;
                 }
 
-                public DistancePatternInfo(DistancePatternInfo source): base(source)
+                public DistancePatternInfo(DistancePatternInfo source) : base(source)
                 {
                     //Guid = source.Guid;
                     DistancePatternSettings = new DistancePatternSettings(source.DistancePatternSettings, this);
@@ -789,12 +789,13 @@ namespace Whorl
                 }
             }
             public bool UseDistanceOutline { get; set; }
-            private List<DistancePatternInfo> distancePatternInfos { get; } = 
+            private List<DistancePatternInfo> distancePatternInfos { get; } =
                new List<DistancePatternInfo>();
             public IEnumerable<DistancePatternInfo> GetDistancePatternInfos()
             {
                 return distancePatternInfos;
             }
+            private RaggedArrayRow<double[]>[] allDistanceInfo { get; set; }
 
             public int PatternLayerIndex { get; set; }
             public FormulaSettings FormulaSettings { get; private set; }
@@ -865,7 +866,7 @@ namespace Whorl
                 return parentPatternCopy;
             }
 
-            public RenderingInfo(RenderingInfo source, Pattern pattern): this(pattern, createColorNodes: false)
+            public RenderingInfo(RenderingInfo source, Pattern pattern) : this(pattern, createColorNodes: false)
             {
                 ColorNodes = source.ColorNodes?.GetCopy();
                 Enabled = source.Enabled;
@@ -884,7 +885,7 @@ namespace Whorl
                     FormulaSettings = source.FormulaSettings.GetCopy(ConfigureParser, pattern: ParentPattern);
                     if (source.FormulaSettings.InfluenceLinkParentCollection != null)
                     {
-                        FormulaSettings.InfluenceLinkParentCollection = 
+                        FormulaSettings.InfluenceLinkParentCollection =
                             source.FormulaSettings.InfluenceLinkParentCollection.GetCopy(FormulaSettings, pattern);
                     }
                 }
@@ -1013,7 +1014,7 @@ namespace Whorl
                 return positionAverage;
             }
 
-            public void Render(Graphics g, PointF[] points, Pattern pattern, Complex zVector, IRenderCaller caller, 
+            public void Render(Graphics g, PointF[] points, Pattern pattern, Complex zVector, IRenderCaller caller,
                                bool enableCache = true, bool draftMode = false, bool computeRandom = false)
             {
                 int newDraftSize = WhorlSettings.Instance.DraftSize;
@@ -1199,7 +1200,7 @@ namespace Whorl
                     segLen = 1.0;
                 else
                 {
-                    double diagLen = Tools.Distance(BoundsRect.Location, 
+                    double diagLen = Tools.Distance(BoundsRect.Location,
                                      new PointF(BoundsRect.Right, BoundsRect.Bottom));
                     //segLen = Math.Max(1.0, Info.SegmentLength * diagLen / 1000.0);
                     segLen = Info.SegmentLength * diagLen / 1000.0;
@@ -1213,7 +1214,7 @@ namespace Whorl
                         segmentPoints.Add(pLast);
                     }
                 }
-                distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows, 
+                distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
                                                (BoundsRect.Height + 1) / Info.DistanceRows);
                 var halfSquareSize = new SizeF(distanceSquareSize.Width / 2F, distanceSquareSize.Height / 2F);
                 var distanceSquares = new List<DistanceSquare>();
@@ -1225,16 +1226,16 @@ namespace Whorl
                         var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
                         var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
                                                      topLeft.Y + distanceSquareSize.Height);
-                        var pts = segmentPoints.Where(p => p.X >= topLeft.X && p.Y >= topLeft.Y && 
+                        var pts = segmentPoints.Where(p => p.X >= topLeft.X && p.Y >= topLeft.Y &&
                                                        p.X < bottomRight.X && p.Y < bottomRight.Y).ToList();
                         if (row == 0)
-                            pts.AddRange(segmentPoints.Where(p => p.Y < topLeft.Y && 
+                            pts.AddRange(segmentPoints.Where(p => p.Y < topLeft.Y &&
                                          p.X >= topLeft.X && p.X < bottomRight.X));
                         else if (row == Info.DistanceRows - 1)
                             pts.AddRange(segmentPoints.Where(p => p.Y >= bottomRight.Y &&
                                          p.X >= topLeft.X && p.X < bottomRight.X));
                         if (col == 0)
-                            pts.AddRange(segmentPoints.Where(p => p.X < topLeft.X && 
+                            pts.AddRange(segmentPoints.Where(p => p.X < topLeft.X &&
                                          p.Y >= topLeft.Y && p.Y < bottomRight.Y));
                         else if (col == Info.DistanceRows - 1)
                             pts.AddRange(segmentPoints.Where(p => p.X >= bottomRight.X &&
@@ -1256,13 +1257,16 @@ namespace Whorl
                 for (int index = 0; index < distanceSquaresArray.Length; index++)
                 {
                     if (distanceSquaresArray[index] != null)
-                        SetDistanceToPath(index, x, y);
+                    {
+                        double distance = GetDistanceToPath(index, x, y);
+                        Info.SetDistanceToPath(index, distance);
+                    }
                 }
                 if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
                     Info.SetDistanceToPath(Info.DistancesToPaths.Average());
             }
 
-            private void SetDistanceToPath(int index, int x, int y)
+            private double GetDistanceToPath(int index, int x, int y)
             {
                 var p = new PointF(x, y);
                 double minDist = double.MaxValue;
@@ -1345,9 +1349,42 @@ namespace Whorl
                 //For testing center:
                 //if (useFadeOut && modulus < 50)
                 //    minDist *= 10;
-                Info.SetDistanceToPath(index, distanceFactor * distanceScale * Math.Sqrt(minDist));
+                return distanceFactor * distanceScale * Math.Sqrt(minDist);
             }
 
+            private bool ComputeAllDistances(IRenderCaller caller)
+            {
+                allDistanceInfo = new RaggedArrayRow<double[]>[boundsSize.Height];
+                int pixInd = 0;
+                for (int y = 0; y < boundsSize.Height; y++)
+                {
+                    int minX = -1;
+                    var distancesRow = new List<double[]>();
+                    for (int x = 0; x < boundsSize.Width; x++)
+                    {
+                        if (caller != null && caller.CancelRender)
+                        {
+                            return false;
+                        }
+                        if (Tools.BitIsSet(boundsBitmap, pixInd++))  //Point (X, Y) is within pattern's bounds.
+                        {
+                            if (minX == -1)
+                                minX = x;
+                            var distances = new double[distanceSquaresArray.Length];
+                            for (int index = 0; index < distanceSquaresArray.Length; index++)
+                            {
+                                if (distanceSquaresArray[index] != null)
+                                    distances[index] = GetDistanceToPath(index, x, y);
+                                else
+                                    distances[index] = double.MaxValue;
+                            }
+                            distancesRow.Add(distances);
+                        }
+                    }
+                    allDistanceInfo[y] = minX == -1 ? null : new RaggedArrayRow<double[]>(minX, distancesRow.ToArray());
+                }
+                return true;
+            }
 
             private Color GetGradientColor(float position)
             {
@@ -1455,6 +1492,11 @@ namespace Whorl
                     caller.RenderCallback(patternPixels.Length, initial: true);
                 cachedIndex = 0;
                 InitInfo();
+                if (Info.ComputeAllDistances)
+                {
+                    if (!ComputeAllDistances(caller))
+                        return null;  //User cancelled.
+                }
                 provideFeedback = !getCachedPositions && !Info.PolarTraversal &&
                                   GetBooleanOutputParamValue(BooleanOutputParamNames.ProvideFeedback) == true;
                 if (provideFeedback)
@@ -1682,8 +1724,10 @@ namespace Whorl
                         {
                             Info.InfluenceValue = ParentPattern.InfluencePointInfoList.ComputeAverage(patternPoint, forRendering: true);
                         }
-                        if (distanceSquaresArray != null)
+                        if (Info.ComputeDistance)
+                        {
                             SetDistancesToPaths(x, y);
+                        }
                         if (influenceParentCollection != null)
                         {
                             if (influenceParentCollection.HasPixelRandom)
@@ -1741,6 +1785,7 @@ namespace Whorl
                 bool setCachedPositions = cachedPositions == null;
                 bool getCachedPositions = !setCachedPositions;
                 distanceSquaresArray = null;
+                allDistanceInfo = null;
                 //distPathPoints = null;
                 //bool setProgressBar = setCachedPositions && this.MainForm != null;
                 if (setCachedPositions)
@@ -1762,6 +1807,7 @@ namespace Whorl
                     Info.SegmentLength = 1.0;
                     Info.SetDistanceToPath(0D);
                     Info.RandomFunction = null;
+                    Info.ComputeDistance = Info.ComputeAllDistances = false;
                     floatScaleFactor = 1F;
                     if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
                     {
@@ -1781,7 +1827,7 @@ namespace Whorl
                             //distCenter = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
                             distanceInfo.DistancePatternCenter = distCenter;
                         }
-                        if (Info.ComputeDistance)
+                        if (Info.ComputeDistance || Info.ComputeAllDistances)
                         {
                             InitDistanceSquares(pattern, points);
                             distanceFactor = 1D / maxSize;
