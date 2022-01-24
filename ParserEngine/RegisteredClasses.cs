@@ -19,6 +19,12 @@ namespace ParserEngine
             Y = y;
         }
 
+        public DoublePoint(PointF p)
+        {
+            X = p.X;
+            Y = p.Y;
+        }
+
         public PolarPoint ToPolar()
         {
             return new PolarPoint(angle: Math.Atan2(Y, X), modulus: Math.Sqrt(X * X + Y * Y));
@@ -43,7 +49,7 @@ namespace ParserEngine
 
         public static bool TryParse(string text, out DoublePoint doublePoint)
         {
-            text = text.Replace("(", string.Empty).Replace(")", string.Empty);
+            text = (text ?? "").Replace("(", string.Empty).Replace(")", string.Empty);
             string[] parts = text.Split(',');
             double x = 0, y = 0;
             bool isValid = parts.Length == 2 &&
@@ -125,7 +131,7 @@ namespace ParserEngine
 
         public static bool TryParse(string text, out PolarPoint polarPoint)
         {
-            text = text.Replace("(", string.Empty).Replace(")", string.Empty);
+            text = (text ?? "").Replace("(", string.Empty).Replace(")", string.Empty);
             string[] parts = text.Split(',');
             double angle = 0, modulus = 0;
             bool isValid = parts.Length == 2 &&
