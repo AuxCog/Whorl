@@ -553,18 +553,26 @@ namespace Whorl
             return parseStatus;
         }
 
-        public void InitializeGlobals()
+        public bool InitializeGlobals()
         {
             if (IsCSharpFormula)
             {
                 if (EvalInstance != null)
-                    EvalInstance.InitializeForEval();
+                    return EvalInstance.InitializeForEval();
             }
             else
             {
                 if (FormulaExpression != null)
                     FormulaExpression.InitializeGlobals();
             }
+            return true;
+        }
+
+        public bool Initialize2ForEval()
+        {
+            if (IsCSharpFormula && EvalInstance != null)
+                return EvalInstance.Initialize2ForEval();
+            return true;
         }
 
         /// <summary>

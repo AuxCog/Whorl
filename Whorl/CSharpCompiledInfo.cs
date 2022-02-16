@@ -35,19 +35,32 @@ namespace Whorl
                 }
             }
 
-            public void InitializeForEval()
+            private bool CallMethod(MethodInfo methodInfo)
             {
-                if (CSharpSharedCompiledInfo.InitMethodInfo != null)
+                bool success = true;
+                if (methodInfo != null)
                 {
                     try
                     {
-                        CSharpSharedCompiledInfo.InitMethodInfo.Invoke(ClassInstance, null);
+                        methodInfo.Invoke(ClassInstance, null);
                     }
                     catch (Exception ex)
                     {
                         Tools.HandleException(ex);
+                        success = false;
                     }
                 }
+                return success;
+            }
+
+            public bool InitializeForEval()
+            {
+                return CallMethod(CSharpSharedCompiledInfo.InitMethodInfo);
+            }
+
+            public bool Initialize2ForEval()
+            {
+                return CallMethod(CSharpSharedCompiledInfo.Init2MethodInfo);
             }
 
             public void SetInfoObject(object info)

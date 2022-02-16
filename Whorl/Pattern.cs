@@ -1497,6 +1497,11 @@ namespace Whorl
                     if (!ComputeAllDistances(caller))
                         return null;  //User cancelled.
                 }
+                if (FormulaSettings != null)
+                {
+                    if (!FormulaSettings.Initialize2ForEval())
+                        return null;  //Exception thrown.
+                }
                 provideFeedback = !getCachedPositions && !Info.PolarTraversal &&
                                   GetBooleanOutputParamValue(BooleanOutputParamNames.ProvideFeedback) == true;
                 if (provideFeedback)
@@ -1811,7 +1816,8 @@ namespace Whorl
                     floatScaleFactor = 1F;
                     if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
                     {
-                        FormulaSettings.InitializeGlobals(); //Calls C# formula's Initialize() method, which can set properties of Info object.
+                        if (!FormulaSettings.InitializeGlobals()) //Calls C# formula's Initialize() method, which can set properties of Info object.
+                            return null; //Exception thrown.
                         float maxSize = Math.Max(Info.BoundsSize.Width, Info.BoundsSize.Height);
                         if (Info.Normalize)
                         {
