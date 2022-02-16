@@ -44,6 +44,15 @@ namespace Whorl
             catch { }
         }
 
+        public static double ComputeNested(Func1Parameter<double>[] fnArray, double v)
+        {
+            for (int i = 0; i < fnArray.Length; i++)
+            {
+                v = fnArray[i].Function(v);
+            }
+            return v;
+        }
+
         public static void AsyncTaskFailed(Task task)
         {
             if (task.Exception != null)
