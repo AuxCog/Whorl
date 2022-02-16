@@ -28,7 +28,8 @@ namespace Whorl
 
         public double XtoInvX(double x)
         {
-            return Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x)));
+            x = XWeight * x + XOffset;
+            return YWeight * Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x)));
         }
     }
 }
