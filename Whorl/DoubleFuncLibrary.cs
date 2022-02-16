@@ -11,6 +11,7 @@ namespace Whorl
         public double XWeight { get; protected set; } = 1.0;
         public double XOffset { get; protected set; }
         public double YWeight { get; protected set; } = 1.0;
+        public double XtoInvOff { get; protected set; } = 0.001;
 
         private Func<double, double> baseFunction { get; set; }
 
@@ -23,6 +24,11 @@ namespace Whorl
         public void SetBaseFunction(Func<double, double> func)
         {
             baseFunction = func;
+        }
+
+        public double XtoInvX(double x)
+        {
+            return Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x)));
         }
     }
 }
