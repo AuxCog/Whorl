@@ -59,6 +59,11 @@ namespace Whorl
             this.picGraph = new System.Windows.Forms.PictureBox();
             this.label12 = new System.Windows.Forms.Label();
             this.txtMaxGraphX = new System.Windows.Forms.TextBox();
+            this.chkUseEllipse = new System.Windows.Forms.CheckBox();
+            this.txtEllipseStretch = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.txtEllipseAngle = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picGraph)).BeginInit();
             this.SuspendLayout();
             // 
@@ -114,7 +119,7 @@ namespace Whorl
             // 
             // txtOffset
             // 
-            this.txtOffset.Location = new System.Drawing.Point(108, 73);
+            this.txtOffset.Location = new System.Drawing.Point(64, 105);
             this.txtOffset.Name = "txtOffset";
             this.txtOffset.Size = new System.Drawing.Size(58, 20);
             this.txtOffset.TabIndex = 7;
@@ -122,7 +127,7 @@ namespace Whorl
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(60, 76);
+            this.label4.Location = new System.Drawing.Point(16, 108);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(38, 13);
             this.label4.TabIndex = 6;
@@ -130,7 +135,7 @@ namespace Whorl
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(467, 9);
+            this.BtnOK.Location = new System.Drawing.Point(441, 8);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(56, 23);
             this.BtnOK.TabIndex = 8;
@@ -140,7 +145,7 @@ namespace Whorl
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(530, 9);
+            this.BtnCancel.Location = new System.Drawing.Point(504, 8);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(66, 23);
             this.BtnCancel.TabIndex = 9;
@@ -177,7 +182,7 @@ namespace Whorl
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(342, 76);
+            this.label6.Location = new System.Drawing.Point(298, 108);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(101, 13);
             this.label6.TabIndex = 13;
@@ -187,14 +192,14 @@ namespace Whorl
             // 
             this.cboTransformFunction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboTransformFunction.FormattingEnabled = true;
-            this.cboTransformFunction.Location = new System.Drawing.Point(445, 73);
+            this.cboTransformFunction.Location = new System.Drawing.Point(401, 105);
             this.cboTransformFunction.Name = "cboTransformFunction";
             this.cboTransformFunction.Size = new System.Drawing.Size(135, 21);
             this.cboTransformFunction.TabIndex = 14;
             // 
             // txtFunctionOffset
             // 
-            this.txtFunctionOffset.Location = new System.Drawing.Point(270, 73);
+            this.txtFunctionOffset.Location = new System.Drawing.Point(226, 105);
             this.txtFunctionOffset.Name = "txtFunctionOffset";
             this.txtFunctionOffset.Size = new System.Drawing.Size(58, 20);
             this.txtFunctionOffset.TabIndex = 16;
@@ -202,7 +207,7 @@ namespace Whorl
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(182, 76);
+            this.label7.Location = new System.Drawing.Point(138, 108);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(82, 13);
             this.label7.TabIndex = 15;
@@ -227,7 +232,7 @@ namespace Whorl
             // clbEnumKeys
             // 
             this.clbEnumKeys.FormattingEnabled = true;
-            this.clbEnumKeys.Location = new System.Drawing.Point(17, 117);
+            this.clbEnumKeys.Location = new System.Drawing.Point(17, 144);
             this.clbEnumKeys.Name = "clbEnumKeys";
             this.clbEnumKeys.Size = new System.Drawing.Size(220, 94);
             this.clbEnumKeys.TabIndex = 19;
@@ -235,7 +240,7 @@ namespace Whorl
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(14, 101);
+            this.label9.Location = new System.Drawing.Point(14, 128);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(63, 13);
             this.label9.TabIndex = 20;
@@ -244,7 +249,7 @@ namespace Whorl
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(260, 120);
+            this.label10.Location = new System.Drawing.Point(260, 147);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(58, 13);
             this.label10.TabIndex = 22;
@@ -254,7 +259,7 @@ namespace Whorl
             // 
             this.cboEnumKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboEnumKey.FormattingEnabled = true;
-            this.cboEnumKey.Location = new System.Drawing.Point(320, 117);
+            this.cboEnumKey.Location = new System.Drawing.Point(320, 144);
             this.cboEnumKey.Name = "cboEnumKey";
             this.cboEnumKey.Size = new System.Drawing.Size(220, 21);
             this.cboEnumKey.TabIndex = 23;
@@ -263,7 +268,7 @@ namespace Whorl
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(256, 150);
+            this.label11.Location = new System.Drawing.Point(256, 177);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(61, 13);
             this.label11.TabIndex = 24;
@@ -271,14 +276,14 @@ namespace Whorl
             // 
             // txtKeyFactor
             // 
-            this.txtKeyFactor.Location = new System.Drawing.Point(320, 147);
+            this.txtKeyFactor.Location = new System.Drawing.Point(320, 174);
             this.txtKeyFactor.Name = "txtKeyFactor";
             this.txtKeyFactor.Size = new System.Drawing.Size(58, 20);
             this.txtKeyFactor.TabIndex = 25;
             // 
             // BtnApplyKeyFactor
             // 
-            this.BtnApplyKeyFactor.Location = new System.Drawing.Point(392, 145);
+            this.BtnApplyKeyFactor.Location = new System.Drawing.Point(392, 172);
             this.BtnApplyKeyFactor.Name = "BtnApplyKeyFactor";
             this.BtnApplyKeyFactor.Size = new System.Drawing.Size(66, 23);
             this.BtnApplyKeyFactor.TabIndex = 26;
@@ -288,7 +293,7 @@ namespace Whorl
             // 
             // BtnGraph
             // 
-            this.BtnGraph.Location = new System.Drawing.Point(402, 9);
+            this.BtnGraph.Location = new System.Drawing.Point(376, 8);
             this.BtnGraph.Name = "BtnGraph";
             this.BtnGraph.Size = new System.Drawing.Size(56, 23);
             this.BtnGraph.TabIndex = 27;
@@ -300,9 +305,9 @@ namespace Whorl
             // 
             this.picGraph.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.picGraph.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.picGraph.Location = new System.Drawing.Point(17, 227);
+            this.picGraph.Location = new System.Drawing.Point(17, 254);
             this.picGraph.Name = "picGraph";
-            this.picGraph.Size = new System.Drawing.Size(579, 200);
+            this.picGraph.Size = new System.Drawing.Size(325, 325);
             this.picGraph.TabIndex = 28;
             this.picGraph.TabStop = false;
             this.picGraph.Paint += new System.Windows.Forms.PaintEventHandler(this.picGraph_Paint);
@@ -310,7 +315,7 @@ namespace Whorl
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(456, 204);
+            this.label12.Location = new System.Drawing.Point(253, 221);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(64, 13);
             this.label12.TabIndex = 29;
@@ -318,18 +323,66 @@ namespace Whorl
             // 
             // txtMaxGraphX
             // 
-            this.txtMaxGraphX.Location = new System.Drawing.Point(530, 201);
+            this.txtMaxGraphX.Location = new System.Drawing.Point(320, 218);
             this.txtMaxGraphX.Name = "txtMaxGraphX";
             this.txtMaxGraphX.Size = new System.Drawing.Size(66, 20);
             this.txtMaxGraphX.TabIndex = 30;
             this.txtMaxGraphX.Text = "500";
             this.txtMaxGraphX.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
+            // chkUseEllipse
+            // 
+            this.chkUseEllipse.AutoSize = true;
+            this.chkUseEllipse.Location = new System.Drawing.Point(17, 80);
+            this.chkUseEllipse.Name = "chkUseEllipse";
+            this.chkUseEllipse.Size = new System.Drawing.Size(64, 17);
+            this.chkUseEllipse.TabIndex = 31;
+            this.chkUseEllipse.Text = "Elliptical";
+            this.chkUseEllipse.UseVisualStyleBackColor = true;
+            this.chkUseEllipse.CheckedChanged += new System.EventHandler(this.chkUseEllipse_CheckedChanged);
+            // 
+            // txtEllipseStretch
+            // 
+            this.txtEllipseStretch.Location = new System.Drawing.Point(185, 77);
+            this.txtEllipseStretch.Name = "txtEllipseStretch";
+            this.txtEllipseStretch.Size = new System.Drawing.Size(58, 20);
+            this.txtEllipseStretch.TabIndex = 33;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(105, 81);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(77, 13);
+            this.label13.TabIndex = 32;
+            this.label13.Text = "Ellipse Stretch:";
+            // 
+            // txtEllipseAngle
+            // 
+            this.txtEllipseAngle.Location = new System.Drawing.Point(337, 77);
+            this.txtEllipseAngle.Name = "txtEllipseAngle";
+            this.txtEllipseAngle.Size = new System.Drawing.Size(58, 20);
+            this.txtEllipseAngle.TabIndex = 35;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(261, 82);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(70, 13);
+            this.label14.TabIndex = 34;
+            this.label14.Text = "Ellipse Angle:";
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(608, 439);
+            this.ClientSize = new System.Drawing.Size(581, 591);
+            this.Controls.Add(this.txtEllipseAngle);
+            this.Controls.Add(this.label14);
+            this.Controls.Add(this.txtEllipseStretch);
+            this.Controls.Add(this.label13);
+            this.Controls.Add(this.chkUseEllipse);
             this.Controls.Add(this.txtMaxGraphX);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.picGraph);
@@ -401,5 +454,10 @@ namespace Whorl
         private System.Windows.Forms.PictureBox picGraph;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.TextBox txtMaxGraphX;
+        private System.Windows.Forms.CheckBox chkUseEllipse;
+        private System.Windows.Forms.TextBox txtEllipseStretch;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.TextBox txtEllipseAngle;
+        private System.Windows.Forms.Label label14;
     }
 }

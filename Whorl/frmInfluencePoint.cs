@@ -62,9 +62,13 @@ namespace Whorl
                 txtInfluenceFactor.Text = editedInfluencePointInfo.InfluenceFactor.ToString("0.####");
                 txtAverageWeight.Text = editedInfluencePointInfo.AverageWeight.ToString("0.######");
                 txtDivisor.Text = (1.0 / editedInfluencePointInfo.DivFactor).ToString("0.00");
+                chkUseEllipse.Checked = editedInfluencePointInfo.EllipseStretch != 0;
+                txtEllipseStretch.Text = editedInfluencePointInfo.EllipseStretch.ToString("0.#####");
+                txtEllipseAngle.Text = editedInfluencePointInfo.EllipseAngle.ToString("0.##");
                 txtOffset.Text = editedInfluencePointInfo.Offset.ToString("0.####");
                 txtPower.Text = editedInfluencePointInfo.Power.ToString("0.####");
                 txtFunctionOffset.Text = editedInfluencePointInfo.FunctionOffset.ToString("0.####");
+                EnableEllipseControls();
             }
             catch (Exception ex)
             {
@@ -93,6 +97,21 @@ namespace Whorl
                 editedInfluencePointInfo.DivFactor = 1.0 / val;
             else
                 errMessages.Add("Divisor must be >= 0.01");
+            if (chkUseEllipse.Checked)
+            {
+                if (double.TryParse(txtEllipseStretch.Text, out val))
+                    editedInfluencePointInfo.EllipseStretch = val;
+                else
+                    errMessages.Add("Ellipse Stretch must be a number.");
+                if (double.TryParse(txtEllipseAngle.Text, out val))
+                    editedInfluencePointInfo.EllipseAngle = val;
+                else
+                    errMessages.Add("Ellipse Angle must be a number.");
+            }
+            else
+            {
+                editedInfluencePointInfo.EllipseStretch = 0.0;
+            }
             if (!double.TryParse(txtOffset.Text, out val))
                 val = -1.0;
             if (val >= 0.0001)
@@ -233,6 +252,23 @@ namespace Whorl
                 {
                     e.Graphics.DrawLines(Pens.Red, graphPoints);
                 }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void EnableEllipseControls()
+        {
+            txtEllipseAngle.Enabled = txtEllipseStretch.Enabled = chkUseEllipse.Checked;
+        }
+
+        private void chkUseEllipse_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                EnableEllipseControls();
             }
             catch (Exception ex)
             {

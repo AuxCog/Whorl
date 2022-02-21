@@ -36,6 +36,21 @@ namespace Whorl
         public DoublePoint TransformedPoint { get; set; }
 
         public double InfluenceFactor { get; set; }
+
+        private double ellipseAngle { get; set; }
+        private double ellipseRadians { get; set; }
+
+        public double EllipseAngle 
+        {
+            get => ellipseAngle;
+            set
+            {
+                ellipseAngle = value;
+                ellipseRadians = Tools.NormalizeAngle(Tools.DegreesToRadians(ellipseAngle));
+                //ellipseUnitZVector = Complex.CreateFromModulusAndArgument(1.0, radians);
+            }
+        }
+        public double EllipseStretch { get; set; }
         public double AverageWeight { get; set; }
 
         private double _divFactor = 0.01;
@@ -246,6 +261,10 @@ namespace Whorl
             {
                 zVector *= zRotation;
                 var copy = new InfluencePointInfo(this, ParentPattern);
+                if (EllipseStretch != 0)
+                {
+                    copy.EllipseAngle = EllipseAngle + (i + 1) * 360.0 / (1.0 + copies);
+                }
                 copy.InfluencePoint = new DoublePoint(zVector.Re, zVector.Im);
                 copy.AddToPattern(ParentPattern);
                 copy.CopyInfluenceLinks(this);
@@ -302,16 +321,17 @@ namespace Whorl
             double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
             if (Power != 1.0)
                 divisor = Math.Pow(divisor, Power);
-            return factor * TransformFunc(1.0 / divisor + FunctionOffset);
+            double v = TransformFunc(1.0 / divisor + FunctionOffset);
+            if (EllipseStretch != 0)
+            {
+                double deltaAngle = Tools.NormalizeAngle(Math.Abs(Math.Atan2(yDiff, xDiff) - ellipseRadians));
+                if (deltaAngle > Math.PI)
+                    deltaAngle = 2 * Math.PI - deltaAngle;
+                double weight = Math.Pow(1.0 - deltaAngle / Math.PI, EllipseStretch);
+                v *= weight;
+            }
+            return factor * v;
         }
-
-        //public static DoublePoint GetDoublePoint(PolarPoint polarPoint, PointF center)
-        //{
-        //    DoublePoint doublePoint = polarPoint.ToRectangular();
-        //    doublePoint.X += center.X;
-        //    doublePoint.Y += center.Y;
-        //    return doublePoint;
-        //}
 
         private PointF GetOrigLocation()
         {
@@ -323,44 +343,6 @@ namespace Whorl
         public void Draw(Graphics g, Bitmap designBitmap, Font font)
         {
             DrawnPoint.Draw(g, designBitmap, font, GetOrigLocation(), Id.ToString(), Selected);
-            //const float crossWidth = 1F;
-            //const float rectWidth = 2F;
-            //PointF p = GetOrigLocation();
-            //Color penColor = Color.Black;
-            //if (designBitmap != null)
-            //{
-            //    int pX = (int)p.X, 
-            //        pY = (int)p.Y;
-            //    if (pX >= 0 && pY >= 0 && pX < designBitmap.Width && pY < designBitmap.Height)
-            //    {
-            //        if (!Tools.ColorIsLight(designBitmap.GetPixel(pX, pY)))
-            //            penColor = Color.White;
-            //    }
-            //}
-            //using (var pen = new Pen(penColor))
-            //{
-            //    string idText = Id.ToString();
-            //    SizeF textSize = g.MeasureString(idText, font);
-            //    var rectF = new RectangleF(new PointF(p.X - crossWidth, p.Y - crossWidth),
-            //                               new SizeF(rectWidth, rectWidth));
-            //    //Draw Id:
-            //    using (var brush = new SolidBrush(penColor))
-            //    {
-            //        g.DrawString(idText, font, brush, new PointF(rectF.Left - textSize.Width, rectF.Top));
-            //    }
-            //    //Draw a cross at point's location:
-            //    g.DrawLine(pen,
-            //               new PointF(rectF.Left, p.Y),
-            //               new PointF(rectF.Right, p.Y));
-            //    g.DrawLine(pen,
-            //               new PointF(p.X, rectF.Top),
-            //               new PointF(p.X, rectF.Bottom));
-            //    if (Selected)
-            //    {
-            //        //Draw a circle around the cross:
-            //        g.DrawEllipse(pen, rectF);
-            //    }
-            //}
         }
 
         /// <summary>
