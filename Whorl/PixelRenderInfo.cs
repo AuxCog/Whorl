@@ -35,7 +35,10 @@ namespace Whorl
         public bool NormalizeAngle { get; set; }
         public bool ComputeAllDistances { get; set; }
         public bool ComputeDistance { get; set; }
-
+        /// <summary>
+        /// Set true from formula if distance should be positive when point is inside, negative when outside.
+        /// </summary>
+        public bool ComputeInternal { get; set; }
         public bool ComputeInfluence { get; set; }
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;

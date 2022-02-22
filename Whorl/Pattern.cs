@@ -476,16 +476,28 @@ namespace Whorl
                 }
             }
 
+            private struct DistancePointInfo
+            {
+                public PointF Point { get; }
+                public PointF RotationVector { get; }
+
+                public DistancePointInfo(PointF point, PointF rotationVector)
+                {
+                    Point = point;
+                    RotationVector = rotationVector;
+                }
+            }
+
             private class DistanceSquare
             {
                 public PointF Center { get; }
-                public PointF[] Points { get; }
+                public DistancePointInfo[] PointInfos { get; }
                 public double Distance { get; set; }
 
-                public DistanceSquare(PointF topLeft, PointF[] points)
+                public DistanceSquare(PointF topLeft, DistancePointInfo[] pointInfos)
                 {
                     Center = topLeft;
-                    Points = points;
+                    PointInfos = pointInfos;
                 }
             }
 
@@ -1226,25 +1238,67 @@ namespace Whorl
                         var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
                         var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
                                                      topLeft.Y + distanceSquareSize.Height);
-                        var pts = segmentPoints.Where(p => p.X >= topLeft.X && p.Y >= topLeft.Y &&
-                                                       p.X < bottomRight.X && p.Y < bottomRight.Y).ToList();
-                        if (row == 0)
-                            pts.AddRange(segmentPoints.Where(p => p.Y < topLeft.Y &&
-                                         p.X >= topLeft.X && p.X < bottomRight.X));
-                        else if (row == Info.DistanceRows - 1)
-                            pts.AddRange(segmentPoints.Where(p => p.Y >= bottomRight.Y &&
-                                         p.X >= topLeft.X && p.X < bottomRight.X));
-                        if (col == 0)
-                            pts.AddRange(segmentPoints.Where(p => p.X < topLeft.X &&
-                                         p.Y >= topLeft.Y && p.Y < bottomRight.Y));
-                        else if (col == Info.DistanceRows - 1)
-                            pts.AddRange(segmentPoints.Where(p => p.X >= bottomRight.X &&
-                                         p.Y >= topLeft.Y && p.Y < bottomRight.Y));
-                        if (pts.Any())
+                        var indices = Enumerable.Range(0, segmentPoints.Count).Where(i =>
+                        {
+                            PointF p = segmentPoints[i];
+                            bool flag = (p.X >= topLeft.X && p.Y >= topLeft.Y && p.X < bottomRight.X && p.Y < bottomRight.Y);
+                            if (row == 0)
+                            {
+                                if (p.Y < topLeft.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                                    flag = true;
+                            }
+                            else if (row == Info.DistanceRows - 1)
+                            {
+                                if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                                    flag = true;
+                            }
+                            if (col == 0)
+                            {
+                                if (p.X < topLeft.X && p.Y >= topLeft.Y && p.Y < bottomRight.Y)
+                                    flag = true;
+                            }
+                            else if (col == Info.DistanceRows - 1)
+                            {
+                                if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                                    flag = true;
+                            }
+                            return flag;
+                        });
+                        //var pts = segmentPoints.Where(p => p.X >= topLeft.X && p.Y >= topLeft.Y &&
+                        //                               p.X < bottomRight.X && p.Y < bottomRight.Y).ToList();
+                        //if (row == 0)
+                        //    pts.AddRange(segmentPoints.Where(p => p.Y < topLeft.Y &&
+                        //                 p.X >= topLeft.X && p.X < bottomRight.X));
+                        //else if (row == Info.DistanceRows - 1)
+                        //    pts.AddRange(segmentPoints.Where(p => p.Y >= bottomRight.Y &&
+                        //                 p.X >= topLeft.X && p.X < bottomRight.X));
+                        //if (col == 0)
+                        //    pts.AddRange(segmentPoints.Where(p => p.X < topLeft.X &&
+                        //                 p.Y >= topLeft.Y && p.Y < bottomRight.Y));
+                        //else if (col == Info.DistanceRows - 1)
+                        //    pts.AddRange(segmentPoints.Where(p => p.X >= bottomRight.X &&
+                        //                 p.Y >= topLeft.Y && p.Y < bottomRight.Y));
+                        if (indices.Any())
                         {
                             var center = new PointF(topLeft.X + halfSquareSize.Width,
                                                     topLeft.Y + halfSquareSize.Height);
-                            distanceSquares.Add(new DistanceSquare(center, pts.ToArray()));
+                            var pointInfos = new List<DistancePointInfo>();
+                            foreach (int i in indices)
+                            {
+                                PointF p = segmentPoints[i];
+                                if (Info.ComputeInternal)
+                                {
+                                    PointF pPrev = i > 0 ? segmentPoints[i - 1] : segmentPoints.Last();
+                                    double angle = Math.Atan2(p.Y - pPrev.Y, p.X - pPrev.X);
+                                    PointF rotationVec = Tools.GetRotationVector(-angle);
+                                    pointInfos.Add(new DistancePointInfo(p, rotationVec));
+                                }
+                                else
+                                {
+                                    pointInfos.Add(new DistancePointInfo(p, PointF.Empty));
+                                }
+                            }
+                            distanceSquares.Add(new DistanceSquare(center, pointInfos.ToArray()));
                         }
                         ind++;
                     }
@@ -1270,6 +1324,7 @@ namespace Whorl
             {
                 var p = new PointF(x, y);
                 double minDist = double.MaxValue;
+                double distanceSign = 1.0;
                 DistancePatternInfo distInfo = null;
                 DistancePatternSettings settings = null;
                 bool useFadeOut = false;
@@ -1311,25 +1366,30 @@ namespace Whorl
                     {
                         distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
                     }
-                    //PointF nearestPoint = PointF.Empty;
+                    DistancePointInfo? minPointInfo = null;
                     foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
                              .Take(Info.DistanceCount))
                     {
-                        for (int i = 0; i < minSquare.Points.Length; i++)
+                        int minI = -1;
+                        for (int i = 0; i < minSquare.PointInfos.Length; i++)
                         {
-                            //PointF currP = minSquare.Points[i];
-                            //if (useCenterSlope)
-                            //{
-                            //    currP = new PointF(center.X + pointScale * (currP.X - center.X),
-                            //                       center.Y + pointScale * (currP.Y - center.Y));
-                            //}
-                            double dist = Tools.DistanceSquared(minSquare.Points[i], p);
+                            double dist = Tools.DistanceSquared(minSquare.PointInfos[i].Point, p);
                             if (dist < minDist)
                             {
                                 minDist = dist;
-                                //nearestPoint = currP;
+                                minI = i;
                             }
                         }
+                        if (Info.ComputeInternal && minI != -1)
+                            minPointInfo = minSquare.PointInfos[minI];
+                    }
+                    if (Info.ComputeInternal && minPointInfo != null)
+                    {
+                        var pMinInfo = (DistancePointInfo)minPointInfo;
+                        PointF pVec = new PointF(p.X - pMinInfo.Point.X, p.Y - pMinInfo.Point.Y);
+                        pVec = Tools.RotatePoint(pVec, pMinInfo.RotationVector);
+                        if (pVec.Y < 0)
+                            distanceSign = -1.0;  //Point p is external to pattern outline.
                     }
                     if (useFadeOut)
                     {
@@ -1349,7 +1409,7 @@ namespace Whorl
                 //For testing center:
                 //if (useFadeOut && modulus < 50)
                 //    minDist *= 10;
-                return distanceFactor * distanceScale * Math.Sqrt(minDist);
+                return distanceFactor * distanceScale * distanceSign * Math.Sqrt(minDist);
             }
 
             private bool ComputeAllDistances(IRenderCaller caller)
