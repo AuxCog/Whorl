@@ -1678,6 +1678,10 @@ namespace Whorl
                     {
                         if (draftMode)
                             WhorlSettings.Instance.DraftSize = draftSize;
+                        foreach (var ptn in PreviewPatternGroup.Patterns)
+                        {
+                            ptn.ClearRenderingCache();
+                        }
                         PreviewPatternGroup.DrawFilled(g, null, bitmap.Size, checkTilePattern: false,
                                                        draftMode: this.draftMode);
                     }

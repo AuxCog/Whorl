@@ -476,28 +476,28 @@ namespace Whorl
                 }
             }
 
-            private struct DistancePointInfo
-            {
-                public PointF Point { get; }
-                public PointF RotationVector { get; }
+            //private struct DistancePointInfo
+            //{
+            //    public PointF Point { get; }
+            //    public PointF RotationVector { get; }
 
-                public DistancePointInfo(PointF point, PointF rotationVector)
-                {
-                    Point = point;
-                    RotationVector = rotationVector;
-                }
-            }
+            //    public DistancePointInfo(PointF point, PointF rotationVector)
+            //    {
+            //        Point = point;
+            //        RotationVector = rotationVector;
+            //    }
+            //}
 
             private class DistanceSquare
             {
                 public PointF Center { get; }
-                public DistancePointInfo[] PointInfos { get; }
+                public PointF[] Points { get; }
                 public double Distance { get; set; }
 
-                public DistanceSquare(PointF topLeft, DistancePointInfo[] pointInfos)
+                public DistanceSquare(PointF topLeft, PointF[] points)
                 {
                     Center = topLeft;
-                    PointInfos = pointInfos;
+                    Points = points;
                 }
             }
 
@@ -770,7 +770,20 @@ namespace Whorl
                     return distancePatternInfo;
                 }
             }
+            private class PatternBoundsInfo
+            {
+                public Rectangle BoundingRectangle { get; set; }
+                public Size BoundsSize { get; }
+                public int PixelCount { get; }
+                public uint[] BoundsBitmap { get; }
 
+                public PatternBoundsInfo(Size size, int pixelCount, uint[] bitmap)
+                {
+                    BoundsSize = size;
+                    PixelCount = pixelCount;
+                    BoundsBitmap = bitmap;
+                }
+            }
             private enum ParserVarNames
             {
                 Info,
@@ -822,16 +835,16 @@ namespace Whorl
             public PointF PanXY { get; set; }
             public float ZoomFactor { get; set; } = 1F;
             public PointsRandomOps PointsRandomOps { get; set; }
-            private PointF transformedPanXY;
-            private Size boundsSize;
-            private uint[] boundsBitmap;
-            private PointF patternCenter;
+            private PointF transformedPanXY { get; set; }
+            private PatternBoundsInfo patternBoundsInfo { get; set; }
+            private PatternBoundsInfo[] distPatternsBoundsInfos { get; set; }
+            private PointF patternCenter { get; set; }
             //private bool polarTraversal;
-            private Complex drawnZVector;
-            private bool draftMode;
-            private float[] rowPositions;
-            private double positionAverage = 0;
-            private bool isCSharpFormula;
+            private Complex drawnZVector { get; set; }
+            private bool draftMode { get; set; }
+            private float[] rowPositions { get; set; }
+            private double positionAverage { get; set; } = 0;
+            private bool isCSharpFormula { get; set; }
             private CSharpCompiledInfo.EvalInstance evalInstance { get; set; }
             private PointF origCenter { get; set; }
             private float floatScaleFactor { get; set; }
@@ -1095,7 +1108,7 @@ namespace Whorl
             public void ClearCache()
             {
                 cachedPositions = null;
-                boundsBitmap = null;
+                patternBoundsInfo = null;
             }
 
             private float GetCSharpColorPosition()
@@ -1114,9 +1127,9 @@ namespace Whorl
                 return position;
             }
 
-            private int SetBoundsBitmap(PointF[] points, bool drawCurve)
+            private uint[] GetBoundsBitmap(PointF[] points, Size size, bool drawCurve, out int pixelCount)
             {
-                using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(boundsSize))
+                using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(size))
                 {
                     using (Graphics g = Graphics.FromImage(bmp))
                     {
@@ -1125,8 +1138,7 @@ namespace Whorl
                     int[] boundsPixels = new int[bmp.Width * bmp.Height];
                     BitmapTools.CopyBitmapToColorArray(bmp, boundsPixels);
                     int blackArgb = Color.Black.ToArgb();
-                    boundsBitmap = Tools.GetBitmap(boundsPixels, pix => pix == blackArgb);
-                    return boundsPixels.Count(pix => pix == blackArgb);
+                    return Tools.GetBitmap(boundsPixels, pix => pix == blackArgb, out pixelCount);
                 }
             }
 
@@ -1149,15 +1161,10 @@ namespace Whorl
                     maxPosition: maxPosition,
                     scaleFactor: 1.0 / maxPosition,
                     maxModulusStep: (int)Math.Ceiling(maxModulus / modulusFactor));
-                boundsSize = Info.GetXYBounds();
-                //Pattern distPtn = GetDistancePattern(pattern);
-                //if (distPtn != null)
-                //{
-                //    distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                //    distancePoints = distPtn.CurvePoints.Select(
-                //        p => new PointF(p.X - BoundsRect.Left, p.Y - BoundsRect.Top)).ToArray();
-                //}
-                return SetBoundsBitmap(points, pattern.DrawCurve);
+                Size size = Info.GetXYBounds();
+                uint[] pixelBitmap = GetBoundsBitmap(points, size, pattern.DrawCurve, out int pixelCount);
+                patternBoundsInfo = new PatternBoundsInfo(size, pixelCount, pixelBitmap);
+                return pixelCount;
             }
 
             public int GetDistancePathsCount()
@@ -1173,9 +1180,15 @@ namespace Whorl
             private void InitDistanceSquares(Pattern parentPattern, PointF[] patternPoints)
             {
                 int count = GetDistancePathsCount();
+                if (Info.ComputeExternal)
+                    distPatternsBoundsInfos = new PatternBoundsInfo[count];
                 distanceSquaresArray = new List<DistanceSquare>[count];
                 if (distancePatternInfos.Count == 0)
+                {
                     InitDistanceSquares(0, patternPoints);
+                    if (Info.ComputeExternal)
+                        distPatternsBoundsInfos[0] = patternBoundsInfo;
+                }
                 else
                 {
                     for (int i = 0; i < distancePatternInfos.Count; i++)
@@ -1194,14 +1207,57 @@ namespace Whorl
                             distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
                             distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
                             InitDistanceSquares(i, distPtn.CurvePoints);
+                            if (Info.ComputeExternal)
+                            {
+                                var boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                                var origRect = boundsRect;
+                                distPtn.Center = new PointF(distPtn.Center.X - boundsRect.Left, distPtn.Center.Y - boundsRect.Top);
+                                distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
+                                boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                                var rect = new Rectangle((int)Math.Ceiling(boundsRect.Left), (int)Math.Ceiling(boundsRect.Top), 
+                                                         (int)Math.Ceiling(boundsRect.Width), (int)Math.Ceiling(boundsRect.Height));
+                                uint[] pixelBitmap = GetBoundsBitmap(distPtn.CurvePoints, rect.Size, 
+                                                                     distPtn.DrawCurve, out int pixelCount);
+                                var boundsInfo = new PatternBoundsInfo(rect.Size, pixelCount, pixelBitmap);
+                                boundsInfo.BoundingRectangle = new Rectangle(
+                                    rect.Left + (int)Math.Ceiling(origRect.Left), 
+                                    rect.Top + (int)Math.Ceiling(origRect.Top), 
+                                    rect.Width, rect.Height);
+                                distPatternsBoundsInfos[i] = boundsInfo;
+                            }
                         }
                     }
                 }
             }
 
+            private bool IncludeSegmentPoint(PointF p, PointF topLeft, PointF bottomRight, int row, int col)
+            {
+                bool flag = (p.X >= topLeft.X && p.Y >= topLeft.Y && p.X < bottomRight.X && p.Y < bottomRight.Y);
+                if (row == 0)
+                {
+                    if (p.Y < topLeft.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                        flag = true;
+                }
+                else if (row == Info.DistanceRows - 1)
+                {
+                    if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                        flag = true;
+                }
+                if (col == 0)
+                {
+                    if (p.X < topLeft.X && p.Y >= topLeft.Y && p.Y < bottomRight.Y)
+                        flag = true;
+                }
+                else if (col == Info.DistanceRows - 1)
+                {
+                    if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
+                        flag = true;
+                }
+                return flag;
+            }
+
             private void InitDistanceSquares(int index, PointF[] points)
             {
-                //List<PointF> segmentPoints = Tools.DistinctPoints(points);
                 if (points.Length == 0)
                     return;
                 List<PointF> segmentPoints = new List<PointF>();
@@ -1238,67 +1294,12 @@ namespace Whorl
                         var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
                         var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
                                                      topLeft.Y + distanceSquareSize.Height);
-                        var indices = Enumerable.Range(0, segmentPoints.Count).Where(i =>
-                        {
-                            PointF p = segmentPoints[i];
-                            bool flag = (p.X >= topLeft.X && p.Y >= topLeft.Y && p.X < bottomRight.X && p.Y < bottomRight.Y);
-                            if (row == 0)
-                            {
-                                if (p.Y < topLeft.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                                    flag = true;
-                            }
-                            else if (row == Info.DistanceRows - 1)
-                            {
-                                if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                                    flag = true;
-                            }
-                            if (col == 0)
-                            {
-                                if (p.X < topLeft.X && p.Y >= topLeft.Y && p.Y < bottomRight.Y)
-                                    flag = true;
-                            }
-                            else if (col == Info.DistanceRows - 1)
-                            {
-                                if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                                    flag = true;
-                            }
-                            return flag;
-                        });
-                        //var pts = segmentPoints.Where(p => p.X >= topLeft.X && p.Y >= topLeft.Y &&
-                        //                               p.X < bottomRight.X && p.Y < bottomRight.Y).ToList();
-                        //if (row == 0)
-                        //    pts.AddRange(segmentPoints.Where(p => p.Y < topLeft.Y &&
-                        //                 p.X >= topLeft.X && p.X < bottomRight.X));
-                        //else if (row == Info.DistanceRows - 1)
-                        //    pts.AddRange(segmentPoints.Where(p => p.Y >= bottomRight.Y &&
-                        //                 p.X >= topLeft.X && p.X < bottomRight.X));
-                        //if (col == 0)
-                        //    pts.AddRange(segmentPoints.Where(p => p.X < topLeft.X &&
-                        //                 p.Y >= topLeft.Y && p.Y < bottomRight.Y));
-                        //else if (col == Info.DistanceRows - 1)
-                        //    pts.AddRange(segmentPoints.Where(p => p.X >= bottomRight.X &&
-                        //                 p.Y >= topLeft.Y && p.Y < bottomRight.Y));
-                        if (indices.Any())
+                        var includedPoints = segmentPoints.Where(p => IncludeSegmentPoint(p, topLeft, bottomRight, row, col));
+                        if (includedPoints.Any())
                         {
                             var center = new PointF(topLeft.X + halfSquareSize.Width,
                                                     topLeft.Y + halfSquareSize.Height);
-                            var pointInfos = new List<DistancePointInfo>();
-                            foreach (int i in indices)
-                            {
-                                PointF p = segmentPoints[i];
-                                if (Info.ComputeExternal)
-                                {
-                                    PointF pPrev = i > 0 ? segmentPoints[i - 1] : segmentPoints.Last();
-                                    double angle = Math.Atan2(p.Y - pPrev.Y, p.X - pPrev.X);
-                                    PointF rotationVec = Tools.GetRotationVector(-angle);
-                                    pointInfos.Add(new DistancePointInfo(p, rotationVec));
-                                }
-                                else
-                                {
-                                    pointInfos.Add(new DistancePointInfo(p, PointF.Empty));
-                                }
-                            }
-                            distanceSquares.Add(new DistanceSquare(center, pointInfos.ToArray()));
+                            distanceSquares.Add(new DistanceSquare(center, includedPoints.ToArray()));
                         }
                         ind++;
                     }
@@ -1334,6 +1335,23 @@ namespace Whorl
                 bool useCenterSlope = false;
                 double distanceScale = 1.0;
                 PointF center = PointF.Empty;
+
+                if (Info.ComputeExternal)
+                {
+                    PatternBoundsInfo ptnInfo = distPatternsBoundsInfos[index];
+                    bool isOutside = true;
+                    var rect = ptnInfo.BoundingRectangle;
+                    if (x >= rect.Left && x < rect.Right && y >= rect.Top && y < rect.Bottom)
+                    {
+                        int xi = x - rect.Left;
+                        int yi = y - rect.Top;
+                        int pixInd = yi * ptnInfo.BoundsSize.Width + xi;
+                        if (Tools.BitIsSet(ptnInfo.BoundsBitmap, pixInd))
+                            isOutside = false;  //Point is inside distance pattern.
+                    }
+                    if (isOutside)
+                        distanceSign = -1.0;
+                }
                 if (index < distancePatternInfos.Count)
                 {
                     distInfo = distancePatternInfos[index];
@@ -1366,31 +1384,31 @@ namespace Whorl
                     {
                         distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
                     }
-                    DistancePointInfo? minPointInfo = null;
+                    //DistancePointInfo? minPointInfo = null;
                     foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
                              .Take(Info.DistanceCount))
                     {
-                        int minI = -1;
-                        for (int i = 0; i < minSquare.PointInfos.Length; i++)
+                        //int minI = -1;
+                        for (int i = 0; i < minSquare.Points.Length; i++)
                         {
-                            double dist = Tools.DistanceSquared(minSquare.PointInfos[i].Point, p);
+                            double dist = Tools.DistanceSquared(minSquare.Points[i], p);
                             if (dist < minDist)
                             {
                                 minDist = dist;
-                                minI = i;
+                                //minI = i;
                             }
                         }
-                        if (Info.ComputeExternal && minI != -1)
-                            minPointInfo = minSquare.PointInfos[minI];
+                        //if (Info.ComputeExternal && minI != -1)
+                        //    minPointInfo = minSquare.PointInfos[minI];
                     }
-                    if (Info.ComputeExternal && minPointInfo != null)
-                    {
-                        var pMinInfo = (DistancePointInfo)minPointInfo;
-                        PointF pVec = new PointF(p.X - pMinInfo.Point.X, p.Y - pMinInfo.Point.Y);
-                        pVec = Tools.RotatePoint(pVec, pMinInfo.RotationVector);
-                        if (pVec.Y < 0)
-                            distanceSign = -1.0;  //Point p is external to pattern outline.
-                    }
+                    //if (Info.ComputeExternal) // && minPointInfo != null)
+                    //{
+                    //    var pMinInfo = (DistancePointInfo)minPointInfo;
+                    //    PointF pVec = new PointF(p.X - pMinInfo.Point.X, p.Y - pMinInfo.Point.Y);
+                    //    pVec = Tools.RotatePoint(pVec, pMinInfo.RotationVector);
+                    //    if (pVec.Y > 0)
+                    //        distanceSign = -1.0;  //Point p is external to pattern outline.
+                    //}
                     if (useFadeOut)
                     {
                         double startFade = settings.FadeStartRatio * distInfo.MaxModulus;
@@ -1414,13 +1432,14 @@ namespace Whorl
 
             private bool ComputeAllDistances(IRenderCaller caller)
             {
-                allDistanceInfo = new RaggedArrayRow<double[]>[boundsSize.Height];
+                allDistanceInfo = new RaggedArrayRow<double[]>[patternBoundsInfo.BoundsSize.Height];
                 int pixInd = 0;
-                for (int y = 0; y < boundsSize.Height; y++)
+                uint[] boundsBitmap = patternBoundsInfo.BoundsBitmap;
+                for (int y = 0; y < patternBoundsInfo.BoundsSize.Height; y++)
                 {
                     int minX = -1;
                     var distancesRow = new List<double[]>();
-                    for (int x = 0; x < boundsSize.Width; x++)
+                    for (int x = 0; x < patternBoundsInfo.BoundsSize.Width; x++)
                     {
                         if (caller != null && caller.CancelRender)
                         {
@@ -1459,6 +1478,7 @@ namespace Whorl
 
             private void InitInfo()
             {
+                Size boundsSize = patternBoundsInfo.BoundsSize;
                 if (PointsRandomOps != null)
                 {
                     PointsRandomOps.RandomFunction = Info.RandomFunction;
@@ -1543,6 +1563,7 @@ namespace Whorl
 
             private int[] GetPatternPixels(bool setCachedPositions, bool getCachedPositions, IRenderCaller caller)
             {
+                Size boundsSize = patternBoundsInfo.BoundsSize;
                 this.setCachedPositions = setCachedPositions;
                 this.getCachedPositions = getCachedPositions;
                 int[] patternPixels = new int[boundsSize.Width * boundsSize.Height];
@@ -1596,12 +1617,12 @@ namespace Whorl
                     floatColors[i] = new ColorGradient.FloatColor();
                 }
                 ColorGradient.FloatColor floatColor1, floatColor2;
-                for (int y = 0; y < boundsSize.Height; y += DraftSize)
+                for (int y = 0; y < patternBoundsInfo.BoundsSize.Height; y += DraftSize)
                 {
-                    for (int x = 0; x < boundsSize.Width; x += DraftSize)
+                    for (int x = 0; x < patternBoundsInfo.BoundsSize.Width; x += DraftSize)
                     {
-                        int pixInd = y * boundsSize.Width + x;
-                        if (Tools.BitIsSet(boundsBitmap, pixInd))  //Point (X, Y) is within pattern's bounds.
+                        int pixInd = y * patternBoundsInfo.BoundsSize.Width + x;
+                        if (Tools.BitIsSet(patternBoundsInfo.BoundsBitmap, pixInd))  //Point (X, Y) is within pattern's bounds.
                         {
                             bool setColors = true;
                             int ind = 0;
@@ -1609,9 +1630,9 @@ namespace Whorl
                             {
                                 for (int xi = 0; xi <= DraftSize && setColors; xi += DraftSize)
                                 {
-                                    int pixInd1 = (y + yi) * boundsSize.Width + x + xi;
+                                    int pixInd1 = (y + yi) * patternBoundsInfo.BoundsSize.Width + x + xi;
                                     if (pixInd1 < patternPixels.Length &&
-                                        Tools.BitIsSet(boundsBitmap, pixInd1))
+                                        Tools.BitIsSet(patternBoundsInfo.BoundsBitmap, pixInd1))
                                     {
                                         Color color = Color.FromArgb(patternPixels[pixInd1]);
                                         floatColors[ind++].SetFromColor(color);
@@ -1636,7 +1657,7 @@ namespace Whorl
                                         float xFac = (float)xi / DraftSize;
                                         Color color = ColorGradient.FloatColor.InterpolateColor(
                                             floatColor1, floatColor2, xFac);
-                                        int pixInd1 = (y + yi) * boundsSize.Width + x + xi;
+                                        int pixInd1 = (y + yi) * patternBoundsInfo.BoundsSize.Width + x + xi;
                                         patternPixels[pixInd1] = color.ToArgb();
                                     }
                                 }
@@ -1672,6 +1693,7 @@ namespace Whorl
 
             private bool TraverseRectangular(IRenderCaller caller, int[] patternPixels)
             {
+                Size boundsSize = patternBoundsInfo.BoundsSize;
                 int pixInd = 0;
                 for (int y = 0; y < boundsSize.Height; y++)
                 {
@@ -1704,8 +1726,9 @@ namespace Whorl
 
             private bool TraversePolar(IRenderCaller caller, int[] patternPixels)
             {
+                Size boundsSize = patternBoundsInfo.BoundsSize;
                 Point center = new Point((int)Info.Center.X, (int)Info.Center.Y); // new Point(boundsSize.Width / 2, boundsSize.Height / 2);
-                uint[] travBitmap = (uint[])boundsBitmap.Clone();
+                uint[] travBitmap = (uint[])patternBoundsInfo.BoundsBitmap.Clone();
                 float step = 0F;
                 float stepInc = (float)patternPixels.Length / (float)(maxModulus / modulusFactor);
                 int modulusStep = 0;
@@ -1757,7 +1780,7 @@ namespace Whorl
 
             private bool RenderPoint(int x, int y, int pixInd, int[] patternPixels)
             {
-                bool inBounds = Tools.BitIsSet(boundsBitmap, pixInd);  //Point (X, Y) is within pattern's bounds.
+                bool inBounds = Tools.BitIsSet(patternBoundsInfo.BoundsBitmap, pixInd);  //Point (X, Y) is within pattern's bounds.
                 if (inBounds)
                 {
                     float position;
@@ -1771,7 +1794,7 @@ namespace Whorl
                         {
                             //draftY -= remY;
                             //draftX -= remX;
-                            int pixVal = patternPixels[(draftY - remY) * boundsSize.Width + draftX - remX];
+                            int pixVal = patternPixels[(draftY - remY) * patternBoundsInfo.BoundsSize.Width + draftX - remX];
                             patternPixels[pixInd] = pixVal;
                             return inBounds;
                         }
@@ -1862,8 +1885,7 @@ namespace Whorl
                     Info.SetPatternAngle(zVector.GetArgument());
                     transformedPanXY = Tools.RotatePoint(PanXY, Info.PatternAngle);
                     float scaleFactor = (float)Info.MaxPosition / 1000F;
-                    transformedPanXY.X *= scaleFactor;
-                    transformedPanXY.Y *= scaleFactor;
+                    transformedPanXY = new PointF(transformedPanXY.X * scaleFactor, transformedPanXY.Y * scaleFactor);
                     Info.SetPointOffset(new DoublePoint(transformedPanXY.X, transformedPanXY.Y));
                     Info.PolarTraversal = Info.Normalize = Info.NormalizeAngle = false;
                     Info.Rotation = 0;
@@ -1909,7 +1931,7 @@ namespace Whorl
                 distanceSquaresArray = null;
                 if (patternPixels == null)
                     return null;  //User canceled.
-                Bitmap bmp = BitmapTools.CreateFormattedBitmap(boundsSize);
+                Bitmap bmp = BitmapTools.CreateFormattedBitmap(patternBoundsInfo.BoundsSize);
                 BitmapTools.CopyColorArrayToBitmap(bmp, patternPixels);
                 return bmp;
             }

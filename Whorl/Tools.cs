@@ -463,8 +463,9 @@ namespace Whorl
             return 1u << (i & 0x1F);
         }
 
-        public static uint[] GetBitmap(int[] array, Predicate<int> predicate)
+        public static uint[] GetBitmap(int[] array, Predicate<int> predicate, out int matchedCount)
         {
+            matchedCount = 0;
             uint[] bitmap = new uint[1 + (array.Length >> 5)];
             for (int i = 0; i < array.Length; i++)
             {
@@ -473,6 +474,7 @@ namespace Whorl
                     int ind = i >> 5;
                     //uint bit = 1u << (i & 0x1FF);
                     bitmap[ind] |= GetBitmapBit(i);
+                    matchedCount++;
                 }
             }
             return bitmap;
