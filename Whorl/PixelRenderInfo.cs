@@ -38,7 +38,7 @@ namespace Whorl
         /// <summary>
         /// Set true from formula if distance should be positive when point is inside, negative when outside.
         /// </summary>
-        public bool ComputeInternal { get; set; }
+        public bool ComputeExternal { get; set; }
         public bool ComputeInfluence { get; set; }
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;

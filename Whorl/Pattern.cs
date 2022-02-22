@@ -1286,7 +1286,7 @@ namespace Whorl
                             foreach (int i in indices)
                             {
                                 PointF p = segmentPoints[i];
-                                if (Info.ComputeInternal)
+                                if (Info.ComputeExternal)
                                 {
                                     PointF pPrev = i > 0 ? segmentPoints[i - 1] : segmentPoints.Last();
                                     double angle = Math.Atan2(p.Y - pPrev.Y, p.X - pPrev.X);
@@ -1380,10 +1380,10 @@ namespace Whorl
                                 minI = i;
                             }
                         }
-                        if (Info.ComputeInternal && minI != -1)
+                        if (Info.ComputeExternal && minI != -1)
                             minPointInfo = minSquare.PointInfos[minI];
                     }
-                    if (Info.ComputeInternal && minPointInfo != null)
+                    if (Info.ComputeExternal && minPointInfo != null)
                     {
                         var pMinInfo = (DistancePointInfo)minPointInfo;
                         PointF pVec = new PointF(p.X - pMinInfo.Point.X, p.Y - pMinInfo.Point.Y);
