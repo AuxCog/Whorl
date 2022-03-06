@@ -10,6 +10,7 @@ namespace Whorl
     {
         public double XWeight { get; protected set; } = 1.0;
         public double XOffset { get; protected set; }
+        public double YOffset { get; protected set; }
         public double YWeight { get; protected set; } = 1.0;
         public double XtoInvOff { get; protected set; } = 0.001;
 
@@ -18,7 +19,7 @@ namespace Whorl
         [ParserEngine.ExcludeMethod]
         public double DefaultFunction(double x)
         {
-            return YWeight * baseFunction(XWeight * x + XOffset);
+            return YWeight * baseFunction(XWeight * x + XOffset) + YOffset;
         }
 
         public void SetBaseFunction(Func<double, double> func)
@@ -29,7 +30,7 @@ namespace Whorl
         public double XtoInvX(double x)
         {
             x = XWeight * x + XOffset;
-            return YWeight * Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x)));
+            return YWeight * Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x))) + YOffset;
         }
     }
 }
