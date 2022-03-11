@@ -26,6 +26,11 @@ namespace ParserEngine
             return x;
         }
 
+        public static double Zero(double x)
+        {
+            return 0;
+        }
+
         public static double Recip(double x)
         {
             return 1.0 / x;

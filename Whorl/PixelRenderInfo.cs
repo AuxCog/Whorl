@@ -127,7 +127,7 @@ namespace Whorl
         public double GetNearestPointAngle(int index)
         {
             PointF nearestPoint = NearestPoints[index];
-            return Tools.NormalizedArcTan(nearestPoint.X - IntXY.X, nearestPoint.Y - IntXY.Y);
+            return Math.Atan2(nearestPoint.X - IntXY.X, nearestPoint.Y - IntXY.Y) - PatternAngle;
         }
 
         public PolarPoint GetSeedPoint(double angle)
