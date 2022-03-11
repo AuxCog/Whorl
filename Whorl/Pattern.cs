@@ -464,11 +464,11 @@ namespace Whorl
                     DistanceToPath = distance;
                 }
 
-                public void SetDistanceToPath(int i, double distance, PointF nearestPoint)
-                {
-                    DistancesToPaths[i] = distance;
-                    NearestPoints[i] = nearestPoint;
-                }
+                //public void SetDistanceToPath(int i, double distance, PointF nearestPoint)
+                //{
+                //    DistancesToPaths[i] = distance;
+                //    NearestPoints[i] = nearestPoint;
+                //}
 
                 public void AllocateDistancesToPaths(int length)
                 {
@@ -1316,7 +1316,8 @@ namespace Whorl
                     if (distanceSquaresArray[index] != null)
                     {
                         double distance = GetDistanceToPath(index, x, y, out PointF nearestPoint);
-                        Info.SetDistanceToPath(index, distance, nearestPoint);
+                        Info.DistancesToPaths[index] = distance;
+                        Info.NearestPoints[index] = nearestPoint;
                     }
                 }
                 if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
