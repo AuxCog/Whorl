@@ -1328,7 +1328,6 @@ namespace Whorl
             {
                 var p = new PointF(x, y);
                 double minDist = double.MaxValue;
-                double distanceSign = 1.0;
                 DistancePatternInfo distInfo = null;
                 DistancePatternSettings settings = null;
                 bool useFadeOut = false;
@@ -1354,7 +1353,7 @@ namespace Whorl
                             isOutside = false;  //Point is inside distance pattern.
                     }
                     if (isOutside)
-                        distanceSign = -1.0;
+                        distanceScale = -1.0;
                 }
                 if (index < distancePatternInfos.Count)
                 {
@@ -1369,7 +1368,7 @@ namespace Whorl
                     modulus = Tools.Distance(p, center);
                     if (useCenterSlope)
                     {
-                        distanceScale = Math.Tanh(settings.CenterSlope * modulus / distInfo.MaxModulus);
+                        distanceScale *= Math.Tanh(settings.CenterSlope * modulus / distInfo.MaxModulus);
                     }
                     if (useFadeOut)
                     {
@@ -1423,7 +1422,7 @@ namespace Whorl
                 //For testing center:
                 //if (useFadeOut && modulus < 50)
                 //    minDist *= 10;
-                return distanceFactor * distanceScale * distanceSign * Math.Sqrt(minDist);
+                return distanceFactor * distanceScale * Math.Sqrt(minDist);
             }
 
             private bool ComputeAllDistances(IRenderCaller caller)
