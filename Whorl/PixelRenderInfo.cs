@@ -50,6 +50,7 @@ namespace Whorl
         protected PassTypes PassType { get; set; }
         public double DistanceToPath { get; protected set; }
         public double[] DistancesToPaths { get; protected set; }
+        public PointF[] NearestPoints { get; protected set; }
         public PointF[] DistancePatternCenters { get; protected set; }
         public float X { get; protected set; }
         public float Y { get; protected set; }

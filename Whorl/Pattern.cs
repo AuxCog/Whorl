@@ -464,15 +464,17 @@ namespace Whorl
                     DistanceToPath = distance;
                 }
 
-                public void SetDistanceToPath(int i, double distance)
+                public void SetDistanceToPath(int i, double distance, PointF nearestPoint)
                 {
                     DistancesToPaths[i] = distance;
+                    NearestPoints[i] = nearestPoint;
                 }
 
                 public void AllocateDistancesToPaths(int length)
                 {
                     DistancesToPaths = new double[length];
                     DistancePatternCenters = new PointF[length];
+                    NearestPoints = new PointF[length];
                 }
             }
 
@@ -1313,15 +1315,15 @@ namespace Whorl
                 {
                     if (distanceSquaresArray[index] != null)
                     {
-                        double distance = GetDistanceToPath(index, x, y);
-                        Info.SetDistanceToPath(index, distance);
+                        double distance = GetDistanceToPath(index, x, y, out PointF nearestPoint);
+                        Info.SetDistanceToPath(index, distance, nearestPoint);
                     }
                 }
                 if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
                     Info.SetDistanceToPath(Info.DistancesToPaths.Average());
             }
 
-            private double GetDistanceToPath(int index, int x, int y)
+            private double GetDistanceToPath(int index, int x, int y, out PointF nearestPoint)
             {
                 var p = new PointF(x, y);
                 double minDist = double.MaxValue;
@@ -1336,6 +1338,7 @@ namespace Whorl
                 double distanceScale = 1.0;
                 PointF center = PointF.Empty;
 
+                nearestPoint = PointF.Empty;
                 if (Info.ComputeExternal)
                 {
                     PatternBoundsInfo ptnInfo = distPatternsBoundsInfos[index];
@@ -1384,31 +1387,23 @@ namespace Whorl
                     {
                         distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
                     }
-                    //DistancePointInfo? minPointInfo = null;
+                    int minDistI = -1;
                     foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
                              .Take(Info.DistanceCount))
                     {
-                        //int minI = -1;
+                        minDistI = -1;
                         for (int i = 0; i < minSquare.Points.Length; i++)
                         {
                             double dist = Tools.DistanceSquared(minSquare.Points[i], p);
                             if (dist < minDist)
                             {
                                 minDist = dist;
-                                //minI = i;
+                                minDistI = i;
                             }
                         }
-                        //if (Info.ComputeExternal && minI != -1)
-                        //    minPointInfo = minSquare.PointInfos[minI];
+                        if (minDistI != -1)
+                            nearestPoint = minSquare.Points[minDistI];
                     }
-                    //if (Info.ComputeExternal) // && minPointInfo != null)
-                    //{
-                    //    var pMinInfo = (DistancePointInfo)minPointInfo;
-                    //    PointF pVec = new PointF(p.X - pMinInfo.Point.X, p.Y - pMinInfo.Point.Y);
-                    //    pVec = Tools.RotatePoint(pVec, pMinInfo.RotationVector);
-                    //    if (pVec.Y > 0)
-                    //        distanceSign = -1.0;  //Point p is external to pattern outline.
-                    //}
                     if (useFadeOut)
                     {
                         double startFade = settings.FadeStartRatio * distInfo.MaxModulus;
@@ -1453,7 +1448,7 @@ namespace Whorl
                             for (int index = 0; index < distanceSquaresArray.Length; index++)
                             {
                                 if (distanceSquaresArray[index] != null)
-                                    distances[index] = GetDistanceToPath(index, x, y);
+                                    distances[index] = GetDistanceToPath(index, x, y, out _);
                                 else
                                     distances[index] = double.MaxValue;
                             }
