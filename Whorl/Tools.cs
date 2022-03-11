@@ -238,12 +238,6 @@ namespace Whorl
             return P.X * P.X + P.Y * P.Y;
         }
 
-        //Adjust angle to be >= 0 and < 2 * PI.
-        public static double NormalizeAngle(double angle)
-        {
-            return Normalize(angle, 2.0 * Math.PI);
-        }
-
         public static bool InBounds(Rectangle boundsRect, Point p)
         {
             return boundsRect.Contains(p);
@@ -878,20 +872,44 @@ namespace Whorl
                 index = index % count;
                 if (index < 0)
                     index += count;
-                //while (index < 0)
-                //    index += count;
-                //while (index >= count)
-                //    index -= count;
             }
             return index;
         }
 
+        /// <summary>
+        /// Adjust x to be in range [0, n].
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public static double Normalize(double x, double n)
         {
             double v = x % n;
             if (v < 0)
                 v += n;
             return v;
+        }
+
+        /// <summary>
+        /// Adjust angle to be >= 0 and < 2 * PI.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public static double NormalizeAngle(double angle)
+        {
+            return Normalize(angle, 2.0 * Math.PI);
+        }
+
+        /// <summary>
+        /// Return ArcTangent in range [0, 2 * PI]
+        /// </summary>
+        /// <param name="y"></param>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static double NormalizedArcTan(double y, double x)
+        {
+            double angle = Math.Atan2(y, x);
+            return angle >= 0 ? angle : 2.0 * Math.PI + angle;
         }
 
         public static object ConvertNumericInput(string textInput, Type targetType, string label,

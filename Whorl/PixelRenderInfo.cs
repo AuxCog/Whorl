@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Whorl
 {
+    /// <summary>
+    /// Class used by compiled Whorl PixelRendering formulas.
+    /// </summary>
     public abstract class PixelRenderInfo
     {
         public enum PassTypes
@@ -119,6 +122,12 @@ namespace Whorl
         public DoublePoint GetTransformedPoint()
         {
             return GetScaledPolar().ToRectangular();
+        }
+
+        public double GetNearestPointAngle(int index)
+        {
+            PointF nearestPoint = NearestPoints[index];
+            return Tools.NormalizedArcTan(nearestPoint.X - IntXY.X, nearestPoint.Y - IntXY.Y);
         }
 
         public PolarPoint GetSeedPoint(double angle)
