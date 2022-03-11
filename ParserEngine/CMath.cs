@@ -26,6 +26,11 @@ namespace ParserEngine
             return double.IsNaN(x) ? 0.0 : x;
         }
 
+        public static double Zero(double x)
+        {
+            return 0;
+        }
+
         [MathFunction(MathFunctionTypes.Trigonometric)]
         public static double Sin(double x)
         {
