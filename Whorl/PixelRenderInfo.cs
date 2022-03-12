@@ -19,10 +19,13 @@ namespace Whorl
             Normal,
             LastPass
         }
-        public PixelRenderInfo(Pattern.RenderingInfo parent, List<Pattern.RenderingInfo.DistancePatternInfo> distancePatternsInfo)
+        public PixelRenderInfo(Pattern.RenderingInfo parent, 
+                               List<Pattern.RenderingInfo.DistancePatternInfo> distancePatternsInfo,
+                               Func<PointF, PointF> transformPoint)
         {
             this.parent = parent;
             this.distancePatternsInfo = distancePatternsInfo;
+            TransformPoint = transformPoint;
         }
 
         public bool FirstPass => PassType == PassTypes.FirstPass;
@@ -75,6 +78,7 @@ namespace Whorl
             get { return parent.SeedPattern != null; }
         }
 
+        public Func<PointF, PointF> TransformPoint { get; }
 
         public Size GetXYBounds()
         {

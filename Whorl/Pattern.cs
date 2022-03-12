@@ -387,7 +387,10 @@ namespace Whorl
             //private const int distanceSquareRows = 10;
             private class InfoExt : PixelRenderInfo
             {
-                public InfoExt(Pattern.RenderingInfo parent, List<DistancePatternInfo> distancePatternInfos) : base(parent, distancePatternInfos)
+                public InfoExt(Pattern.RenderingInfo parent, 
+                               List<DistancePatternInfo> distancePatternInfos, 
+                               Func<PointF, PointF> transformPoint) : 
+                    base(parent, distancePatternInfos, transformPoint)
                 {
                 }
 
@@ -878,7 +881,7 @@ namespace Whorl
                 //    throw new NullReferenceException("design cannot be null.");
                 ParentPattern = pattern;
                 //Design = pattern.Design;
-                Info = new InfoExt(this, distancePatternInfos);
+                Info = new InfoExt(this, distancePatternInfos, p => TransformPoint(p.X, p.Y));
                 if (createColorNodes)
                 {
                     ColorNodes = new ColorNodeList();
