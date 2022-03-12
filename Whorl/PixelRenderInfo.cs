@@ -93,7 +93,17 @@ namespace Whorl
 
         public PolarPoint GetPolar(PointF center, bool transformAngle = false)
         {
-            var doublePoint = new DoublePoint(X - center.X, Y - center.Y);
+            return GetPolar(center, X, Y, transformAngle);
+        }
+
+        public PolarPoint GetPolar(PointF center, PointF p, bool transformAngle = false)
+        {
+            return GetPolar(center, p.X, p.Y, transformAngle);
+        }
+
+        public PolarPoint GetPolar(PointF center, float x, float y, bool transformAngle = false)
+        {
+            var doublePoint = new DoublePoint(x - center.X, y - center.Y);
             PolarPoint polarPoint = doublePoint.ToPolar();
             if (!(NormalizeAngle && transformAngle))
                 polarPoint.Angle -= PatternAngle;
