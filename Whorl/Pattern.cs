@@ -1182,92 +1182,108 @@ namespace Whorl
                 return count;
             }
 
+            private void AddPatternBoundsInfo(Pattern distPtn, int index)
+            {
+                var boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                var origRect = boundsRect;
+                distPtn.Center = new PointF(distPtn.Center.X - boundsRect.Left, distPtn.Center.Y - boundsRect.Top);
+                distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
+                boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                var rect = new Rectangle((int)Math.Ceiling(boundsRect.Left), (int)Math.Ceiling(boundsRect.Top),
+                                         (int)Math.Ceiling(boundsRect.Width), (int)Math.Ceiling(boundsRect.Height));
+                uint[] pixelBitmap = GetBoundsBitmap(distPtn.CurvePoints, rect.Size,
+                                                     distPtn.DrawCurve, out int pixelCount);
+                var boundsInfo = new PatternBoundsInfo(rect.Size, pixelCount, pixelBitmap);
+                boundsInfo.BoundingRectangle = new Rectangle(
+                    rect.Left + (int)Math.Ceiling(origRect.Left),
+                    rect.Top + (int)Math.Ceiling(origRect.Top),
+                    rect.Width, rect.Height);
+                distPatternsBoundsInfos[index] = boundsInfo;
+            }
+
+            private void InitDistancePatternSquares(Pattern parentPattern)
+            {
+                bool multiple = !Info.SingleDistance;
+                var pointsList = new List<PointF[]>();
+                for (int i = 0; i < distancePatternInfos.Count; i++)
+                {
+                    var distanceInfo = distancePatternInfos[i];
+                    if (!distanceInfo.DistancePatternSettings.Enabled)
+                        continue;
+                    using (Pattern distPtn = distanceInfo.GetDistancePattern(parentPattern))
+                    {
+                        if (distanceInfo.DistancePatternSettings.AutoEndValue)
+                        {
+                            distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
+                        }
+                        PointF distCenter = distanceInfo.DistancePatternCenter;
+                        distPtn.Center = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
+                        distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
+                        distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
+                        if (multiple)
+                            pointsList.Clear();
+                        pointsList.Add(distPtn.CurvePoints);
+                        if (multiple)
+                            InitDistanceSquares(i, pointsList);
+                        if (Info.ComputeExternal)
+                        {
+                            AddPatternBoundsInfo(distPtn, i);
+                        }
+                    }
+                }
+                if (!multiple)
+                {
+                    InitDistanceSquares(0, pointsList);
+                }
+            }
+
             private void InitDistanceSquares(Pattern parentPattern, PointF[] patternPoints)
             {
                 int count = GetDistancePathsCount();
                 if (Info.ComputeExternal)
                     distPatternsBoundsInfos = new PatternBoundsInfo[count];
-                distanceSquaresArray = new List<DistanceSquare>[count];
+                distanceSquaresArray = new List<DistanceSquare>[Info.SingleDistance ? 1 : count];
                 if (distancePatternInfos.Count == 0)
                 {
-                    InitDistanceSquares(0, patternPoints);
+                    var pointsList = new List<PointF[]>() { patternPoints };
+                    InitDistanceSquares(0, pointsList);
                     if (Info.ComputeExternal)
                         distPatternsBoundsInfos[0] = patternBoundsInfo;
                 }
                 else
                 {
-                    for (int i = 0; i < distancePatternInfos.Count; i++)
-                    {
-                        var distanceInfo = distancePatternInfos[i];
-                        if (!distanceInfo.DistancePatternSettings.Enabled)
-                            continue;
-                        using (Pattern distPtn = distanceInfo.GetDistancePattern(parentPattern))
-                        {
-                            if (distanceInfo.DistancePatternSettings.AutoEndValue)
-                            {
-                                distanceInfo.DistancePatternSettings.EndDistanceValue = 0;
-                            }
-                            PointF distCenter = distanceInfo.DistancePatternCenter;
-                            distPtn.Center = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
-                            distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                            distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
-                            InitDistanceSquares(i, distPtn.CurvePoints);
-                            if (Info.ComputeExternal)
-                            {
-                                var boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
-                                var origRect = boundsRect;
-                                distPtn.Center = new PointF(distPtn.Center.X - boundsRect.Left, distPtn.Center.Y - boundsRect.Top);
-                                distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                                boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
-                                var rect = new Rectangle((int)Math.Ceiling(boundsRect.Left), (int)Math.Ceiling(boundsRect.Top), 
-                                                         (int)Math.Ceiling(boundsRect.Width), (int)Math.Ceiling(boundsRect.Height));
-                                uint[] pixelBitmap = GetBoundsBitmap(distPtn.CurvePoints, rect.Size, 
-                                                                     distPtn.DrawCurve, out int pixelCount);
-                                var boundsInfo = new PatternBoundsInfo(rect.Size, pixelCount, pixelBitmap);
-                                boundsInfo.BoundingRectangle = new Rectangle(
-                                    rect.Left + (int)Math.Ceiling(origRect.Left), 
-                                    rect.Top + (int)Math.Ceiling(origRect.Top), 
-                                    rect.Width, rect.Height);
-                                distPatternsBoundsInfos[i] = boundsInfo;
-                            }
-                        }
-                    }
+                    InitDistancePatternSquares(parentPattern);
                 }
             }
 
             private bool IncludeSegmentPoint(PointF p, PointF topLeft, PointF bottomRight, int row, int col)
             {
-                bool flag = (p.X >= topLeft.X && p.Y >= topLeft.Y && p.X < bottomRight.X && p.Y < bottomRight.Y);
+                bool include = (p.X >= topLeft.X && p.Y >= topLeft.Y && p.X < bottomRight.X && p.Y < bottomRight.Y);
                 if (row == 0)
                 {
                     if (p.Y < topLeft.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                        flag = true;
+                        include = true;
                 }
                 else if (row == Info.DistanceRows - 1)
                 {
                     if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                        flag = true;
+                        include = true;
                 }
                 if (col == 0)
                 {
                     if (p.X < topLeft.X && p.Y >= topLeft.Y && p.Y < bottomRight.Y)
-                        flag = true;
+                        include = true;
                 }
                 else if (col == Info.DistanceRows - 1)
                 {
                     if (p.Y >= bottomRight.Y && p.X >= topLeft.X && p.X < bottomRight.X)
-                        flag = true;
+                        include = true;
                 }
-                return flag;
+                return include;
             }
 
-            private void InitDistanceSquares(int index, PointF[] points)
+            private double GetSegmentLengthSquared()
             {
-                if (points.Length == 0)
-                    return;
-                List<PointF> segmentPoints = new List<PointF>();
-                PointF pLast = points[0];
-                segmentPoints.Add(pLast);
                 double segLen;
                 if (Info.SegmentLength == 0)
                     segLen = 1.0;
@@ -1276,9 +1292,17 @@ namespace Whorl
                     double diagLen = Tools.Distance(BoundsRect.Location,
                                      new PointF(BoundsRect.Right, BoundsRect.Bottom));
                     //segLen = Math.Max(1.0, Info.SegmentLength * diagLen / 1000.0);
-                    segLen = Info.SegmentLength * diagLen / 1000.0;
+                    segLen = 0.001 * Info.SegmentLength * diagLen;
                 }
-                double lenSq = segLen * segLen;
+                return segLen * segLen;
+            }
+
+            private void AddSegmentPoints(List<PointF> segmentPoints, PointF[] points, double lenSq)
+            {
+                if (points.Length == 0)
+                    return;
+                PointF pLast = points[0];
+                segmentPoints.Add(pLast);
                 for (int i = 1; i < points.Length; i++)
                 {
                     if (Tools.DistanceSquared(pLast, points[i]) >= lenSq)
@@ -1287,11 +1311,20 @@ namespace Whorl
                         segmentPoints.Add(pLast);
                     }
                 }
+            }
+
+            private void InitDistanceSquares(int index, List<PointF[]> pointsList)
+            {
+                List<PointF> segmentPoints = new List<PointF>();
+                double lenSq = GetSegmentLengthSquared();
+                foreach (PointF[] points in pointsList)
+                {
+                    AddSegmentPoints(segmentPoints, points, lenSq);
+                }
                 distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
                                                (BoundsRect.Height + 1) / Info.DistanceRows);
                 var halfSquareSize = new SizeF(distanceSquareSize.Width / 2F, distanceSquareSize.Height / 2F);
                 var distanceSquares = new List<DistanceSquare>();
-                int ind = 0;
                 for (int row = 0; row < Info.DistanceRows; row++)
                 {
                     for (int col = 0; col < Info.DistanceRows; col++)
@@ -1299,18 +1332,97 @@ namespace Whorl
                         var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
                         var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
                                                      topLeft.Y + distanceSquareSize.Height);
-                        var includedPoints = segmentPoints.Where(p => IncludeSegmentPoint(p, topLeft, bottomRight, row, col));
+                        var includedPoints = new List<PointF>();
+                        for (int i = 0; i < segmentPoints.Count; i++)
+                        {
+                            PointF p = segmentPoints[i];
+                            bool xInbounds = p.X >= topLeft.X && p.X < bottomRight.X;
+                            bool yInbounds = p.Y >= topLeft.Y && p.Y < bottomRight.Y;
+                            bool include = xInbounds && yInbounds;
+                            if (row == 0)
+                            {
+                                if (p.Y < topLeft.Y && xInbounds)
+                                    include = true;
+                            }
+                            else if (row == Info.DistanceRows - 1)
+                            {
+                                if (p.Y >= bottomRight.Y && xInbounds)
+                                    include = true;
+                            }
+                            if (col == 0)
+                            {
+                                if (p.X < topLeft.X && yInbounds)
+                                    include = true;
+                            }
+                            else if (col == Info.DistanceRows - 1)
+                            {
+                                if (p.X >= bottomRight.X && yInbounds)
+                                    include = true;
+                            }
+                            if (include)
+                                includedPoints.Add(p);
+                        }
                         if (includedPoints.Any())
                         {
                             var center = new PointF(topLeft.X + halfSquareSize.Width,
                                                     topLeft.Y + halfSquareSize.Height);
                             distanceSquares.Add(new DistanceSquare(center, includedPoints.ToArray()));
                         }
-                        ind++;
                     }
                 }
                 distanceSquaresArray[index] = distanceSquares;
             }
+
+            //private void InitDistanceSquares(int index, PointF[] points)
+            //{
+            //    if (points.Length == 0)
+            //        return;
+            //    List<PointF> segmentPoints = new List<PointF>();
+            //    PointF pLast = points[0];
+            //    segmentPoints.Add(pLast);
+            //    double segLen;
+            //    if (Info.SegmentLength == 0)
+            //        segLen = 1.0;
+            //    else
+            //    {
+            //        double diagLen = Tools.Distance(BoundsRect.Location,
+            //                         new PointF(BoundsRect.Right, BoundsRect.Bottom));
+            //        //segLen = Math.Max(1.0, Info.SegmentLength * diagLen / 1000.0);
+            //        segLen = Info.SegmentLength * diagLen / 1000.0;
+            //    }
+            //    double lenSq = segLen * segLen;
+            //    for (int i = 1; i < points.Length; i++)
+            //    {
+            //        if (Tools.DistanceSquared(pLast, points[i]) >= lenSq)
+            //        {
+            //            pLast = points[i];
+            //            segmentPoints.Add(pLast);
+            //        }
+            //    }
+            //    distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
+            //                                   (BoundsRect.Height + 1) / Info.DistanceRows);
+            //    var halfSquareSize = new SizeF(distanceSquareSize.Width / 2F, distanceSquareSize.Height / 2F);
+            //    var distanceSquares = new List<DistanceSquare>();
+            //    int ind = 0;
+            //    for (int row = 0; row < Info.DistanceRows; row++)
+            //    {
+            //        for (int col = 0; col < Info.DistanceRows; col++)
+            //        {
+            //            var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
+            //            var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
+            //                                         topLeft.Y + distanceSquareSize.Height);
+            //            var includedPoints = segmentPoints.Where(p => IncludeSegmentPoint(p, topLeft, bottomRight, row, col));
+            //            if (includedPoints.Any())
+            //            {
+            //                var center = new PointF(topLeft.X + halfSquareSize.Width,
+            //                                        topLeft.Y + halfSquareSize.Height);
+            //                distanceSquares.Add(new DistanceSquare(center, includedPoints.ToArray()));
+            //            }
+            //            ind++;
+            //        }
+            //    }
+            //    distanceSquaresArray[index] = distanceSquares;
+            //}
 
             private void SetDistancesToPaths(int x, int y)
             {

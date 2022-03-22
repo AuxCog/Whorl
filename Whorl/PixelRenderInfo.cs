@@ -41,6 +41,7 @@ namespace Whorl
         public bool NormalizeAngle { get; set; }
         public bool ComputeAllDistances { get; set; }
         public bool ComputeDistance { get; set; }
+        public bool SingleDistance { get; set; }
         /// <summary>
         /// Set true from formula if distance should be positive when point is inside, negative when outside.
         /// </summary>
