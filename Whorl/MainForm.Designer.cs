@@ -98,6 +98,7 @@
             this.mergeDesignBelowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mergeDesignAboveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.qualityModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.initializeBackgroundFillsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.animateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.swayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -250,8 +251,12 @@
             this.addVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.endEditingVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.initializeBackgroundFillsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
+            this.closeOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.drawMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.isCornerVertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -259,6 +264,7 @@
             this.influenceContextMenuStrip.SuspendLayout();
             this.polygonMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picDesign)).BeginInit();
+            this.drawMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -611,6 +617,7 @@
             // drawClosedToolStripMenuItem
             // 
             this.drawClosedToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.closeOutlineToolStripMenuItem,
             this.drawPolygonToolStripMenuItem,
             this.drawClosedCurveToolStripMenuItem,
             this.drawLogoPatternToolStripMenuItem,
@@ -623,7 +630,7 @@
             // 
             this.drawPolygonToolStripMenuItem.CheckOnClick = true;
             this.drawPolygonToolStripMenuItem.Name = "drawPolygonToolStripMenuItem";
-            this.drawPolygonToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.drawPolygonToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.drawPolygonToolStripMenuItem.Text = "Draw Polygon";
             this.drawPolygonToolStripMenuItem.Click += new System.EventHandler(this.drawPolygonToolStripMenuItem_Click);
             // 
@@ -631,14 +638,14 @@
             // 
             this.drawClosedCurveToolStripMenuItem.CheckOnClick = true;
             this.drawClosedCurveToolStripMenuItem.Name = "drawClosedCurveToolStripMenuItem";
-            this.drawClosedCurveToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
-            this.drawClosedCurveToolStripMenuItem.Text = "Draw Closed Curve";
+            this.drawClosedCurveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.drawClosedCurveToolStripMenuItem.Text = "Draw Curve";
             this.drawClosedCurveToolStripMenuItem.Click += new System.EventHandler(this.drawClosedCurveToolStripMenuItem_Click);
             // 
             // drawLogoPatternToolStripMenuItem
             // 
             this.drawLogoPatternToolStripMenuItem.Name = "drawLogoPatternToolStripMenuItem";
-            this.drawLogoPatternToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.drawLogoPatternToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.drawLogoPatternToolStripMenuItem.Text = "Logo Pattern";
             this.drawLogoPatternToolStripMenuItem.Click += new System.EventHandler(this.drawLogoPatternToolStripMenuItem_Click);
             // 
@@ -646,7 +653,7 @@
             // 
             this.drawLineRibbonToolStripMenuItem.CheckOnClick = true;
             this.drawLineRibbonToolStripMenuItem.Name = "drawLineRibbonToolStripMenuItem";
-            this.drawLineRibbonToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.drawLineRibbonToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.drawLineRibbonToolStripMenuItem.Text = "Draw Line Ribbon";
             // 
             // setSelectedPatternsLayerToolStripMenuItem
@@ -822,6 +829,13 @@
             this.qualityModeToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
             this.qualityModeToolStripMenuItem.Text = "Quality Mode";
             this.qualityModeToolStripMenuItem.Click += new System.EventHandler(this.RedrawPatterns_Click);
+            // 
+            // initializeBackgroundFillsToolStripMenuItem
+            // 
+            this.initializeBackgroundFillsToolStripMenuItem.Name = "initializeBackgroundFillsToolStripMenuItem";
+            this.initializeBackgroundFillsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.initializeBackgroundFillsToolStripMenuItem.Text = "Initialize Background Fills";
+            this.initializeBackgroundFillsToolStripMenuItem.Click += new System.EventHandler(this.initializeBackgroundFillsToolStripMenuItem_Click);
             // 
             // animateToolStripMenuItem
             // 
@@ -2073,9 +2087,10 @@
             this.moveVertexToolStripMenuItem,
             this.addVertexToolStripMenuItem,
             this.deleteVertexToolStripMenuItem,
+            this.isCornerVertexToolStripMenuItem,
             this.endEditingVerticesToolStripMenuItem});
             this.polygonMenuStrip.Name = "polygonMenuStrip";
-            this.polygonMenuStrip.Size = new System.Drawing.Size(178, 92);
+            this.polygonMenuStrip.Size = new System.Drawing.Size(181, 136);
             // 
             // moveVertexToolStripMenuItem
             // 
@@ -2106,13 +2121,6 @@
             this.endEditingVerticesToolStripMenuItem.Text = "End Editing Vertices";
             this.endEditingVerticesToolStripMenuItem.Click += new System.EventHandler(this.endEditingVerticesToolStripMenuItem_Click);
             // 
-            // initializeBackgroundFillsToolStripMenuItem
-            // 
-            this.initializeBackgroundFillsToolStripMenuItem.Name = "initializeBackgroundFillsToolStripMenuItem";
-            this.initializeBackgroundFillsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.initializeBackgroundFillsToolStripMenuItem.Text = "Initialize Background Fills";
-            this.initializeBackgroundFillsToolStripMenuItem.Click += new System.EventHandler(this.initializeBackgroundFillsToolStripMenuItem_Click);
-            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2127,6 +2135,45 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
+            // 
+            // closeOutlineToolStripMenuItem
+            // 
+            this.closeOutlineToolStripMenuItem.Checked = true;
+            this.closeOutlineToolStripMenuItem.CheckOnClick = true;
+            this.closeOutlineToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.closeOutlineToolStripMenuItem.Name = "closeOutlineToolStripMenuItem";
+            this.closeOutlineToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.closeOutlineToolStripMenuItem.Text = "Close Outline";
+            // 
+            // drawMenuStrip
+            // 
+            this.drawMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.finishVerticesToolStripMenuItem,
+            this.setCornerToolStripMenuItem});
+            this.drawMenuStrip.Name = "drawMenuStrip";
+            this.drawMenuStrip.Size = new System.Drawing.Size(130, 48);
+            // 
+            // finishVerticesToolStripMenuItem
+            // 
+            this.finishVerticesToolStripMenuItem.Name = "finishVerticesToolStripMenuItem";
+            this.finishVerticesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.finishVerticesToolStripMenuItem.Text = "Finish";
+            this.finishVerticesToolStripMenuItem.Click += new System.EventHandler(this.finishVerticesToolStripMenuItem_Click);
+            // 
+            // setCornerToolStripMenuItem
+            // 
+            this.setCornerToolStripMenuItem.Name = "setCornerToolStripMenuItem";
+            this.setCornerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setCornerToolStripMenuItem.Text = "Set Corner";
+            this.setCornerToolStripMenuItem.Click += new System.EventHandler(this.setCornerToolStripMenuItem_Click);
+            // 
+            // isCornerVertexToolStripMenuItem
+            // 
+            this.isCornerVertexToolStripMenuItem.CheckOnClick = true;
+            this.isCornerVertexToolStripMenuItem.Name = "isCornerVertexToolStripMenuItem";
+            this.isCornerVertexToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.isCornerVertexToolStripMenuItem.Text = "Is Corner Vertex";
+            this.isCornerVertexToolStripMenuItem.Click += new System.EventHandler(this.isCornerVertexToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2154,6 +2201,7 @@
             this.influenceContextMenuStrip.ResumeLayout(false);
             this.polygonMenuStrip.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picDesign)).EndInit();
+            this.drawMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2384,6 +2432,11 @@
         private System.Windows.Forms.ToolStripMenuItem endEditingVerticesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chooseCopyPasteObjectsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem initializeBackgroundFillsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeOutlineToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip drawMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem finishVerticesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setCornerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem isCornerVertexToolStripMenuItem;
     }
 }
 

@@ -445,7 +445,65 @@ namespace Whorl
             return pSpline;
         }
 
-        private static void NormalizeVector(ref float dx, ref float dy)
+		public static List<PointF> FitParametricClosed(List<PointF> points, List<int> cornerIndices)
+		{
+			if (cornerIndices.Count == 0)
+            {
+				return FitParametricClosed(points, (int)Tools.PathLength(points)).ToList();
+            }
+			int ind1 = 0;
+			var outputPoints = new List<PointF>();
+			bool smoothJoin = cornerIndices.First() != 0 && cornerIndices.Last() != points.Count - 1;
+			PointF dAvg;
+			if (smoothJoin)
+            {
+				int n = points.Count;
+				PointF diffStart = new PointF(points[1].X - points[0].X,
+										      points[1].Y - points[0].Y);
+				PointF diffEnd = new PointF(points[n - 1].X - points[n - 2].X,
+											points[n - 1].Y - points[n - 2].Y);
+				dAvg = new PointF(diffStart.X + diffEnd.X / 2F,
+								  diffStart.Y + diffEnd.Y / 2F);
+			}
+            else
+				dAvg = PointF.Empty;
+			for (int i = 0; i <= cornerIndices.Count; i++)
+            {
+				int ind2 = i < cornerIndices.Count ? cornerIndices[i] : points.Count - 1;
+				if (ind2 == 0)
+					continue;
+				PointF[] aPoints = points.Skip(ind1).Take(ind2 - ind1 + 1).ToArray();
+				float[] xS, yS;
+				int n = aPoints.Length;
+				if (n <= 2)
+                {
+					outputPoints.AddRange(aPoints);
+				}
+                else
+                {
+					int nOutputPoints = (int)Tools.PathLength(aPoints);
+					if (nOutputPoints == 0)
+						continue;
+					PointF d1 = new PointF(float.NaN, float.NaN);
+					PointF d2 = new PointF(float.NaN, float.NaN);
+					if (smoothJoin)
+                    {
+						if (ind1 == 0)
+							d1 = dAvg;
+						if (ind2 == points.Count - 1)
+							d2 = dAvg;
+                    }
+					FitParametric(aPoints.Select(p => p.X).ToArray(), aPoints.Select(p => p.Y).ToArray(),
+							      nOutputPoints, out xS, out yS, d1.X, d1.Y, d2.X, d2.Y);
+					for (int j = 0; j < xS.Length; j++)
+						outputPoints.Add(new PointF(xS[j], yS[j]));
+				}
+				ind1 = ind2;
+			}
+			return outputPoints;
+		}
+
+		private static void NormalizeVector(ref float dx, ref float dy)
         {
             if (!Single.IsNaN(dx) && !Single.IsNaN(dy))
             {

@@ -71,6 +71,7 @@ namespace Whorl
         public bool UserDefinedVertices { get; set; }
         public bool ClosedCurveVertices { get; set; }
         public bool PolygonUserVertices { get; set; }
+        public List<int> CurveCornerIndices { get; } = new List<int>();
 
         public int[] VertexIndices { get; private set; }
 
@@ -118,6 +119,7 @@ namespace Whorl
             CopyProperties(source, excludedPropertyNames:
                 new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
                                nameof(SegmentVertices), nameof(PolygonVertices) });
+            CurveCornerIndices.AddRange(source.CurveCornerIndices);
             if (source.pathVertices != null)
                 pathVertices = new List<PointF>(source.pathVertices);
             if (source.SegmentVertices != null)
@@ -174,6 +176,7 @@ namespace Whorl
             this.UserDefinedVertices = this.UseVertices = true;
             this.ClosedCurveVertices = forClosedCurve;
             SegmentVertices = new List<PointF>();
+            CurveCornerIndices.Clear();
         }
 
         /// <summary>
@@ -236,13 +239,14 @@ namespace Whorl
             Tools.ClosePoints(segmentPoints);
             if (setCurve)
             {
-                double pathLength = Tools.PathLength(segmentPoints);
-                if (pathLength < 3D)
-                    setCurve = false;
-                else
-                {
-                    pathVertices = CubicSpline.FitParametricClosed(segmentPoints, (int)pathLength).ToList();
-                }
+                pathVertices = CubicSpline.FitParametricClosed(segmentPoints, CurveCornerIndices);
+                //double pathLength = Tools.PathLength(segmentPoints);
+                //if (pathLength < 3D)
+                //    setCurve = false;
+                //else
+                //{
+                //    pathVertices = CubicSpline.FitParametricClosed(segmentPoints, (int)pathLength).ToList();
+                //}
             }
             if (!setCurve)
                 pathVertices = new List<PointF>(segmentPoints);
@@ -570,6 +574,11 @@ namespace Whorl
                 if (SegmentVertices != null)
                     AppendPointsXml(SegmentVertices, parentNode, "SegmentVertices", xmlTools);
                 parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(SegmentVerticesCenter), SegmentVerticesCenter));
+                if (CurveCornerIndices.Count != 0)
+                {
+                    string sList = string.Join(",", CurveCornerIndices);
+                    xmlTools.AppendAttributeChildNode(parentNode, nameof(CurveCornerIndices), sList);
+                }
             }
         }
 
@@ -619,6 +628,10 @@ namespace Whorl
                     break;
                 case "VerticesFormula":
                     VerticesSettings.Parse(Tools.GetXmlNodeValue(node));
+                    break;
+                case nameof(CurveCornerIndices):
+                    string sList = Tools.GetXmlAttribute<string>(node);
+                    CurveCornerIndices.AddRange(sList.Split(',').Select(s => int.Parse(s)));
                     break;
                 default:
                     retVal = base.FromExtraXml(node);

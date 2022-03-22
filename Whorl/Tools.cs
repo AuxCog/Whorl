@@ -213,7 +213,7 @@ namespace Whorl
         /// <param name="A"></param>
         /// <param name="B"></param>
         /// <returns></returns>
-        public static PointF ClosestPointToSegment(PointF P, PointF A, PointF B)
+        public static PointF ClosestPointOnSegment(PointF P, PointF A, PointF B)
         {
             var v = new PointF(B.X - A.X, B.Y - A.Y);
             var u = new PointF(A.X - P.X, A.Y - P.Y);

@@ -750,6 +750,10 @@ namespace Whorl
                 continueRibbonToolStripMenuItem.Checked = false;
                 distanceParentPattern = null;
                 distancePatternInfo = null;
+                if (DrawUserVertices) // && polygonOutline != null)
+                {
+                    dragState = DragStates.None;  //Show context menu.
+                }
                 if (getPolygonCenter)
                 {
                     //Cancel polygon drawing.
@@ -781,18 +785,8 @@ namespace Whorl
                         EndMoveVertex();
                         return;
                     }
-                    if (DrawUserVertices && polygonOutline != null)
-                    {
-                        polygonOutline.SegmentVertices.Add(new PointF(e.X, e.Y));
-                        WriteStatus("Click on the center of the polygon.");
-                        getPolygonCenter = true;
-                        picDesign.Invalidate();
-                    }
-                    else
-                    {
-                        ClearRedrawPattern();
-                        picDesign.Invalidate();
-                    }
+                    ClearRedrawPattern();
+                    picDesign.Invalidate();
                 }
                 else  //Show context menu.
                 {
@@ -816,7 +810,12 @@ namespace Whorl
                             if (item != addVertexToolStripMenuItem && item != endEditingVerticesToolStripMenuItem)
                                 item.Visible = nearestPolygonVertex != null;
                         }
+                        isCornerVertexToolStripMenuItem.Checked = VertexIsCorner(nearestPolygonVertex, editedPolygonPathOutline, out _);
                         polygonMenuStrip.Show(picDesign, dragStart);
+                    }
+                    else if (DrawUserVertices) // && polygonOutline != null)
+                    {
+                        drawMenuStrip.Show(picDesign, dragStart);
                     }
                     else
                     {
@@ -6386,12 +6385,16 @@ namespace Whorl
 
         private void drawPolygonToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            drawClosedCurveToolStripMenuItem.Checked = !drawPolygonToolStripMenuItem.Checked;
+            if (drawPolygonToolStripMenuItem.Checked)
+                drawClosedCurveToolStripMenuItem.Checked = false;
+            setCornerToolStripMenuItem.Enabled = drawClosedCurveToolStripMenuItem.Checked;
         }
 
         private void drawClosedCurveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            drawPolygonToolStripMenuItem.Checked = !drawClosedCurveToolStripMenuItem.Checked;
+            if (drawClosedCurveToolStripMenuItem.Checked)
+                drawPolygonToolStripMenuItem.Checked = false;
+            setCornerToolStripMenuItem.Enabled = drawClosedCurveToolStripMenuItem.Checked;
         }
 
         private DesignLayersForm designLayersForm = new DesignLayersForm();
@@ -8010,7 +8013,7 @@ namespace Whorl
                 }
                 for (int i = 0; i < vertices.Count - 1; i++)
                 {
-                    PointF nearestPoint = Tools.ClosestPointToSegment(p, vertices[i], vertices[i + 1]);
+                    PointF nearestPoint = Tools.ClosestPointOnSegment(p, vertices[i], vertices[i + 1]);
                     double distSq = Tools.DistanceSquared(p, nearestPoint);
                     if (distSq < minDistance)
                     {
@@ -8019,12 +8022,59 @@ namespace Whorl
                     }
                 }
                 if (index == -1) return;
-                editedPolygonPathOutline.SegmentVertices.Insert(Math.Min(index + 1, editedPolygonPathOutline.SegmentVertices.Count), p);
+                index = Math.Min(index + 1, editedPolygonPathOutline.SegmentVertices.Count);
+                editedPolygonPathOutline.SegmentVertices.Insert(index, p);
+                if (editedPolygonPathOutline.ClosedCurveVertices)
+                {
+                    var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
+                    for (int i = 0; i < cornerIndices.Count; i++)
+                    {
+                        if (cornerIndices[i] >= index)
+                            cornerIndices[i]++;
+                    }
+                }
                 UpdatePolygonOutlineHelper();
                 editedPolygonPattern.ComputeSeedPoints();
                 RedrawPatterns();
                 InitPolygonVertexInfos();
                 picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private bool VertexIsCorner(DrawnPoint vertex, PathOutline pathOutline, out int index)
+        {
+            index = polygonVertexInfos.IndexOf(vertex) - 1;
+            return pathOutline != null && pathOutline.CurveCornerIndices.Contains(index);
+        }
+
+        private void isCornerVertexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (nearestPolygonVertex == null ||
+                    editedPolygonPathOutline == null ||
+                    !editedPolygonPathOutline.ClosedCurveVertices)
+                {
+                    return;
+                }
+                bool isCorner = VertexIsCorner(nearestPolygonVertex, editedPolygonPathOutline, out int index);
+                if (index < 0) return;
+                if (isCorner)
+                    editedPolygonPathOutline.CurveCornerIndices.Remove(index);
+                else
+                {
+                    editedPolygonPathOutline.CurveCornerIndices.Add(index);
+                    editedPolygonPathOutline.CurveCornerIndices.Sort();
+                }
+                editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                editedPolygonPathOutline.NormalizePathVertices();
+                editedPolygonPattern.ComputeSeedPoints();
+                RedrawPatterns();
+                Design.IsDirty = true;
             }
             catch (Exception ex)
             {
@@ -8039,16 +8089,29 @@ namespace Whorl
                 if (nearestPolygonVertex == null) return;
                 int index = polygonVertexInfos.IndexOf(nearestPolygonVertex);
                 if (index <= 0) return;
-                if (editedPolygonPathOutline.SegmentVertices.Count <= 3)
+                var vertices = editedPolygonPathOutline.SegmentVertices;
+                if (vertices.Count <= 3)
                 {
                     WriteStatus("Must have at least 3 vertices.");
                     return;
                 }
                 index--;
-                editedPolygonPathOutline.SegmentVertices.RemoveAt(index);
+                PointF vertex = vertices[index];
+                vertices.RemoveAt(index);
+                if (index == 0 && vertices.Last() == vertex)
+                {
+                    vertices.RemoveAt(vertices.Count - 1);
+                }
                 editedPolygonPathOutline.FinishUserDefinedVertices();
                 if (editedPolygonPathOutline.ClosedCurveVertices)
                 {
+                    var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
+                    cornerIndices.Remove(index);
+                    for (int i = 0; i < cornerIndices.Count; i++)
+                    {
+                        if (cornerIndices[i] > index)
+                            cornerIndices[i]--;
+                    }
                     editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
                     editedPolygonPathOutline.NormalizePathVertices();
                 }
@@ -8380,6 +8443,38 @@ namespace Whorl
                     RedrawPatterns();
                 else
                     MessageBox.Show("No background fills were found.");
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void finishVerticesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (polygonOutline == null) return;
+                polygonOutline.SegmentVertices.Add(new PointF(dragStart.X, dragStart.Y));
+                WriteStatus("Click on the center of the polygon.");
+                getPolygonCenter = true;
+                picDesign.Invalidate();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void setCornerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (polygonOutline == null) 
+                    StartDrawnPolygon();
+                polygonOutline.CurveCornerIndices.Add(polygonOutline.SegmentVertices.Count);
+                polygonOutline.SegmentVertices.Add(new PointF(dragStart.X, dragStart.Y));
+                picDesign.Invalidate();
             }
             catch (Exception ex)
             {
