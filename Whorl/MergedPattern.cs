@@ -62,6 +62,13 @@ namespace Whorl
             return true;
         }
 
+        public override Pattern GetCopy(bool keepRecursiveParent = false, WhorlDesign design = null)
+        {
+            var copy = new MergedPattern(design ?? Design);
+            copy.CopyProperties(this);
+            return copy;
+        }
+
         protected override void CopyProperties(Pattern sourcePattern, bool copyFillInfo = true, bool copySharedPatternID = true, 
                                                bool copySeedPoints = true, bool setRecursiveParent = true, WhorlDesign design = null)
         {
@@ -72,6 +79,7 @@ namespace Whorl
                 Patterns.Clear();
                 Patterns.AddRange(source.Patterns.Select(p => p.GetCopy()));
                 Initialize();
+                InitCurvePoints(ZVector);
             }
         }
 
