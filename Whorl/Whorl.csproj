@@ -261,6 +261,7 @@
     <Compile Include="IRenderCaller.cs" />
     <Compile Include="KeyEnumInfo.cs" />
     <Compile Include="MemberItemInfo.cs" />
+    <Compile Include="MergedPattern.cs" />
     <Compile Include="NamedRandomSeed.cs" />
     <Compile Include="NamedRandomSeedForm.cs">
       <SubType>Form</SubType>
@@ -307,6 +308,7 @@
     </Compile>
     <Compile Include="PathOutline.cs" />
     <Compile Include="PathPattern.cs" />
+    <Compile Include="PatternBoundsInfo.cs" />
     <Compile Include="PatternGroupList.cs" />
     <Compile Include="PatternImprovConfigForm.cs">
       <SubType>Form</SubType>

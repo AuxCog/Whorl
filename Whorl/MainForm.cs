@@ -169,6 +169,7 @@ namespace Whorl
 
         //private PatternGroupList savedPatternChoices;
         private List<WhorlDesign> improvDesigns { get; set; } = new List<WhorlDesign>();
+        private List<MergedPattern> mergedPatterns { get; } = new List<MergedPattern>();
         //private List<int> improvRandomSeeds = new List<int>();
         private Bitmap currentBitmap;
         private Color[] gradientColors = { Color.Red, Color.Yellow, Color.Blue, Color.Green };
@@ -1634,6 +1635,14 @@ namespace Whorl
                 if (showGrid)
                 {
                     ShowGrid(e.Graphics);
+                }
+                if (testMergedPattern != null)
+                {
+                    testMergedPattern.DrawBoundary(e.Graphics);
+                    //if (testMergeOutlineToolStripMenuItem.Checked)
+                    //    testMergedPattern.DrawBoundary(e.Graphics);
+                    //else if (testMergedPattern.CurvePoints.Length >= 3)
+                    //    e.Graphics.DrawPolygon(Pens.Red, testMergedPattern.CurvePoints);
                 }
             }
             catch (Exception ex)
@@ -8127,6 +8136,51 @@ namespace Whorl
             }
         }
 
+        private void FlipVertices(bool flipX)
+        {
+            try
+            {
+                if (editedPolygonPathOutline == null)
+                    return;
+                var vertices = editedPolygonPathOutline.SegmentVertices;
+                PointF center = editedPolygonPathOutline.SegmentVerticesCenter;
+                for (int i = 0; i < vertices.Count; i++)
+                {
+                    PointF p = vertices[i];
+                    if (flipX)
+                        p.X = center.X - (p.X - center.X);
+                    else
+                        p.Y = center.Y - (p.Y - center.Y);
+                    vertices[i] = p;
+                }
+                editedPolygonPathOutline.FinishUserDefinedVertices();
+                if (editedPolygonPathOutline.ClosedCurveVertices)
+                {
+                    editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                    editedPolygonPathOutline.NormalizePathVertices();
+                }
+                editedPolygonPattern.ComputeSeedPoints();
+                RedrawPatterns();
+                InitPolygonVertexInfos();
+                picDesign.Refresh();
+                Design.IsDirty = true;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void flipVerticesHorizontalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FlipVertices(flipX: true);
+        }
+
+        private void flipVerticesVerticalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FlipVertices(flipX: false);
+        }
+
         private void endEditingVerticesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
@@ -8480,6 +8534,46 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private MergedPattern testMergedPattern { get; set; }
+
+        private void mergeSelectedPatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selPatterns = Design.DesignPatterns.Where(p => p.Selected);
+                if (!selPatterns.Any())
+                {
+                    MessageBox.Show("Please select the patterns to merge.");
+                    return;
+                }
+                var mergedPattern = new MergedPattern(Design);
+                mergedPattern.Patterns.AddRange(selPatterns.Select(p => p.GetCopy()));
+                mergedPattern.Initialize();
+                bool success = mergedPattern.InitCurvePoints(mergedPattern.ZVector);
+                if (success)
+                {
+                    Design.RemovePatterns(selPatterns.ToList());
+                    Design.AddPattern(mergedPattern);
+                    RedrawPatterns();
+                }
+                else
+                {
+                    MessageBox.Show("Couldn't merge the selected patterns.");
+                    testMergedPattern = mergedPattern;
+                    picDesign.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void testMergeOutlineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            picDesign.Refresh();
         }
     }
 }

@@ -775,20 +775,6 @@ namespace Whorl
                     return distancePatternInfo;
                 }
             }
-            private class PatternBoundsInfo
-            {
-                public Rectangle BoundingRectangle { get; set; }
-                public Size BoundsSize { get; }
-                public int PixelCount { get; }
-                public uint[] BoundsBitmap { get; }
-
-                public PatternBoundsInfo(Size size, int pixelCount, uint[] bitmap)
-                {
-                    BoundsSize = size;
-                    PixelCount = pixelCount;
-                    BoundsBitmap = bitmap;
-                }
-            }
             private enum ParserVarNames
             {
                 Info,
@@ -4251,7 +4237,7 @@ namespace Whorl
             nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList)
         };
 
-        protected void CopyProperties(Pattern sourcePattern, 
+        protected virtual void CopyProperties(Pattern sourcePattern, 
                                       bool copyFillInfo = true,
                                       bool copySharedPatternID = true,
                                       bool copySeedPoints = true,

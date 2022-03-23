@@ -49,6 +49,8 @@ namespace Whorl
 
         public void ApplyShrink(bool shrink = true)
         {
+            if (PatternLayers.ParentPattern.SeedPoints == null)
+                return;
             SeedPoints = (PolarCoord[])PatternLayers.ParentPattern.SeedPoints.Clone();
             float padding = shrink ? 0.5F * (1F - ModulusRatio) : 0;
             Pattern.ApplyPatternShrink(SeedPoints, padding, PatternLayers.ParentPattern.ShrinkClipFactor, 
