@@ -4407,6 +4407,8 @@ namespace Whorl
                     return new Pattern(design, node);
                 case nameof(PathPattern):
                     return new PathPattern(design, node);
+                case nameof(MergedPattern):
+                    return new MergedPattern(design, node);
                 case nameof(StringPattern):
                     return new StringPattern(design, node);
                 default:

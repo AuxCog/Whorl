@@ -22,6 +22,10 @@ namespace Whorl
         {
         }
 
+        public MergedPattern(WhorlDesign design, XmlNode node): base(design, node)
+        {
+        }
+
         public void Initialize()
         {
             if (Patterns.Count == 0)
@@ -235,6 +239,11 @@ namespace Whorl
                 BitmapTools.CopyBitmapToColorArray(bmp, boundsPixels);
                 pixelCount = boundsPixels.Count(pix => pix == blackArgb);
             }
+        }
+
+        public override XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
+        {
+            return base.ToXml(parentNode, xmlTools, xmlNodeName ?? nameof(MergedPattern));
         }
 
         public override void FromXml(XmlNode node)
