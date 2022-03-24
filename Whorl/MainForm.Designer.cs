@@ -65,6 +65,7 @@
             this.selectKeepSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.useSelectedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copySelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mergeSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.alwaysFillMovedPattternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -145,6 +146,7 @@
             this.showAppPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testDistancePatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testRandomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testMergeOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanForPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fixPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inferFormulaTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -259,9 +261,11 @@
             this.drawMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mergeSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.testMergeOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
+            this.mergedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.initializeMergedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.undoMergeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editMergedPatternToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -577,6 +581,13 @@
             this.copySelectedPatternsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
             this.copySelectedPatternsToolStripMenuItem.Text = "Copy Selected Patterns";
             this.copySelectedPatternsToolStripMenuItem.Click += new System.EventHandler(this.copySelectedPatternsToolStripMenuItem_Click);
+            // 
+            // mergeSelectedPatternsToolStripMenuItem
+            // 
+            this.mergeSelectedPatternsToolStripMenuItem.Name = "mergeSelectedPatternsToolStripMenuItem";
+            this.mergeSelectedPatternsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.mergeSelectedPatternsToolStripMenuItem.Text = "Merge Selected Patterns";
+            this.mergeSelectedPatternsToolStripMenuItem.Click += new System.EventHandler(this.mergeSelectedPatternsToolStripMenuItem_Click);
             // 
             // groupSelectedPatternsToolStripMenuItem
             // 
@@ -1247,6 +1258,14 @@
             this.testRandomToolStripMenuItem.Text = "Test Random";
             this.testRandomToolStripMenuItem.Click += new System.EventHandler(this.testRandomToolStripMenuItem_Click);
             // 
+            // testMergeOutlineToolStripMenuItem
+            // 
+            this.testMergeOutlineToolStripMenuItem.CheckOnClick = true;
+            this.testMergeOutlineToolStripMenuItem.Name = "testMergeOutlineToolStripMenuItem";
+            this.testMergeOutlineToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testMergeOutlineToolStripMenuItem.Text = "Test Merge Outline";
+            this.testMergeOutlineToolStripMenuItem.Click += new System.EventHandler(this.testMergeOutlineToolStripMenuItem_Click);
+            // 
             // scanForPatternsToolStripMenuItem
             // 
             this.scanForPatternsToolStripMenuItem.Enabled = false;
@@ -1497,9 +1516,10 @@
             this.setLogoPatternToolStripMenuItem,
             this.limitSelectionToCenterToolStripMenuItem,
             this.pasteDefaultPatternToolStripMenuItem,
-            this.pasteCopiedPatternsToolStripMenuItem});
+            this.pasteCopiedPatternsToolStripMenuItem,
+            this.mergedPatternToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 334);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 378);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -2191,21 +2211,6 @@
             this.setCornerToolStripMenuItem.Text = "Set Corner";
             this.setCornerToolStripMenuItem.Click += new System.EventHandler(this.setCornerToolStripMenuItem_Click);
             // 
-            // mergeSelectedPatternsToolStripMenuItem
-            // 
-            this.mergeSelectedPatternsToolStripMenuItem.Name = "mergeSelectedPatternsToolStripMenuItem";
-            this.mergeSelectedPatternsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
-            this.mergeSelectedPatternsToolStripMenuItem.Text = "Merge Selected Patterns";
-            this.mergeSelectedPatternsToolStripMenuItem.Click += new System.EventHandler(this.mergeSelectedPatternsToolStripMenuItem_Click);
-            // 
-            // testMergeOutlineToolStripMenuItem
-            // 
-            this.testMergeOutlineToolStripMenuItem.CheckOnClick = true;
-            this.testMergeOutlineToolStripMenuItem.Name = "testMergeOutlineToolStripMenuItem";
-            this.testMergeOutlineToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
-            this.testMergeOutlineToolStripMenuItem.Text = "Test Merge Outline";
-            this.testMergeOutlineToolStripMenuItem.Click += new System.EventHandler(this.testMergeOutlineToolStripMenuItem_Click);
-            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2220,6 +2225,36 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
+            // 
+            // mergedPatternToolStripMenuItem
+            // 
+            this.mergedPatternToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.initializeMergedPatternToolStripMenuItem,
+            this.undoMergeToolStripMenuItem,
+            this.editMergedPatternToolStripMenuItem1});
+            this.mergedPatternToolStripMenuItem.Name = "mergedPatternToolStripMenuItem";
+            this.mergedPatternToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.mergedPatternToolStripMenuItem.Text = "Merged Pattern";
+            // 
+            // initializeMergedPatternToolStripMenuItem
+            // 
+            this.initializeMergedPatternToolStripMenuItem.Name = "initializeMergedPatternToolStripMenuItem";
+            this.initializeMergedPatternToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.initializeMergedPatternToolStripMenuItem.Text = "Initialize";
+            this.initializeMergedPatternToolStripMenuItem.Click += new System.EventHandler(this.initializeMergedPatternToolStripMenuItem_Click);
+            // 
+            // undoMergeToolStripMenuItem
+            // 
+            this.undoMergeToolStripMenuItem.Name = "undoMergeToolStripMenuItem";
+            this.undoMergeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.undoMergeToolStripMenuItem.Text = "Undo Merge";
+            this.undoMergeToolStripMenuItem.Click += new System.EventHandler(this.undoMergeToolStripMenuItem_Click);
+            // 
+            // editMergedPatternToolStripMenuItem1
+            // 
+            this.editMergedPatternToolStripMenuItem1.Name = "editMergedPatternToolStripMenuItem1";
+            this.editMergedPatternToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.editMergedPatternToolStripMenuItem1.Text = "Edit";
             // 
             // MainForm
             // 
@@ -2488,6 +2523,10 @@
         private System.Windows.Forms.ToolStripMenuItem flipVerticesVerticalToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mergeSelectedPatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testMergeOutlineToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mergedPatternToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem initializeMergedPatternToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem undoMergeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editMergedPatternToolStripMenuItem1;
     }
 }
 

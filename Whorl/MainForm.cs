@@ -1636,7 +1636,7 @@ namespace Whorl
                 {
                     ShowGrid(e.Graphics);
                 }
-                if (testMergedPattern != null)
+                if (testMergedPattern != null && testMergeOutlineToolStripMenuItem.Checked)
                 {
                     testMergedPattern.DrawBoundary(e.Graphics);
                     //if (testMergeOutlineToolStripMenuItem.Checked)
@@ -8551,6 +8551,7 @@ namespace Whorl
                 var mergedPattern = new MergedPattern(Design);
                 mergedPattern.Patterns.AddRange(selPatterns.Select(p => p.GetCopy()));
                 mergedPattern.Initialize();
+                testMergedPattern = mergedPattern;
                 bool success = mergedPattern.InitCurvePoints(mergedPattern.ZVector);
                 if (success)
                 {
@@ -8561,8 +8562,43 @@ namespace Whorl
                 else
                 {
                     MessageBox.Show("Couldn't merge the selected patterns.");
-                    testMergedPattern = mergedPattern;
+                    testMergeOutlineToolStripMenuItem.Checked = true;
                     picDesign.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void initializeMergedPatternToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                MergedPattern mergedPattern = GetNearestPattern<MergedPattern>(dragStart);
+                if (mergedPattern != null)
+                {
+                    mergedPattern.Initialize();
+                    mergedPattern.InitCurvePoints(mergedPattern.ZVector);
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void undoMergeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                MergedPattern mergedPattern = GetNearestPattern<MergedPattern>(dragStart);
+                if (mergedPattern != null)
+                {
+                    Design.AddPatterns(mergedPattern.Patterns);
+                    Design.RemovePatterns(new List<Pattern>() { mergedPattern });
+                    RedrawPatterns();
                 }
             }
             catch (Exception ex)
@@ -8575,5 +8611,11 @@ namespace Whorl
         {
             picDesign.Refresh();
         }
+
+        private T GetNearestPattern<T>(PointF p) where T: Pattern
+        {
+            return GetNearbyPatterns(p).Select(pt => pt.Pattern as T).FirstOrDefault(tp => tp != null);
+        }
+
     }
 }

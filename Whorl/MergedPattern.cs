@@ -11,7 +11,7 @@ namespace Whorl
 {
     public class MergedPattern: Pattern
     {
-        public List<Pattern> Patterns { get; } = new List<Pattern>();
+        public List<Pattern> Patterns { get; private set; } = new List<Pattern>();
         private readonly int blackArgb = Color.Black.ToArgb();
         private int[] boundsPixels { get; set; }
         private int pixelCount { get; set; }
@@ -32,9 +32,11 @@ namespace Whorl
             {
                 throw new Exception("There must be at least 1 merged pattern.");
             }
-            Center = new PointF(Patterns.Select(p => p.Center.X).Average(),
-                                Patterns.Select(p => p.Center.Y).Average());
-            FillInfo = Patterns.First().FillInfo;
+            Patterns = Patterns.OrderByDescending(p => p.ZVector.GetModulusSquared()).ToList();
+            Pattern pattern1 = Patterns.First();
+            Center = pattern1.Center;
+            ZVector = pattern1.ZVector;
+            FillInfo = pattern1.FillInfo.GetCopy(this);
         }
 
         public bool InitCurvePoints(Complex zVector)
@@ -167,13 +169,14 @@ namespace Whorl
                         //boundPoints.Add(pNext);
                         foundPoint = true;
                     }
-                    if (!foundPoint)
+                    if (foundPoint)
+                        p = pNext;
+                    else
                     {
-                        break;
-                        //boundPoints.Add(firstP);
-                        //loop = false;
+                        //break;
+                        boundPoints.Add(firstP);
+                        loop = false;
                     }
-                    p = pNext;
                 }
             } while (loop && boundPoints.Count <= pixelCount);
             return loop ? null : boundPoints;
@@ -257,7 +260,6 @@ namespace Whorl
         public override void FromXml(XmlNode node)
         {
             base.FromXml(node);
-            Initialize();
             InitCurvePoints(ZVector);
         }
 
