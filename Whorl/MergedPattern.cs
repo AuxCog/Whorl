@@ -100,6 +100,7 @@ namespace Whorl
         {
             SeedPoints = new PolarCoord[0];
             PreviewZFactor = Complex.One;
+            ClearRenderingCache();
             return true;
         }
 

@@ -2499,14 +2499,12 @@ namespace Whorl
         {
             get
             {
-                if (this.GetType() != typeof(Pattern))
+                if (this.GetType() != typeof(Pattern) && this.GetType() != typeof(MergedPattern))
                 {
                     var ribbon = this as Ribbon;
                     if (ribbon == null || ribbon.DrawingMode != RibbonDrawingModes.CopyPattern)
                     {
-                        if (this is StringPattern)
-                            return true;
-                        else
+                        if (!(this is StringPattern))
                             return false;
                     }
                 }
