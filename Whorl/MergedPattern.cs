@@ -12,6 +12,10 @@ namespace Whorl
     public class MergedPattern: Pattern
     {
         public List<Pattern> Patterns { get; private set; } = new List<Pattern>();
+        public Complex FirstZVector { get; private set; }
+        public PointF OrigCenter { get; private set; }
+        private PointF[] seedCurvePoints { get; set; }  //Normalized curve points.
+        private Complex zRotation { get; set; }
         private readonly int blackArgb = Color.Black.ToArgb();
         private int[] boundsPixels { get; set; }
         private int pixelCount { get; set; }
@@ -20,13 +24,25 @@ namespace Whorl
 
         public MergedPattern(WhorlDesign design): base(design, FillInfo.FillTypes.Path)
         {
+            PreviewZFactor = Complex.One;
+        }
+
+        public MergedPattern(MergedPattern source, WhorlDesign design = null) : base(design ?? source.Design)
+        {
+            CopyProperties(source);
+            Patterns.AddRange(source.Patterns.Select(p => p.GetCopy()).ToArray());
+            FirstZVector = source.FirstZVector;
+            zRotation = source.zRotation;
+            seedCurvePoints = (PointF[])source.seedCurvePoints?.Clone();
+            PreviewZFactor = Complex.One;
         }
 
         public MergedPattern(WhorlDesign design, XmlNode node): base(design, node)
         {
+            PreviewZFactor = Complex.One;
         }
 
-        public void Initialize()
+        public bool Initialize(Size picSize)
         {
             if (Patterns.Count == 0)
             {
@@ -34,58 +50,131 @@ namespace Whorl
             }
             Patterns = Patterns.OrderByDescending(p => p.ZVector.GetModulusSquared()).ToList();
             Pattern pattern1 = Patterns.First();
-            Center = pattern1.Center;
-            ZVector = pattern1.ZVector;
+            FirstZVector = pattern1.ZVector;
+            SetZRotation();
+            OrigCenter = Center = pattern1.Center;
             FillInfo = pattern1.FillInfo.GetCopy(this);
+            double factor = 1000.0 / FirstZVector.GetModulus();
+            float fFac = (float)factor;
+            foreach (Pattern ptn in Patterns)
+            {
+                ptn.ZVector *= factor;
+                PointF dc = new PointF(ptn.Center.X - Center.X, ptn.Center.Y - Center.Y);
+                ptn.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
+            }
+            bool success = ComputeSeedCurvePoints(out Complex zVector);
+            ZVector = zVector;
+            return success;
         }
 
-        public bool InitCurvePoints(Complex zVector)
+        private void SetZRotation()
         {
-            var boundPoints = GetCurvePoints();
-            boundsPixels = null;
-            if (boundPoints == null)
-                CurvePoints = new PointF[0];
-            else
-                CurvePoints = boundPoints.Select(pt => new PointF(pt.X + deltaPoint.X, pt.Y + deltaPoint.Y)).ToArray();
-            return boundPoints != null;
+            Complex zR = FirstZVector;
+            zR.Normalize();
+            zR = Complex.One / zR;
+            zRotation = zR;
         }
 
         public override bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false)
         {
-            if (CurvePoints == null)
-                return InitCurvePoints(zVector);
+            if (seedCurvePoints == null)
+            {
+                CurvePoints = new PointF[0];
+                return false;
+            }
             else
+            {
+                zVector *= zRotation;
+                PointF z = new PointF((float)zVector.Re, (float)zVector.Im);
+                CurvePoints = new PointF[seedCurvePoints.Length];
+                for (int i = 0; i < CurvePoints.Length; i++)
+                {
+                    PointF p = Tools.RotatePoint(seedCurvePoints[i], z);
+                    CurvePoints[i] = new PointF(p.X + Center.X, p.Y + Center.Y);
+                }
                 return true;
+            }
         }
 
         public override bool ComputeSeedPoints(bool computeRandom = false)
         {
             SeedPoints = new PolarCoord[0];
+            PreviewZFactor = Complex.One;
             return true;
         }
 
         public override Pattern GetCopy(bool keepRecursiveParent = false, WhorlDesign design = null)
         {
-            var copy = new MergedPattern(design ?? Design);
-            copy.CopyProperties(this);
-            return copy;
+            return new MergedPattern(this, design);
         }
 
-        protected override void CopyProperties(Pattern sourcePattern, bool copyFillInfo = true, bool copySharedPatternID = true, 
-                                               bool copySeedPoints = true, bool setRecursiveParent = true, WhorlDesign design = null)
+        public void DrawBoundary(Graphics g)
         {
-            base.CopyProperties(sourcePattern, copyFillInfo, copySharedPatternID, copySeedPoints, setRecursiveParent, design);
-            var source = sourcePattern as MergedPattern;
-            if (source != null)
+            GetBoundsPixels();
+            for (int y = 0; y < boundingRect.Height; y++)
             {
-                Patterns.Clear();
-                Patterns.AddRange(source.Patterns.Select(p => p.GetCopy()));
-                Initialize();
-                InitCurvePoints(ZVector);
+                for (int x = 0; x < boundingRect.Width; x++)
+                {
+                    Point p = new Point(x, y);
+                    if (IsBoundaryPoint(p))
+                    {
+                        g.FillRectangle(Brushes.Red, new Rectangle(p, new Size(1, 1)));
+                    }
+                }
             }
         }
 
-        public List<Point> GetCurvePoints()
+        public bool ComputeSeedCurvePoints(out Complex zVector)
+        {
+            var boundPoints = GetBoundPoints();
+            boundsPixels = null;
+            if (boundPoints == null)
+            {
+                seedCurvePoints = null;
+                zVector = Complex.One;
+            }
+            else
+            {
+                PointF center = OrigCenter; //Patterns.First().Center;
+                var points2 = boundPoints.Select(pt =>
+                    new PointF(pt.X + deltaPoint.X - center.X,
+                               pt.Y + deltaPoint.Y - center.Y));
+                double maxModulus = Math.Sqrt(points2.Select(p => p.X * p.X + p.Y * p.Y).Max());
+                float scale = 1F / (float)maxModulus;
+                var pointsList = points2.Select(p => new PointF(scale * p.X, scale * p.Y)).ToList();
+                //var interpPoints = new List<PointF>();
+                if (pointsList.Any())
+                {
+                    Tools.ClosePoints(pointsList);
+                    //if (pointsList.Count >= RotationSteps)
+                    //    interpPoints = pointsList;
+                    //else
+                    //{
+                    //    int steps = (int)Math.Ceiling((double)RotationSteps / pointsList.Count);
+                    //    float fac = 1F / steps;
+                    //    PointF prevP = pointsList[0];
+                    //    for (int i = 1; i < pointsList.Count; i++)
+                    //    {
+                    //        interpPoints.Add(prevP);
+                    //        PointF p = pointsList[i];
+                    //        PointF dp = new PointF(p.X - prevP.X, p.Y - prevP.Y);
+                    //        for (int s = 1; s < steps; s++)
+                    //        {
+                    //            float fs = fac * s;
+                    //            interpPoints.Add(new PointF(prevP.X + fs * dp.X, prevP.Y + fs * dp.Y));
+                    //        }
+                    //        prevP = p;
+                    //    }
+                    //    interpPoints.Add(pointsList.Last());
+                    //}
+                }
+                seedCurvePoints = pointsList.ToArray();
+                zVector = FirstZVector; // * maxModulus / FirstZVector.GetModulus();
+            }
+            return seedCurvePoints != null;
+        }
+
+        private List<Point> GetBoundPoints()
         {
             GetBoundsPixels();
             bool foundPoint = false;
@@ -182,22 +271,6 @@ namespace Whorl
             return loop ? null : boundPoints;
         }
 
-        public void DrawBoundary(Graphics g)
-        {
-            GetBoundsPixels();
-            for (int y = 0; y < boundingRect.Height; y++)
-            {
-                for (int x = 0; x < boundingRect.Width; x++)
-                {
-                    Point p = new Point(x, y);
-                    if (IsBoundaryPoint(p))
-                    {
-                        g.FillRectangle(Brushes.Red, new Rectangle(p, new Size(1, 1)));
-                    }
-                }
-            }
-        }
-
         private bool IsPatternPixel(Point p)
         {
             int pixInd = boundingRect.Size.Width * p.Y + p.X;
@@ -226,6 +299,9 @@ namespace Whorl
 
         private void GetBoundsPixels()
         {
+            //Complex zVector1 = Patterns.First().ZVector;
+            //zVector1.Normalize();
+            //zVector1 = Complex.One / zVector1;
             foreach (Pattern ptn in Patterns)
             {
                 ptn.ComputeCurvePoints(ptn.ZVector, forOutline: true);
@@ -260,7 +336,8 @@ namespace Whorl
         public override void FromXml(XmlNode node)
         {
             base.FromXml(node);
-            InitCurvePoints(ZVector);
+            SetZRotation();
+            ComputeSeedCurvePoints(out _);
         }
 
         protected override void ExtraXml(XmlNode parentNode, XmlTools xmlTools)
@@ -272,20 +349,31 @@ namespace Whorl
                 ptn.ToXml(childNode, xmlTools);
             }
             parentNode.AppendChild(childNode);
+            parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(FirstZVector), FirstZVector));
+            parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(OrigCenter), OrigCenter));
         }
 
         protected override bool FromExtraXml(XmlNode node)
         {
+            bool retVal = true;
             if (node.Name == nameof(Patterns))
             {
                 foreach (XmlNode patternNode in node.ChildNodes)
                 {
                     Patterns.Add(CreatePatternFromXml(Design, patternNode, throwOnError: true));
                 }
-                return true;
+            }
+            else if (node.Name == nameof(FirstZVector))
+            {
+                FirstZVector = Tools.GetComplexFromXml(node);
+            }
+            else if (node.Name == nameof(OrigCenter))
+            {
+                OrigCenter = Tools.GetPointFFromXml(node);
             }
             else
-                return base.FromExtraXml(node);
+                retVal = base.FromExtraXml(node);
+            return retVal;
         }
     }
 }

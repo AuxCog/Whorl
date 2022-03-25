@@ -8550,9 +8550,8 @@ namespace Whorl
                 }
                 var mergedPattern = new MergedPattern(Design);
                 mergedPattern.Patterns.AddRange(selPatterns.Select(p => p.GetCopy()));
-                mergedPattern.Initialize();
+                bool success = mergedPattern.Initialize(picDesign.ClientSize);
                 testMergedPattern = mergedPattern;
-                bool success = mergedPattern.InitCurvePoints(mergedPattern.ZVector);
                 if (success)
                 {
                     Design.RemovePatterns(selPatterns.ToList());
@@ -8579,8 +8578,8 @@ namespace Whorl
                 MergedPattern mergedPattern = GetNearestPattern<MergedPattern>(dragStart);
                 if (mergedPattern != null)
                 {
-                    mergedPattern.Initialize();
-                    mergedPattern.InitCurvePoints(mergedPattern.ZVector);
+                    mergedPattern.ComputeSeedCurvePoints(out _);
+                    RedrawPatterns();
                 }
             }
             catch (Exception ex)

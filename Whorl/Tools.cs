@@ -189,6 +189,12 @@ namespace Whorl
             return RotatePoint(p, rotationVector);
         }
 
+        /// <summary>
+        /// Rotate and scale point.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="rotationVector"></param>
+        /// <returns></returns>
         public static PointF RotatePoint(PointF p, PointF rotationVector)
         {
             return new PointF(p.X * rotationVector.X - p.Y * rotationVector.Y,
