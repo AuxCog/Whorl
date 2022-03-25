@@ -4234,7 +4234,7 @@ namespace Whorl
             nameof(BasicOutlines), nameof(DesignLayer), //nameof(PrevCenter),
             nameof(RandomGenerator), nameof(PatternLayers), nameof(KeyGuid),
             nameof(CenterOffsetVector), // nameof(CenterPathPattern),
-            nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList)
+            nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList), "Patterns"
         };
 
         protected virtual void CopyProperties(Pattern sourcePattern, 
