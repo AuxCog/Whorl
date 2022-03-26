@@ -2425,6 +2425,10 @@ namespace Whorl
             get { return HasPixelRendering && PixelRendering.UseDistanceOutline; }
         }
 
+        public bool PatternIsEnabled { get; set; } = true;
+
+        public virtual bool DrawFilledIsEnabled => true;
+
         public InfluencePointInfoList InfluencePointInfoList { get; private set; }
 
         public double InfluenceScaleFactor { get; private set; } = 1.0;
@@ -3544,6 +3548,8 @@ namespace Whorl
 
         public virtual void DrawSelectionOutline(Graphics g, PointF? center = null)
         {
+            if (!PatternIsEnabled)
+                return;
             if (this is PathPattern || WhorlSettings.Instance.ExactOutline)
                 this.OutlineZVector = this.ZVector;
             else
@@ -3565,7 +3571,22 @@ namespace Whorl
 
         public const int NonRecursiveDepth = -2;
 
-        public virtual void DrawFilled(Graphics g,
+        public void DrawFilled(Graphics g,
+                               IRenderCaller caller,
+                               bool computeRandom = false,
+                               bool draftMode = false,
+                               int recursiveDepth = -1,
+                               float textureScale = 1,
+                               Complex? patternZVector = null,
+                               bool enableCache = true)
+        {
+            if (DrawFilledIsEnabled)
+            {
+                _DrawFilled(g, caller, computeRandom, draftMode, recursiveDepth, textureScale, patternZVector, enableCache);
+            }
+        }
+
+        protected virtual void _DrawFilled(Graphics g,
                                        IRenderCaller caller,
                                        bool computeRandom = false,
                                        bool draftMode = false,
@@ -3574,7 +3595,7 @@ namespace Whorl
                                        Complex? patternZVector = null, 
                                        bool enableCache = true)
         {
-            if (RenderMode == RenderModes.Stain)
+            if (!PatternIsEnabled || RenderMode == RenderModes.Stain)
                 return;
             bool draw = true;
             Complex drawnZVector = patternZVector ?? this.DrawnZVector;
@@ -3724,7 +3745,7 @@ namespace Whorl
                     if (drawPattern)
                     {
                         this.Center = center;
-                        DrawFilled(g, caller, computeRandom, draftMode, textureScale: textureScale, enableCache: enableCache);
+                        _DrawFilled(g, caller, computeRandom, draftMode, textureScale: textureScale, enableCache: enableCache);
                     }
                     center.X += rectSize.Width;
                 }
@@ -3850,7 +3871,7 @@ namespace Whorl
                     copiedPattern.DrawOutlineRecursive(g, penColor, recursiveDepth);
                 else
                 {
-                    copiedPattern.DrawFilled(g, caller, computeRandom, draftMode, recursiveDepth,
+                    copiedPattern._DrawFilled(g, caller, computeRandom, draftMode, recursiveDepth,
                                              textureScale: textureScale, enableCache: enableCache);
                     if (subpatternsInfo != null)
                     {
@@ -4332,7 +4353,8 @@ namespace Whorl
                 xmlNodeName = "Pattern";
             XmlNode node = xmlTools.CreateXmlNode(xmlNodeName);
             Tools.SetXmlVersion(node, xmlTools);
-            xmlTools.AppendXmlAttributes(node, this, nameof(RotationSteps), nameof(MergeOperation), nameof(DrawCurve),
+            xmlTools.AppendXmlAttributes(node, this, nameof(PatternIsEnabled), nameof(RotationSteps), 
+                                         nameof(MergeOperation), nameof(DrawCurve),
                                          nameof(RenderMode), nameof(StainBlendType), nameof(StainWidth), 
                                          nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid), nameof(FlipX),
                                          nameof(ShrinkPattern), nameof(ShrinkPatternLayers), nameof(ShrinkClipCenterFactor),
@@ -4435,6 +4457,10 @@ namespace Whorl
             float defaultVersion = Design.XmlVersion == 0F ? 1.1F : Design.XmlVersion;
             XmlVersion = Tools.GetXmlVersion(node, defaultVersion);
 
+            XmlAttribute guidAttr = node.Attributes[nameof(KeyGuid)];
+            if (guidAttr != null)
+                SetKeyGuid(Guid.Parse(guidAttr.Value));
+
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: new string[]
                                    { "MergeOperation", "RenderMode", "Selected",
                                      "DrawingMode", "PathMode", "StainBlendType", "SharedPatternID",
@@ -4456,9 +4482,6 @@ namespace Whorl
             //                                         node, required: false);
             //if (patternId != null)
             //    this.SharedPatternID = (long)patternId;
-            XmlAttribute guidAttr = node.Attributes[nameof(KeyGuid)];
-            if (guidAttr != null)
-                SetKeyGuid(Guid.Parse(guidAttr.Value));
             this.RandomGenerator = new RandomGenerator(randomSeed);
             BasicOutlines.Clear();
             bool haveUserVertices = false;

@@ -44,6 +44,17 @@ namespace Whorl
             catch { }
         }
 
+        public static void DisposeList<T>(IEnumerable<T> list) where T: IDisposable
+        {
+            if (list != null)
+            {
+                foreach (T item in list)
+                {
+                    item.Dispose();
+                }
+            }
+        }
+
         public static double ComputeNested(Func1Parameter<double>[] fnArray, double v)
         {
             for (int i = 0; i < fnArray.Length; i++)

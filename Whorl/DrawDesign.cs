@@ -35,7 +35,7 @@ namespace Whorl
                                           IEnumerable<Pattern> overridePatterns = null, 
                                           bool enableCache = true, bool draftMode = false)
         {
-            var patterns = overridePatterns ?? design.DesignPatterns;
+            var patterns = overridePatterns ?? design.EnabledPatterns;
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 DrawPatterns(g, caller,
@@ -84,7 +84,7 @@ namespace Whorl
                                               IEnumerable<Pattern> overridePatterns = null, bool enableCache = true, 
                                               bool draftMode = false)
         {
-            IEnumerable<Pattern> patterns = overridePatterns ?? design.DesignPatterns;
+            IEnumerable<Pattern> patterns = overridePatterns ?? design.EnabledPatterns;
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 DrawPatterns(g, caller, patterns.Where(ptn => ptn.DesignLayer == designLayer),
@@ -186,7 +186,7 @@ namespace Whorl
             DrawLayerPatterns(baseBitmap, design, caller, textureScale, 
                               computeRandom, designLayer: null, overridePatterns: overridePatterns, 
                               enableCache: enableCache, draftMode: draftMode);
-            if (!design.DesignPatterns.Any(ptn => ptn.DesignLayer != null))
+            if (!design.EnabledPatterns.Any(ptn => ptn.DesignLayer != null))
                 return;
             int steps = 10 * design.DesignLayerList.DesignLayers.Count();
             if (caller != null)

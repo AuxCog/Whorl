@@ -501,10 +501,12 @@ namespace Whorl
             return useFormula;
         }
 
-        public override void DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = true, 
+        protected override void _DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = true, 
                                         bool draftMode = false, int recursiveDepth = 0,
                                         float textureScale = 1, Complex? patternZVector = null, bool enableCache = true)
         {
+            if (!PatternIsEnabled)
+                return;
             int segmentsCount = RibbonPath.Count - 1;
             if (segmentsCount <= 0)
                 return;
@@ -631,7 +633,7 @@ namespace Whorl
                     CopiedPattern.DrawFilled(g, caller, computeRandom: false, draftMode: draftMode,
                                              patternZVector: patternZVector, enableCache: enableCache);
                 else
-                    base.DrawFilled(g, caller, computeRandom: false, draftMode: draftMode,
+                    base._DrawFilled(g, caller, computeRandom: false, draftMode: draftMode,
                                     patternZVector: patternZVector, enableCache: enableCache);
             }
             else if (ComputeCurvePoints(patternZVector))
@@ -1310,7 +1312,7 @@ namespace Whorl
                     CopiedPattern.DrawFilled(g, caller, computeRandom: false, draftMode: draftMode,
                                              patternZVector: patternZVector, enableCache: enableCache);
                 else
-                    base.DrawFilled(g, caller, computeRandom: false, draftMode: draftMode, 
+                    base._DrawFilled(g, caller, computeRandom: false, draftMode: draftMode, 
                                 patternZVector: patternZVector, enableCache: enableCache);
             }
             else if (ComputeCurvePoints(patternZVector))
@@ -1432,6 +1434,8 @@ namespace Whorl
 
         public override void DrawSelectionOutline(Graphics g, PointF? center = null)
         {
+            if (!PatternIsEnabled)
+                return;
             if (this.RibbonPath.Count < 2)
                 return;
             Color color = Tools.InverseColor(this.BoundaryColor);

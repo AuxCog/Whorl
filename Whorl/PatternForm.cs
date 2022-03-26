@@ -1662,7 +1662,7 @@ namespace Whorl
             {
                 if (useDesignBackground)
                 {
-                    foreach (Pattern pattern in design.DesignPatterns.Where(ptn => ptn.IsBackgroundPattern && !ptn.HasPixelRendering))
+                    foreach (Pattern pattern in design.EnabledPatterns.Where(ptn => ptn.IsBackgroundPattern && !ptn.HasPixelRendering))
                     {
                         using (Pattern copy = pattern.GetCopy())
                         {

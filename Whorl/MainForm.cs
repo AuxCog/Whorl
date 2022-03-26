@@ -984,7 +984,7 @@ namespace Whorl
 
         private void MovePatterns(int dX, int dY)
         {
-            foreach (Pattern pattern in Design.DesignPatterns)
+            foreach (Pattern pattern in Design.EnabledPatterns)
             {
                 if (pattern.Selected)
                 {
@@ -1168,7 +1168,7 @@ namespace Whorl
                     selectingRectangle = false;
                     dragState = DragStates.None;
                     Rectangle selRect = GetSelectionRectangle();
-                    foreach (Pattern pattern in Design.DesignPatterns)
+                    foreach (Pattern pattern in Design.EnabledPatterns)
                     {
                         if (selRect.Contains((int)pattern.Center.X, (int)pattern.Center.Y))
                             pattern.Selected = true;
@@ -1492,7 +1492,7 @@ namespace Whorl
                     }
                     else if (moveSelectedPatternsToolStripMenuItem.Checked)
                     {
-                        foreach (Pattern pattern in Design.DesignPatterns)
+                        foreach (Pattern pattern in Design.EnabledPatterns)
                         {
                             if (pattern.RenderMode == Pattern.RenderModes.Stain)
                                 pattern.DrawSelectionOutline(e.Graphics);
@@ -1584,7 +1584,7 @@ namespace Whorl
                         }
                         if (viewDistanceOutlineToolStripMenuItem.Checked)
                         {
-                            foreach (var pattern in Design.DesignPatterns)
+                            foreach (var pattern in Design.EnabledPatterns)
                             {
                                 if (pattern.UsesDistancePattern)
                                 {
@@ -1786,7 +1786,7 @@ namespace Whorl
                 //patternGroup.DrawFilled(g);
             }
             var patternList = patternGroup.PatternsList;
-            RenderStained(Design.DesignPatterns.ToList());
+            RenderStained(Design.EnabledPatterns.ToList());
             //if (patternList.Exists(ptn => ptn.RenderMode == Pattern.RenderModes.Stain))
             //    RenderStained(patternList);
             this.picDesign.Image = this.currentBitmap;
@@ -1798,7 +1798,7 @@ namespace Whorl
                                   picDesign.ClientRectangle.Height);
             return (float)WhorlSettings.Instance.QualitySize / minDim;
             //List<Pattern> surroundPatterns =
-            //    design.DesignPatterns.Where(ptn => ptn.FillInfo is PathFillInfo 
+            //    design.EnabledPatterns.Where(ptn => ptn.FillInfo is PathFillInfo 
             //                            && ((PathFillInfo)ptn.FillInfo).ColorMode 
             //                            == FillInfo.PathColorModes.Surround);
             //double defaultRatio = (double)QualitySize / minDim;
@@ -1864,7 +1864,7 @@ namespace Whorl
                     stopwatch = null;
                 if (computeSeedPoints)
                 {
-                    foreach (Pattern pattern in Design.DesignPatterns)
+                    foreach (Pattern pattern in Design.EnabledPatterns)
                     {
                         pattern.ComputeSeedPoints();
                     }
@@ -1908,7 +1908,7 @@ namespace Whorl
                     }
                 }
                 if (renderStained)
-                    RenderStained(Design.DesignPatterns.ToList());
+                    RenderStained(Design.EnabledPatterns.ToList());
                 if (stopwatch != null)
                 {
                     stopwatch.Stop();
@@ -1966,7 +1966,7 @@ namespace Whorl
         //{
         //    try
         //    {
-        //        var selectedPatterns = design.DesignPatterns.Where(ptn => ptn.Selected);
+        //        var selectedPatterns = design.EnabledPatterns.Where(ptn => ptn.Selected);
         //        if (selectedPatterns.Count() != 1)
         //        {
         //            MessageBox.Show("Please select a single pattern to edit.");
@@ -2323,7 +2323,7 @@ namespace Whorl
                 }
                 Design.IsDirty = false;
                 ClearTileGrid();
-                if (Design.DesignPatterns.Any(p => p.HasPixelRendering))
+                if (Design.EnabledPatterns.Any(p => p.HasPixelRendering))
                 {
                     ShowRenderingPanels(true);
                 }
@@ -2583,7 +2583,7 @@ namespace Whorl
             {
                 if (isChecked)
                 {
-                    if (!Design.DesignPatterns.Any())
+                    if (!Design.EnabledPatterns.Any())
                     {
                         StopAnimating();
                     }
@@ -2738,9 +2738,9 @@ namespace Whorl
             get
             {
                 if (animateOnSelectedPatternsToolStripMenuItem.Checked)
-                    return Design.DesignPatterns.Where(ptn => ptn.Selected).ToList();
+                    return Design.EnabledPatterns.Where(ptn => ptn.Selected).ToList();
                 else
-                    return Design.DesignPatterns.ToList();
+                    return Design.EnabledPatterns.ToList();
             }
         }
 
@@ -2901,7 +2901,7 @@ namespace Whorl
                 improvDesignsIndex = improvDesigns.Count - 1;
 
                 //Test code:
-                //foreach (Pattern ptn in designCopy.DesignPatterns)
+                //foreach (Pattern ptn in designCopy.EnabledPatterns)
                 //{
                 //    if (ptn.SeedPoints != null || ptn.CurvePoints != null)
                 //    {
@@ -2995,7 +2995,7 @@ namespace Whorl
                 if (displayInterpolatedPatterns)
                 {
                     displayInterpolatedPatterns = false;
-                    overridePatterns = new List<Pattern>(Design.DesignPatterns);
+                    overridePatterns = new List<Pattern>(Design.EnabledPatterns);
                     for (int i = 0; i < animationPatterns.Count; i++)
                     {
                         var smoothPattern = GetSmoothPatternInfo(i);
@@ -3402,9 +3402,9 @@ namespace Whorl
             else
                 patternImprovConfig = null;
             bool changeFrequency = improvFlags.UsedImprovisePetals;
-            if (frequencyFactors == null || frequencyFactors.Length != Design.DesignPatterns.Count())
+            if (frequencyFactors == null || frequencyFactors.Length != Design.EnabledPatterns.Count())
             {
-                frequencyFactors = new double[Design.DesignPatterns.Count()];
+                frequencyFactors = new double[Design.EnabledPatterns.Count()];
                 for (int i = 0; i < frequencyFactors.Length; i++)
                 {
                     frequencyFactors[i] = 1D;
@@ -3683,7 +3683,7 @@ namespace Whorl
         private Pattern.PatternInfo NearestPattern(PointF p1, double maxDistance = -1D, 
                                        bool checkSelected = true, bool includeRecursive = false)
         {
-            if (!Design.DesignPatterns.Any())
+            if (!Design.EnabledPatterns.Any())
                 return null;
             if (maxDistance == -1D)
                 maxDistance = WhorlSettings.Instance.BufferSize;
@@ -3708,7 +3708,7 @@ namespace Whorl
                 .OrderBy(x => Tools.DistanceSquared(x.Center, p1));
             //if (includeSingleSelected && nearbyPatterns.Count == 0)
             //{
-            //    var selectedPatterns = design.DesignPatterns.Where(p => p.Selected);
+            //    var selectedPatterns = design.EnabledPatterns.Where(p => p.Selected);
             //    if (selectedPatterns.Count == 1)
             //        nearbyPatterns.Add(selectedPatterns[0]);
             //}
@@ -3798,9 +3798,9 @@ namespace Whorl
             {
                 IEnumerable<Pattern> sourcePatterns;
                 if (limitSelectionCenterPattern == null)
-                    sourcePatterns = Design.DesignPatterns;
+                    sourcePatterns = Design.EnabledPatterns;
                 else
-                    sourcePatterns = Design.DesignPatterns.Where(ptn => 
+                    sourcePatterns = Design.EnabledPatterns.Where(ptn => 
                         Tools.DistanceSquared(ptn.Center, limitSelectionCenterPattern.Center) <= 2500D);
                 //Get patterns sorted vertically, then horizontally, then by topmost (last) first:
                 List<Pattern> sortedPatterns = (from ptn in sourcePatterns
@@ -3812,7 +3812,7 @@ namespace Whorl
                 if (sortedPatterns.Count == 0)
                     return;
                 Pattern selPattern = Design.SelectedPattern;
-                if (selPattern == null || !selPattern.Selected)
+                if (selPattern == null || !selPattern.Selected || !selPattern.PatternIsEnabled)
                     selPattern = Design.FindPattern(ptn => ptn.Selected);
                 int index = selPattern == null ? 0 : sortedPatterns.IndexOf(selPattern);
                 if (selPattern != null)
@@ -3822,7 +3822,7 @@ namespace Whorl
                 }
                 selPattern = sortedPatterns[index];
                 Design.SelectedPatternIndex = Design.IndexOfPattern(selPattern);
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                     pattern.Selected = (pattern == selPattern || keepSelectedPatterns.Contains(pattern));
                 picDesign.Invalidate();
             }
@@ -3846,7 +3846,7 @@ namespace Whorl
         {
             try
             {
-                var selPatterns = Design.DesignPatterns.Where(
+                var selPatterns = Design.EnabledPatterns.Where(
                                   ptn => ptn.Selected && !keepSelectedPatterns.Contains(ptn));
                 if (selPatterns.Count() != 1)
                 {
@@ -3880,7 +3880,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     pattern.Selected = keepSelectedPatterns.Contains(pattern);
                 }
@@ -4046,7 +4046,7 @@ namespace Whorl
                     {
                         editedGradientPattern = pattern;
                         //picDesign.Refresh();
-                        RedrawPatterns(overridePatterns: Design.DesignPatterns.Where(ptn => ptn != editedGradientPattern));
+                        RedrawPatterns(overridePatterns: Design.EnabledPatterns.Where(ptn => ptn != editedGradientPattern));
                         CheckCreateColorGradientForm();
                         frmColorGradient.Component.ColorNodes = colorNodesParent.ColorNodes.GetCopy();
                         Tools.DisplayForm(frmColorGradient, this);
@@ -4153,7 +4153,7 @@ namespace Whorl
 
         private Pattern FindSingleSelectedPattern()
         {
-            var selPatterns = Design.DesignPatterns.Where(ptn => ptn.Selected);
+            var selPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected);
             return selPatterns.Count() == 1 ? selPatterns.First() : null;
         }
 
@@ -4415,7 +4415,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     RecomputeRandom(pattern);
                 }
@@ -4518,7 +4518,7 @@ namespace Whorl
         {
             try
             {
-                IEnumerable<Pattern> targetPatterns = Design.DesignPatterns.Where(ptn => ptn.Selected);
+                IEnumerable<Pattern> targetPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected);
                 if (!targetPatterns.Any())
                 {
                     MessageBox.Show("Please select some patterns.");
@@ -4575,7 +4575,7 @@ namespace Whorl
         {
             try
             {
-                var selPatterns = Design.DesignPatterns.Where(ptn => ptn.Selected);
+                var selPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected);
                 if (selPatterns.Any())
                 {
                     copiedPatterns = selPatterns.ToList();
@@ -4637,7 +4637,7 @@ namespace Whorl
             IEnumerable<Pattern> targetPatterns;
             if (toAllSelectedPatterns)
             {
-                targetPatterns = Design.DesignPatterns.Where(ptn => ptn.Selected);
+                targetPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected);
             }
             else
             {
@@ -5143,7 +5143,7 @@ namespace Whorl
                                 steps = 1 + (int)repeatSettingsForm.Repetitions;
                                 if (repeatSettingsForm.UseSelectedPatternCenter)
                                 {
-                                    if (Design.DesignPatterns.Count(ptn => ptn.Selected) != 1)
+                                    if (Design.EnabledPatterns.Count(ptn => ptn.Selected) != 1)
                                     {
                                         MessageBox.Show("Please select one pattern for the repeat center.");
                                         return;
@@ -5412,7 +5412,7 @@ namespace Whorl
         {
            try
             {
-                foreach (Pattern pattern in this.Design.DesignPatterns)
+                foreach (Pattern pattern in this.Design.EnabledPatterns)
                 {
                     pattern.Selected = selectAllToolStripMenuItem.Checked;
                 }
@@ -5517,7 +5517,7 @@ namespace Whorl
 
         private void clearSelectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (Pattern pattern in Design.DesignPatterns)
+            foreach (Pattern pattern in Design.EnabledPatterns)
                 pattern.Selected = false;
             Design.SelectedPatternIndex = -1;
             picDesign.Invalidate();
@@ -5600,7 +5600,7 @@ namespace Whorl
         //            bool fixedDesign = false;
         //            if (designToFix.XmlVersion < 1F)
         //            {
-        //                foreach (Pattern pattern in designToFix.DesignPatterns)
+        //                foreach (Pattern pattern in designToFix.EnabledPatterns)
         //                {
         //                    if (FixPattern(pattern))
         //                        fixedDesign = true;
@@ -5747,7 +5747,7 @@ namespace Whorl
                         PointF prevCenter = new PointF(prevSize.Width / 2, prevSize.Height / 2);
                         PointF deltaCenter = new PointF(newCenter.X - prevCenter.X, newCenter.Y - prevCenter.Y);
                         //PointF pScale = new PointF(1, 1);
-                        foreach (Pattern ptn in Design.DesignPatterns)
+                        foreach (Pattern ptn in Design.EnabledPatterns)
                         {
                             ptn.Center = Tools.AddPoint(ptn.Center, deltaCenter);
                             Ribbon ribbon = ptn as Ribbon;
@@ -5919,7 +5919,7 @@ namespace Whorl
         //private List<Pattern> GetPatternList(WhorlDesign dgn, PointF p1, 
         //                                     double maxDistance = 20D)
         //{
-        //    List<Pattern> patterns = dgn.DesignPatterns.Where(
+        //    List<Pattern> patterns = dgn.EnabledPatterns.Where(
         //        x => Tools.DistanceSquared(x.Center, p1) < maxDistance * maxDistance);
         //    return AdjustNearbyPatterns(patterns);
         //}
@@ -6196,7 +6196,7 @@ namespace Whorl
                 if (patternZOrderForm == null || patternZOrderForm.IsDisposed)
                     patternZOrderForm = new PatternZOrderForm();
                 int zOrder = Design.IndexOfPattern(pattern);
-                patternZOrderForm.Initialize(zOrder, Design.DesignPatterns.Count());
+                patternZOrderForm.Initialize(zOrder, Design.EnabledPatterns.Count());
                 if (patternZOrderForm.ShowDialog(this) == DialogResult.OK)
                 {
                     if (patternZOrderForm.ZOrder != zOrder)
@@ -6287,7 +6287,7 @@ namespace Whorl
             try
             {
                 List<Pattern> selectedPatterns = 
-                    Design.DesignPatterns.Where(ptn => ptn.Selected).ToList();
+                    Design.EnabledPatterns.Where(ptn => ptn.Selected).ToList();
                 if (selectedPatterns.Count == 0)
                 {
                     MessageBox.Show("Please select the patterns to zoom.");
@@ -6317,7 +6317,7 @@ namespace Whorl
         {
             try
             {
-                List<Pattern> selectedPatterns = Design.DesignPatterns.Where(ptn => ptn.Selected).ToList();
+                List<Pattern> selectedPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected).ToList();
                 if (selectedPatterns.Count > 0)
                 {
                     Design.RemovePatterns(selectedPatterns);
@@ -6334,7 +6334,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     pattern.OrigRandomSeed = pattern.RandomGenerator.RandomSeed;
                 }
@@ -6350,7 +6350,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     if (pattern.OrigRandomSeed != null && 
                         pattern.RandomGenerator.RandomSeed != pattern.OrigRandomSeed)
@@ -6371,7 +6371,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     pattern.Selected = pattern.HasRandomElements;
                 }
@@ -6452,7 +6452,7 @@ namespace Whorl
         {
             try
             {
-                List<Pattern> selectedPatterns = Design.DesignPatterns.Where(
+                List<Pattern> selectedPatterns = Design.EnabledPatterns.Where(
                     ptn => ptn.Selected).ToList();
                 if (selectedPatterns.Count > 0)
                     ShowDesignLayersForm(selectedPatterns);
@@ -6545,7 +6545,7 @@ namespace Whorl
             {
                 WhorlDesign mergedDesign = new WhorlDesign(OnDistancePatternsCountChanged);
                 mergedDesign.ReadDesignFromXmlFile(dlg.FileName);
-                Design.AddPatterns(mergedDesign.DesignPatterns, insertIndex: above ? -1 : 0);
+                Design.AddPatterns(mergedDesign.EnabledPatterns, insertIndex: above ? -1 : 0);
                 RedrawPatterns();
             }
         }
@@ -7042,7 +7042,7 @@ namespace Whorl
                     modulus *= 1.02;
                 }
                 ptnList.SetZVectors(new Complex(0, modulus));
-                Pattern topBackgroundPattern = Design.DesignPatterns.Where(ptn => ptn.IsBackgroundPattern).LastOrDefault();
+                Pattern topBackgroundPattern = Design.EnabledPatterns.Where(ptn => ptn.IsBackgroundPattern).LastOrDefault();
                 int insertIndex = topBackgroundPattern == null ? 0 : 1 + Design.IndexOfPattern(topBackgroundPattern);
                 foreach (Pattern pattern in ptnList.Patterns)
                 {
@@ -7155,7 +7155,7 @@ namespace Whorl
             try
             {
                 int changedCount = 0;
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     if (pattern.RotationSteps == 500)
                     {
@@ -7177,7 +7177,7 @@ namespace Whorl
         {
             try
             {
-                foreach (Pattern ptn in Design.DesignPatterns)
+                foreach (Pattern ptn in Design.EnabledPatterns)
                 {
                     ptn.AllowRandom = allow;
                 }
@@ -7468,7 +7468,7 @@ namespace Whorl
         {
             double maxDistanceSquared = WhorlSettings.Instance.BufferSize;
             maxDistanceSquared *= maxDistanceSquared;
-            var infos = Design.DesignPatterns.Where(ptn => ptn.UsesDistancePattern)
+            var infos = Design.EnabledPatterns.Where(ptn => ptn.UsesDistancePattern)
                               .SelectMany(ptn => ptn.PixelRendering.GetDistancePatternInfos()
                               .Select(pi => new Tuple<Pattern, DistancePatternInfo, double>(
                                       ptn, pi, Tools.DistanceSquared(
@@ -8363,7 +8363,7 @@ namespace Whorl
         {
             try
             {
-                var selPatterns = Design.DesignPatterns.Where(p => p.Selected);
+                var selPatterns = Design.EnabledPatterns.Where(p => p.Selected);
                 if (selPatterns.Count() != 1)
                     return;
                 Pattern distancePattern = selPatterns.First();
@@ -8427,7 +8427,7 @@ namespace Whorl
         {
             try
             {
-                var selectedPatterns = Design.DesignPatterns.Where(p => p.Selected);
+                var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
                 if (!selectedPatterns.Any())
                 {
                     MessageBox.Show("No selected patterns found.");
@@ -8482,7 +8482,7 @@ namespace Whorl
             try
             {
                 bool setFill = false;
-                foreach (Pattern pattern in Design.DesignPatterns)
+                foreach (Pattern pattern in Design.EnabledPatterns)
                 {
                     foreach (FillInfo fillInfo in pattern.GetFillInfos())
                     {
@@ -8542,19 +8542,18 @@ namespace Whorl
         {
             try
             {
-                var selPatterns = Design.DesignPatterns.Where(p => p.Selected);
-                if (!selPatterns.Any())
+                var selPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+                if (selPatterns.Count() < 2)
                 {
-                    MessageBox.Show("Please select the patterns to merge.");
+                    MessageBox.Show("Please select at least 2 patterns to merge.");
                     return;
                 }
                 var mergedPattern = new MergedPattern(Design);
-                mergedPattern.Patterns.AddRange(selPatterns.Select(p => p.GetCopy()));
-                bool success = mergedPattern.Initialize(picDesign.ClientSize);
+                mergedPattern.SetPatterns(selPatterns);
                 testMergedPattern = mergedPattern;
-                if (success)
+                if (mergedPattern.SetMerged(true))
                 {
-                    Design.RemovePatterns(selPatterns.ToList());
+                    //Design.RemovePatterns(selPatterns.ToList());
                     Design.AddPattern(mergedPattern);
                     RedrawPatterns();
                 }
@@ -8588,15 +8587,19 @@ namespace Whorl
             }
         }
 
-        private void undoMergeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void toggleMergeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
                 MergedPattern mergedPattern = GetNearestPattern<MergedPattern>(dragStart);
                 if (mergedPattern != null)
                 {
-                    Design.AddPatterns(mergedPattern.Patterns);
-                    Design.RemovePatterns(new List<Pattern>() { mergedPattern });
+                    if (!mergedPattern.SetMerged(!mergedPattern.IsMerged))
+                    {
+                        MessageBox.Show("Couldn't merge patterns.");
+                        return;
+                    }
+                    Design.IsDirty = true;
                     RedrawPatterns();
                 }
             }

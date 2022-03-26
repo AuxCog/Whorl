@@ -149,9 +149,12 @@ namespace Whorl
             }
         }
 
-        public override void DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = false, bool draftMode = false, int recursiveDepth = -1, float textureScale = 1, 
-                                        Complex? patternZVector = null, bool enableCache = true)
+        protected override void _DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = false, bool draftMode = false, 
+                                            int recursiveDepth = -1, float textureScale = 1, 
+                                            Complex? patternZVector = null, bool enableCache = true)
         {
+            if (!PatternIsEnabled)
+                return;
             Complex zVector = patternZVector ?? DrawnZVector;
             ComputeCurvePoints(zVector);
             double angle = AdjustAngle(zVector.GetArgument());

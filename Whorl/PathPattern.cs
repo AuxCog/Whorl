@@ -38,11 +38,11 @@ namespace Whorl
             return PathRibbon;
         }
 
-        public override void DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = false,
+        protected override void _DrawFilled(Graphics g, IRenderCaller caller, bool computeRandom = false,
                                         bool draftMode = false, int recursiveDepth = 0,
                                         float textureScale = 1, Complex? patternZVector = null, bool enableCache = true)
         {
-            if (RenderMode == RenderModes.Stain)
+            if (!PatternIsEnabled || RenderMode == RenderModes.Stain)
                 return;
             Complex drawnZVector = patternZVector ?? DrawnZVector;
             if (PathRibbon != null)

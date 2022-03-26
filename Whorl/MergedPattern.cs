@@ -11,7 +11,11 @@ namespace Whorl
 {
     public class MergedPattern: Pattern
     {
-        public List<Pattern> Patterns { get; private set; } = new List<Pattern>();
+        private const double factorCoeff = 1000.0;
+        public bool IsMerged { get; private set; }
+        public override bool DrawFilledIsEnabled => IsMerged;
+        private List<Pattern> mergedPatterns { get; set; } = new List<Pattern>();
+        private List<Pattern> unmergedPatterns { get; set; } = new List<Pattern>();
         public Complex FirstZVector { get; private set; }
         public PointF OrigCenter { get; private set; }
         private PointF[] seedCurvePoints { get; set; }  //Normalized curve points.
@@ -21,50 +25,125 @@ namespace Whorl
         private int pixelCount { get; set; }
         private Rectangle boundingRect { get; set; }
         private PointF deltaPoint { get; set; }
+        private bool isInitialized { get; set; }
+
+        private void DoInits()
+        {
+            PreviewZFactor = Complex.One;
+        }
 
         public MergedPattern(WhorlDesign design): base(design, FillInfo.FillTypes.Path)
         {
-            PreviewZFactor = Complex.One;
+            DoInits();
         }
 
         public MergedPattern(MergedPattern source, WhorlDesign design = null) : base(design ?? source.Design)
         {
             CopyProperties(source);
-            Patterns.AddRange(source.Patterns.Select(p => p.GetCopy()).ToArray());
+            mergedPatterns.AddRange(source.mergedPatterns.Select(p => p.GetCopy()).ToArray());
             FirstZVector = source.FirstZVector;
             zRotation = source.zRotation;
             seedCurvePoints = (PointF[])source.seedCurvePoints?.Clone();
-            PreviewZFactor = Complex.One;
+            DoInits();
         }
 
         public MergedPattern(WhorlDesign design, XmlNode node): base(design, node)
         {
-            PreviewZFactor = Complex.One;
         }
 
-        public bool Initialize(Size picSize)
+        public void SetPatterns(IEnumerable<Pattern> patterns)
         {
-            if (Patterns.Count == 0)
-            {
-                throw new Exception("There must be at least 1 merged pattern.");
-            }
-            Patterns = Patterns.OrderByDescending(p => p.ZVector.GetModulusSquared()).ToList();
-            Pattern pattern1 = Patterns.First();
+            Tools.DisposeList(unmergedPatterns);
+            unmergedPatterns = patterns.Select(p => p.GetCopy(design: Design)).ToList();
+        }
+
+        public IEnumerable<Pattern> GetUnmergedPatterns()
+        {
+            return unmergedPatterns;
+        }
+
+        private bool DoPatternMerge()
+        {
+            Pattern pattern1 = mergedPatterns.OrderByDescending(p => p.ZVector.GetModulusSquared()).First();
             FirstZVector = pattern1.ZVector;
             SetZRotation();
             OrigCenter = Center = pattern1.Center;
             FillInfo = pattern1.FillInfo.GetCopy(this);
-            double factor = 1000.0 / FirstZVector.GetModulus();
+            double factor = factorCoeff / FirstZVector.GetModulus();
             float fFac = (float)factor;
-            foreach (Pattern ptn in Patterns)
+            foreach (Pattern ptn in mergedPatterns)
             {
                 ptn.ZVector *= factor;
                 PointF dc = new PointF(ptn.Center.X - Center.X, ptn.Center.Y - Center.Y);
                 ptn.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
             }
-            bool success = ComputeSeedCurvePoints(out Complex zVector);
-            ZVector = zVector;
+            IsMerged = ComputeSeedCurvePoints(out Complex zVector);
+            if (!isInitialized)
+                ZVector = zVector;
+            if (!IsMerged)
+                SetUnmergedPatterns();
+            isInitialized = true;
+            return IsMerged;
+        }
+
+        private Pattern[] GetDesignPatterns()
+        {
+            return unmergedPatterns.Select(
+                   p => Design.AllDesignPatterns.FirstOrDefault(ptn => ptn.KeyGuid == p.KeyGuid))
+                   .Where(p => p != null).ToArray();
+        }
+
+        public bool SetMerged(bool isMerged)
+        {
+            bool success;
+            if (IsMerged == isMerged)
+                return true;
+            Pattern[] patterns;
+            if (isMerged)
+            {
+                patterns = GetDesignPatterns();
+                if (patterns.Length == 0)
+                {
+                    throw new Exception("There must be at least 1 merged pattern.");
+                }
+                Tools.DisposeList(mergedPatterns);
+                mergedPatterns = patterns.Select(p => p.GetCopy(design: Design)).ToList();
+                success = DoPatternMerge();
+                if (success)
+                    ClearRenderingCache();
+            }
+            else
+            {
+                SetUnmergedPatterns();
+                patterns = GetDesignPatterns();
+                success = true;
+            }
+            if (success)
+            {
+                //PatternIsEnabled = isMerged;
+                foreach (Pattern pattern in patterns)
+                {
+                    pattern.PatternIsEnabled = !isMerged;
+                }
+                IsMerged = isMerged;
+            }
             return success;
+        }
+
+        private void SetUnmergedPatterns()
+        {
+            Tools.DisposeList(unmergedPatterns);
+            unmergedPatterns = new List<Pattern>();
+            double factor = FirstZVector.GetModulus() / factorCoeff;
+            float fFac = (float)factor;
+            foreach (Pattern ptn in mergedPatterns)
+            {
+                Pattern ptnCopy = ptn.GetCopy(design: Design);
+                ptnCopy.ZVector *= factor;
+                PointF dc = new PointF(ptn.Center.X - OrigCenter.X, ptn.Center.Y - OrigCenter.Y);
+                ptnCopy.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
+                unmergedPatterns.Add(ptnCopy);
+            }
         }
 
         private void SetZRotation()
@@ -136,7 +215,7 @@ namespace Whorl
             }
             else
             {
-                PointF center = OrigCenter; //Patterns.First().Center;
+                PointF center = OrigCenter;
                 var points2 = boundPoints.Select(pt =>
                     new PointF(pt.X + deltaPoint.X - center.X,
                                pt.Y + deltaPoint.Y - center.Y));
@@ -303,21 +382,21 @@ namespace Whorl
             //Complex zVector1 = Patterns.First().ZVector;
             //zVector1.Normalize();
             //zVector1 = Complex.One / zVector1;
-            foreach (Pattern ptn in Patterns)
+            foreach (Pattern ptn in mergedPatterns)
             {
                 ptn.ComputeCurvePoints(ptn.ZVector, forOutline: true);
             }
-            int xMin = (int)Patterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Min() - 2;
-            int xMax = (int)Patterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Max() + 2;
-            int yMin = (int)Patterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Min() - 2;
-            int yMax = (int)Patterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Max() + 2;
+            int xMin = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Min() - 2;
+            int xMax = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Max() + 2;
+            int yMin = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Min() - 2;
+            int yMax = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Max() + 2;
             boundingRect = new Rectangle(new Point(xMin, yMin), new Size(xMax - xMin, yMax - yMin));
             using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(boundingRect.Size))
             {
                 using (Graphics g = Graphics.FromImage(bmp))
                 {
                     deltaPoint = new PointF(xMin + 1, yMin + 1);
-                    foreach (Pattern ptn in Patterns)
+                    foreach (Pattern ptn in mergedPatterns)
                     {
                         var points = ptn.CurvePoints.Select(p => new PointF(p.X - deltaPoint.X, p.Y - deltaPoint.Y));
                         FillCurvePoints(g, points.ToArray(), Brushes.Black, ptn.DrawCurve);
@@ -331,21 +410,39 @@ namespace Whorl
 
         public override XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
-            return base.ToXml(parentNode, xmlTools, xmlNodeName ?? nameof(MergedPattern));
+            if (IsMerged)
+                return base.ToXml(parentNode, xmlTools, xmlNodeName ?? nameof(MergedPattern));
+            else
+                return null;
         }
 
         public override void FromXml(XmlNode node)
         {
             base.FromXml(node);
+            if (node.Attributes[nameof(IsMerged)] == null)
+                IsMerged = true;
+            DoInits();
             SetZRotation();
-            ComputeSeedCurvePoints(out _);
+            SetUnmergedPatterns();
+            foreach (Pattern pattern in unmergedPatterns)
+            {
+                pattern.PatternIsEnabled = !IsMerged;
+            }
+            if (IsMerged)
+            {
+                Design.AddPatterns(unmergedPatterns.Where(p => 
+                                   !Design.AllDesignPatterns.Any(ptn => ptn.KeyGuid == p.KeyGuid)));
+                IsMerged = ComputeSeedCurvePoints(out _);
+            }
+            isInitialized = true;
         }
 
         protected override void ExtraXml(XmlNode parentNode, XmlTools xmlTools)
         {
             base.ExtraXml(parentNode, xmlTools);
-            XmlNode childNode = xmlTools.CreateXmlNode(nameof(Patterns));
-            foreach (Pattern ptn in Patterns)
+            xmlTools.AppendXmlAttribute(parentNode, nameof(IsMerged), IsMerged);
+            XmlNode childNode = xmlTools.CreateXmlNode("Patterns");
+            foreach (Pattern ptn in mergedPatterns)
             {
                 ptn.ToXml(childNode, xmlTools);
             }
@@ -357,11 +454,11 @@ namespace Whorl
         protected override bool FromExtraXml(XmlNode node)
         {
             bool retVal = true;
-            if (node.Name == nameof(Patterns))
+            if (node.Name == "Patterns")
             {
                 foreach (XmlNode patternNode in node.ChildNodes)
                 {
-                    Patterns.Add(CreatePatternFromXml(Design, patternNode, throwOnError: true));
+                    mergedPatterns.Add(CreatePatternFromXml(Design, patternNode, throwOnError: true));
                 }
             }
             else if (node.Name == nameof(FirstZVector))

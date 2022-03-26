@@ -32,7 +32,7 @@ namespace Whorl
         {
             foreach (DesignLayer designLayer in oldDesign.DesignLayerList.DesignLayers)
                 this.AddDesignLayer(new DesignLayer(this, designLayer, 
-                                    design.DesignPatterns.ToList(), oldDesign.DesignPatterns.ToList()));
+                                    design.EnabledPatterns.ToList(), oldDesign.EnabledPatterns.ToList()));
         }
 
         public int GetDesignLayerIndex(DesignLayer designLayer)
@@ -78,7 +78,7 @@ namespace Whorl
         {
             designLayer.LayerChanged -= LayerOnChanged;
             designLayers.Remove(designLayer);
-            designLayer.PopulatePatterns(Design.DesignPatterns);
+            designLayer.PopulatePatterns(Design.EnabledPatterns);
             foreach (Pattern pattern in designLayer.Patterns)
             {
                 pattern.DesignLayer = null;

@@ -29,10 +29,12 @@ namespace Whorl
 
         public string StartupAnimationNames { get; set; }
         public List<Pattern> designPatternsList { get; } = new List<Pattern>();
-        public IEnumerable<Pattern> DesignPatterns
+        public IEnumerable<Pattern> AllDesignPatterns
         {
             get { return designPatternsList; }
         }
+        public IEnumerable<Pattern> EnabledPatterns => designPatternsList.Where(p => p.PatternIsEnabled);
+
         public int IndexOfPattern(Pattern pattern)
         {
             return designPatternsList.IndexOf(pattern);
@@ -240,10 +242,10 @@ namespace Whorl
 
         public IEnumerable<Pattern.PatternInfo> GetAllPatternsInfo(bool includeRecursive = false)
         {
-            var designPatternsInfo = designPatternsList.Select(ptn => new Pattern.PatternInfo(ptn));
+            var designPatternsInfo = EnabledPatterns.Select(ptn => new Pattern.PatternInfo(ptn));
             if (includeRecursive)
             {
-                var subPatternsInfo = designPatternsList.Where(ptn => ptn.Recursion.IsRecursive)
+                var subPatternsInfo = EnabledPatterns.Where(ptn => ptn.Recursion.IsRecursive)
                                                     .SelectMany(ptn => ptn.Recursion.RecursionPatternsInfo)
                                                     .SelectMany(lst => lst);
                 designPatternsInfo = designPatternsInfo.Concat(subPatternsInfo);
@@ -396,13 +398,13 @@ namespace Whorl
             }
             if (BackgroundBitmap != null)
                 BackgroundBitmap.Dispose();
-            bool haveBackgroundFills = DesignPatterns.Any(p => p.GetFillInfos().Any(f => f.FillType == FillInfo.FillTypes.Background));
+            bool haveBackgroundFills = EnabledPatterns.Any(p => p.GetFillInfos().Any(f => f.FillType == FillInfo.FillTypes.Background));
             if (haveBackgroundFills)
             {
                 BackgroundBitmap = (Bitmap)bitmap.Clone();
                 using (Graphics g = Graphics.FromImage(BackgroundBitmap))
                 {
-                    var patterns = DesignPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
+                    var patterns = EnabledPatterns.Where(p => p.IsBackgroundPattern && !p.HasPixelRendering);
                     DrawDesign.DrawPatterns(g, null, patterns, BackgroundBitmap.Size);
                 }
             }
@@ -512,14 +514,14 @@ namespace Whorl
             float scaleFactor = (float)size.Width / prevSize.Width;
             using (WhorlDesign designCopy = new WhorlDesign(this, size))  //Clone design
             {
-                var patterns = new List<Pattern>(designCopy.designPatternsList);
+                var patterns = new List<Pattern>(designCopy.EnabledPatterns);
                 ScalePatterns(patterns, prevSize, size, scalePenWidth);
                 GraphicsPath grPath = null;
                 PathGradientBrush pthGrBrush = null;
                 Bitmap bitmap = designCopy.CreateDesignBitmap(size.Width, size.Height, ref grPath, ref pthGrBrush, scaleFactor);
                 DrawDesign.DrawDesignLayers(designCopy, bitmap, caller, scaleFactor, enableCache: false, draftMode: draftMode);
                 if (renderStained)
-                    Pattern.RenderStained(designCopy.designPatternsList, bitmap,
+                    Pattern.RenderStained(designCopy.EnabledPatterns.ToList(), bitmap,
                                           squareSize: draftMode ? 5 : 1);
                 return bitmap;
             }
@@ -685,6 +687,16 @@ namespace Whorl
             return op;
         }
 
+        private void AddDesignPattern(Pattern pattern)
+        {
+            designPatternsList.Add(pattern);
+        }
+
+        private void InsertDesignPattern(int index, Pattern pattern)
+        {
+            designPatternsList.Insert(index, pattern);
+        }
+
         private void DoPatternOperation(UndoOperation op, Pattern newPattern, 
                                         Pattern previousPattern = null, int listIndex = -1)
         {
@@ -696,9 +708,9 @@ namespace Whorl
                 if (previousPattern == null)
                 {
                     if (listIndex == -1)
-                        designPatternsList.Add(newPattern);
+                        AddDesignPattern(newPattern);
                     else
-                        designPatternsList.Insert(listIndex, newPattern);
+                        InsertDesignPattern(listIndex, newPattern);
                 }
                 else
                 {
@@ -707,7 +719,7 @@ namespace Whorl
                         case UndoOperation.OperationTypes.Shift:
                             prevListIndex = designPatternsList.IndexOf(previousPattern);
                             designPatternsList.Remove(previousPattern);
-                            designPatternsList.Insert(listIndex, previousPattern);
+                            InsertDesignPattern(listIndex, previousPattern);
                             break;
                         case UndoOperation.OperationTypes.Replace:
                         case UndoOperation.OperationTypes.Delete:
@@ -816,7 +828,7 @@ namespace Whorl
 
         public void AddMovePatternsOperation(PointF delta)
         {
-            AddMovePatternsOperation(delta, designPatternsList.FindAll(x => x.Selected));
+            AddMovePatternsOperation(delta, EnabledPatterns.Where(x => x.Selected).ToList());
         }
 
         public void AddChangeZOrderOperation(Pattern pattern, int newListIndex)
@@ -1244,7 +1256,7 @@ namespace Whorl
             Pattern pattern = Pattern.CreatePatternFromXml(this, patternNode);
             if (pattern == null)
                 throw new Exception("Invalid pattern node in XML.");
-            this.designPatternsList.Add(pattern);
+            AddDesignPattern(pattern);
         }
 
         public void ReadDesignFromXmlFile(string fileName, bool showWarnings = false)
@@ -1316,10 +1328,7 @@ namespace Whorl
             if (Disposed)
                 return;
             Disposed = true;
-            foreach (Pattern pattern in designPatternsList)
-            {
-                pattern.Dispose();
-            }
+            Tools.DisposeList(designPatternsList);
             designPatternsList.Clear();
             UndoOps.Dispose();
         }
