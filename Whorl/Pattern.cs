@@ -1205,7 +1205,15 @@ namespace Whorl
                         PointF distCenter = distanceInfo.DistancePatternCenter;
                         distPtn.Center = new PointF(distCenter.X - BoundsRect.Left, distCenter.Y - BoundsRect.Top);
                         distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                        distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
+                        if (distPtn.SeedPoints == null || distPtn.SeedPoints.Length == 0)
+                        {
+                            float maxMod = distPtn.CurvePoints.Select(p => 
+                                           new PointF(p.X - distPtn.Center.X, p.Y - distPtn.Center.Y))
+                                           .Select(p => p.X * p.X + p.Y * p.Y).Max();
+                            distanceInfo.MaxModulus = Math.Sqrt((double)maxMod);
+                        }
+                        else
+                            distanceInfo.MaxModulus = distPtn.ZVector.GetModulus() * distPtn.MaxPoint.Modulus;
                         if (multiple)
                             pointsList.Clear();
                         pointsList.Add(distPtn.CurvePoints);
@@ -2184,8 +2192,8 @@ namespace Whorl
         public int MinPointIndex { get; private set; }
         public PolarCoord MaxPoint
         {
-            get { return SeedPoints == null ? new PolarCoord(0, 0) 
-                                            : SeedPoints[MaxPointIndex]; }
+            get { return SeedPoints == null || MaxPointIndex >= SeedPoints.Length ? 
+                         new PolarCoord(0, 1F) : SeedPoints[MaxPointIndex]; }
         }
         public bool DrawCurve { get; set; } = false;
         public RenderModes RenderMode { get; set; } = RenderModes.Paint;

@@ -80,8 +80,6 @@ namespace Whorl
             IsMerged = ComputeSeedCurvePoints(out Complex zVector);
             if (!isInitialized)
                 ZVector = zVector;
-            if (!IsMerged)
-                SetUnmergedPatterns();
             isInitialized = true;
             return IsMerged;
         }
@@ -95,10 +93,10 @@ namespace Whorl
 
         public bool SetMerged(bool isMerged)
         {
-            bool success;
+            bool success = true;
             if (IsMerged == isMerged)
                 return true;
-            Pattern[] patterns;
+            Pattern[] patterns = null;
             if (isMerged)
             {
                 patterns = GetDesignPatterns();
@@ -111,22 +109,19 @@ namespace Whorl
                 success = DoPatternMerge();
                 if (success)
                     ClearRenderingCache();
+                else
+                    isMerged = false;
             }
-            else
+            if (!isMerged)
             {
                 SetUnmergedPatterns();
                 patterns = GetDesignPatterns();
-                success = true;
             }
-            if (success)
+            foreach (Pattern pattern in patterns)
             {
-                //PatternIsEnabled = isMerged;
-                foreach (Pattern pattern in patterns)
-                {
-                    pattern.PatternIsEnabled = !isMerged;
-                }
-                IsMerged = isMerged;
+                pattern.PatternIsEnabled = !isMerged;
             }
+            IsMerged = isMerged;
             return success;
         }
 
