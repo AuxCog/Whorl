@@ -2437,6 +2437,8 @@ namespace Whorl
 
         public virtual bool DrawFilledIsEnabled => true;
 
+        public bool ContainerIsDesign { get; set; }
+
         public InfluencePointInfoList InfluencePointInfoList { get; private set; }
 
         public double InfluenceScaleFactor { get; private set; } = 1.0;
@@ -2456,9 +2458,9 @@ namespace Whorl
             InfluencePointInfoList = new InfluencePointInfoList(this);
         }
 
-        protected Pattern(WhorlDesign design, Pattern recursiveParent = null)
+        protected Pattern(WhorlDesign design)
         {
-            Initialize(design, recursiveParent);
+            Initialize(design, null);
         }
 
         public Pattern(WhorlDesign design, XmlNode node, Pattern recursiveParent = null)
@@ -4425,7 +4427,8 @@ namespace Whorl
             return xmlTools.AppendToParent(parentNode, node);
         }
 
-        public static Pattern CreatePatternFromXml(WhorlDesign design, XmlNode node, bool throwOnError = false)
+        public static Pattern CreatePatternFromXml(WhorlDesign design, XmlNode node, bool throwOnError = false,
+                                                   bool containerIsDesign = false)
         {
             switch (node.Name)
             {

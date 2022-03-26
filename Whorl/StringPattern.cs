@@ -52,7 +52,7 @@ namespace Whorl
 
         public bool KeepRightAngle { get; set; } = true;
 
-        protected StringPattern(WhorlDesign design): base(design)
+        protected StringPattern(WhorlDesign design) : base(design)
         { }
 
         public StringPattern(WhorlDesign design, FillInfo.FillTypes fillType): base(design, fillType)

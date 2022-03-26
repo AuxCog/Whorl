@@ -403,6 +403,15 @@ namespace Whorl
             }
         }
 
+        public void AddMergedPatternsToDesign()
+        {
+            if (ContainerIsDesign)
+            {
+                Design.AddPatterns(unmergedPatterns.Where(p =>
+                                   !Design.AllDesignPatterns.Any(ptn => ptn.KeyGuid == p.KeyGuid)));
+            }
+        }
+
         public override XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
             if (IsMerged)
@@ -425,8 +434,6 @@ namespace Whorl
             }
             if (IsMerged)
             {
-                Design.AddPatterns(unmergedPatterns.Where(p => 
-                                   !Design.AllDesignPatterns.Any(ptn => ptn.KeyGuid == p.KeyGuid)));
                 IsMerged = ComputeSeedCurvePoints(out _);
             }
             isInitialized = true;

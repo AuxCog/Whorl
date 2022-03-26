@@ -687,14 +687,26 @@ namespace Whorl
             return op;
         }
 
+        private void ConfigureAddedPattern(Pattern pattern)
+        {
+            pattern.ContainerIsDesign = true;
+            var mergedPattern = pattern as MergedPattern;
+            if (mergedPattern != null)
+            {
+                mergedPattern.AddMergedPatternsToDesign();
+            }
+        }
+
         private void AddDesignPattern(Pattern pattern)
         {
             designPatternsList.Add(pattern);
+            ConfigureAddedPattern(pattern);
         }
 
         private void InsertDesignPattern(int index, Pattern pattern)
         {
             designPatternsList.Insert(index, pattern);
+            ConfigureAddedPattern(pattern);
         }
 
         private void DoPatternOperation(UndoOperation op, Pattern newPattern, 
