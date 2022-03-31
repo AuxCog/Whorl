@@ -2154,6 +2154,8 @@ namespace Whorl
                     FormulaSettings.InfluenceLinkParentCollection = new InfluenceLinkParentCollection(ParentPattern, FormulaSettings);
                     FormulaSettings.InfluenceLinkParentCollection.FromXml(influenceParentNode);
                 }
+                if (distancePatternInfos.Count > 0)
+                    UseDistanceOutline = true;
             }
 
         }

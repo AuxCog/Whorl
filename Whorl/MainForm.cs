@@ -1238,7 +1238,6 @@ namespace Whorl
                             if (Design.EditedPattern == distanceParent)
                                 Design.EditedPattern = distanceParentCopy;
                             distanceParentCopy.PixelRendering.AddDistancePattern(distanceParentCopy, distancePattern);
-                            AddRenderingControls(distanceParentCopy);
                         }
                         else   //Redrawn distance pattern.
                         {
@@ -1247,11 +1246,11 @@ namespace Whorl
                             if (Design.EditedPattern == distanceParent)
                                 Design.EditedPattern = distanceParentCopy;
                             distanceInfoCopy.SetDistancePattern(distanceParentCopy, distancePattern, transform: true);
-                            AddRenderingControls(distanceParentCopy);
                         }
                         distanceParentCopy.PixelRendering.UseDistanceOutline = true;
                         Design.ReplacePattern(distanceParent, distanceParentCopy);
                         RedrawPatterns();
+                        AddRenderingControls(distanceParentCopy);
                     }
                     else
                     {
@@ -5832,20 +5831,26 @@ namespace Whorl
             }
         }
 
+        private Pattern GetImageRectanglePattern()
+        {
+            var rectOutline = new BasicOutline(BasicOutlineTypes.Rectangle);
+            rectOutline.AmplitudeFactor = 1;
+            rectOutline.Frequency = 1;
+            SetAddDenomForBackgroundPattern(picDesign.ClientSize, rectOutline);
+            var rectPattern = new Pattern(Design, FillInfo.FillTypes.Path);
+            rectPattern.RotationSteps = 5000;
+            rectPattern.BasicOutlines.Add(rectOutline);
+            rectPattern.ComputeSeedPoints();
+            rectPattern.BoundaryColor = Color.Blue;
+            rectPattern.CenterColor = Color.Blue;
+            return rectPattern;
+        }
+
         private void setImageRectangleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                var rectOutline = new BasicOutline(BasicOutlineTypes.Rectangle);
-                rectOutline.AmplitudeFactor = 1;
-                rectOutline.Frequency = 1;
-                SetAddDenomForBackgroundPattern(picDesign.ClientSize, rectOutline);
-                var rectPattern = new Pattern(Design, FillInfo.FillTypes.Path);
-                rectPattern.RotationSteps = 5000;
-                rectPattern.BasicOutlines.Add(rectOutline);
-                rectPattern.ComputeSeedPoints();
-                rectPattern.BoundaryColor = Color.Red;
-                rectPattern.CenterColor = Color.Yellow;
+                Pattern rectPattern = GetImageRectanglePattern();
                 var rectPtnGroup = new PatternList(Design);
                 rectPtnGroup.AddPattern(rectPattern);
                 Design.DefaultPatternGroup = rectPtnGroup;
@@ -8619,5 +8624,38 @@ namespace Whorl
             return GetNearbyPatterns(p).Select(pt => pt.Pattern as T).FirstOrDefault(tp => tp != null);
         }
 
+        private void makeSelectedPatternsDistancePatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selectedPatterns = Design.EnabledPatterns.Where(ptn => ptn.Selected);
+                if (!selectedPatterns.Any())
+                {
+                    MessageBox.Show("Please select some patterns.");
+                    return;
+                }
+                Pattern pixelPattern = GetImageRectanglePattern();
+                BasicOutline basicOutline = pixelPattern.BasicOutlines.First();
+                Point imgCenter = GetPictureBoxCenter();
+                pixelPattern.Center = imgCenter;
+                double modulus = 1.02 * Math.Sqrt((double)imgCenter.X * imgCenter.X + (double)imgCenter.Y * imgCenter.Y);
+                pixelPattern.ZVector = new Complex(0, modulus);
+                string errMessage = pixelPattern.CheckCreatePixelRendering();
+                if (errMessage != null)
+                    throw new Exception(errMessage);
+                pixelPattern.PixelRendering.UseDistanceOutline = true;
+                foreach (Pattern selPattern in selectedPatterns.ToArray())
+                {
+                    pixelPattern.PixelRendering.AddDistancePattern(pixelPattern, selPattern);
+                }
+                Design.RemovePatterns(Design.AllDesignPatterns.ToList());
+                Design.AddPattern(pixelPattern);
+                RedrawPatterns();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }
