@@ -7047,8 +7047,7 @@ namespace Whorl
                     modulus *= 1.02;
                 }
                 ptnList.SetZVectors(new Complex(0, modulus));
-                Pattern topBackgroundPattern = Design.EnabledPatterns.Where(ptn => ptn.IsBackgroundPattern).LastOrDefault();
-                int insertIndex = topBackgroundPattern == null ? 0 : 1 + Design.IndexOfPattern(topBackgroundPattern);
+                int insertIndex = GetNextPatternIndex();
                 foreach (Pattern pattern in ptnList.Patterns)
                 {
                     pattern.IsBackgroundPattern = true;
@@ -7060,6 +7059,12 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private int GetNextPatternIndex()
+        {
+            Pattern topBackgroundPattern = Design.EnabledPatterns.Where(ptn => ptn.IsBackgroundPattern).LastOrDefault();
+            return topBackgroundPattern == null ? 0 : 1 + Design.IndexOfPattern(topBackgroundPattern);
         }
 
         private void testShrinkingPatternToolStripMenuItem_Click(object sender, EventArgs e)
@@ -8648,8 +8653,9 @@ namespace Whorl
                 {
                     pixelPattern.PixelRendering.AddDistancePattern(pixelPattern, selPattern);
                 }
-                Design.RemovePatterns(Design.AllDesignPatterns.ToList());
-                Design.AddPattern(pixelPattern);
+                Design.RemovePatterns(selectedPatterns.ToList());
+                int insertIndex = GetNextPatternIndex();
+                Design.AddPattern(pixelPattern, insertIndex);
                 RedrawPatterns();
             }
             catch (Exception ex)
