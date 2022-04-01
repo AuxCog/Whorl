@@ -8648,6 +8648,7 @@ namespace Whorl
                 string errMessage = pixelPattern.CheckCreatePixelRendering();
                 if (errMessage != null)
                     throw new Exception(errMessage);
+                pixelPattern.PixelRendering.Enabled = true;
                 pixelPattern.PixelRendering.UseDistanceOutline = true;
                 foreach (Pattern selPattern in selectedPatterns.ToArray())
                 {
