@@ -1912,26 +1912,27 @@ namespace Whorl
                         Info.SetIntXY(new Point(x, y));
                         Info.SetXY(TransformPoint(x, y));
                         var patternPoint = new DoublePoint(Info.X, Info.Y);
+                        Point panPoint = new Point(x + (int)PanXY.X, y + (int)PanXY.Y);
                         if (Info.ComputeInfluence)
                         {
                             Info.InfluenceValue = ParentPattern.InfluencePointInfoList.ComputeAverage(patternPoint, forRendering: true);
                         }
                         if (Info.ComputeDistance)
                         {
-                            SetDistancesToPaths(x, y);
+                            SetDistancesToPaths(panPoint.X, panPoint.Y);
                         }
                         if (influenceParentCollection != null)
                         {
                             if (influenceParentCollection.HasPixelRandom)
                             {
-                                influenceParentCollection.SetPointForRandom(new PointF(x, y));
+                                influenceParentCollection.SetPointForRandom(panPoint);
                             }
                             influenceParentCollection.SetParameterValues(patternPoint, forRendering: true);
                         }
                         position = ColorNodeList.NormalizePosition(GetPosition.Invoke());
                         if (setCachedPositions)
                         {
-                            cachedPositions[cachedIndex] = (ushort)(ushort.MaxValue * position);
+                            cachedPositions[cachedIndex] = (ushort)(position * ushort.MaxValue);
                         }
                         if (Info.FirstPass)
                         {
