@@ -387,9 +387,9 @@ namespace Whorl
             //private const int distanceSquareRows = 10;
             private class InfoExt : PixelRenderInfo
             {
-                public InfoExt(Pattern.RenderingInfo parent, 
-                               List<DistancePatternInfo> distancePatternInfos, 
-                               Func<PointF, PointF> transformPoint) : 
+                public InfoExt(Pattern.RenderingInfo parent,
+                               List<DistancePatternInfo> distancePatternInfos,
+                               Func<PointF, PointF> transformPoint) :
                     base(parent, distancePatternInfos, transformPoint)
                 {
                 }
@@ -824,6 +824,7 @@ namespace Whorl
             public GetPositionDelegate GetPosition { get; set; }
             private InfoExt Info { get; }
             public PointF PanXY { get; set; }
+            private Point scaledPanXY { get; set; }
             public float ZoomFactor { get; set; } = 1F;
             public PointsRandomOps PointsRandomOps { get; set; }
             private PointF transformedPanXY { get; set; }
@@ -1912,7 +1913,7 @@ namespace Whorl
                         Info.SetIntXY(new Point(x, y));
                         Info.SetXY(TransformPoint(x, y));
                         var patternPoint = new DoublePoint(Info.X, Info.Y);
-                        Point panPoint = new Point(x + (int)PanXY.X, y + (int)PanXY.Y);
+                        Point panPoint = new Point(x + scaledPanXY.X, y + scaledPanXY.Y);
                         if (Info.ComputeInfluence)
                         {
                             Info.InfluenceValue = ParentPattern.InfluencePointInfoList.ComputeAverage(patternPoint, forRendering: true);
@@ -2001,6 +2002,7 @@ namespace Whorl
                     Info.RandomFunction = null;
                     Info.ComputeDistance = Info.ComputeAllDistances = false;
                     floatScaleFactor = 1F;
+                    scaledPanXY = new Point((int)PanXY.X, (int)PanXY.Y);
                     if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
                     {
                         if (!FormulaSettings.InitializeGlobals()) //Calls C# formula's Initialize() method, which can set properties of Info object.
@@ -2010,6 +2012,12 @@ namespace Whorl
                         {
                             Info.SetCenter(new PointF(0, 0));
                             floatScaleFactor = 1F / (ZoomFactor * maxSize);
+                            if (distancePatternInfos.Any())
+                            {
+                                var info1 = distancePatternInfos.First();
+                                float fac = (float)(pattern.ZVector.GetModulus() / info1.OrigZVector.GetModulus());
+                                scaledPanXY = new Point((int)(fac * PanXY.X), (int)(fac * PanXY.Y));
+                            }
                             Info.SetScaleFactor(1.0);
                         }
                         Info.AllocateDistancesToPaths(GetDistancePathsCount());
