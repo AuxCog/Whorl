@@ -80,37 +80,45 @@ namespace Whorl
                 addDistancePatternToClipboardToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
                 showDistanceInfluencePointsToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
 
-                string customDesignsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.CustomDesignParentFolder);
-                bool folderExists = Directory.Exists(customDesignsFolder);
-                openDesignFromFolderToolStripMenuItem.Visible = folderExists;
-                if (folderExists)
-                {
-                    foreach (string folderPath in Directory.EnumerateDirectories(customDesignsFolder))
-                    {
-                        string thumbnailsFolder = Path.Combine(folderPath, WhorlSettings.Instance.DesignThumbnailsFolder);
-                        if (!Directory.Exists(thumbnailsFolder))
-                            Directory.CreateDirectory(thumbnailsFolder);
-
-                        string subfolder = Path.GetFileName(folderPath);
-
-                        var menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
-                        openDesignFromFolderToolStripMenuItem.DropDownItems.Add(menuItem);
-                        menuItem.Click += new System.EventHandler(this.openDesignFromFolderToolStripMenuItem_Click);
-
-                        menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
-                        saveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
-                        menuItem.Click += new System.EventHandler(this.saveDesignToFolderToolStripMenuItem_Click);
-
-                        menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
-                        moveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
-                        menuItem.Click += new System.EventHandler(this.moveDesignToFolderToolStripMenuItem_Click);
-                    }
-                }
+                PopulateFolderMenuItems();
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
                 Close();
+            }
+        }
+
+        private void PopulateFolderMenuItems()
+        {
+            string customDesignsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.CustomDesignParentFolder);
+            bool folderExists = Directory.Exists(customDesignsFolder);
+            openDesignFromFolderToolStripMenuItem.Visible = folderExists;
+            if (folderExists)
+            {
+                openDesignFromFolderToolStripMenuItem.DropDownItems.Clear();
+                saveDesignToFolderToolStripMenuItem.DropDownItems.Clear();
+                moveDesignToFolderToolStripMenuItem.DropDownItems.Clear();
+                foreach (string folderPath in Directory.EnumerateDirectories(customDesignsFolder))
+                {
+                    string thumbnailsFolder = Path.Combine(folderPath, WhorlSettings.Instance.DesignThumbnailsFolder);
+                    if (!Directory.Exists(thumbnailsFolder))
+                        Directory.CreateDirectory(thumbnailsFolder);
+
+                    string subfolder = Path.GetFileName(folderPath);
+
+                    var menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
+                    openDesignFromFolderToolStripMenuItem.DropDownItems.Add(menuItem);
+                    menuItem.Click += new System.EventHandler(this.openDesignFromFolderToolStripMenuItem_Click);
+
+                    menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
+                    saveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
+                    menuItem.Click += new System.EventHandler(this.saveDesignToFolderToolStripMenuItem_Click);
+
+                    menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
+                    moveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
+                    menuItem.Click += new System.EventHandler(this.moveDesignToFolderToolStripMenuItem_Click);
+                }
             }
         }
 
@@ -1999,11 +2007,11 @@ namespace Whorl
                          currentFileName, this);
         }
 
-        private bool SaveDesign(bool saveAs, string fileFolder = null)
+        private bool SaveDesign(bool saveAs, string fileFolder = null, bool checkSaveToFolder = true)
         {
-            if (Design.ImageModifySettings != null)
+            if (Design.ImageModifySettings != null && checkSaveToFolder)
             {
-                return SaveDesignToFolder("ImageModify", saveAs);
+                return SaveDesignToFolder("ImageModification", saveAs);
             }
             bool doSave = true;
             string fileName = designFileName;
@@ -2218,8 +2226,11 @@ namespace Whorl
             string fileFolder = Path.Combine(WhorlSettings.Instance.FilesFolder,
                                 WhorlSettings.Instance.CustomDesignParentFolder, subfolder);
             if (!Directory.Exists(fileFolder))
+            {
                 Directory.CreateDirectory(fileFolder);
-            return SaveDesign(saveAs, fileFolder);
+                PopulateFolderMenuItems();
+            }
+            return SaveDesign(saveAs, fileFolder, checkSaveToFolder: false);
         }
 
         private bool CheckSaveDesign()

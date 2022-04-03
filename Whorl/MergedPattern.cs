@@ -64,14 +64,12 @@ namespace Whorl
                              .OrderByDescending(p => p.ZVector.GetModulusSquared()).ToList();
         }
 
-        public void ScaleRawPatterns(float scale) //, PointF picCenter)
+        public void ScaleRawPatterns(float scale)
         {
             foreach (Pattern pattern in mergedPatterns)
             {
                 pattern.ZVector *= scale;
                 pattern.Center = new PointF(scale * pattern.Center.X, scale * pattern.Center.Y);
-                //PointF p = new PointF(pattern.Center.X - picCenter.X, pattern.Center.Y - picCenter.Y);
-                //pattern.Center = new PointF(scale * p.X + picCenter.X, scale * p.Y + picCenter.Y);
             }
         }
 
