@@ -104,6 +104,7 @@ namespace Whorl
                 }
             }
         }
+        public ImageModifySettings ImageModifySettings { get; set; }
 
         public float XmlVersion { get; private set; } = 0;
         public DesignLayerList DesignLayerList { get; private set; }
@@ -1047,6 +1048,10 @@ namespace Whorl
             {
                 namedRandomSeed.ToXml(node, xmlTools);
             }
+            if (ImageModifySettings != null)
+            {
+                ImageModifySettings.ToXml(node, xmlTools);
+            }
             //if (InfluencePointInfoList.Count != 0)
             //{
             //    InfluencePointInfoList.ToXml(node, xmlTools);
@@ -1063,6 +1068,7 @@ namespace Whorl
                 //InfluencePointInfoList.Clear();
                 PictureBoxSize = Size.Empty;
                 BackgroundImageFileName = null;
+                ImageModifySettings = null;
                 ReadWarnings.Clear();
                 this.XmlVersion = Tools.GetXmlVersion(node);
                 this.StartupAnimationNames = (string)Tools.GetXmlAttribute(
@@ -1148,6 +1154,10 @@ namespace Whorl
                             if (!AnimationSeeds.ContainsKey(namedSeed.Name))
                                 AnimationSeeds.Add(namedSeed.Name, namedSeed);
                             break;
+                        case nameof(ImageModifySettings):
+                            ImageModifySettings = new ImageModifySettings();
+                            ImageModifySettings.FromXml(childNode);
+                            break;
                         case "InfluencePointInfoList":
                             //Legacy code.
                             //InfluencePointInfoList.FromXml(childNode);
@@ -1160,6 +1170,30 @@ namespace Whorl
                 }  //foreach (childNode)
                 if (PictureBoxSize == Size.Empty)
                     PictureBoxSize = PreviousPictureSize;
+                if (ImageModifySettings != null)
+                {
+                    var sbWarnings = new StringBuilder();
+                    if (!File.Exists(ImageModifySettings.ImageFileName))
+                    {
+                        sbWarnings.AppendLine($"Didn't find image file: {ImageModifySettings.ImageFileName}.");
+                    }
+                    if (!ImageModifySettings.SetOutlinePatterns(this))
+                    {
+                        sbWarnings.AppendLine("Didn't find all selected outline patterns.");
+                    }
+                    var step1Settings = ImageModifySettings.Steps.FirstOrDefault();
+                    if (step1Settings != null)
+                    {
+                        foreach (Pattern pattern in step1Settings.OutlinePatterns)
+                        {
+                            pattern.Selected = true;
+                        }
+                    }
+                    if (sbWarnings.Length > 0)
+                    {
+                        MessageBox.Show(sbWarnings.ToString());
+                    }
+                }
                 SetScaleToFit(scaleToFit);
                 //AfterFromXml();
             }

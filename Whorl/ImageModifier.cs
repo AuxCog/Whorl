@@ -38,7 +38,7 @@ namespace Whorl
         public Color ModifiedColor { get; set; }
 
         public void ModifyColors(WhorlDesign design, ColorModes colorMode, BoundModes boundMode, 
-                                 IEnumerable<Pattern> outlinePatterns, float scale, Size pictureBoxSize)
+                                 IEnumerable<Pattern> outlinePatterns, float scale) //, Size pictureBoxSize)
         {
             if (ImageBitmap == null)
                 throw new NullReferenceException("ImageBitmap cannot be null.");
@@ -60,8 +60,8 @@ namespace Whorl
             using (var mergedPattern = new MergedPattern(design))
             {
                 mergedPattern.SetRawPatterns(outlinePatterns);
-                PointF picCenter = new PointF(0.5F * pictureBoxSize.Width, 0.5F * pictureBoxSize.Height);
-                mergedPattern.ScaleRawPatterns(scale, picCenter);
+                //PointF picCenter = new PointF(0.5F * pictureBoxSize.Width, 0.5F * pictureBoxSize.Height);
+                mergedPattern.ScaleRawPatterns(scale); // , picCenter);
                 mergedPattern.GetBoundsPixels();
                 var pixArray = new int[ImageBitmap.Width * ImageBitmap.Height];
                 BitmapTools.CopyBitmapToColorArray(ImageBitmap, pixArray);

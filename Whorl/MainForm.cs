@@ -2001,6 +2001,10 @@ namespace Whorl
 
         private bool SaveDesign(bool saveAs, string fileFolder = null)
         {
+            if (Design.ImageModifySettings != null)
+            {
+                return SaveDesignToFolder("ImageModify", saveAs);
+            }
             bool doSave = true;
             string fileName = designFileName;
             if (saveAs || fileName == null)
@@ -2196,9 +2200,7 @@ namespace Whorl
                 {
                     var menuItem = (ToolStripMenuItem)sender;
                     string subfolder = (string)menuItem.Tag;
-                    string fileFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, 
-                                        WhorlSettings.Instance.CustomDesignParentFolder, subfolder);
-                    SaveDesign(saveAs: true, fileFolder);
+                    SaveDesignToFolder(subfolder, saveAs: true);
                 }
                 catch (Exception ex)
                 {
@@ -2211,6 +2213,14 @@ namespace Whorl
             }
         }
 
+        private bool SaveDesignToFolder(string subfolder, bool saveAs)
+        {
+            string fileFolder = Path.Combine(WhorlSettings.Instance.FilesFolder,
+                                WhorlSettings.Instance.CustomDesignParentFolder, subfolder);
+            if (!Directory.Exists(fileFolder))
+                Directory.CreateDirectory(fileFolder);
+            return SaveDesign(saveAs, fileFolder);
+        }
 
         private bool CheckSaveDesign()
         {
@@ -2313,13 +2323,25 @@ namespace Whorl
                 picDesign.SizeMode = PictureBoxSizeMode.Normal;
                 PatternList defaultPatternGroup = Design.DefaultPatternGroup;
                 Design.ReadDesignFromXmlFile(fileName, showWarnings: true);
-                WriteStatus($"Opened design file {fileName}.");
                 Design.EditedPattern = null;
                 InitializeForDesign();
                 Design.DefaultPatternGroup = defaultPatternGroup;
                 SetDesignStartupItems();
                 designLayersForm.SetDesign(Design);
-                await DisplayDesignAsync();
+                if (Design.ImageModifySettings != null)
+                {
+                    if (File.Exists(Design.ImageModifySettings.ImageFileName))
+                    {
+                        OpenImageFile(Design.ImageModifySettings.ImageFileName);
+                    }
+                    picDesign.Refresh();
+                    WriteStatus($"Opened image design file {fileName}.");
+                }
+                else
+                {
+                    WriteStatus($"Opened design file {fileName}.");
+                    await DisplayDesignAsync();
+                }
                 designFileName = fileName;
                 int index = 0;
                 pauseImprovToolStripMenuItem.Checked = false;
@@ -2345,7 +2367,6 @@ namespace Whorl
                 picDesign.EnablePaint = true;
             }
         }
-
 
         private async Task<string> OpenDesignFromImage(string imagesFolder = null, bool appendPatterns = false)
         {
@@ -7662,6 +7683,23 @@ namespace Whorl
             }
         }
 
+        private void addDistancePatternsToDesignToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (mouseDistanceParentPattern != null)
+                {
+                    Design.AddPatterns(mouseDistanceParentPattern.PixelRendering.GetDistancePatternInfos()
+                                       .Select(d => d.GetDistancePattern(mouseDistanceParentPattern)));
+                    RedrawPatterns();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         private void cancelRenderToolStripMenuItem_Click(object sender, EventArgs e)
         {
             renderCaller.CancelRender = true;
@@ -8705,24 +8743,30 @@ namespace Whorl
         {
             try
             {
-                if (imageFileBitmap != null)
-                    imageFileBitmap.Dispose();
                 using (var dlg = new OpenFileDialog())
                 {
                     if (dlg.ShowDialog() != DialogResult.OK)
                         return;
-                    imageFileName = dlg.FileName;
-                    imageFileBitmap = BitmapTools.ReadFormattedBitmap(imageFileName);
-                    Size maxSize = GetPictureBoxMaxSize();
-                    picDesign.ClientSize = new Size(imageFileBitmap.Width * maxSize.Height / imageFileBitmap.Height, maxSize.Height);
-                    picDesign.SizeMode = PictureBoxSizeMode.Zoom;
-                    picDesign.Image = imageFileBitmap;
+                    OpenImageFile(dlg.FileName);
                 }
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private void OpenImageFile(string fileName)
+        {
+            Bitmap bitmap = BitmapTools.ReadFormattedBitmap(imageFileName);
+            if (imageFileBitmap != null)
+                imageFileBitmap.Dispose();
+            imageFileBitmap = bitmap;
+            Size maxSize = GetPictureBoxMaxSize();
+            picDesign.ClientSize = new Size(imageFileBitmap.Width * maxSize.Height / imageFileBitmap.Height, maxSize.Height);
+            picDesign.SizeMode = PictureBoxSizeMode.Zoom;
+            picDesign.Image = imageFileBitmap;
+            imageFileName = fileName;
         }
 
         private FrmImageModifier frmImageModifier { get; set; }
@@ -8736,6 +8780,11 @@ namespace Whorl
                     MessageBox.Show("Please open an image file first.");
                     return;
                 }
+                if (Design.ImageModifySettings == null)
+                {
+                    Design.ImageModifySettings = new ImageModifySettings();
+                }
+                Design.ImageModifySettings.ImageFileName = imageFileName;
                 var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
                 if (frmImageModifier == null || frmImageModifier.IsDisposed)
                     frmImageModifier = new FrmImageModifier();
@@ -8775,5 +8824,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

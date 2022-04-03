@@ -37,6 +37,8 @@ namespace Whorl
             this.label3 = new System.Windows.Forms.Label();
             this.BtnModifyImage = new System.Windows.Forms.Button();
             this.chkCumulative = new System.Windows.Forms.CheckBox();
+            this.cboGoToStep = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picModifiedColor)).BeginInit();
             this.SuspendLayout();
             // 
@@ -44,7 +46,7 @@ namespace Whorl
             // 
             this.picModifiedColor.BackColor = System.Drawing.Color.Black;
             this.picModifiedColor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.picModifiedColor.Location = new System.Drawing.Point(95, 12);
+            this.picModifiedColor.Location = new System.Drawing.Point(95, 32);
             this.picModifiedColor.Name = "picModifiedColor";
             this.picModifiedColor.Size = new System.Drawing.Size(54, 50);
             this.picModifiedColor.TabIndex = 0;
@@ -54,7 +56,7 @@ namespace Whorl
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 12);
+            this.label1.Location = new System.Drawing.Point(12, 32);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(77, 13);
             this.label1.TabIndex = 1;
@@ -63,7 +65,7 @@ namespace Whorl
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(169, 13);
+            this.label2.Location = new System.Drawing.Point(169, 33);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(76, 13);
             this.label2.TabIndex = 2;
@@ -73,7 +75,7 @@ namespace Whorl
             // 
             this.cboBoundsMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboBoundsMode.FormattingEnabled = true;
-            this.cboBoundsMode.Location = new System.Drawing.Point(251, 9);
+            this.cboBoundsMode.Location = new System.Drawing.Point(251, 29);
             this.cboBoundsMode.Name = "cboBoundsMode";
             this.cboBoundsMode.Size = new System.Drawing.Size(121, 21);
             this.cboBoundsMode.TabIndex = 3;
@@ -82,7 +84,7 @@ namespace Whorl
             // 
             this.cboColorMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboColorMode.FormattingEnabled = true;
-            this.cboColorMode.Location = new System.Drawing.Point(251, 41);
+            this.cboColorMode.Location = new System.Drawing.Point(251, 61);
             this.cboColorMode.Name = "cboColorMode";
             this.cboColorMode.Size = new System.Drawing.Size(121, 21);
             this.cboColorMode.TabIndex = 5;
@@ -90,7 +92,7 @@ namespace Whorl
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(169, 45);
+            this.label3.Location = new System.Drawing.Point(169, 65);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(64, 13);
             this.label3.TabIndex = 4;
@@ -98,7 +100,7 @@ namespace Whorl
             // 
             // BtnModifyImage
             // 
-            this.BtnModifyImage.Location = new System.Drawing.Point(393, 7);
+            this.BtnModifyImage.Location = new System.Drawing.Point(393, 27);
             this.BtnModifyImage.Name = "BtnModifyImage";
             this.BtnModifyImage.Size = new System.Drawing.Size(75, 23);
             this.BtnModifyImage.TabIndex = 6;
@@ -109,18 +111,39 @@ namespace Whorl
             // chkCumulative
             // 
             this.chkCumulative.AutoSize = true;
-            this.chkCumulative.Location = new System.Drawing.Point(393, 44);
+            this.chkCumulative.Location = new System.Drawing.Point(393, 64);
             this.chkCumulative.Name = "chkCumulative";
             this.chkCumulative.Size = new System.Drawing.Size(78, 17);
             this.chkCumulative.TabIndex = 7;
             this.chkCumulative.Text = "Cumulative";
             this.chkCumulative.UseVisualStyleBackColor = true;
             // 
+            // cboGoToStep
+            // 
+            this.cboGoToStep.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboGoToStep.FormattingEnabled = true;
+            this.cboGoToStep.Location = new System.Drawing.Point(95, 5);
+            this.cboGoToStep.Name = "cboGoToStep";
+            this.cboGoToStep.Size = new System.Drawing.Size(76, 21);
+            this.cboGoToStep.TabIndex = 9;
+            this.cboGoToStep.SelectedIndexChanged += new System.EventHandler(this.cboGoToStep_SelectedIndexChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(13, 9);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(61, 13);
+            this.label4.TabIndex = 8;
+            this.label4.Text = "Go to Step:";
+            // 
             // FrmImageModifier
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(481, 74);
+            this.ClientSize = new System.Drawing.Size(481, 94);
+            this.Controls.Add(this.cboGoToStep);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.chkCumulative);
             this.Controls.Add(this.BtnModifyImage);
             this.Controls.Add(this.cboColorMode);
@@ -148,5 +171,7 @@ namespace Whorl
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button BtnModifyImage;
         private System.Windows.Forms.CheckBox chkCumulative;
+        private System.Windows.Forms.ComboBox cboGoToStep;
+        private System.Windows.Forms.Label label4;
     }
 }

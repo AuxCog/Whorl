@@ -37,6 +37,7 @@
             this.openDesignFromFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openDesignFromXmlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openDesignFromOtherImageFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openDesignAddPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveDesignAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,6 +47,8 @@
             this.deleteDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveDesignToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveDesignToFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openImageFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveImageFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.patternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.choosePatternToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.chooseClipboardPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -133,6 +136,7 @@
             this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sizeImageToBackgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeBorderLinesOnSavingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.onlyDisplayPatternOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -170,6 +174,7 @@
             this.viewDebugMessagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorGradientFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.blendImagesFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewImageModifierFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewUserManualToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -266,12 +271,8 @@
             this.drawMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openImageFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.onlyDisplayPatternOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openDesignAddPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewImageModifierFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.saveImageFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addDistancePatternsToDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -359,6 +360,13 @@
             this.openDesignFromOtherImageFolderToolStripMenuItem.Text = "From Other Image Folder";
             this.openDesignFromOtherImageFolderToolStripMenuItem.Click += new System.EventHandler(this.openDesignFromOtherImageFolderToolStripMenuItem_Click);
             // 
+            // openDesignAddPatternsToolStripMenuItem
+            // 
+            this.openDesignAddPatternsToolStripMenuItem.Name = "openDesignAddPatternsToolStripMenuItem";
+            this.openDesignAddPatternsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.openDesignAddPatternsToolStripMenuItem.Text = "Add Patterns";
+            this.openDesignAddPatternsToolStripMenuItem.Click += new System.EventHandler(this.openDesignAddPatternsToolStripMenuItem_Click);
+            // 
             // saveDesignToolStripMenuItem
             // 
             this.saveDesignToolStripMenuItem.Name = "saveDesignToolStripMenuItem";
@@ -419,6 +427,20 @@
             this.moveDesignToFolderToolStripMenuItem.Name = "moveDesignToFolderToolStripMenuItem";
             this.moveDesignToFolderToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.moveDesignToFolderToolStripMenuItem.Text = "Move Design To Folder";
+            // 
+            // openImageFileToolStripMenuItem
+            // 
+            this.openImageFileToolStripMenuItem.Name = "openImageFileToolStripMenuItem";
+            this.openImageFileToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.openImageFileToolStripMenuItem.Text = "Open Image File";
+            this.openImageFileToolStripMenuItem.Click += new System.EventHandler(this.openImageFileToolStripMenuItem_Click);
+            // 
+            // saveImageFileToolStripMenuItem
+            // 
+            this.saveImageFileToolStripMenuItem.Name = "saveImageFileToolStripMenuItem";
+            this.saveImageFileToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.saveImageFileToolStripMenuItem.Text = "Save Image File";
+            this.saveImageFileToolStripMenuItem.Click += new System.EventHandler(this.saveImageFileToolStripMenuItem_Click);
             // 
             // patternToolStripMenuItem
             // 
@@ -1147,6 +1169,13 @@
             this.removeBorderLinesOnSavingToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
             this.removeBorderLinesOnSavingToolStripMenuItem.Text = "Remove Border Lines On Saving";
             // 
+            // onlyDisplayPatternOutlinesToolStripMenuItem
+            // 
+            this.onlyDisplayPatternOutlinesToolStripMenuItem.CheckOnClick = true;
+            this.onlyDisplayPatternOutlinesToolStripMenuItem.Name = "onlyDisplayPatternOutlinesToolStripMenuItem";
+            this.onlyDisplayPatternOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.onlyDisplayPatternOutlinesToolStripMenuItem.Text = "Only Display Pattern Outlines";
+            // 
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1477,6 +1506,13 @@
             this.blendImagesFormToolStripMenuItem.Text = "Blend Images Form";
             this.blendImagesFormToolStripMenuItem.Click += new System.EventHandler(this.blendImagesFormToolStripMenuItem_Click);
             // 
+            // viewImageModifierFormToolStripMenuItem
+            // 
+            this.viewImageModifierFormToolStripMenuItem.Name = "viewImageModifierFormToolStripMenuItem";
+            this.viewImageModifierFormToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.viewImageModifierFormToolStripMenuItem.Text = "Image Modifier Form";
+            this.viewImageModifierFormToolStripMenuItem.Click += new System.EventHandler(this.viewImageModifierFormToolStripMenuItem_Click);
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1538,7 +1574,7 @@
             this.pasteCopiedPatternsToolStripMenuItem,
             this.mergedPatternToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 378);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1773,7 +1809,8 @@
             this.editDistancePatternToolStripMenuItem,
             this.addDistancePatternToClipboardToolStripMenuItem,
             this.editDistancePatternSettingsToolStripMenuItem,
-            this.showDistanceInfluencePointsToolStripMenuItem});
+            this.showDistanceInfluencePointsToolStripMenuItem,
+            this.addDistancePatternsToDesignToolStripMenuItem});
             this.distancePatternToolStripMenuItem.Name = "distancePatternToolStripMenuItem";
             this.distancePatternToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.distancePatternToolStripMenuItem.Text = "Distance Pattern";
@@ -2260,34 +2297,6 @@
             this.setCornerToolStripMenuItem.Text = "Set Corner";
             this.setCornerToolStripMenuItem.Click += new System.EventHandler(this.setCornerToolStripMenuItem_Click);
             // 
-            // openImageFileToolStripMenuItem
-            // 
-            this.openImageFileToolStripMenuItem.Name = "openImageFileToolStripMenuItem";
-            this.openImageFileToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.openImageFileToolStripMenuItem.Text = "Open Image File";
-            this.openImageFileToolStripMenuItem.Click += new System.EventHandler(this.openImageFileToolStripMenuItem_Click);
-            // 
-            // onlyDisplayPatternOutlinesToolStripMenuItem
-            // 
-            this.onlyDisplayPatternOutlinesToolStripMenuItem.CheckOnClick = true;
-            this.onlyDisplayPatternOutlinesToolStripMenuItem.Name = "onlyDisplayPatternOutlinesToolStripMenuItem";
-            this.onlyDisplayPatternOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.onlyDisplayPatternOutlinesToolStripMenuItem.Text = "Only Display Pattern Outlines";
-            // 
-            // openDesignAddPatternsToolStripMenuItem
-            // 
-            this.openDesignAddPatternsToolStripMenuItem.Name = "openDesignAddPatternsToolStripMenuItem";
-            this.openDesignAddPatternsToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.openDesignAddPatternsToolStripMenuItem.Text = "Add Patterns";
-            this.openDesignAddPatternsToolStripMenuItem.Click += new System.EventHandler(this.openDesignAddPatternsToolStripMenuItem_Click);
-            // 
-            // viewImageModifierFormToolStripMenuItem
-            // 
-            this.viewImageModifierFormToolStripMenuItem.Name = "viewImageModifierFormToolStripMenuItem";
-            this.viewImageModifierFormToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.viewImageModifierFormToolStripMenuItem.Text = "Image Modifier Form";
-            this.viewImageModifierFormToolStripMenuItem.Click += new System.EventHandler(this.viewImageModifierFormToolStripMenuItem_Click);
-            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2303,12 +2312,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // saveImageFileToolStripMenuItem
+            // addDistancePatternsToDesignToolStripMenuItem
             // 
-            this.saveImageFileToolStripMenuItem.Name = "saveImageFileToolStripMenuItem";
-            this.saveImageFileToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.saveImageFileToolStripMenuItem.Text = "Save Image File";
-            this.saveImageFileToolStripMenuItem.Click += new System.EventHandler(this.saveImageFileToolStripMenuItem_Click);
+            this.addDistancePatternsToDesignToolStripMenuItem.Name = "addDistancePatternsToDesignToolStripMenuItem";
+            this.addDistancePatternsToDesignToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.addDistancePatternsToDesignToolStripMenuItem.Text = "Add to Design";
+            this.addDistancePatternsToDesignToolStripMenuItem.Click += new System.EventHandler(this.addDistancePatternsToDesignToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2587,6 +2596,7 @@
         private System.Windows.Forms.ToolStripMenuItem openDesignAddPatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewImageModifierFormToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveImageFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addDistancePatternsToDesignToolStripMenuItem;
     }
 }
 

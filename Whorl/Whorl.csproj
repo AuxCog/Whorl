@@ -249,6 +249,7 @@
     <Compile Include="IFillInfo.cs" />
     <Compile Include="IFormulaForm.cs" />
     <Compile Include="ImageModifier.cs" />
+    <Compile Include="ImageModifySettings.cs" />
     <Compile Include="ImprovConfigForm.cs">
       <SubType>Form</SubType>
     </Compile>
