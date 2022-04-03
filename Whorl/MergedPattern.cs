@@ -20,11 +20,11 @@ namespace Whorl
         public PointF OrigCenter { get; private set; }
         private PointF[] seedCurvePoints { get; set; }  //Normalized curve points.
         private Complex zRotation { get; set; }
-        private readonly int blackArgb = Color.Black.ToArgb();
-        private int[] boundsPixels { get; set; }
-        private int pixelCount { get; set; }
-        private Rectangle boundingRect { get; set; }
-        private PointF deltaPoint { get; set; }
+        public static readonly int BlackArgb = Color.Black.ToArgb();
+        public int[] BoundsPixels { get; private set; }
+        public int PixelCount { get; private set; }
+        public Rectangle BoundingRect { get; private set; }
+        public PointF DeltaPoint { get; private set; }
         private bool isInitialized { get; set; }
 
         private void DoInits()
@@ -55,6 +55,24 @@ namespace Whorl
         {
             Tools.DisposeList(unmergedPatterns);
             unmergedPatterns = patterns.Select(p => p.GetCopy(design: Design)).ToList();
+        }
+
+        public void SetRawPatterns(IEnumerable<Pattern> patterns)
+        {
+            Tools.DisposeList(mergedPatterns);
+            mergedPatterns = patterns.Select(p => p.GetCopy(design: Design))
+                             .OrderByDescending(p => p.ZVector.GetModulusSquared()).ToList();
+        }
+
+        public void ScaleRawPatterns(float scale, PointF picCenter)
+        {
+            foreach (Pattern pattern in mergedPatterns)
+            {
+                pattern.ZVector *= scale;
+                pattern.Center = new PointF(scale * pattern.Center.X, scale * pattern.Center.Y);
+                //PointF p = new PointF(pattern.Center.X - picCenter.X, pattern.Center.Y - picCenter.Y);
+                //pattern.Center = new PointF(scale * p.X + picCenter.X, scale * p.Y + picCenter.Y);
+            }
         }
 
         public IEnumerable<Pattern> GetUnmergedPatterns()
@@ -186,9 +204,9 @@ namespace Whorl
         public void DrawBoundary(Graphics g)
         {
             GetBoundsPixels();
-            for (int y = 0; y < boundingRect.Height; y++)
+            for (int y = 0; y < BoundingRect.Height; y++)
             {
-                for (int x = 0; x < boundingRect.Width; x++)
+                for (int x = 0; x < BoundingRect.Width; x++)
                 {
                     Point p = new Point(x, y);
                     if (IsBoundaryPoint(p))
@@ -202,7 +220,7 @@ namespace Whorl
         public bool ComputeSeedCurvePoints(out Complex zVector)
         {
             var boundPoints = GetBoundPoints();
-            boundsPixels = null;
+            BoundsPixels = null;
             if (boundPoints == null)
             {
                 seedCurvePoints = null;
@@ -212,8 +230,8 @@ namespace Whorl
             {
                 PointF center = OrigCenter;
                 var points2 = boundPoints.Select(pt =>
-                    new PointF(pt.X + deltaPoint.X - center.X,
-                               pt.Y + deltaPoint.Y - center.Y));
+                    new PointF(pt.X + DeltaPoint.X - center.X,
+                               pt.Y + DeltaPoint.Y - center.Y));
                 double maxModulus = Math.Sqrt(points2.Select(p => p.X * p.X + p.Y * p.Y).Max());
                 float scale = 1F / (float)maxModulus;
                 var pointsList = points2.Select(p => new PointF(scale * p.X, scale * p.Y)).ToList();
@@ -254,9 +272,9 @@ namespace Whorl
             GetBoundsPixels();
             bool foundPoint = false;
             Point p = Point.Empty;
-            for (int y = 0; y < boundingRect.Height && !foundPoint; y++)
+            for (int y = 0; y < BoundingRect.Height && !foundPoint; y++)
             {
-                for (int x = 0; x < boundingRect.Width; x++)
+                for (int x = 0; x < BoundingRect.Width; x++)
                 {
                     p = new Point(x, y);
                     if (IsBoundaryPoint(p))
@@ -342,17 +360,20 @@ namespace Whorl
                         loop = false;
                     }
                 }
-            } while (loop && boundPoints.Count <= pixelCount);
+            } while (loop && boundPoints.Count <= PixelCount);
             return loop ? null : boundPoints;
         }
 
-        private bool IsPatternPixel(Point p)
+        public bool IsPatternPixel(Point p)
         {
-            int pixInd = boundingRect.Size.Width * p.Y + p.X;
-            return pixInd >= 0 && pixInd < boundsPixels.Length && boundsPixels[pixInd] == blackArgb;
+            if (p.X < 0 || p.X >= BoundingRect.Size.Width ||
+                p.Y < 0 || p.Y >= BoundingRect.Size.Height)
+                return false;  //Out of bounds.
+            int pixInd = BoundingRect.Size.Width * p.Y + p.X;
+            return BoundsPixels[pixInd] == BlackArgb;
         }
 
-        private bool IsBoundaryPoint(Point p)
+        public bool IsBoundaryPoint(Point p)
         {
             if (IsPatternPixel(p))
             {
@@ -372,7 +393,7 @@ namespace Whorl
             return false;
         }
 
-        private void GetBoundsPixels()
+        public void GetBoundsPixels()
         {
             //Complex zVector1 = Patterns.First().ZVector;
             //zVector1.Normalize();
@@ -381,25 +402,27 @@ namespace Whorl
             {
                 ptn.ComputeCurvePoints(ptn.ZVector, forOutline: true);
             }
-            int xMin = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Min() - 2;
-            int xMax = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.X).Max() + 2;
-            int yMin = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Min() - 2;
-            int yMax = (int)mergedPatterns.SelectMany(p => p.CurvePoints).Select(pt => pt.Y).Max() + 2;
-            boundingRect = new Rectangle(new Point(xMin, yMin), new Size(xMax - xMin, yMax - yMin));
-            using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(boundingRect.Size))
+            PointF[] allPoints = mergedPatterns.SelectMany(p => p.CurvePoints).ToArray();
+            int xMin = (int)allPoints.Select(pt => pt.X).Min() - 2;
+            int xMax = (int)allPoints.Select(pt => pt.X).Max() + 2;
+            int yMin = (int)allPoints.Select(pt => pt.Y).Min() - 2;
+            int yMax = (int)allPoints.Select(pt => pt.Y).Max() + 2;
+            allPoints = null;
+            BoundingRect = new Rectangle(new Point(xMin, yMin), new Size(xMax - xMin, yMax - yMin));
+            using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(BoundingRect.Size))
             {
                 using (Graphics g = Graphics.FromImage(bmp))
                 {
-                    deltaPoint = new PointF(xMin + 1, yMin + 1);
+                    DeltaPoint = new PointF(xMin + 1, yMin + 1);
                     foreach (Pattern ptn in mergedPatterns)
                     {
-                        var points = ptn.CurvePoints.Select(p => new PointF(p.X - deltaPoint.X, p.Y - deltaPoint.Y));
+                        var points = ptn.CurvePoints.Select(p => new PointF(p.X - DeltaPoint.X, p.Y - DeltaPoint.Y));
                         FillCurvePoints(g, points.ToArray(), Brushes.Black, ptn.DrawCurve);
                     }
                 }
-                boundsPixels = new int[bmp.Width * bmp.Height];
-                BitmapTools.CopyBitmapToColorArray(bmp, boundsPixels);
-                pixelCount = boundsPixels.Count(pix => pix == blackArgb);
+                BoundsPixels = new int[bmp.Width * bmp.Height];
+                BitmapTools.CopyBitmapToColorArray(bmp, BoundsPixels);
+                PixelCount = BoundsPixels.Count(pix => pix == BlackArgb);
             }
         }
 
@@ -474,6 +497,15 @@ namespace Whorl
             else
                 retVal = base.FromExtraXml(node);
             return retVal;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            BoundsPixels = null;
+            seedCurvePoints = null;
+            Tools.DisposeList(unmergedPatterns);
+            Tools.DisposeList(mergedPatterns);
         }
     }
 }

@@ -17,6 +17,24 @@ namespace Whorl
             return new Bitmap(size.Width, size.Height, PixelFormat.Format32bppPArgb);
         }
 
+        public static Bitmap CreateFormattedBitmap(Bitmap source)
+        {
+            var bitmap = CreateFormattedBitmap(source.Size);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.DrawImage(source, new Point(0, 0));
+            }
+            return bitmap;
+        }
+
+        public static Bitmap ReadFormattedBitmap(string fileName)
+        {
+            using (var tempBitmap = new Bitmap(fileName))
+            {
+                return CreateFormattedBitmap(tempBitmap);
+            }
+        }
+
         private static void CopyBitmapToFromColorArray(
                             Bitmap bitmap, int[] colorArray, bool copyToBitmap)
         {

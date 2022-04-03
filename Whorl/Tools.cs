@@ -82,6 +82,11 @@ namespace Whorl
             return pDiff.X * pDiff.X + pDiff.Y * pDiff.Y;
         }
 
+        public static Point RoundPointF(PointF p)
+        {
+            return new Point((int)Math.Round(p.X), (int)Math.Round(p.Y));
+        }
+
         public static double Square(double x)
         {
             return x * x;

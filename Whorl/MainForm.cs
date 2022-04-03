@@ -1844,6 +1844,11 @@ namespace Whorl
         {
             try
             {
+                if (onlyDisplayPatternOutlinesToolStripMenuItem.Checked)
+                {
+                    picDesign.Refresh();
+                    return;
+                }
                 picDesign.EnablePaint = false;
                 renderCaller.CancelRender = false;
                 isRendering = true;
@@ -2292,12 +2297,20 @@ namespace Whorl
             ShowRenderingPanels(false);
         }
 
-        private async Task OpenDesignFromXml(string fileName)
+        private async Task OpenDesignFromXml(string fileName, bool appendPatterns = false)
         {
             try
             {
                 picDesign.EnablePaint = false;
                 StopAnimating();
+                if (appendPatterns)
+                {
+                    var readDesign = new WhorlDesign();
+                    readDesign.ReadDesignFromXmlFile(fileName, showWarnings: true);
+                    Design.AddPatterns(readDesign.AllDesignPatterns);
+                    return;
+                }
+                picDesign.SizeMode = PictureBoxSizeMode.Normal;
                 PatternList defaultPatternGroup = Design.DefaultPatternGroup;
                 Design.ReadDesignFromXmlFile(fileName, showWarnings: true);
                 WriteStatus($"Opened design file {fileName}.");
@@ -2334,10 +2347,12 @@ namespace Whorl
         }
 
 
-        private async Task<string> OpenDesignFromImage(string imagesFolder)
+        private async Task<string> OpenDesignFromImage(string imagesFolder = null, bool appendPatterns = false)
         {
             if (!CheckSaveDesign())
                 return null;  //User cancelled.
+            if (imagesFolder == null)
+                imagesFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.DesignThumbnailsFolder);
             OpenFileDialog dlg = new OpenFileDialog();
             dlg.Filter = "Design image file (*.jpg)|*.jpg";
             if (imagesFolder != null && Directory.Exists(imagesFolder))
@@ -2353,12 +2368,25 @@ namespace Whorl
                 }
                 else
                 {
-                    await OpenDesignFromXml(xmlFileName);
+                    await OpenDesignFromXml(xmlFileName, appendPatterns);
                 }
                 return dlg.FileName;
             }
             else
                 return null;
+        }
+
+        private async void openDesignAddPatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                await OpenDesignFromImage(appendPatterns: true);
+                onlyDisplayPatternOutlinesToolStripMenuItem.Checked = true;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         /// <summary>
@@ -2370,8 +2398,7 @@ namespace Whorl
         {
             try
             {
-                string thumbnailsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.DesignThumbnailsFolder);
-                await OpenDesignFromImage(thumbnailsFolder);
+                await OpenDesignFromImage();
             }
             catch (Exception ex)
             {
@@ -8658,6 +8685,90 @@ namespace Whorl
                 int insertIndex = GetNextPatternIndex();
                 Design.AddPattern(pixelPattern, insertIndex);
                 RedrawPatterns();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        public void SetPictureBoxImage(Image image)
+        {
+            picDesign.Image = null;
+            picDesign.Image = image;
+        }
+
+        private Bitmap imageFileBitmap { get; set; }
+        private string imageFileName { get; set; }
+
+        private void openImageFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (imageFileBitmap != null)
+                    imageFileBitmap.Dispose();
+                using (var dlg = new OpenFileDialog())
+                {
+                    if (dlg.ShowDialog() != DialogResult.OK)
+                        return;
+                    imageFileName = dlg.FileName;
+                    imageFileBitmap = BitmapTools.ReadFormattedBitmap(imageFileName);
+                    Size maxSize = GetPictureBoxMaxSize();
+                    picDesign.ClientSize = new Size(imageFileBitmap.Width * maxSize.Height / imageFileBitmap.Height, maxSize.Height);
+                    picDesign.SizeMode = PictureBoxSizeMode.Zoom;
+                    picDesign.Image = imageFileBitmap;
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private FrmImageModifier frmImageModifier { get; set; }
+
+        private void viewImageModifierFormToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (imageFileBitmap == null)
+                {
+                    MessageBox.Show("Please open an image file first.");
+                    return;
+                }
+                var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+                if (frmImageModifier == null || frmImageModifier.IsDisposed)
+                    frmImageModifier = new FrmImageModifier();
+                frmImageModifier.Initialize(this, Design, imageFileBitmap, picDesign.ClientSize, selectedPatterns);
+                Tools.DisplayForm(frmImageModifier, this);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void saveImageFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (picDesign.Image == null)
+                {
+                    MessageBox.Show("Please open an image file first.");
+                    return;
+                }
+                using (var dlg = new SaveFileDialog())
+                {
+                    if (imageFileName != null)
+                    {
+                        dlg.InitialDirectory = Path.GetDirectoryName(imageFileName);
+                        dlg.FileName = Path.GetFileName(imageFileName);
+                    }
+                    if (dlg.ShowDialog() != DialogResult.OK)
+                        return;
+                    imageFileName = dlg.FileName;
+                    Tools.SavePngOrJpegImageFile(imageFileName, (Bitmap)picDesign.Image);
+                }
             }
             catch (Exception ex)
             {
