@@ -23,7 +23,8 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ImageFileName), ImageFileName);
             foreach (var step in Steps)
             {
-                step.ToXml(xmlNode, xmlTools, "Step");
+                if (step.OutlinePatterns != null)
+                    step.ToXml(xmlNode, xmlTools, "Step");
             }
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
@@ -75,11 +76,14 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ColorMode), ColorMode);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ModifiedColor), ModifiedColor.ToArgb());
             xmlTools.AppendXmlAttribute(xmlNode, nameof(IsCumulative), IsCumulative);
-            foreach (Pattern pattern in OutlinePatterns)
+            if (OutlinePatterns != null)
             {
-                XmlNode guidNode = xmlTools.CreateXmlNode("PatternGuid");
-                xmlTools.AppendXmlAttribute(guidNode, "Guid", pattern.KeyGuid.ToString());
-                xmlNode.AppendChild(guidNode);
+                foreach (Pattern pattern in OutlinePatterns)
+                {
+                    XmlNode guidNode = xmlTools.CreateXmlNode("PatternGuid");
+                    xmlTools.AppendXmlAttribute(guidNode, "Guid", pattern.KeyGuid.ToString());
+                    xmlNode.AppendChild(guidNode);
+                }
             }
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }

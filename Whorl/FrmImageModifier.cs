@@ -95,15 +95,18 @@ namespace Whorl
                 ImageModifier.ModifiedColor = picModifiedColor.BackColor;
                 int stepsCount = WhorlDesign.ImageModifySettings.Steps.Count;
                 int newStepNumber;
-                if (!chkCumulative.Checked || ImageModifier.ImageBitmap == null)
+                bool cloneImage = ImageModifier.ImageBitmap == null;
+                if (!chkCumulative.Checked)
                 {
-                    ImageModifier.ImageBitmap = (Bitmap)ImageBitmap.Clone();
+                    cloneImage = true;
                     if (stepNumber > 1 && stepsCount > 1)
                         WhorlDesign.ImageModifySettings.Steps.RemoveRange(0, Math.Min(stepsCount - 1, stepNumber - 1));
                     stepNumber = newStepNumber = 1;
                 }
                 else
                     newStepNumber = stepNumber + 1;
+                if (cloneImage)
+                    ImageModifier.ImageBitmap = (Bitmap)ImageBitmap.Clone();
                 bool isNewStep = stepNumber > stepsCount;
                 ImageModifyStepSettings stepSettings;
                 if (isNewStep)
