@@ -94,15 +94,16 @@ namespace Whorl
                 var colorMode = (ImageModifier.ColorModes)cboColorMode.SelectedItem;
                 ImageModifier.ModifiedColor = picModifiedColor.BackColor;
                 int stepsCount = WhorlDesign.ImageModifySettings.Steps.Count;
+                int newStepNumber;
                 if (!chkCumulative.Checked || ImageModifier.ImageBitmap == null)
                 {
                     ImageModifier.ImageBitmap = (Bitmap)ImageBitmap.Clone();
-                    if (stepNumber > 1)
-                        WhorlDesign.ImageModifySettings.Steps.RemoveRange(0, stepNumber - 1);
-                    stepNumber = 1;
+                    if (stepNumber > 1 && stepsCount > 1)
+                        WhorlDesign.ImageModifySettings.Steps.RemoveRange(0, Math.Min(stepsCount - 1, stepNumber - 1));
+                    stepNumber = newStepNumber = 1;
                 }
                 else
-                    stepNumber++;
+                    newStepNumber = stepNumber + 1;
                 bool isNewStep = stepNumber > stepsCount;
                 ImageModifyStepSettings stepSettings;
                 if (isNewStep)
@@ -117,6 +118,15 @@ namespace Whorl
                 if (isNewStep)
                 {
                     WhorlDesign.ImageModifySettings.Steps.Add(stepSettings);
+                }
+                stepsCount = WhorlDesign.ImageModifySettings.Steps.Count;
+                if (newStepNumber > stepsCount)
+                {
+                    WhorlDesign.ImageModifySettings.Steps.Add(new ImageModifyStepSettings());
+                }
+                if (stepNumber != newStepNumber)
+                {
+                    stepNumber = newStepNumber;
                     FillCboGoToStep();
                 }
                 ImageModifier.ModifyColors(WhorlDesign, colorMode, boundsMode, outlinePatterns, scale);
