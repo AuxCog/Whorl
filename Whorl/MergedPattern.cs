@@ -20,12 +20,22 @@ namespace Whorl
         public PointF OrigCenter { get; private set; }
         private PointF[] seedCurvePoints { get; set; }  //Normalized curve points.
         private Complex zRotation { get; set; }
-        public static readonly int BlackArgb = Color.Black.ToArgb();
+        public static readonly int OutsideArgb = Color.White.ToArgb();
+        public static readonly Color InsideColor = Color.Blue;
+        public static readonly int InsideArgb = InsideColor.ToArgb();
+        public static readonly int BoundaryArgb = Color.Green.ToArgb();
         public int[] BoundsPixels { get; private set; }
         public int PixelCount { get; private set; }
         public Rectangle BoundingRect { get; private set; }
         public PointF DeltaPoint { get; private set; }
         private bool isInitialized { get; set; }
+
+        //Deltas ordered clockwise:
+        private static readonly Point[] deltaPoints =
+        {
+            new Point(0, 1),  new Point(1, 1),   new Point(1, 0),  new Point(1, -1), 
+            new Point(0, -1), new Point(-1, -1), new Point(-1, 0), new Point(-1, 1)
+        };
 
         private void DoInits()
         {
@@ -217,7 +227,8 @@ namespace Whorl
 
         public bool ComputeSeedCurvePoints(out Complex zVector)
         {
-            var boundPoints = GetBoundPoints();
+            var boundPoints = GetBoundaryPoints();
+            //var boundPoints = GetBoundPoints();
             BoundsPixels = null;
             if (boundPoints == null)
             {
@@ -265,9 +276,40 @@ namespace Whorl
             return seedCurvePoints != null;
         }
 
-        private List<Point> GetBoundPoints()
+        private List<Point> GetDistinctPoints(Pattern pattern)
+        {
+            //Complex zVector = pattern.ZVector;
+            //double m = zVector.GetModulus();
+            //zVector *= (m - 1.0) / m;
+            //pattern.ComputeCurvePoints(zVector, forOutline: true);
+            var distinctPoints = Tools.DistinctPoints(pattern.CurvePoints)
+                                 .Select(pt => new PointF(pt.X - DeltaPoint.X, pt.Y - DeltaPoint.Y));
+            var points = distinctPoints.Select(p => Tools.RoundPointF(p)).ToList();
+            if (points.Any() && points.Last() != points.First())
+                points.Add(points.First());
+            return points;
+        }
+
+        private struct PointInfo
+        {
+            public int PatternIndex { get; }
+            public int PointIndex { get; }
+            public double Distance { get; }
+
+            public PointInfo(int patternInd, int pointInd, double distance)
+            {
+                PatternIndex = patternInd;
+                PointIndex = pointInd;
+                Distance = distance;
+            }
+        }
+
+        private HashSet<Point> prevPoints { get; } = new HashSet<Point>();
+
+        private List<Point> GetBoundaryPoints()
         {
             GetBoundsPixels();
+            prevPoints.Clear();
             bool foundPoint = false;
             Point p = Point.Empty;
             for (int y = 0; y < BoundingRect.Height && !foundPoint; y++)
@@ -278,6 +320,8 @@ namespace Whorl
                     if (IsBoundaryPoint(p))
                     {
                         foundPoint = true;
+                        int pixInd = GetPixelIndex(p);
+                        BoundsPixels[pixInd] = BoundaryArgb;
                         break;
                     }
                 }
@@ -287,115 +331,235 @@ namespace Whorl
             var boundPoints = new List<Point>();
             Point firstP = p;
             boundPoints.Add(p);
-            bool loop = true;
-            var prevPointSet = new HashSet<Point>();
-            var deltaPs = new Point[] 
-            { new Point(-1, -1), new Point(-1, 0), new Point(-1, 1),
-              new Point(0, -1), new Point(0, 1), 
-              new Point(1, -1), new Point(1, 0), new Point(1, 1) };
-            do
+            prevPoints.Add(p);
+            int deltaInd = 0;
+            bool finished = false;
+            while (!finished)
             {
-                foundPoint = false;
-                var nextPoints = new List<Point>();
-                foreach (Point deltaP in deltaPs)
+                if (boundPoints.Count > 3)
                 {
-                    Point p2 = new Point(p.X + deltaP.X, p.Y + deltaP.Y);
-                    if (p2 == firstP)
+                    if (Tools.DistanceSquared(p, firstP) <= 2.0)
                     {
-                        if (boundPoints.Count > 2)
-                        {
-                            loop = false;
-                            boundPoints.Add(firstP);
-                        }
-                    }
-                    else if (IsBoundaryPoint(p2))
-                        nextPoints.Add(p2);
-                }
-                Point pNext = Point.Empty;
-                if (loop)
-                {
-                    int prevIndex = -1;
-                    foreach (Point p2 in nextPoints)
-                    {
-                        int ind = boundPoints.LastIndexOf(p2);
-                        if (ind != -1)
-                        {
-                            if (Math.Abs(p2.X - firstP.X) <= 1 && Math.Abs(p2.Y - firstP.Y) <= 1)
-                            {
-                                loop = false;
-                                foundPoint = true;
-                                boundPoints.Add(firstP);
-                                break;
-                            }
-                            else if (!prevPointSet.Contains(p2))
-                            {
-                                if (ind > prevIndex)
-                                    prevIndex = ind;
-                            }
-                        }
-                        else
-                        {
-                            pNext = p2;
-                            boundPoints.Add(pNext);
-                            prevPointSet.Clear();
-                            foundPoint = true;
-                            break;
-                        }
-                    }
-                    if (!foundPoint && prevIndex != -1)
-                    {
-                        pNext = boundPoints[prevIndex];
-                        prevPointSet.Add(pNext);
-                        //boundPoints.Add(pNext);
-                        foundPoint = true;
-                    }
-                    if (foundPoint)
-                        p = pNext;
-                    else
-                    {
-                        //break;
-                        boundPoints.Add(firstP);
-                        loop = false;
+                        finished = true;
+                        break;
                     }
                 }
-            } while (loop && boundPoints.Count <= PixelCount);
-            return loop ? null : boundPoints;
+                Point nextP = GetNextBoundaryPoint(p, ref deltaInd, out FoundTypes foundType);
+                if (foundType == FoundTypes.New)
+                {
+                    boundPoints.Add(nextP);
+                    prevPoints.Clear();
+                }
+                else 
+                {
+                    if (foundType == FoundTypes.None)
+                        break;
+                }
+                prevPoints.Add(nextP);
+                p = nextP;
+            }
+            if (finished && boundPoints.Any())
+            {
+                if (boundPoints.Last() != boundPoints.First())
+                    boundPoints.Add(boundPoints.First());
+            }
+            return finished ? boundPoints : null;
+        }
+
+        //private List<Point> GetBoundPoints()
+        //{
+        //    GetBoundsPixels();
+        //    bool foundPoint = false;
+        //    Point p = Point.Empty;
+        //    for (int y = 0; y < BoundingRect.Height && !foundPoint; y++)
+        //    {
+        //        for (int x = 0; x < BoundingRect.Width; x++)
+        //        {
+        //            p = new Point(x, y);
+        //            if (IsBoundaryPoint(p))
+        //            {
+        //                foundPoint = true;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    if (!foundPoint)
+        //        return null;
+        //    var boundPoints = new List<Point>();
+        //    Point firstP = p;
+        //    boundPoints.Add(p);
+        //    bool loop = true;
+        //    var prevPointSet = new HashSet<Point>();
+        //    var deltaPs = new Point[] 
+        //    { new Point(-1, -1), new Point(-1, 0), new Point(-1, 1),
+        //      new Point(0, -1), new Point(0, 1), 
+        //      new Point(1, -1), new Point(1, 0), new Point(1, 1) };
+        //    do
+        //    {
+        //        foundPoint = false;
+        //        var nextPoints = new List<Point>();
+        //        foreach (Point deltaP in deltaPs)
+        //        {
+        //            Point p2 = new Point(p.X + deltaP.X, p.Y + deltaP.Y);
+        //            if (p2 == firstP)
+        //            {
+        //                if (boundPoints.Count > 2)
+        //                {
+        //                    loop = false;
+        //                    boundPoints.Add(firstP);
+        //                }
+        //            }
+        //            else if (IsBoundaryPoint(p2))
+        //                nextPoints.Add(p2);
+        //        }
+        //        Point pNext = Point.Empty;
+        //        if (loop)
+        //        {
+        //            int prevIndex = -1;
+        //            foreach (Point p2 in nextPoints)
+        //            {
+        //                int ind = boundPoints.LastIndexOf(p2);
+        //                if (ind != -1)
+        //                {
+        //                    if (Math.Abs(p2.X - firstP.X) <= 1 && Math.Abs(p2.Y - firstP.Y) <= 1)
+        //                    {
+        //                        loop = false;
+        //                        foundPoint = true;
+        //                        boundPoints.Add(firstP);
+        //                        break;
+        //                    }
+        //                    else if (!prevPointSet.Contains(p2))
+        //                    {
+        //                        if (ind > prevIndex)
+        //                            prevIndex = ind;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    pNext = p2;
+        //                    boundPoints.Add(pNext);
+        //                    prevPointSet.Clear();
+        //                    foundPoint = true;
+        //                    break;
+        //                }
+        //            }
+        //            if (!foundPoint && prevIndex != -1)
+        //            {
+        //                pNext = boundPoints[prevIndex];
+        //                prevPointSet.Add(pNext);
+        //                //boundPoints.Add(pNext);
+        //                foundPoint = true;
+        //            }
+        //            if (foundPoint)
+        //                p = pNext;
+        //            else
+        //            {
+        //                //break;
+        //                boundPoints.Add(firstP);
+        //                loop = false;
+        //            }
+        //        }
+        //    } while (loop && boundPoints.Count <= PixelCount);
+        //    return loop ? null : boundPoints;
+        //}
+
+        public int GetPixelIndex(Point p)
+        {
+            return BoundingRect.Size.Width * p.Y + p.X;
         }
 
         public bool IsPatternPixel(Point p)
         {
+            bool isInPattern;
             if (p.X < 0 || p.X >= BoundingRect.Size.Width ||
                 p.Y < 0 || p.Y >= BoundingRect.Size.Height)
-                return false;  //Out of bounds.
-            int pixInd = BoundingRect.Size.Width * p.Y + p.X;
-            return BoundsPixels[pixInd] == BlackArgb;
+            {
+                isInPattern = false;  //Out of bounds.
+            }
+            else
+            {
+                int pixInd = GetPixelIndex(p);
+                isInPattern = BoundsPixels[pixInd] != OutsideArgb;
+            }
+            return isInPattern;
         }
 
         public bool IsBoundaryPoint(Point p)
         {
             if (IsPatternPixel(p))
             {
-                for (int dY = -1; dY <= 1; dY++)
+                int pixInd = GetPixelIndex(p);
+                if (BoundsPixels[pixInd] == BoundaryArgb)
+                    return true;
+                else
+                    return IsBoundaryPointHelper(p, pixInd);
+            }
+            return false;
+        }
+
+        private bool IsBoundaryPointHelper(Point p, int pixInd)
+        {
+            for (int i = 0; i < deltaPoints.Length; i++)
+            {
+                Point delta = deltaPoints[i];
+                if (!IsPatternPixel(new Point(p.X + delta.X, p.Y + delta.Y)))
                 {
-                    for (int dX = -1; dX <= 1; dX++)
-                    {
-                        if (dX == 0 & dY == 0)
-                            continue;
-                        if (!IsPatternPixel(new Point(p.X + dX, p.Y + dY)))
-                        {
-                            return true;
-                        }
-                    }
+                    return true;
                 }
             }
             return false;
         }
 
+        private enum FoundTypes
+        {
+            None,
+            New,
+            Previous
+        }
+
+        private static readonly int[] indexOffs = { 0, 1, 7, 2, 6, 3, 5, 4 };
+
+        private Point GetNextBoundaryPoint(Point p, ref int deltaInd, out FoundTypes foundType)
+        {
+            foundType = FoundTypes.None;
+            int startInd = deltaInd;
+            int prevInd = -1;
+            Point prevP = Point.Empty;
+            foreach (int indOff in indexOffs)
+            {
+                deltaInd = (startInd + indOff) % 8;
+                Point delta = deltaPoints[deltaInd];
+                var nextP = new Point(p.X + delta.X, p.Y + delta.Y);
+                if (IsPatternPixel(nextP))
+                {
+                    int pixInd = GetPixelIndex(nextP);
+                    if (BoundsPixels[pixInd] != BoundaryArgb)
+                    {
+                        if (IsBoundaryPointHelper(nextP, pixInd))
+                        {
+                            foundType = FoundTypes.New;
+                            BoundsPixels[pixInd] = BoundaryArgb;
+                            return nextP;
+                        }
+                    }
+                    else if (prevInd == -1 && prevPoints.Contains(nextP))
+                    {
+                        prevP = nextP;
+                        prevInd = deltaInd;
+                    }
+                }
+            }
+            if (prevInd != -1)
+            {
+                deltaInd = prevInd;
+                foundType = FoundTypes.Previous;
+                return prevP;
+            }
+            return Point.Empty;
+        }
+
         public void GetBoundsPixels()
         {
-            //Complex zVector1 = Patterns.First().ZVector;
-            //zVector1.Normalize();
-            //zVector1 = Complex.One / zVector1;
             foreach (Pattern ptn in mergedPatterns)
             {
                 ptn.ComputeCurvePoints(ptn.ZVector, forOutline: true);
@@ -407,20 +571,31 @@ namespace Whorl
             int yMax = (int)allPoints.Select(pt => pt.Y).Max() + 2;
             allPoints = null;
             BoundingRect = new Rectangle(new Point(xMin, yMin), new Size(xMax - xMin, yMax - yMin));
+            DeltaPoint = new PointF(xMin + 1, yMin + 1);
             using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(BoundingRect.Size))
             {
                 using (Graphics g = Graphics.FromImage(bmp))
                 {
-                    DeltaPoint = new PointF(xMin + 1, yMin + 1);
-                    foreach (Pattern ptn in mergedPatterns)
+                    using (var brush = new SolidBrush(InsideColor))
                     {
-                        var points = ptn.CurvePoints.Select(p => new PointF(p.X - DeltaPoint.X, p.Y - DeltaPoint.Y));
-                        FillCurvePoints(g, points.ToArray(), Brushes.Black, ptn.DrawCurve);
+                        foreach (Pattern ptn in mergedPatterns)
+                        {
+                            var points = ptn.CurvePoints.Select(p => new PointF(p.X - DeltaPoint.X, p.Y - DeltaPoint.Y));
+                            FillCurvePoints(g, points.ToArray(), brush, ptn.DrawCurve);
+                        }
                     }
                 }
                 BoundsPixels = new int[bmp.Width * bmp.Height];
                 BitmapTools.CopyBitmapToColorArray(bmp, BoundsPixels);
-                PixelCount = BoundsPixels.Count(pix => pix == BlackArgb);
+                int insideCount = 0;
+                for (int i = 0; i < BoundsPixels.Length; i++)
+                {
+                    if (BoundsPixels[i] == InsideArgb)
+                        insideCount++;
+                    else
+                        BoundsPixels[i] = OutsideArgb;
+                }
+                PixelCount = insideCount;
             }
         }
 

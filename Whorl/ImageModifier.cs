@@ -66,12 +66,12 @@ namespace Whorl
                 var pixArray = new int[ImageBitmap.Width * ImageBitmap.Height];
                 BitmapTools.CopyBitmapToColorArray(ImageBitmap, pixArray);
                 int modArgb = ModifiedColor.ToArgb();
+                Point deltaP = Tools.RoundPointF(mergedPattern.DeltaPoint);
                 for (int y = 0; y < ImageBitmap.Height; y++)
                 {
                     for (int x = 0; x < ImageBitmap.Width; x++)
                     {
-                        Point p = new Point(x - mergedPattern.BoundingRect.X,
-                                            y - mergedPattern.BoundingRect.Y);
+                        Point p = new Point(x - deltaP.X, y - deltaP.Y);
                         bool changeColor;
                         switch (boundMode)
                         {
