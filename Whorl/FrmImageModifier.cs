@@ -23,6 +23,8 @@ namespace Whorl
         private Bitmap ImageBitmap { get; set; }
         private Pattern[] outlinePatterns { get; set; }
         private float scale { get; set; }
+        private bool ignoreEvents { get; set; }
+
         //private Size pictureBoxSize { get; set; }
         private int stepNumber 
         {
@@ -56,6 +58,10 @@ namespace Whorl
             {
                 WhorlDesign.ImageModifySettings.Steps.Add(new ImageModifyStepSettings());
             }
+            else
+            {
+                DisplaySettings();
+            }
             FillCboGoToStep();
             ImageBitmap = bitmap;
             scale = (float)bitmap.Height / pictureBoxSize.Height;
@@ -65,10 +71,18 @@ namespace Whorl
         private void FillCboGoToStep()
         {
             int stepsCount = WhorlDesign.ImageModifySettings.Steps.Count;
-            cboGoToStep.DataSource = Enumerable.Range(1, stepsCount).ToArray();
-            if (stepNumber > 0 && stepNumber <= stepsCount)
+            try
             {
-                cboGoToStep.SelectedItem = stepNumber;
+                ignoreEvents = true;
+                cboGoToStep.DataSource = Enumerable.Range(1, stepsCount).ToArray();
+                if (stepNumber > 0 && stepNumber <= stepsCount)
+                {
+                    cboGoToStep.SelectedItem = stepNumber;
+                }
+            }
+            finally
+            {
+                ignoreEvents = false;
             }
         }
 
@@ -98,6 +112,7 @@ namespace Whorl
                 stepSettings.BoundMode = boundsMode;
                 stepSettings.ColorMode = colorMode;
                 stepSettings.ModifiedColor = ImageModifier.ModifiedColor;
+                stepSettings.IsCumulative = chkCumulative.Checked;
                 stepSettings.OutlinePatterns = outlinePatterns;
                 if (isNewStep)
                 {
@@ -131,21 +146,30 @@ namespace Whorl
             }
         }
 
+        private void DisplaySettings()
+        {
+            if (stepNumber > WhorlDesign.ImageModifySettings.Steps.Count)
+                return;
+            var stepSettings = WhorlDesign.ImageModifySettings.Steps[stepNumber - 1];
+            cboBoundsMode.SelectedItem = stepSettings.BoundMode;
+            cboColorMode.SelectedItem = stepSettings.ColorMode;
+            picModifiedColor.BackColor = stepSettings.ModifiedColor;
+            chkCumulative.Checked = stepSettings.IsCumulative;
+            outlinePatterns = stepSettings.OutlinePatterns;
+        }
+
         private void cboGoToStep_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
+                if (ignoreEvents) return;
                 if (cboGoToStep.SelectedItem is int)
                 {
                     int stepN = (int)cboGoToStep.SelectedItem;
                     if (stepN == stepNumber || stepN > WhorlDesign.ImageModifySettings.Steps.Count)
                         return;
                     stepNumber = stepN;
-                    var stepSettings = WhorlDesign.ImageModifySettings.Steps[stepNumber - 1];
-                    cboBoundsMode.SelectedItem = stepSettings.BoundMode;
-                    cboColorMode.SelectedItem = stepSettings.ColorMode;
-                    picModifiedColor.BackColor = stepSettings.ModifiedColor;
-                    outlinePatterns = stepSettings.OutlinePatterns;
+                    DisplaySettings();
                 }
             }
             catch (Exception ex)

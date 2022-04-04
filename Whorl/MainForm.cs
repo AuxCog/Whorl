@@ -2315,6 +2315,7 @@ namespace Whorl
             showInfluencePointsToolStripMenuItem.Checked = false;
             showDistanceInfluencePointsToolStripMenuItem.Checked = false;
             editInfluencePointsModeToolStripMenuItem.Checked = false;
+            onlyDisplayPatternOutlinesToolStripMenuItem.Checked = false;
             ShowRenderingPanels(false);
         }
 
@@ -2323,6 +2324,11 @@ namespace Whorl
             try
             {
                 picDesign.EnablePaint = false;
+                if (imageFileBitmap != null)
+                {
+                    imageFileBitmap.Dispose();
+                    imageFileBitmap = null;
+                }
                 StopAnimating();
                 if (appendPatterns)
                 {
@@ -2341,6 +2347,7 @@ namespace Whorl
                 designLayersForm.SetDesign(Design);
                 if (Design.ImageModifySettings != null)
                 {
+                    picDesign.EnablePaint = true;
                     if (File.Exists(Design.ImageModifySettings.ImageFileName))
                     {
                         OpenImageFile(Design.ImageModifySettings.ImageFileName);
@@ -2413,7 +2420,6 @@ namespace Whorl
             try
             {
                 await OpenDesignFromImage(appendPatterns: true);
-                onlyDisplayPatternOutlinesToolStripMenuItem.Checked = true;
             }
             catch (Exception ex)
             {
@@ -8745,6 +8751,7 @@ namespace Whorl
         {
             picDesign.Image = null;
             picDesign.Image = image;
+            currentBitmap = (Bitmap)image;
         }
 
         private Bitmap imageFileBitmap { get; set; }
@@ -8769,7 +8776,7 @@ namespace Whorl
 
         private void OpenImageFile(string fileName)
         {
-            Bitmap bitmap = BitmapTools.ReadFormattedBitmap(imageFileName);
+            Bitmap bitmap = BitmapTools.ReadFormattedBitmap(fileName);
             if (imageFileBitmap != null)
                 imageFileBitmap.Dispose();
             imageFileBitmap = bitmap;
@@ -8777,6 +8784,8 @@ namespace Whorl
             picDesign.ClientSize = new Size(imageFileBitmap.Width * maxSize.Height / imageFileBitmap.Height, maxSize.Height);
             picDesign.SizeMode = PictureBoxSizeMode.Zoom;
             picDesign.Image = imageFileBitmap;
+            currentBitmap = imageFileBitmap;
+            onlyDisplayPatternOutlinesToolStripMenuItem.Checked = true;
             imageFileName = fileName;
         }
 

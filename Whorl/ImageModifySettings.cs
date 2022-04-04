@@ -64,6 +64,7 @@ namespace Whorl
         public BoundModes BoundMode { get; set; }
         public ColorModes ColorMode { get; set; }
         public Color ModifiedColor { get; set; }
+        public bool IsCumulative { get; set; }
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
@@ -73,6 +74,7 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(BoundMode), BoundMode);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ColorMode), ColorMode);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ModifiedColor), ModifiedColor.ToArgb());
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(IsCumulative), IsCumulative);
             foreach (Pattern pattern in OutlinePatterns)
             {
                 XmlNode guidNode = xmlTools.CreateXmlNode("PatternGuid");
@@ -89,6 +91,7 @@ namespace Whorl
             ColorMode = Tools.GetEnumXmlAttr(node, nameof(ColorMode), ColorModes.Set);
             int argb = Tools.GetXmlAttribute<int>(node, nameof(ModifiedColor));
             ModifiedColor = Color.FromArgb(argb);
+            IsCumulative = Tools.GetXmlAttribute(node, false, nameof(IsCumulative));
             foreach (XmlNode guidNode in node.ChildNodes)
             {
                 if (guidNode.Name == "PatternGuid")
