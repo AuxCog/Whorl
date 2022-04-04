@@ -319,10 +319,14 @@ namespace Whorl
                     p = new Point(x, y);
                     if (IsBoundaryPoint(p))
                     {
-                        foundPoint = true;
                         int pixInd = GetPixelIndex(p);
                         BoundsPixels[pixInd] = BoundaryArgb;
-                        break;
+                        float adjInside = CountAdjacent(p, 2, pt => IsPatternPixel(pt));
+                        if (adjInside >= 0.3F && adjInside <= 0.7F)
+                        {
+                            foundPoint = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -332,11 +336,11 @@ namespace Whorl
             Point firstP = p;
             boundPoints.Add(p);
             prevPoints.Add(p);
-            int deltaInd = 0;
+            int deltaInd = 4, prevInd = -1;
             bool finished = false;
-            while (!finished)
+            while (true)
             {
-                if (boundPoints.Count > 3)
+                if (boundPoints.Count > 100)
                 {
                     if (Tools.DistanceSquared(p, firstP) <= 2.0)
                     {
@@ -348,12 +352,32 @@ namespace Whorl
                 if (foundType == FoundTypes.New)
                 {
                     boundPoints.Add(nextP);
-                    prevPoints.Clear();
+                    if (prevInd != -1 && boundPoints.Count > prevInd + 10)
+                        prevInd = -1;
+                    //prevPoints.Clear();
                 }
                 else 
                 {
                     if (foundType == FoundTypes.None)
                         break;
+                    else if (foundType == FoundTypes.Previous)
+                    {
+                        if (prevInd == -1)
+                            prevInd = boundPoints.Count;
+                        while (--prevInd >= 0)
+                        {
+                            p = boundPoints[prevInd];
+                            nextP = GetNextBoundaryPoint(p, ref deltaInd, out foundType);
+                            if (foundType == FoundTypes.New)
+                            {
+                                boundPoints.RemoveRange(prevInd + 1, boundPoints.Count - prevInd - 1);
+                                boundPoints.Add(nextP);
+                                break;
+                            }
+                        }
+                        if (prevInd < 0)
+                            break;
+                    }
                 }
                 prevPoints.Add(nextP);
                 p = nextP;
@@ -364,6 +388,24 @@ namespace Whorl
                     boundPoints.Add(boundPoints.First());
             }
             return finished ? boundPoints : null;
+        }
+
+        private float CountAdjacent(Point p, int buffer, Func<Point, bool> predicate)
+        {
+            int count = 0, totCount = 0;
+            for (int dY = -buffer; dY <= buffer; dY++)
+            {
+                for (int dX = -buffer; dX <= buffer; dX++)
+                {
+                    if (dY != 0 || dX != 0)
+                    {
+                        totCount++;
+                        if (predicate(new Point(p.X + dX, p.Y + dY)))
+                            count++;
+                    }
+                }
+            }
+            return  (float)count / totCount;
         }
 
         //private List<Point> GetBoundPoints()
