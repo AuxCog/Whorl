@@ -218,6 +218,7 @@
             this.addDistancePatternToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editDistancePatternSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showDistanceInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addDistancePatternsToDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.seedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setSeedPatternFromDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editSeedPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -272,7 +273,7 @@
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.addDistancePatternsToDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setImageModifierOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1099,7 +1100,8 @@
             this.zoomToolStripMenuItem,
             this.sizeImageToBackgroundToolStripMenuItem,
             this.removeBorderLinesOnSavingToolStripMenuItem,
-            this.onlyDisplayPatternOutlinesToolStripMenuItem});
+            this.onlyDisplayPatternOutlinesToolStripMenuItem,
+            this.setImageModifierOutlinesToolStripMenuItem});
             this.imageToolStripMenuItem.Name = "imageToolStripMenuItem";
             this.imageToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
             this.imageToolStripMenuItem.Text = "Image";
@@ -1574,7 +1576,7 @@
             this.pasteCopiedPatternsToolStripMenuItem,
             this.mergedPatternToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 378);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -1871,6 +1873,13 @@
             this.showDistanceInfluencePointsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.showDistanceInfluencePointsToolStripMenuItem.Text = "Show Influence Points";
             this.showDistanceInfluencePointsToolStripMenuItem.Click += new System.EventHandler(this.showDistanceInfluencePointsToolStripMenuItem_Click);
+            // 
+            // addDistancePatternsToDesignToolStripMenuItem
+            // 
+            this.addDistancePatternsToDesignToolStripMenuItem.Name = "addDistancePatternsToDesignToolStripMenuItem";
+            this.addDistancePatternsToDesignToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.addDistancePatternsToDesignToolStripMenuItem.Text = "Add to Design";
+            this.addDistancePatternsToDesignToolStripMenuItem.Click += new System.EventHandler(this.addDistancePatternsToDesignToolStripMenuItem_Click);
             // 
             // seedPatternToolStripMenuItem
             // 
@@ -2312,12 +2321,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // addDistancePatternsToDesignToolStripMenuItem
+            // setImageModifierOutlinesToolStripMenuItem
             // 
-            this.addDistancePatternsToDesignToolStripMenuItem.Name = "addDistancePatternsToDesignToolStripMenuItem";
-            this.addDistancePatternsToDesignToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.addDistancePatternsToDesignToolStripMenuItem.Text = "Add to Design";
-            this.addDistancePatternsToDesignToolStripMenuItem.Click += new System.EventHandler(this.addDistancePatternsToDesignToolStripMenuItem_Click);
+            this.setImageModifierOutlinesToolStripMenuItem.Name = "setImageModifierOutlinesToolStripMenuItem";
+            this.setImageModifierOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setImageModifierOutlinesToolStripMenuItem.Text = "Set Image Modifier Outlines";
+            this.setImageModifierOutlinesToolStripMenuItem.Click += new System.EventHandler(this.setImageModifierOutlinesToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2597,6 +2606,7 @@
         private System.Windows.Forms.ToolStripMenuItem viewImageModifierFormToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveImageFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addDistancePatternsToDesignToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setImageModifierOutlinesToolStripMenuItem;
     }
 }
 

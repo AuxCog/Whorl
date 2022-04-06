@@ -2323,13 +2323,6 @@ namespace Whorl
         {
             try
             {
-                picDesign.EnablePaint = false;
-                if (imageFileBitmap != null)
-                {
-                    imageFileBitmap.Dispose();
-                    imageFileBitmap = null;
-                }
-                StopAnimating();
                 if (appendPatterns)
                 {
                     var readDesign = new WhorlDesign();
@@ -2337,6 +2330,13 @@ namespace Whorl
                     Design.AddPatterns(readDesign.AllDesignPatterns);
                     return;
                 }
+                picDesign.EnablePaint = false;
+                if (imageFileBitmap != null)
+                {
+                    imageFileBitmap.Dispose();
+                    imageFileBitmap = null;
+                }
+                StopAnimating();
                 picDesign.SizeMode = PictureBoxSizeMode.Normal;
                 PatternList defaultPatternGroup = Design.DefaultPatternGroup;
                 Design.ReadDesignFromXmlFile(fileName, showWarnings: true);
@@ -2388,8 +2388,11 @@ namespace Whorl
 
         private async Task<string> OpenDesignFromImage(string imagesFolder = null, bool appendPatterns = false)
         {
-            if (!CheckSaveDesign())
-                return null;  //User cancelled.
+            if (!appendPatterns) 
+            {
+                if (!CheckSaveDesign())
+                    return null;  //User cancelled.
+            }
             if (imagesFolder == null)
                 imagesFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.Instance.DesignThumbnailsFolder);
             OpenFileDialog dlg = new OpenFileDialog();
@@ -8805,11 +8808,44 @@ namespace Whorl
                     Design.ImageModifySettings = new ImageModifySettings();
                 }
                 Design.ImageModifySettings.ImageFileName = imageFileName;
-                var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
                 if (frmImageModifier == null || frmImageModifier.IsDisposed)
                     frmImageModifier = new FrmImageModifier();
-                frmImageModifier.Initialize(this, Design, imageFileBitmap, picDesign.ClientSize, selectedPatterns);
+                if (frmImageModifier.OutlinePatterns == null)
+                {
+                    if (!SetImageModifierOutlines())
+                        return;
+                }
+                frmImageModifier.Initialize(this, Design, imageFileBitmap, picDesign.ClientSize);
                 Tools.DisplayForm(frmImageModifier, this);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private bool SetImageModifierOutlines()
+        {
+            var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+            if (!selectedPatterns.Any())
+            {
+                MessageBox.Show("Please select some patterns.");
+                return false;
+            }
+            if (frmImageModifier == null || frmImageModifier.IsDisposed)
+                frmImageModifier = new FrmImageModifier();
+            frmImageModifier.SetOutlinePatterns(selectedPatterns);
+            return true;
+        }
+
+        private void setImageModifierOutlinesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SetImageModifierOutlines())
+                {
+                    WriteStatus("Set the image modifier outlines.");
+                }
             }
             catch (Exception ex)
             {

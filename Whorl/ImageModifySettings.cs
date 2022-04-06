@@ -21,10 +21,26 @@ namespace Whorl
                 xmlNodeName = nameof(ImageModifySettings);
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ImageFileName), ImageFileName);
+            Pattern[] outlinePatterns = null;
             foreach (var step in Steps)
             {
                 if (step.OutlinePatterns != null)
+                {
+                    if (outlinePatterns != null && 
+                        outlinePatterns.Length == step.OutlinePatterns.Length && 
+                        !Enumerable.Range(0, outlinePatterns.Length)
+                                    .Any(i => outlinePatterns[i].KeyGuid !=
+                                        step.OutlinePatterns[i].KeyGuid))
+                    {
+                        step.InheritOutlinePatterns = true;
+                    }
+                    else
+                    {
+                        step.InheritOutlinePatterns = false;
+                        outlinePatterns = step.OutlinePatterns;
+                    }
                     step.ToXml(xmlNode, xmlTools, "Step");
+                }
             }
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
@@ -49,10 +65,19 @@ namespace Whorl
         public bool SetOutlinePatterns(WhorlDesign design)
         {
             bool foundAllPatterns = true;
+            Pattern[] outlinePatterns = null;
             foreach (var step in Steps)
             {
-                if (!step.SetOutlinePatterns(design))
-                    foundAllPatterns = false;
+                if (step.InheritOutlinePatterns && outlinePatterns != null)
+                {
+                    step.OutlinePatterns = outlinePatterns;
+                }
+                else
+                {
+                    if (!step.SetOutlinePatterns(design))
+                        foundAllPatterns = false;
+                    outlinePatterns = step.OutlinePatterns;
+                }
             }
             return foundAllPatterns;
         }
@@ -66,6 +91,7 @@ namespace Whorl
         public ColorModes ColorMode { get; set; }
         public Color ModifiedColor { get; set; }
         public bool IsCumulative { get; set; }
+        public bool InheritOutlinePatterns { get; set; }
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
         {
@@ -76,7 +102,8 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ColorMode), ColorMode);
             xmlTools.AppendXmlAttribute(xmlNode, nameof(ModifiedColor), ModifiedColor.ToArgb());
             xmlTools.AppendXmlAttribute(xmlNode, nameof(IsCumulative), IsCumulative);
-            if (OutlinePatterns != null)
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(InheritOutlinePatterns), InheritOutlinePatterns);
+            if (OutlinePatterns != null && !InheritOutlinePatterns)
             {
                 foreach (Pattern pattern in OutlinePatterns)
                 {
@@ -96,15 +123,19 @@ namespace Whorl
             int argb = Tools.GetXmlAttribute<int>(node, nameof(ModifiedColor));
             ModifiedColor = Color.FromArgb(argb);
             IsCumulative = Tools.GetXmlAttribute(node, false, nameof(IsCumulative));
-            foreach (XmlNode guidNode in node.ChildNodes)
+            InheritOutlinePatterns = Tools.GetXmlAttribute(node, false, nameof(InheritOutlinePatterns));
+            if (!InheritOutlinePatterns)
             {
-                if (guidNode.Name == "PatternGuid")
+                foreach (XmlNode guidNode in node.ChildNodes)
                 {
-                    string sGuid = Tools.GetXmlAttribute<string>(guidNode, "Guid");
-                    outlinePatternGuids.Add(Guid.Parse(sGuid));
+                    if (guidNode.Name == "PatternGuid")
+                    {
+                        string sGuid = Tools.GetXmlAttribute<string>(guidNode, "Guid");
+                        outlinePatternGuids.Add(Guid.Parse(sGuid));
+                    }
+                    else
+                        throw new Exception($"Invalid XmlNode named {guidNode.Name}.");
                 }
-                else
-                    throw new Exception($"Invalid XmlNode named {guidNode.Name}.");
             }
         }
 

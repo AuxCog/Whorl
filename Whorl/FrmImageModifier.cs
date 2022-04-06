@@ -21,7 +21,7 @@ namespace Whorl
         public WhorlDesign WhorlDesign { get; private set; }
         private MainForm mainForm { get; set; }
         private Bitmap ImageBitmap { get; set; }
-        private Pattern[] outlinePatterns { get; set; }
+        public Pattern[] OutlinePatterns { get; private set; }
         private float scale { get; set; }
         private bool ignoreEvents { get; set; }
 
@@ -45,8 +45,12 @@ namespace Whorl
             }
         }
 
-        public void Initialize(MainForm mainForm, WhorlDesign design, Bitmap bitmap, Size pictureBoxSize,
-                               IEnumerable<Pattern> outlinePatterns)
+        public void SetOutlinePatterns(IEnumerable<Pattern> outlinePatterns)
+        {
+            OutlinePatterns = outlinePatterns.ToArray();
+        }
+
+        public void Initialize(MainForm mainForm, WhorlDesign design, Bitmap bitmap, Size pictureBoxSize)
         {
             this.mainForm = mainForm;
             WhorlDesign = design;
@@ -65,7 +69,6 @@ namespace Whorl
             FillCboGoToStep();
             ImageBitmap = bitmap;
             scale = (float)bitmap.Height / pictureBoxSize.Height;
-            this.outlinePatterns = outlinePatterns.ToArray();
         }
 
         private void FillCboGoToStep()
@@ -117,7 +120,7 @@ namespace Whorl
                 stepSettings.ColorMode = colorMode;
                 stepSettings.ModifiedColor = ImageModifier.ModifiedColor;
                 stepSettings.IsCumulative = chkCumulative.Checked;
-                stepSettings.OutlinePatterns = outlinePatterns;
+                stepSettings.OutlinePatterns = OutlinePatterns;
                 if (isNewStep)
                 {
                     WhorlDesign.ImageModifySettings.Steps.Add(stepSettings);
@@ -132,7 +135,7 @@ namespace Whorl
                     stepNumber = newStepNumber;
                     FillCboGoToStep();
                 }
-                ImageModifier.ModifyColors(WhorlDesign, colorMode, boundsMode, outlinePatterns, scale);
+                ImageModifier.ModifyColors(WhorlDesign, colorMode, boundsMode, OutlinePatterns, scale);
                 mainForm.SetPictureBoxImage(ImageModifier.ImageBitmap);
             }
             catch (Exception ex)
@@ -168,7 +171,7 @@ namespace Whorl
             cboColorMode.SelectedItem = stepSettings.ColorMode;
             picModifiedColor.BackColor = stepSettings.ModifiedColor;
             chkCumulative.Checked = stepSettings.IsCumulative;
-            outlinePatterns = stepSettings.OutlinePatterns;
+            OutlinePatterns = stepSettings.OutlinePatterns;
         }
 
         private void cboGoToStep_SelectedIndexChanged(object sender, EventArgs e)
