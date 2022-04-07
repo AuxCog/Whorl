@@ -93,6 +93,8 @@ namespace Whorl
         {
             try
             {
+                if (OutlinePatterns == null)
+                    throw new NullReferenceException("OutlinePatterns cannot be null.");
                 var boundsMode = (ImageModifier.BoundModes)cboBoundsMode.SelectedItem;
                 var colorMode = (ImageModifier.ColorModes)cboColorMode.SelectedItem;
                 ImageModifier.ModifiedColor = picModifiedColor.BackColor;
@@ -171,7 +173,8 @@ namespace Whorl
             cboColorMode.SelectedItem = stepSettings.ColorMode;
             picModifiedColor.BackColor = stepSettings.ModifiedColor;
             chkCumulative.Checked = stepSettings.IsCumulative;
-            OutlinePatterns = stepSettings.OutlinePatterns;
+            if (stepSettings.OutlinePatterns != null)
+                OutlinePatterns = stepSettings.OutlinePatterns;
         }
 
         private void cboGoToStep_SelectedIndexChanged(object sender, EventArgs e)

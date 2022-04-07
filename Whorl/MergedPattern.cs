@@ -112,9 +112,14 @@ namespace Whorl
 
         private Pattern[] GetDesignPatterns()
         {
-            return unmergedPatterns.Select(
+            Pattern[] patterns = unmergedPatterns.Select(
                    p => Design.AllDesignPatterns.FirstOrDefault(ptn => ptn.KeyGuid == p.KeyGuid))
                    .Where(p => p != null).ToArray();
+            if (patterns.Length != unmergedPatterns.Count)
+            {
+                throw new Exception("Didn't find all merged patterns in design.");
+            }
+            return patterns;
         }
 
         public bool SetMerged(bool isMerged)
@@ -662,7 +667,7 @@ namespace Whorl
         {
             base.FromXml(node);
             if (node.Attributes[nameof(IsMerged)] == null)
-                IsMerged = true;
+                IsMerged = true; //Legacy code.
             DoInits();
             SetZRotation();
             SetUnmergedPatterns();
