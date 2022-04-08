@@ -11,7 +11,15 @@ namespace Whorl
 {
     public class MergedPattern: Pattern
     {
+        public enum MergeModes
+        {
+            Boundary,
+            Max,
+            Sum
+        }
+
         private const double factorCoeff = 1000.0;
+        public MergeModes MergeMode { get; private set; } = MergeModes.Boundary;
         public bool IsMerged { get; private set; }
         public override bool DrawFilledIsEnabled => IsMerged;
         private List<Pattern> mergedPatterns { get; set; } = new List<Pattern>();
@@ -20,15 +28,25 @@ namespace Whorl
         public PointF OrigCenter { get; private set; }
         private PointF[] seedCurvePoints { get; set; }  //Normalized curve points.
         private Complex zRotation { get; set; }
-        public static readonly int OutsideArgb = Color.White.ToArgb();
+
+        public const byte OutsidePix = 1;
+        public const byte InsidePix = 2;
+        public const byte BoundaryPix = 3;
+
+        //public static readonly int OutsideArgb = Color.White.ToArgb();
         public static readonly Color InsideColor = Color.Blue;
         public static readonly int InsideArgb = InsideColor.ToArgb();
-        public static readonly int BoundaryArgb = Color.Green.ToArgb();
-        public int[] BoundsPixels { get; private set; }
+        //public static readonly int BoundaryArgb = Color.Green.ToArgb();
+        public byte[] BoundsBytes { get; private set; }
+        //public int[] BoundsPixels { get; private set; }
         public int PixelCount { get; private set; }
+        public bool FoundFirstPoint { get; private set; }
+        private PointF? firstMergePoint { get; set; } = null;
         public Rectangle BoundingRect { get; private set; }
         public PointF DeltaPoint { get; private set; }
+        public Point FirstPoint { get; private set; }
         private bool isInitialized { get; set; }
+
 
         //Deltas ordered clockwise:
         private static readonly Point[] deltaPoints =
@@ -42,16 +60,20 @@ namespace Whorl
             PreviewZFactor = Complex.One;
         }
 
-        public MergedPattern(WhorlDesign design): base(design, FillInfo.FillTypes.Path)
+        public MergedPattern(WhorlDesign design, MergeModes mergeMode = MergeModes.Boundary): base(design, FillInfo.FillTypes.Path)
         {
+            MergeMode = mergeMode;
             DoInits();
         }
 
         public MergedPattern(MergedPattern source, WhorlDesign design = null) : base(design ?? source.Design)
         {
+            MergeMode = source.MergeMode;
             CopyProperties(source);
             mergedPatterns.AddRange(source.mergedPatterns.Select(p => p.GetCopy()).ToArray());
             FirstZVector = source.FirstZVector;
+            OrigCenter = source.OrigCenter;
+            firstMergePoint = source.firstMergePoint;
             zRotation = source.zRotation;
             seedCurvePoints = (PointF[])source.seedCurvePoints?.Clone();
             DoInits();
@@ -61,10 +83,20 @@ namespace Whorl
         {
         }
 
+        public static bool IsValidMergePattern(Pattern pattern)
+        {
+            return pattern.GetType() == typeof(Pattern) || pattern.GetType() == typeof(PathPattern);
+        }
+
         public void SetPatterns(IEnumerable<Pattern> patterns)
         {
             Tools.DisposeList(unmergedPatterns);
-            unmergedPatterns = patterns.Select(p => p.GetCopy(design: Design)).ToList();
+            if (patterns.Any(p => !IsValidMergePattern(p)))
+                throw new CustomException("Merge patterns must be of type Pattern or Path.");
+            if (patterns.Count() < 2)
+                throw new CustomException("There must be at least 2 merge patterns.");
+            patterns = patterns.Select(p => p.GetCopy(design: Design));
+            unmergedPatterns = patterns.ToList();
         }
 
         public void SetRawPatterns(IEnumerable<Pattern> patterns)
@@ -88,33 +120,74 @@ namespace Whorl
             return unmergedPatterns;
         }
 
-        private bool DoPatternMerge()
+        private bool DoPatternMerge(PointF firstPoint)
         {
             Pattern pattern1 = mergedPatterns.OrderByDescending(p => p.ZVector.GetModulusSquared()).First();
             FirstZVector = pattern1.ZVector;
             SetZRotation();
             OrigCenter = Center = pattern1.Center;
             FillInfo = pattern1.FillInfo.GetCopy(this);
-            double factor = factorCoeff / FirstZVector.GetModulus();
-            float fFac = (float)factor;
-            foreach (Pattern ptn in mergedPatterns)
+            if (MergeMode == MergeModes.Boundary)
             {
-                ptn.ZVector *= factor;
-                PointF dc = new PointF(ptn.Center.X - Center.X, ptn.Center.Y - Center.Y);
-                ptn.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
+                double factor = factorCoeff / FirstZVector.GetModulus();
+                float fFac = (float)factor;
+                Complex zFactor;
+                if (isInitialized && ZVector != FirstZVector)
+                {
+                    zFactor = FirstZVector / ZVector;
+                    fFac *= (float)zFactor.GetModulus();
+                }
+                else
+                    zFactor = Complex.One;
+                foreach (Pattern ptn in mergedPatterns)
+                {
+                    ptn.ZVector *= factor;
+                    if (isInitialized)
+                        ptn.ZVector *= zFactor;
+                    else
+                    {
+                        double mod0 = 3.0 / ptn.ZVector.GetModulus();
+                        if (ptn.SeedPoints.Any(c => c.Modulus < mod0))
+                        {
+                            var otl = new BasicOutline(BasicOutlineTypes.NewEllipse);
+                            otl.AddDenom = 1000.0;
+                            otl.AmplitudeFactor = mod0;
+                            otl.IntPetals = 2;
+                            ptn.BasicOutlines.Add(otl);
+                            var designPtn = GetDesignPattern(ptn);
+                            if (designPtn != null)
+                            {
+                                designPtn.BasicOutlines.Add(otl.GetCopy());
+                            }
+                        }
+                    }
+                    ptn.ComputeSeedPoints();
+                    PointF dc = new PointF(ptn.Center.X - Center.X, ptn.Center.Y - Center.Y);
+                    ptn.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
+                }
+                PointF delta = new PointF(firstPoint.X - Center.X, firstPoint.Y - Center.Y);
+                firstMergePoint = new PointF(Center.X + fFac * delta.X, Center.Y + fFac * delta.Y);
             }
             IsMerged = ComputeSeedCurvePoints(out Complex zVector);
             if (!isInitialized)
                 ZVector = zVector;
+            if (MergeMode != MergeModes.Boundary)
+            {
+                SeedPoints = null;
+            }
             isInitialized = true;
             return IsMerged;
         }
 
-        private Pattern[] GetDesignPatterns()
+        public Pattern GetDesignPattern(Pattern pattern)
         {
-            Pattern[] patterns = unmergedPatterns.Select(
-                   p => Design.AllDesignPatterns.FirstOrDefault(ptn => ptn.KeyGuid == p.KeyGuid))
-                   .Where(p => p != null).ToArray();
+            return Design.AllDesignPatterns.FirstOrDefault(ptn => ptn.KeyGuid == pattern.KeyGuid);
+        }
+
+        public Pattern[] GetDesignPatterns()
+        {
+            Pattern[] patterns = unmergedPatterns.Select(p => GetDesignPattern(p))
+                                 .Where(p => p != null).ToArray();
             if (patterns.Length != unmergedPatterns.Count)
             {
                 throw new Exception("Didn't find all merged patterns in design.");
@@ -122,7 +195,7 @@ namespace Whorl
             return patterns;
         }
 
-        public bool SetMerged(bool isMerged)
+        public bool SetMerged(bool isMerged, PointF firstPoint)
         {
             bool success = true;
             if (IsMerged == isMerged)
@@ -137,13 +210,13 @@ namespace Whorl
                 }
                 Tools.DisposeList(mergedPatterns);
                 mergedPatterns = patterns.Select(p => p.GetCopy(design: Design)).ToList();
-                success = DoPatternMerge();
+                success = DoPatternMerge(firstPoint);
                 if (success)
                     ClearRenderingCache();
                 else
                     isMerged = false;
             }
-            if (!isMerged)
+            else
             {
                 SetUnmergedPatterns();
                 patterns = GetDesignPatterns();
@@ -158,17 +231,33 @@ namespace Whorl
 
         private void SetUnmergedPatterns()
         {
-            Tools.DisposeList(unmergedPatterns);
-            unmergedPatterns = new List<Pattern>();
-            double factor = FirstZVector.GetModulus() / factorCoeff;
-            float fFac = (float)factor;
-            foreach (Pattern ptn in mergedPatterns)
+            if (MergeMode != MergeModes.Boundary)
             {
-                Pattern ptnCopy = ptn.GetCopy(design: Design);
-                ptnCopy.ZVector *= factor;
-                PointF dc = new PointF(ptn.Center.X - OrigCenter.X, ptn.Center.Y - OrigCenter.Y);
-                ptnCopy.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
-                unmergedPatterns.Add(ptnCopy);
+                Tools.DisposeList(unmergedPatterns);
+                unmergedPatterns = new List<Pattern>(mergedPatterns);
+            }
+            else
+            {
+                Pattern[] patterns = GetDesignPatterns();
+                Tools.DisposeList(unmergedPatterns);
+                unmergedPatterns = new List<Pattern>();
+                //double factor = FirstZVector.GetModulus() / factorCoeff;
+                Complex zFactor = FirstZVector.GetModulus() / factorCoeff * ZVector / FirstZVector;
+                float fFac = (float)zFactor.GetModulus(); //factor;
+                foreach (Pattern ptn in mergedPatterns)
+                {
+                    Pattern ptnCopy = ptn.GetCopy(design: Design);
+                    ptnCopy.ZVector *= zFactor; //factor;
+                    PointF dc = new PointF(ptn.Center.X - OrigCenter.X, ptn.Center.Y - OrigCenter.Y);
+                    ptnCopy.Center = new PointF(Center.X + fFac * dc.X, Center.Y + fFac * dc.Y);
+                    unmergedPatterns.Add(ptnCopy);
+                    Pattern designPattern = patterns.FirstOrDefault(p => p.KeyGuid == ptn.KeyGuid);
+                    if (designPattern != null)
+                    {
+                        designPattern.ZVector = ptnCopy.ZVector;
+                        designPattern.Center = ptnCopy.Center;
+                    }
+                }
             }
         }
 
@@ -182,6 +271,10 @@ namespace Whorl
 
         public override bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false)
         {
+            if (MergeMode != MergeModes.Boundary)
+            {
+                return base.ComputeCurvePoints(zVector, recomputeInnerSection, forOutline);
+            }
             if (seedCurvePoints == null)
             {
                 CurvePoints = new PointF[0];
@@ -203,9 +296,175 @@ namespace Whorl
 
         public override bool ComputeSeedPoints(bool computeRandom = false)
         {
+            if (MergeMode != MergeModes.Boundary)
+            {
+                return ComputeModeSeedPoints();
+            }
             SeedPoints = new PolarCoord[0];
             PreviewZFactor = Complex.One;
             ClearRenderingCache();
+            return true;
+        }
+
+        private PolarCoord GetPolarCoord(IEnumerable<PolarCoord> coords)
+        {
+            float modulus;
+            switch (MergeMode)
+            {
+                case MergeModes.Sum:
+                default:
+                    modulus = coords.Select(c => c.Modulus).Sum();
+                    break;
+                case MergeModes.Max:
+                    modulus = coords.Select(c => c.Modulus).Max();
+                    break;
+            }
+            return new PolarCoord(coords.Select(c => c.Angle).Average(), modulus);
+        }
+
+        private struct IndexedPolarCoord
+        {
+            public int Index { get; set; }
+            public PolarCoord PolarCoord { get; set; }
+            public float Angle => PolarCoord.Angle;
+            public float Modulus => PolarCoord.Modulus;
+
+            public IndexedPolarCoord(int index, PolarCoord polarCoord)
+            {
+                Index = index;
+                PolarCoord = polarCoord;
+            }
+        }
+
+        private bool ComputeModeSeedPoints()
+        {
+            var patterns = mergedPatterns; //.Where(p => !p.BasicOutlines.Any(o => o is PathOutline));
+            if (!patterns.Any())
+                return false;
+            //int maxSteps = patterns.Select(p => p.RotationSteps).Max();
+            //var coordsList = new List<List<PolarCoord>>();
+            float maxModulus = (float)patterns.Select(p => p.ZVector.GetModulus()).Max();
+            var seedPoints = new List<IndexedPolarCoord>();
+            float twoPi = (float)(2.0 * Math.PI);
+            float deltaAngle = twoPi / DefaultRotationSteps;
+            int seedPointsCount = int.MaxValue;
+            bool hasAngleTransforms = false;
+            for (int ptnI = 0; ptnI < patterns.Count; ptnI++)
+            {
+                Pattern pattern = patterns[ptnI];
+                if (!pattern.ComputeSeedPoints())
+                    return false;
+                float angleOff = (float)pattern.ZVector.GetArgument();
+                float modScale = (float)pattern.ZVector.GetModulus() / maxModulus;
+                var sortedCoords = Enumerable.Range(0, pattern.SeedPoints.Length)
+                                   .Select(i => new IndexedPolarCoord(i, pattern.SeedPoints[i])).ToArray();
+                for (int i = 0; i < sortedCoords.Length; i++)
+                {
+                    IndexedPolarCoord crd = sortedCoords[i];
+                    sortedCoords[i].PolarCoord = new PolarCoord((float)Tools.NormalizeAngle(crd.Angle + angleOff), modScale * crd.Modulus);
+                }
+                sortedCoords = sortedCoords.OrderBy(c => c.Angle).ToArray();
+                if (!hasAngleTransforms)
+                {
+                    if (Enumerable.Range(1, sortedCoords.Length).Any(i => sortedCoords[i - 1].Index > sortedCoords[i].Index))
+                    {
+                        hasAngleTransforms = true;
+                    }
+                }
+                int ic = 0;
+                float angle = 0, lastAngle = 0, lastModulus = sortedCoords.First().Modulus;
+                int ind = 0, lastInd = 0;
+                var coords = new List<IndexedPolarCoord>();
+                while (angle <= twoPi)
+                {
+                    while (ic < sortedCoords.Length)
+                    {
+                        float diffAngle = sortedCoords[ic].Angle - angle;
+                        if (diffAngle >= 0 || lastInd == 0)
+                        {
+                            if (diffAngle >= deltaAngle)
+                                break;
+                            float newModulus = sortedCoords[ic].Modulus;
+                            int index = sortedCoords[ic].Index;
+                            if (ind == 0)
+                                coords.Add(new IndexedPolarCoord(index, new PolarCoord(lastAngle, lastModulus)));
+                            else
+                            {
+                                int steps = ind - lastInd;
+                                if (steps > 1)
+                                {
+                                    float modInc = (newModulus - lastModulus) / steps;
+                                    for (int j = 0; j < steps; j++)
+                                    {
+                                        lastAngle += deltaAngle;
+                                        lastModulus += modInc;
+                                        coords.Add(new IndexedPolarCoord(index, new PolarCoord(lastAngle, lastModulus)));
+                                    }
+                                }
+                                coords.Add(new IndexedPolarCoord(index, new PolarCoord(angle, newModulus)));
+                            }
+                            int startJ = ind == 0 ? 0 : lastInd + 1;
+                            for (int j = startJ; j <= ind; j++)
+                            {
+                                IndexedPolarCoord coord = coords[j - startJ];
+                                IndexedPolarCoord seedPoint;
+                                if (j < seedPoints.Count)
+                                {
+                                    seedPoint = seedPoints[j];
+                                    if (hasAngleTransforms)
+                                        seedPoint.Index = coord.Index;
+                                    if (MergeMode == MergeModes.Sum)
+                                    {
+                                        seedPoint.PolarCoord = new PolarCoord(seedPoint.PolarCoord.Angle,
+                                                               seedPoint.PolarCoord.Modulus + coord.Modulus);
+                                    }
+                                    else if (MergeMode == MergeModes.Max)
+                                    {
+                                        seedPoint.PolarCoord = new PolarCoord(seedPoint.PolarCoord.Angle,
+                                                               Math.Max(seedPoint.PolarCoord.Modulus, coord.Modulus));
+                                    }
+                                    seedPoints[j] = seedPoint;
+                                }
+                                else
+                                {
+                                    seedPoint = new IndexedPolarCoord(0, new PolarCoord(angle, coord.Modulus));
+                                    seedPoints.Add(seedPoint);
+                                }
+                            }
+                            lastAngle = angle;
+                            lastModulus = newModulus;
+                            lastInd = ind;
+                            coords.Clear();
+                            break;
+                        }
+                        ic++;
+                    }
+                    if (ic == sortedCoords.Length)
+                        break;
+                    angle += deltaAngle;
+                    ind++;
+                }
+                seedPointsCount = Math.Min(seedPointsCount, lastInd + 1);
+            }
+            if (seedPointsCount < seedPoints.Count)
+            {
+                seedPoints.RemoveRange(seedPointsCount, seedPoints.Count - seedPointsCount);
+            }
+            IndexedPolarCoord lastCoord = seedPoints.Last();
+            if (lastCoord.Angle < twoPi)
+                seedPoints.Add(new IndexedPolarCoord(lastCoord.Index + 1, new PolarCoord(twoPi, lastCoord.Modulus)));
+            if (MergeMode == MergeModes.Sum)
+            {
+                float scale = 1F / seedPoints.Select(c => c.Modulus).Max();
+                for (int i = 0; i < seedPoints.Count; i++)
+                {
+                    IndexedPolarCoord crd = seedPoints[i];
+                    seedPoints[i] = new IndexedPolarCoord(crd.Index, new PolarCoord(crd.Angle, scale * crd.Modulus));
+                }
+            }
+            if (hasAngleTransforms)
+                seedPoints = seedPoints.OrderBy(c => c.Index).ToList();
+            SeedPoints = seedPoints.Select(c => c.PolarCoord).ToArray();
             return true;
         }
 
@@ -216,7 +475,9 @@ namespace Whorl
 
         public void DrawBoundary(Graphics g)
         {
+            const float margin = 10F;
             GetBoundsPixels();
+            float scale = (float)(FirstZVector.GetModulus() / factorCoeff);
             for (int y = 0; y < BoundingRect.Height; y++)
             {
                 for (int x = 0; x < BoundingRect.Width; x++)
@@ -224,17 +485,27 @@ namespace Whorl
                     Point p = new Point(x, y);
                     if (IsBoundaryPoint(p))
                     {
-                        g.FillRectangle(Brushes.Red, new Rectangle(p, new Size(1, 1)));
+                        Point p2 = Tools.RoundPointF(new PointF(scale * p.X + margin, scale * p.Y + margin));
+                        g.FillRectangle(Brushes.Red, new Rectangle(p2, new Size(1, 1)));
                     }
                 }
             }
+            if (FirstPoint != PointF.Empty)
+            {
+                Tools.DrawSquare(g, Color.Yellow, new PointF(scale * FirstPoint.X + margin, scale * FirstPoint.Y + margin), size: 1);
+            }
         }
 
-        public bool ComputeSeedCurvePoints(out Complex zVector)
+        public bool ComputeSeedCurvePoints(out Complex zVector, bool setFirstPoint = true)
         {
-            var boundPoints = GetBoundaryPoints();
+            if (MergeMode != MergeModes.Boundary)
+            {
+                zVector = FirstZVector;
+                return true;
+            }
+            var boundPoints = GetBoundaryPoints(setFirstPoint);
             //var boundPoints = GetBoundPoints();
-            BoundsPixels = null;
+            BoundsBytes = null;
             if (boundPoints == null)
             {
                 seedCurvePoints = null;
@@ -246,99 +517,123 @@ namespace Whorl
                 var points2 = boundPoints.Select(pt =>
                     new PointF(pt.X + DeltaPoint.X - center.X,
                                pt.Y + DeltaPoint.Y - center.Y));
-                double maxModulus = Math.Sqrt(points2.Select(p => p.X * p.X + p.Y * p.Y).Max());
-                float scale = 1F / (float)maxModulus;
+                float scale;
+                if (firstMergePoint == null)
+                {
+                    //Legacy code:
+                    double maxModulus = Math.Sqrt(points2.Select(p => p.X * p.X + p.Y * p.Y).Max());
+                    scale = 1F / (float)maxModulus;
+                }
+                else
+                    scale = 1F / (float)factorCoeff; //maxModulus;
                 var pointsList = points2.Select(p => new PointF(scale * p.X, scale * p.Y)).ToList();
-                //var interpPoints = new List<PointF>();
                 if (pointsList.Any())
                 {
                     Tools.ClosePoints(pointsList);
-                    //if (pointsList.Count >= RotationSteps)
-                    //    interpPoints = pointsList;
-                    //else
-                    //{
-                    //    int steps = (int)Math.Ceiling((double)RotationSteps / pointsList.Count);
-                    //    float fac = 1F / steps;
-                    //    PointF prevP = pointsList[0];
-                    //    for (int i = 1; i < pointsList.Count; i++)
-                    //    {
-                    //        interpPoints.Add(prevP);
-                    //        PointF p = pointsList[i];
-                    //        PointF dp = new PointF(p.X - prevP.X, p.Y - prevP.Y);
-                    //        for (int s = 1; s < steps; s++)
-                    //        {
-                    //            float fs = fac * s;
-                    //            interpPoints.Add(new PointF(prevP.X + fs * dp.X, prevP.Y + fs * dp.Y));
-                    //        }
-                    //        prevP = p;
-                    //    }
-                    //    interpPoints.Add(pointsList.Last());
-                    //}
                 }
                 seedCurvePoints = pointsList.ToArray();
-                zVector = FirstZVector; // * maxModulus / FirstZVector.GetModulus();
+                zVector = FirstZVector;
             }
             return seedCurvePoints != null;
         }
 
-        private List<Point> GetDistinctPoints(Pattern pattern)
-        {
-            //Complex zVector = pattern.ZVector;
-            //double m = zVector.GetModulus();
-            //zVector *= (m - 1.0) / m;
-            //pattern.ComputeCurvePoints(zVector, forOutline: true);
-            var distinctPoints = Tools.DistinctPoints(pattern.CurvePoints)
-                                 .Select(pt => new PointF(pt.X - DeltaPoint.X, pt.Y - DeltaPoint.Y));
-            var points = distinctPoints.Select(p => Tools.RoundPointF(p)).ToList();
-            if (points.Any() && points.Last() != points.First())
-                points.Add(points.First());
-            return points;
-        }
+        //private List<Point> GetDistinctPoints(Pattern pattern)
+        //{
+        //    var distinctPoints = Tools.DistinctPoints(pattern.CurvePoints)
+        //                         .Select(pt => new PointF(pt.X - DeltaPoint.X, pt.Y - DeltaPoint.Y));
+        //    var points = distinctPoints.Select(p => Tools.RoundPointF(p)).ToList();
+        //    if (points.Any() && points.Last() != points.First())
+        //        points.Add(points.First());
+        //    return points;
+        //}
 
-        private struct PointInfo
-        {
-            public int PatternIndex { get; }
-            public int PointIndex { get; }
-            public double Distance { get; }
+        //private struct PointInfo
+        //{
+        //    public int PatternIndex { get; }
+        //    public int PointIndex { get; }
+        //    public double Distance { get; }
 
-            public PointInfo(int patternInd, int pointInd, double distance)
-            {
-                PatternIndex = patternInd;
-                PointIndex = pointInd;
-                Distance = distance;
-            }
-        }
+        //    public PointInfo(int patternInd, int pointInd, double distance)
+        //    {
+        //        PatternIndex = patternInd;
+        //        PointIndex = pointInd;
+        //        Distance = distance;
+        //    }
+        //}
 
         private HashSet<Point> prevPoints { get; } = new HashSet<Point>();
 
-        private List<Point> GetBoundaryPoints()
+        private void SetFirstPoint()
         {
-            GetBoundsPixels();
-            prevPoints.Clear();
             bool foundPoint = false;
             Point p = Point.Empty;
-            for (int y = 0; y < BoundingRect.Height && !foundPoint; y++)
+            if (firstMergePoint != null)
             {
-                for (int x = 0; x < BoundingRect.Width; x++)
+                var pFirst = (PointF)firstMergePoint;
+                Point p1 = Tools.RoundPointF(new PointF(pFirst.X - DeltaPoint.X, pFirst.Y - DeltaPoint.Y));
+                if (IsBoundaryPoint(p1))
                 {
-                    p = new Point(x, y);
-                    if (IsBoundaryPoint(p))
+                    foundPoint = true;
+                    p = p1;
+                }
+                else
+                {
+                    double scale = factorCoeff / FirstZVector.GetModulus();
+                    int maxFac = (int)(5.0 * scale);
+                    for (int factor = 1; factor <= maxFac && !foundPoint; factor++)
                     {
-                        int pixInd = GetPixelIndex(p);
-                        BoundsPixels[pixInd] = BoundaryArgb;
-                        float adjInside = CountAdjacent(p, 2, pt => IsPatternPixel(pt));
-                        if (adjInside >= 0.3F && adjInside <= 0.7F)
+                        for (int i = 0; i < deltaPoints.Length; i++)
                         {
-                            foundPoint = true;
-                            break;
+                            Point pDel = deltaPoints[i];
+                            Point p2 = new Point(p1.X + factor * pDel.X, p1.Y + factor * pDel.Y);
+                            if (IsBoundaryPoint(p2))
+                            {
+                                p = p2;
+                                foundPoint = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!foundPoint)
+                    FirstPoint = p1;
+            }
+            else
+            {
+                for (int y = 0; y < BoundingRect.Height && !foundPoint; y++)
+                {
+                    for (int x = 0; x < BoundingRect.Width; x++)
+                    {
+                        p = new Point(x, y);
+                        if (IsBoundaryPoint(p))
+                        {
+                            int pixInd = GetPixelIndex(p);
+                            BoundsBytes[pixInd] = BoundaryPix;
+                            float adjInside = CountAdjacent(p, 2, pt => IsPatternPixel(pt));
+                            if (adjInside >= 0.4F && adjInside <= 0.6F)
+                            {
+                                foundPoint = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
-            if (!foundPoint)
+            if (foundPoint)
+                FirstPoint = p;
+            FoundFirstPoint = foundPoint;
+        }
+
+        private List<Point> GetBoundaryPoints(bool setFirstPoint = true)
+        {
+            GetBoundsPixels();
+            if (setFirstPoint)
+                SetFirstPoint();
+            if (!FoundFirstPoint)
                 return null;
+            prevPoints.Clear();
+            Point p = FirstPoint;
             var boundPoints = new List<Point>();
-            Point firstP = p;
             boundPoints.Add(p);
             prevPoints.Add(p);
             int deltaInd = 4, prevInd = -1;
@@ -347,7 +642,7 @@ namespace Whorl
             {
                 if (boundPoints.Count > 100)
                 {
-                    if (Tools.DistanceSquared(p, firstP) <= 2.0)
+                    if (Tools.DistanceSquared(p, FirstPoint) <= 2.0)
                     {
                         finished = true;
                         break;
@@ -368,7 +663,10 @@ namespace Whorl
                     else if (foundType == FoundTypes.Previous)
                     {
                         if (prevInd == -1)
+                        {
                             prevInd = boundPoints.Count;
+                            deltaInd = (deltaInd + 2) % 8;
+                        }
                         while (--prevInd >= 0)
                         {
                             p = boundPoints[prevInd];
@@ -377,6 +675,7 @@ namespace Whorl
                             {
                                 boundPoints.RemoveRange(prevInd + 1, boundPoints.Count - prevInd - 1);
                                 boundPoints.Add(nextP);
+                                //prevInd = -1;
                                 break;
                             }
                         }
@@ -526,35 +825,38 @@ namespace Whorl
             else
             {
                 int pixInd = GetPixelIndex(p);
-                isInPattern = BoundsPixels[pixInd] != OutsideArgb;
+                isInPattern = BoundsBytes[pixInd] != OutsidePix;
             }
             return isInPattern;
         }
 
         public bool IsBoundaryPoint(Point p)
         {
+            bool isBoundary = false;
             if (IsPatternPixel(p))
             {
                 int pixInd = GetPixelIndex(p);
-                if (BoundsPixels[pixInd] == BoundaryArgb)
-                    return true;
+                if (BoundsBytes[pixInd] == BoundaryPix)
+                    isBoundary = true;
                 else
-                    return IsBoundaryPointHelper(p, pixInd);
+                    isBoundary = IsBoundaryPointHelper(p, pixInd);
             }
-            return false;
+            return isBoundary;
         }
 
         private bool IsBoundaryPointHelper(Point p, int pixInd)
         {
+            bool isBoundary = false;
             for (int i = 0; i < deltaPoints.Length; i++)
             {
                 Point delta = deltaPoints[i];
                 if (!IsPatternPixel(new Point(p.X + delta.X, p.Y + delta.Y)))
                 {
-                    return true;
+                    isBoundary = true;
+                    break;
                 }
             }
-            return false;
+            return isBoundary;
         }
 
         private enum FoundTypes
@@ -580,12 +882,12 @@ namespace Whorl
                 if (IsPatternPixel(nextP))
                 {
                     int pixInd = GetPixelIndex(nextP);
-                    if (BoundsPixels[pixInd] != BoundaryArgb)
+                    if (BoundsBytes[pixInd] != BoundaryPix)
                     {
                         if (IsBoundaryPointHelper(nextP, pixInd))
                         {
                             foundType = FoundTypes.New;
-                            BoundsPixels[pixInd] = BoundaryArgb;
+                            BoundsBytes[pixInd] = BoundaryPix;
                             return nextP;
                         }
                     }
@@ -632,15 +934,19 @@ namespace Whorl
                         }
                     }
                 }
-                BoundsPixels = new int[bmp.Width * bmp.Height];
-                BitmapTools.CopyBitmapToColorArray(bmp, BoundsPixels);
+                var pixelArray = new int[bmp.Width * bmp.Height];
+                BitmapTools.CopyBitmapToColorArray(bmp, pixelArray);
                 int insideCount = 0;
-                for (int i = 0; i < BoundsPixels.Length; i++)
+                BoundsBytes = new byte[pixelArray.Length];
+                for (int i = 0; i < pixelArray.Length; i++)
                 {
-                    if (BoundsPixels[i] == InsideArgb)
+                    if (pixelArray[i] == InsideArgb)
+                    {
+                        BoundsBytes[i] = InsidePix;
                         insideCount++;
+                    }
                     else
-                        BoundsPixels[i] = OutsideArgb;
+                        BoundsBytes[i] = OutsidePix;
                 }
                 PixelCount = insideCount;
             }
@@ -665,6 +971,9 @@ namespace Whorl
 
         public override void FromXml(XmlNode node)
         {
+            firstMergePoint = null;
+            FoundFirstPoint = false;
+            MergeMode = Tools.GetEnumXmlAttr(node, nameof(MergeMode), MergeModes.Boundary);
             base.FromXml(node);
             if (node.Attributes[nameof(IsMerged)] == null)
                 IsMerged = true; //Legacy code.
@@ -677,7 +986,7 @@ namespace Whorl
             }
             if (IsMerged)
             {
-                IsMerged = ComputeSeedCurvePoints(out _);
+                IsMerged = ComputeSeedCurvePoints(out _, setFirstPoint: !FoundFirstPoint);
             }
             isInitialized = true;
         }
@@ -685,7 +994,9 @@ namespace Whorl
         protected override void ExtraXml(XmlNode parentNode, XmlTools xmlTools)
         {
             base.ExtraXml(parentNode, xmlTools);
+            xmlTools.AppendXmlAttribute(parentNode, nameof(MergeMode), MergeMode);
             xmlTools.AppendXmlAttribute(parentNode, nameof(IsMerged), IsMerged);
+            xmlTools.AppendXmlAttribute(parentNode, nameof(FoundFirstPoint), FoundFirstPoint);
             XmlNode childNode = xmlTools.CreateXmlNode("Patterns");
             foreach (Pattern ptn in mergedPatterns)
             {
@@ -694,6 +1005,9 @@ namespace Whorl
             parentNode.AppendChild(childNode);
             parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(FirstZVector), FirstZVector));
             parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(OrigCenter), OrigCenter));
+            if (firstMergePoint != null)
+                parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(firstMergePoint), (PointF)firstMergePoint));
+            parentNode.AppendChild(xmlTools.CreateXmlNode(nameof(FirstPoint), FirstPoint));
         }
 
         protected override bool FromExtraXml(XmlNode node)
@@ -714,6 +1028,14 @@ namespace Whorl
             {
                 OrigCenter = Tools.GetPointFFromXml(node);
             }
+            else if (node.Name == nameof(firstMergePoint))
+            {
+                firstMergePoint = Tools.GetPointFFromXml(node);
+            }
+            else if (node.Name == nameof(FirstPoint))
+            {
+                FirstPoint = Tools.GetPointFromXml(node);
+            }
             else
                 retVal = base.FromExtraXml(node);
             return retVal;
@@ -722,7 +1044,7 @@ namespace Whorl
         public override void Dispose()
         {
             base.Dispose();
-            BoundsPixels = null;
+            BoundsBytes = null;
             seedCurvePoints = null;
             Tools.DisposeList(unmergedPatterns);
             Tools.DisposeList(mergedPatterns);

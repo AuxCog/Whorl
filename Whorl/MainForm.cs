@@ -81,6 +81,7 @@ namespace Whorl
                 showDistanceInfluencePointsToolStripMenuItem.Tag = MenuItemTypes.DistancePattern;
 
                 PopulateFolderMenuItems();
+                PopulateMergePatternMenuItems();
             }
             catch (Exception ex)
             {
@@ -119,6 +120,17 @@ namespace Whorl
                     moveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
                     menuItem.Click += new System.EventHandler(this.moveDesignToFolderToolStripMenuItem_Click);
                 }
+            }
+        }
+
+        private void PopulateMergePatternMenuItems()
+        {
+            foreach (var mergeMode in Enum.GetValues(typeof(MergedPattern.MergeModes)))
+            {
+                var menuItem = new ToolStripMenuItem(text: mergeMode.ToString());
+                menuItem.Tag = mergeMode;
+                menuItem.Click += new EventHandler(mergeSelectedPatterns_Click);
+                mergeSelectedPatternsToolStripMenuItem.DropDownItems.Add(menuItem);
             }
         }
 
@@ -681,6 +693,13 @@ namespace Whorl
                         FinishDrawnPolygon(center);
                         return;
                     }
+                    else if (mergeStartMode != GetMergeStartModes.None)
+                    {
+                        var mode = mergeStartMode;
+                        mergeStartMode = GetMergeStartModes.None;
+                        MergeSelectedPatterns(new PointF(e.X, e.Y), mode);
+                        return;
+                    }
                     else if (setGradientCenterPattern != null)
                     {
                         PointF gradientCenter = new PointF(e.X, e.Y);
@@ -769,6 +788,10 @@ namespace Whorl
                     getPolygonCenter = false;
                     CancelDrawnPolygon();
                     picDesign.Invalidate();
+                }
+                else if (mergeStartMode != GetMergeStartModes.None)
+                {
+                    mergeStartMode = GetMergeStartModes.None;
                 }
                 else if (setGradientCenterPattern != null)
                 {
@@ -1643,9 +1666,9 @@ namespace Whorl
                 {
                     ShowGrid(e.Graphics);
                 }
-                if (testMergedPattern != null && testMergeOutlineToolStripMenuItem.Checked)
+                if (currentMergedPattern != null && testMergeOutlineToolStripMenuItem.Checked)
                 {
-                    testMergedPattern.DrawBoundary(e.Graphics);
+                    currentMergedPattern.DrawBoundary(e.Graphics);
                     //if (testMergeOutlineToolStripMenuItem.Checked)
                     //    testMergedPattern.DrawBoundary(e.Graphics);
                     //else if (testMergedPattern.CurvePoints.Length >= 3)
@@ -8631,32 +8654,37 @@ namespace Whorl
             }
         }
 
-        private MergedPattern testMergedPattern { get; set; }
+        private MergedPattern currentMergedPattern { get; set; }
 
-        private void mergeSelectedPatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        private enum GetMergeStartModes
+        {
+            None,
+            Merge,
+            ToggleMerge
+        }
+
+        private GetMergeStartModes mergeStartMode { get; set; } = GetMergeStartModes.None;
+
+        private void mergeSelectedPatterns_Click(object sender, EventArgs e)
         {
             try
             {
-                var selPatterns = Design.EnabledPatterns.Where(p => p.Selected);
-                if (selPatterns.Count() < 2)
+                var menuItem = (ToolStripMenuItem)sender;
+                var mergeMode = (MergedPattern.MergeModes)menuItem.Tag;
+                if (Design.EnabledPatterns.Count(p => p.Selected && MergedPattern.IsValidMergePattern(p)) < 2)
                 {
-                    MessageBox.Show("Please select at least 2 patterns to merge.");
+                    MessageBox.Show("Please select at least 2 valid patterns to merge.");
                     return;
                 }
-                var mergedPattern = new MergedPattern(Design);
-                mergedPattern.SetPatterns(selPatterns);
-                testMergedPattern = mergedPattern;
-                if (mergedPattern.SetMerged(true))
+                currentMergedPattern = new MergedPattern(Design, mergeMode);
+                if (mergeMode == MergedPattern.MergeModes.Boundary)
                 {
-                    //Design.RemovePatterns(selPatterns.ToList());
-                    Design.AddPattern(mergedPattern);
-                    RedrawPatterns();
+                    WriteStatus("Click on the boundary merge start point.");
+                    mergeStartMode = GetMergeStartModes.Merge;
                 }
                 else
                 {
-                    MessageBox.Show("Couldn't merge the selected patterns.");
-                    testMergeOutlineToolStripMenuItem.Checked = true;
-                    picDesign.Refresh();
+                    MergeSelectedPatterns(PointF.Empty, GetMergeStartModes.Merge);
                 }
             }
             catch (Exception ex)
@@ -8686,21 +8714,63 @@ namespace Whorl
         {
             try
             {
-                MergedPattern mergedPattern = GetNearestPattern<MergedPattern>(dragStart);
-                if (mergedPattern != null)
+                currentMergedPattern = GetNearestPattern<MergedPattern>(dragStart);
+                if (currentMergedPattern != null)
                 {
-                    if (!mergedPattern.SetMerged(!mergedPattern.IsMerged))
+                    bool isMerged = !currentMergedPattern.IsMerged;
+                    if (isMerged)
                     {
-                        MessageBox.Show("Couldn't merge patterns.");
-                        return;
+                        if (currentMergedPattern.MergeMode != MergedPattern.MergeModes.Boundary)
+                        {
+                            MergeSelectedPatterns(PointF.Empty, GetMergeStartModes.ToggleMerge);
+                        }
+                        else
+                        {
+                            WriteStatus("Click on the boundary merge start point.");
+                            mergeStartMode = GetMergeStartModes.ToggleMerge;
+                        }
                     }
-                    Design.IsDirty = true;
-                    RedrawPatterns();
+                    else
+                    {
+                        currentMergedPattern.SetMerged(isMerged, PointF.Empty);
+                        Design.IsDirty = true;
+                        RedrawPatterns();
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
+            }
+        }
+
+        private void MergeSelectedPatterns(PointF startPoint, GetMergeStartModes mode)
+        {
+            if (mode == GetMergeStartModes.Merge)
+            {
+                var selPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+                currentMergedPattern.SetPatterns(selPatterns);
+            }
+            else
+            {
+                currentMergedPattern.SetPatterns(currentMergedPattern.GetDesignPatterns());
+            }
+            if (currentMergedPattern.SetMerged(true, startPoint))
+            {
+                if (mode == GetMergeStartModes.Merge)
+                {
+                    Design.AddPattern(currentMergedPattern);
+                }
+                RedrawPatterns();
+            }
+            else
+            {
+                if (currentMergedPattern.FoundFirstPoint)
+                    MessageBox.Show("Couldn't merge the selected patterns.");
+                else
+                    MessageBox.Show("Couldn't find the boundary start point.");
+                testMergeOutlineToolStripMenuItem.Checked = true;
+                picDesign.Refresh();
             }
         }
 

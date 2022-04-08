@@ -206,6 +206,19 @@ namespace Whorl
             return xmlNode;
         }
 
+        public XmlNode CreateXmlNode(string name, Point point)
+        {
+            XmlNode xmlNode = CreateXmlNode(name);
+            SetXmlAttributes(xmlNode, point);
+            return xmlNode;
+        }
+
+        public void SetXmlAttributes(XmlNode xmlNode, Point point)
+        {
+            AppendXmlAttribute(xmlNode, "X", point.X);
+            AppendXmlAttribute(xmlNode, "Y", point.Y);
+        }
+
         public void SetXmlAttributes(XmlNode xmlNode, PointF point)
         {
             AppendXmlAttribute(xmlNode, "X", Math.Round(point.X, 2));

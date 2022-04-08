@@ -137,6 +137,7 @@
             this.sizeImageToBackgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeBorderLinesOnSavingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.onlyDisplayPatternOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setImageModifierOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -273,7 +274,6 @@
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.setImageModifierOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -620,7 +620,6 @@
             this.mergeSelectedPatternsToolStripMenuItem.Name = "mergeSelectedPatternsToolStripMenuItem";
             this.mergeSelectedPatternsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
             this.mergeSelectedPatternsToolStripMenuItem.Text = "Merge Selected Patterns";
-            this.mergeSelectedPatternsToolStripMenuItem.Click += new System.EventHandler(this.mergeSelectedPatternsToolStripMenuItem_Click);
             // 
             // groupSelectedPatternsToolStripMenuItem
             // 
@@ -1177,6 +1176,13 @@
             this.onlyDisplayPatternOutlinesToolStripMenuItem.Name = "onlyDisplayPatternOutlinesToolStripMenuItem";
             this.onlyDisplayPatternOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
             this.onlyDisplayPatternOutlinesToolStripMenuItem.Text = "Only Display Pattern Outlines";
+            // 
+            // setImageModifierOutlinesToolStripMenuItem
+            // 
+            this.setImageModifierOutlinesToolStripMenuItem.Name = "setImageModifierOutlinesToolStripMenuItem";
+            this.setImageModifierOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setImageModifierOutlinesToolStripMenuItem.Text = "Set Image Modifier Outlines";
+            this.setImageModifierOutlinesToolStripMenuItem.Click += new System.EventHandler(this.setImageModifierOutlinesToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -2320,13 +2326,6 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
-            // 
-            // setImageModifierOutlinesToolStripMenuItem
-            // 
-            this.setImageModifierOutlinesToolStripMenuItem.Name = "setImageModifierOutlinesToolStripMenuItem";
-            this.setImageModifierOutlinesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.setImageModifierOutlinesToolStripMenuItem.Text = "Set Image Modifier Outlines";
-            this.setImageModifierOutlinesToolStripMenuItem.Click += new System.EventHandler(this.setImageModifierOutlinesToolStripMenuItem_Click);
             // 
             // MainForm
             // 

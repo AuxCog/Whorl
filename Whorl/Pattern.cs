@@ -2446,6 +2446,8 @@ namespace Whorl
 
         public bool PatternIsEnabled { get; set; } = true;
 
+        public bool UniformAngleIncrement { get; set; }
+
         public virtual bool DrawFilledIsEnabled => true;
 
         public bool ContainerIsDesign { get; set; }
@@ -2669,6 +2671,7 @@ namespace Whorl
         private double ComputeSeedPoint(int i, ref double angle)
         {
             double modulus;
+            double origAngle = angle;
 
             foreach (CustomParameter randomRangeParam in randomRangeParams)
             {
@@ -2723,6 +2726,8 @@ namespace Whorl
                 }
                 transform.TransformPoint(ref modulus, ref angle);
             }
+            if (UniformAngleIncrement)
+                angle = origAngle;
             return modulus;
         }
 
@@ -4484,7 +4489,7 @@ namespace Whorl
                 SetKeyGuid(Guid.Parse(guidAttr.Value));
 
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: new string[]
-                                   { "MergeOperation", "RenderMode", "Selected",
+                                   { "MergeOperation", "RenderMode", "Selected", "MergeMode",
                                      "DrawingMode", "PathMode", "StainBlendType", "SharedPatternID",
                                      "RandomSeed", "TransformCenterPath", "ClipShrinkCenter",
                                       nameof(XmlPatternID), nameof(KeyGuid) });

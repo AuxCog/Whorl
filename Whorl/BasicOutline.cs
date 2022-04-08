@@ -619,14 +619,19 @@ namespace Whorl
             }
         }
 
-        public virtual object Clone()
+        public BasicOutline GetCopy()
         {
             BasicOutline copy = new BasicOutline(BasicOutlineType);
-            copy.CopyProperties(this, excludedPropertyNames: 
+            copy.CopyProperties(this, excludedPropertyNames:
                                 new string[] { nameof(BasicOutlineType), nameof(UnitFactor) });
             if (copy.customOutline != null)
                 copy.customOutline.ParentOutline = copy;
             return copy;
+        }
+
+        public virtual object Clone()
+        {
+            return GetCopy();
         }
 
         protected virtual void AppendExtraXml(XmlNode parentNode, XmlTools xmlTools)
