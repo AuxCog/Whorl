@@ -147,6 +147,7 @@ namespace Whorl
                     else
                     {
                         double mod0 = 3.0 / ptn.ZVector.GetModulus();
+                        ptn.ComputeSeedPoints();
                         if (ptn.SeedPoints.Any(c => c.Modulus < mod0))
                         {
                             var otl = new BasicOutline(BasicOutlineTypes.NewEllipse);
