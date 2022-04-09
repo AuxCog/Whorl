@@ -297,6 +297,7 @@ namespace Whorl
 
         public override bool ComputeSeedPoints(bool computeRandom = false)
         {
+            SetSeedOutlines();
             if (MergeMode != MergeModes.Boundary)
             {
                 return ComputeModeSeedPoints();

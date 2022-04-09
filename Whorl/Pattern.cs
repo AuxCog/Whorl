@@ -2644,18 +2644,23 @@ namespace Whorl
         private double ComputeModulusHelper(double angle)
         {
             double modulus;
-            switch (MergeOperation)
+            if (seedOutlines.Count == 0)
+                modulus = 0;
+            else
             {
-                case MergeOperations.Sum:
-                default:
-                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Sum();
-                    break;
-                case MergeOperations.Max:
-                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Max();
-                    break;
-                case MergeOperations.Min:
-                    modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Min();
-                    break;
+                switch (MergeOperation)
+                {
+                    case MergeOperations.Sum:
+                    default:
+                        modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Sum();
+                        break;
+                    case MergeOperations.Max:
+                        modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Max();
+                        break;
+                    case MergeOperations.Min:
+                        modulus = seedOutlines.Select(otl => otl.ComputeAmplitude(angle)).Min();
+                        break;
+                }
             }
             return modulus;
         }
@@ -2742,15 +2747,20 @@ namespace Whorl
         private double patternModulus;
         private double patternRotation;
 
+        public void SetSeedOutlines()
+        {
+            //Get list of enabled outlines:
+            seedOutlines = BasicOutlines.FindAll(otl => otl.Enabled);
+        }
+
         public virtual bool ComputeSeedPoints(bool computeRandom = false)
         {
             const double modulusLimit = 0.9F * float.MaxValue;
             bool formulasAreValid = true;
             int pointCount = RotationSteps + 1;
-            //Get list of enabled outlines:
-            seedOutlines = BasicOutlines.FindAll(otl => otl.Enabled);
             patternModulus = ZVector.GetModulus();
             patternRotation = ZVector.GetArgument();
+            SetSeedOutlines();
             bool retVal = seedOutlines.Count != 0;
             double maxModulus = double.MinValue;
             double minModulus = double.MaxValue;
