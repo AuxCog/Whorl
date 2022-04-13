@@ -2688,11 +2688,11 @@ namespace Whorl
             }
             else
             {
-                if (seedPolygonOutline == null)
+                if (seedVerticesOutline == null)
                     modulus = 0;
                 else
                 {
-                    modulus = seedPolygonOutline.ComputePolygonPoint(i, out angle);
+                    modulus = seedVerticesOutline.ComputeVerticesPoint(i, out angle);
                 }
                 modulus += ComputeModulusHelper(angle);
             }
@@ -2739,7 +2739,7 @@ namespace Whorl
         private List<BasicOutline> seedOutlines;
         private List<PatternTransform> seedTransforms;
         private BasicOutline.CustomOutline seedCustomOutline;
-        private PathOutline seedPolygonOutline;
+        private PathOutline seedVerticesOutline;
         private List<CustomParameter> randomRangeParams;
         private bool seedPatternIsPath;
         private double seedUnitFactor;
@@ -2770,16 +2770,13 @@ namespace Whorl
             {
                 //Get list of enabled transforms:
                 seedTransforms = Transforms.FindAll(tr => tr.Enabled);
-                seedCustomOutline = null;
-                seedPolygonOutline = null;
-                if (seedOutlines.Count == 1)
+                seedVerticesOutline = null;
+                if (seedOutlines.Count == 1 && seedOutlines[0].BasicOutlineType == BasicOutlineTypes.Path)
                 {
-                    BasicOutline outline1 = seedOutlines[0];
-                    if (outline1.BasicOutlineType == BasicOutlineTypes.Path)
-                    {
-                        seedCustomOutline = outline1.customOutline;
-                    }
+                    seedCustomOutline = seedOutlines[0].customOutline;
                 }
+                else
+                    seedCustomOutline = null;
                 //IEnumerable<BasicOutline.CustomOutline> customOutlines = 
                 //    outlines.Where(otl => otl.customOutline != null).Select(otl => otl.customOutline);
                 double rotationSpan = seedOutlines.Select(o => o.GetRotationSpan()).Max();
@@ -2799,10 +2796,11 @@ namespace Whorl
                         seedCustomOutline = null;  //SeedPoints computed from path vertices.
                         if (pathOutline != null)
                         {
-                            if (pathOutline.PolygonUserVertices && seedPolygonOutline == null)
+                            if (pathOutline.UseSingleOutline && seedVerticesOutline == null)
+                            //if (pathOutline.PolygonUserVertices && seedVerticesOutline == null)
                             {
-                                seedPolygonOutline = pathOutline;
-                                pointCount = seedPolygonOutline.GetPolygonSteps();
+                                seedVerticesOutline = pathOutline;
+                                pointCount = seedVerticesOutline.GetVertexSteps();
                                 minIndex = 0;
                             }
                             if (!pathOutline.FormulaIsValid)
@@ -2825,8 +2823,9 @@ namespace Whorl
                         randomRangeParams.AddRange(outline.customOutline.AmplitudeSettings.RandomParameters);
                     }
                 }
-                if (seedPolygonOutline != null)
-                    seedOutlines.Remove(seedPolygonOutline);  //Don't try to compute normally.
+                //if (seedVerticesOutline != null)
+                //    seedOutlines.Remove(seedVerticesOutline);  //Don't try to compute normally.
+                seedOutlines.RemoveAll(otl => otl.UseSingleOutline);  //Don't try to compute normally.
                 //Initialize transforms:
                 foreach (var transform in seedTransforms)
                 {
@@ -2848,8 +2847,8 @@ namespace Whorl
                     MessageBox.Show("The patterns' formulas are not all valid.");
                     retVal = false;
                 }
-                seedAngleDelta = (rotationSpan * 2D * Math.PI) / pointCount;
-                double origAngle = -seedAngleDelta;
+                seedAngleDelta = 2D * Math.PI * rotationSpan / pointCount;
+                double origAngle = seedAngleDelta * minIndex;
                 InitRandomParameters(randomRangeParams, count: SeedPoints.Length, compute: computeRandom);
                 HasRandomElements = randomRangeParams.Count > 0;
                 int iMax = SeedPoints.Length;
@@ -2888,8 +2887,7 @@ namespace Whorl
                 }
                 if (!seedPatternIsPath)
                     SeedPoints[SeedPoints.Length - 1] = SeedPoints[0];  //Close the curve.
-                SeedPointsNormalizationFactor =
-                    1F / (float)(maxModulus == 0 ? 1D : Math.Abs(maxModulus));
+                SeedPointsNormalizationFactor = maxModulus == 0 ? 1F : 1F / (float)Math.Abs(maxModulus);
                 for (int i = 0; i < SeedPoints.Length; i++)
                     SeedPoints[i].Modulus *= SeedPointsNormalizationFactor;
                 //seedPointsChanged = true;

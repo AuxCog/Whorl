@@ -191,6 +191,11 @@ namespace Whorl
         private double angleOffset = 0D;
         public CustomOutline customOutline { get; private set; }
 
+        /// <summary>
+        /// True if only one of this type of outline is supported for a pattern.
+        /// </summary>
+        public virtual bool UseSingleOutline => false;  //Overriden in PathOutline class.
+
         public BasicOutline()
         {
         }

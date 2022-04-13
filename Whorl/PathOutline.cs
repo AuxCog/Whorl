@@ -71,6 +71,7 @@ namespace Whorl
         public bool UserDefinedVertices { get; set; }
         public bool ClosedCurveVertices { get; set; }
         public bool PolygonUserVertices { get; set; }
+        public override bool UseSingleOutline => PolygonUserVertices || ClosedCurveVertices;
         public List<int> CurveCornerIndices { get; } = new List<int>();
 
         public int[] VertexIndices { get; private set; }
@@ -192,7 +193,7 @@ namespace Whorl
         public void FinishUserDefinedVertices()
         {
             PointF center = SegmentVerticesCenter;
-            if (UserDefinedVertices || PolygonUserVertices)
+            if ((UserDefinedVertices || PolygonUserVertices) && !ClosedCurveVertices)
             {
                 float scale = (float)(1.0 / GetPolygonMaxModulus(center));
                 var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
@@ -229,7 +230,6 @@ namespace Whorl
         //{
         //    pathVertices.Add(vertex);
         //}
-
         public void SetClosedVertices(List<PointF> segmentPoints, bool setCurve)
         {
             if (PolygonUserVertices)
@@ -255,14 +255,11 @@ namespace Whorl
         public float MaxPathFactor { get; private set; }
 
         /// <summary>
-        /// Translate vertices so center is at (0, 0), and scale to have max dimension of 1.
+        /// Translate vertices so center is at (0, 0), and scale to have max modulus of 1.
         /// </summary>
         /// <returns></returns>
         public Complex NormalizePathVertices()
         {
-            //Tools.ClosePoints(NormalizedSegmentVertices);
-            //PointF centroid = Tools.Centroid(NormalizedSegmentVertices);
-            //center = centroid;
             if (PolygonUserVertices)
             {
                 return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
@@ -276,25 +273,36 @@ namespace Whorl
                                   Math.Abs(pathVertices.Select(p => p.Y).Max()));
             float xyMax = Math.Max(xMax, yMax);
             MaxPathFactor = xyMax == 0 ? 1 : xyMax;
-            float factor = 1 / MaxPathFactor;
+            float factor = 1F / MaxPathFactor;
             pathVertices = pathVertices.Select(
                 p => new PointF(factor * p.X, factor * p.Y)).ToList();
-            if (pathVertices.Count >= 2)
+            if (pathVertices.Count >= 2 && !ClosedCurveVertices)
             {
-                Complex zOrig = new Complex(pathVertices[0].X, 
-                                            pathVertices[0].Y);
-                Complex zVec1 = new Complex(pathVertices[1].X - 
-                                            pathVertices[0].X,
-                                            pathVertices[1].Y - 
+                Complex zOrig = new Complex(pathVertices[0].X,
                                             pathVertices[0].Y);
                 if (zOrig != Complex.Zero)
                 {
+                    Complex zVec1 = new Complex(pathVertices[1].X - pathVertices[0].X,
+                                                pathVertices[1].Y - pathVertices[0].Y);
                     Complex zProjected = zVec1 / zOrig;
                     if (zProjected.Im < 0)
                         pathVertices.Reverse();
                 }
             }
-            return new Complex(MaxPathFactor, 0);
+            //float maxModSq = 0;
+            //PointF maxPoint = PointF.Empty;
+            //foreach (PointF pv in pathVertices)
+            //{
+            //    float modSq = pv.X * pv.X + pv.Y * pv.Y;
+            //    if (modSq > maxModSq)
+            //    {
+            //        maxModSq = modSq;
+            //        maxPoint = pv;
+            //    }
+            //}
+            //double maxPointAngle = Math.Atan2(maxPoint.X, maxPoint.Y);
+            //return Complex.CreateFromModulusAndArgument(MaxPathFactor, (2D * Math.PI) - maxPointAngle);
+            return new Complex(MaxPathFactor, 0.0);
         }
 
         public override double GetRotationSpan()
@@ -367,18 +375,40 @@ namespace Whorl
             }
         }
 
+        private void InitVertexIndices()
+        {
+            VertexIndices = new int[pathVertices.Count - 1];
+            verticesIndex = 0;
+            pathIndex = 0;
+            prevVerticesIndex = -1;
+        }
+
         public override bool InitComputeAmplitude(int rotationSteps)
         {
             if (PathOutlineType == PathOutlineTypes.Cartesian)
                 //PathPattern.ComputeSeedPoints() does nothing in this case.
                 throw new Exception("Cannot call InitComputeAmplitude on Cartesian path.");
             bool retVal;
-            if (PolygonUserVertices)
+            if (UseSingleOutline)
             {
-                retVal = PolygonVertices != null && PolygonVertices.Count >= 3;
+                if (PolygonUserVertices)
+                {
+                    retVal = PolygonVertices != null && PolygonVertices.Count >= 3;
+                    if (retVal)
+                    {
+                        InitComputePolygon(rotationSteps);
+                    }
+                }
+                else
+                {
+                    retVal = pathVertices != null && pathVertices.Count > 1;
+                    if (retVal)
+                    {
+                        InitVertexIndices();
+                    }
+                }
                 if (retVal)
                 {
-                    InitComputePolygon(rotationSteps);
                     computeAmplitude = null;
                 }
             }
@@ -387,10 +417,7 @@ namespace Whorl
                 retVal = pathVertices != null && pathVertices.Count > 1;
                 if (retVal)
                 {
-                    VertexIndices = new int[pathVertices.Count - 1];
-                    verticesIndex = 0;
-                    pathIndex = 0;
-                    prevVerticesIndex = -1;
+                    InitVertexIndices();
                     computeAmplitude = ComputePathAmplitude;
                 }
                 else
@@ -416,6 +443,7 @@ namespace Whorl
         /// <param name="rotationSteps"></param>
         private void InitComputePolygon(int rotationSteps)
         {
+            if (!PolygonUserVertices) return;
             userVertexInfos = new UserVertexInfo[PolygonVertices.Count];
             verticesIndex = 0;
             List<PointF> vertices = new List<PointF>(PolygonVertices); //GetScaledSegmentVertices();
@@ -463,31 +491,48 @@ namespace Whorl
             return Math.Sqrt(SegmentVertices.Select(p => Tools.DistanceSquared(p, center)).Max());
         }
 
-        public int GetPolygonSteps()
+        public int GetVertexSteps()
         {
-            return userVertexInfos.Select(v => v.Steps).Sum();
+            int steps;
+            if (PolygonUserVertices)
+                steps = userVertexInfos.Select(v => v.Steps).Sum();
+            else if (pathVertices != null)
+                steps = pathVertices.Count;
+            else
+                throw new Exception("pathVertices is null for curve.");
+            return steps;
         }
 
-        public double ComputePolygonPoint(int ind, out double angle)
+        public double ComputeVerticesPoint(int ind, out double angle)
         {
-            UserVertexInfo pInfo = userVertexInfos[verticesIndex];
-            if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
+            double modulus;
+            if (ClosedCurveVertices)
             {
-                pInfo = userVertexInfos[++verticesIndex];
-            }
-            if (ind == pInfo.Index)
-            {
-                currPolygonPoint = pInfo.UserVertex;
+                PointF p = pathVertices[ind];
+                angle = 0.5 * Math.PI - Math.Atan2(p.X, p.Y);
+                modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
             }
             else
             {
-                currPolygonPoint = new PointF(
-                    currPolygonPoint.X + pInfo.UnitVector.X,
-                    currPolygonPoint.Y + pInfo.UnitVector.Y);
+                UserVertexInfo pInfo = userVertexInfos[verticesIndex];
+                if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
+                {
+                    pInfo = userVertexInfos[++verticesIndex];
+                }
+                if (ind == pInfo.Index)
+                {
+                    currPolygonPoint = pInfo.UserVertex;
+                }
+                else
+                {
+                    currPolygonPoint = new PointF(
+                        currPolygonPoint.X + pInfo.UnitVector.X,
+                        currPolygonPoint.Y + pInfo.UnitVector.Y);
+                }
+                var pVec = currPolygonPoint;
+                modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
+                angle = Math.Atan2(pVec.Y, pVec.X);
             }
-            var pVec = currPolygonPoint;
-            double modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
-            angle = modulus == 0 ? 0.0 : Math.Atan2(pVec.Y, pVec.X);
             return modulus;
         }
 
@@ -615,8 +660,8 @@ namespace Whorl
                 case nameof(VerticesSettings):
                     VerticesSettings.FromXml(node, this);
                     break;
-                case nameof(PathVertices):
                 case "SegmentVertices":
+                case nameof(PathVertices):
                     SegmentVertices = new List<PointF>();
                     foreach (XmlNode vertexNode in node.ChildNodes)
                     {

@@ -978,6 +978,8 @@ namespace Whorl
             getPolygonCenter = false;
         }
 
+        private PathPattern testClosedCurvePattern { get; set; }
+
         private void FinishDrawnPolygon(PointF center)
         {
             if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count >= 3)
@@ -994,6 +996,7 @@ namespace Whorl
                 ptn.BasicOutlines.Add(polygonOutline);
                 ptn.SetVertexAnglesParameters();
                 ptn.ComputeSeedPoints();
+                testClosedCurvePattern = ptn;
                 Design.AddPattern(ptn);
                 RedrawPatterns();
             }
@@ -1487,6 +1490,18 @@ namespace Whorl
                         ShowGrid(e.Graphics);
                     }
                     return;
+                }
+                if (testClosedCurveToolStripMenuItem.Checked && testClosedCurvePattern != null)
+                {
+                    PathOutline potl = testClosedCurvePattern.BasicOutlines.Select(o => o as PathOutline)
+                                       .FirstOrDefault(po => po != null && po.ClosedCurveVertices);
+                    if (potl != null)
+                    {
+                        PointF picCenter = GetPictureBoxCenter();
+                        float fac = (float)testClosedCurvePattern.ZVector.GetModulus();
+                        e.Graphics.DrawPolygon(Pens.Red, potl.PathVertices
+                                  .Select(p => new PointF(fac * p.X + picCenter.X, fac * p.Y + picCenter.Y)).ToArray());
+                    }
                 }
                 if (Animating && !pauseImprovToolStripMenuItem.Checked)
                 {
@@ -8951,5 +8966,9 @@ namespace Whorl
             }
         }
 
+        private void testClosedCurveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            picDesign.Refresh();
+        }
     }
 }

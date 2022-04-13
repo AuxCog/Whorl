@@ -274,6 +274,7 @@
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
+            this.testClosedCurveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1225,6 +1226,7 @@
             this.testDistancePatternToolStripMenuItem,
             this.testRandomToolStripMenuItem,
             this.testMergeOutlineToolStripMenuItem,
+            this.testClosedCurveToolStripMenuItem,
             this.scanForPatternsToolStripMenuItem,
             this.fixPatternsToolStripMenuItem,
             this.inferFormulaTypesToolStripMenuItem,
@@ -2327,6 +2329,14 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
+            // testClosedCurveToolStripMenuItem
+            // 
+            this.testClosedCurveToolStripMenuItem.CheckOnClick = true;
+            this.testClosedCurveToolStripMenuItem.Name = "testClosedCurveToolStripMenuItem";
+            this.testClosedCurveToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.testClosedCurveToolStripMenuItem.Text = "Test Closed Curve";
+            this.testClosedCurveToolStripMenuItem.Click += new System.EventHandler(this.testClosedCurveToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2606,6 +2616,7 @@
         private System.Windows.Forms.ToolStripMenuItem saveImageFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addDistancePatternsToDesignToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setImageModifierOutlinesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem testClosedCurveToolStripMenuItem;
     }
 }
 
