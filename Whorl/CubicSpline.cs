@@ -482,7 +482,7 @@ namespace Whorl
 				int n = aPoints.Length;
 				if (n <= 2)
                 {
-					outputPoints.AddRange(aPoints);
+					outputPoints.AddRange(Tools.InterpolatePoints(aPoints));
 				}
                 else
                 {

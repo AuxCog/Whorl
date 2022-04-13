@@ -189,6 +189,44 @@ namespace Whorl
             CurveCornerIndices.Clear();
         }
 
+        public Complex UpdateUserDefinedVertices(Complex zVector, bool forCurveVertices, bool hasClosedPath)
+        {
+            UserDefinedVertices = UseVertices = true;
+            bool changed = false, curveChanged = false;
+            if (HasClosedPath != hasClosedPath)
+            {
+                HasClosedPath = hasClosedPath;
+                changed = true;
+            }
+            if (HasCurveVertices != forCurveVertices)
+            {
+                HasCurveVertices = forCurveVertices;
+                changed = curveChanged = true;
+            }
+            HasLineVertices = !HasCurveVertices;
+            if (changed)
+            {
+                if (HasLineVertices)
+                    FinishUserDefinedVertices();
+                else
+                    SetCurvePathPoints();
+                NormalizePathVertices();
+                if (curveChanged)
+                {
+                    double maxModulus = GetPolygonMaxModulus(SegmentVerticesCenter);
+                    if (HasLineVertices)
+                    {
+                        zVector *= maxModulus / MaxPathFactor;
+                    }
+                    else
+                    {
+                        zVector *= MaxPathFactor / maxModulus;
+                    }
+                }
+            }
+            return zVector;
+        }
+
         /// <summary>
         /// Normalize SegmentVertices.
         /// </summary>
@@ -240,7 +278,7 @@ namespace Whorl
         //    pathVertices.Add(vertex);
         //}
 
-        public void SetCurveVertices()
+        public void SetCurvePathPoints()
         {
             SetCurvePathPoints(SegmentVertices);
         }
@@ -266,6 +304,16 @@ namespace Whorl
 
         public float MaxPathFactor { get; private set; }
 
+        private float GetMaxPathFactor()
+        {
+            float xMax = Math.Max(Math.Abs(pathPoints.Select(p => p.X).Min()),
+                      Math.Abs(pathPoints.Select(p => p.X).Max()));
+            float yMax = Math.Max(Math.Abs(pathPoints.Select(p => p.Y).Min()),
+                                  Math.Abs(pathPoints.Select(p => p.Y).Max()));
+            float xyMax = Math.Max(xMax, yMax);
+            return xyMax == 0 ? 1F : xyMax;
+        }
+
         /// <summary>
         /// Translate vertices so center is at (0, 0), and scale to have max modulus of 1.
         /// </summary>
@@ -279,12 +327,7 @@ namespace Whorl
             PointF center = SegmentVerticesCenter;
             pathPoints = pathPoints.Select(
                 p => new PointF(p.X - center.X, p.Y - center.Y)).ToList();
-            float xMax = Math.Max(Math.Abs(pathPoints.Select(p => p.X).Min()),
-                                  Math.Abs(pathPoints.Select(p => p.X).Max()));
-            float yMax = Math.Max(Math.Abs(pathPoints.Select(p => p.Y).Min()),
-                                  Math.Abs(pathPoints.Select(p => p.Y).Max()));
-            float xyMax = Math.Max(xMax, yMax);
-            MaxPathFactor = xyMax == 0 ? 1 : xyMax;
+            MaxPathFactor = GetMaxPathFactor();
             float factor = 1F / MaxPathFactor;
             pathPoints = pathPoints.Select(
                 p => new PointF(factor * p.X, factor * p.Y)).ToList();
@@ -421,6 +464,7 @@ namespace Whorl
                 }
                 else
                 {
+                    base.InitComputeAmplitude(rotationSteps);
                     computeAmplitude = CustomComputeAmplitude;
                     VertexIndices = null;
                 }
@@ -639,7 +683,7 @@ namespace Whorl
                     FinishUserDefinedVertices();
                     if (!HasLineVertices)
                     {
-                        SetCurveVertices();
+                        SetCurvePathPoints();
                         NormalizePathVertices();
                     }
                 }

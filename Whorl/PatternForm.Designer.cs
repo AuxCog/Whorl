@@ -293,6 +293,8 @@
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
             this.ChkFlipX = new System.Windows.Forms.CheckBox();
+            this.ChkDrawCurve = new System.Windows.Forms.CheckBox();
+            this.ChkDrawClosed = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -2907,11 +2909,33 @@
             this.ChkFlipX.Text = "Flip X";
             this.ChkFlipX.UseVisualStyleBackColor = true;
             // 
+            // ChkDrawCurve
+            // 
+            this.ChkDrawCurve.AutoSize = true;
+            this.ChkDrawCurve.Location = new System.Drawing.Point(212, 397);
+            this.ChkDrawCurve.Name = "ChkDrawCurve";
+            this.ChkDrawCurve.Size = new System.Drawing.Size(82, 17);
+            this.ChkDrawCurve.TabIndex = 60;
+            this.ChkDrawCurve.Text = "Draw Curve";
+            this.ChkDrawCurve.UseVisualStyleBackColor = true;
+            // 
+            // ChkDrawClosed
+            // 
+            this.ChkDrawClosed.AutoSize = true;
+            this.ChkDrawClosed.Location = new System.Drawing.Point(212, 419);
+            this.ChkDrawClosed.Name = "ChkDrawClosed";
+            this.ChkDrawClosed.Size = new System.Drawing.Size(86, 17);
+            this.ChkDrawClosed.TabIndex = 61;
+            this.ChkDrawClosed.Text = "Draw Closed";
+            this.ChkDrawClosed.UseVisualStyleBackColor = true;
+            // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(637, 711);
+            this.Controls.Add(this.ChkDrawClosed);
+            this.Controls.Add(this.ChkDrawCurve);
             this.Controls.Add(this.ChkFlipX);
             this.Controls.Add(this.chkSmoothedDraft);
             this.Controls.Add(this.chkPreviewFullSize);
@@ -3260,5 +3284,7 @@
         private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
         private System.Windows.Forms.Button BtnEditPatternLayerInMainForm;
         private System.Windows.Forms.CheckBox ChkFlipX;
+        private System.Windows.Forms.CheckBox ChkDrawCurve;
+        private System.Windows.Forms.CheckBox ChkDrawClosed;
     }
 }

@@ -985,7 +985,7 @@ namespace Whorl
             if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count >= 3)
             {
                 polygonOutline.FinishUserDefinedVertices(center);
-                polygonOutline.SetCurveVertices();
+                polygonOutline.SetCurvePathPoints();
                 Complex zVector = polygonOutline.NormalizePathVertices();
                 PathPattern ptn = new PathPattern(Design);
                 ptn.BoundaryColor = Color.Red;
@@ -1114,7 +1114,7 @@ namespace Whorl
             editedPolygonPathOutline.FinishUserDefinedVertices();
             if (editedPolygonPathOutline.HasCurveVertices)
             {
-                editedPolygonPathOutline.SetCurveVertices();
+                editedPolygonPathOutline.SetCurvePathPoints();
                 editedPolygonPathOutline.NormalizePathVertices();
             }
         }
@@ -8217,7 +8217,7 @@ namespace Whorl
                     editedPolygonPathOutline.CurveCornerIndices.Add(index);
                     editedPolygonPathOutline.CurveCornerIndices.Sort();
                 }
-                editedPolygonPathOutline.SetCurveVertices();
+                editedPolygonPathOutline.SetCurvePathPoints();
                 editedPolygonPathOutline.NormalizePathVertices();
                 editedPolygonPattern.ComputeSeedPoints();
                 RedrawPatterns();
@@ -8259,7 +8259,7 @@ namespace Whorl
                         if (cornerIndices[i] > index)
                             cornerIndices[i]--;
                     }
-                    editedPolygonPathOutline.SetCurveVertices();
+                    editedPolygonPathOutline.SetCurvePathPoints();
                     editedPolygonPathOutline.NormalizePathVertices();
                 }
                 editedPolygonPattern.ComputeSeedPoints();
@@ -8294,7 +8294,7 @@ namespace Whorl
                 editedPolygonPathOutline.FinishUserDefinedVertices();
                 if (editedPolygonPathOutline.HasCurveVertices)
                 {
-                    editedPolygonPathOutline.SetCurveVertices();
+                    editedPolygonPathOutline.SetCurvePathPoints();
                     editedPolygonPathOutline.NormalizePathVertices();
                 }
                 editedPolygonPattern.ComputeSeedPoints();

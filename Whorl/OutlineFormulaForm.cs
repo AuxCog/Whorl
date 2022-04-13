@@ -269,7 +269,11 @@ namespace Whorl
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
                     if (UseVertices)
+                    {
                         pathOutline.HasLineVertices = chkUsePolygonVertices.Checked;
+                        if (pathOutline.HasLineVertices)
+                            pathOutline.HasCurveVertices = false;
+                    }
                 }
                 FormulaSettings formulaSettings = GetFormulaSettings();
                 if (formulaSettings != null)

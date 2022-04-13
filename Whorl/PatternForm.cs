@@ -654,6 +654,10 @@ namespace Whorl
                     chkInterpolatePoints.Checked = pathPattern.InterpolatePoints;
                 }
                 PopulateOutlinesControls();
+                PathOutline pathOutline = pattern.BasicOutlines.Find(otl => otl.UseSingleOutline) as PathOutline;
+                ChkDrawCurve.Enabled = ChkDrawClosed.Enabled = pathOutline != null;
+                ChkDrawCurve.Checked = pathOutline != null && pathOutline.HasCurveVertices;
+                ChkDrawClosed.Checked = pathOutline != null && pathOutline.HasClosedPath;
                 //CurrentCartesianPathOutline = pathPattern?.CartesianPathOutline;
                 //chkCartesianPath.Checked = CurrentCartesianPathOutline != null;
                 //dgvBasicOutlines.AllowUserToAddRows = CurrentCartesianPathOutline == null;
@@ -1232,6 +1236,12 @@ namespace Whorl
                         textureFillInfo.ImageMode = (TextureImageModes)cboImageMode.SelectedItem;
                     }
                 }
+            }
+            PathOutline pathOutline = pattern.BasicOutlines.Find(otl => otl.UseSingleOutline) as PathOutline;
+            if (pathOutline != null)
+            {
+                pattern.ZVector = pathOutline.UpdateUserDefinedVertices(pattern.ZVector, 
+                                  ChkDrawCurve.Checked, ChkDrawClosed.Checked);
             }
             pattern.MergeOperation = (Pattern.MergeOperations)cboMergeOperation.SelectedItem;
             pattern.RenderMode = (Pattern.RenderModes)cboRenderMode.SelectedItem;

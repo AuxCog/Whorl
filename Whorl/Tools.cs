@@ -323,7 +323,7 @@ namespace Whorl
 
         public static List<PointF> InterpolatePoints(PointF[] points)
         {
-            const double distMin = 4D;
+            const float distMin = 4F;
             var iPoints = new List<PointF>();
             if (points.Length == 0)
                 return iPoints;
@@ -333,18 +333,16 @@ namespace Whorl
             {
                 PointF p2 = points[i];
                 PointF diff = new PointF(p2.X - p1.X, p2.Y - p1.Y);
-                double distSquared = diff.X * diff.X + diff.Y * diff.Y;
-                if (distSquared < distMin)
+                float distSquared = diff.X * diff.X + diff.Y * diff.Y;
+                if (distSquared <= distMin)
                 {
                     iPoints.Add(p2);
-                    p1 = p2;
                 }
                 else
                 {
-                    float dist = (float)Math.Sqrt(distSquared);
-                    int steps = (int)Math.Floor(dist);
-                    diff.X /= dist;
-                    diff.Y /= dist;
+                    int steps = (int)Math.Floor(Math.Sqrt(distSquared));
+                    diff.X /= steps;
+                    diff.Y /= steps;
                     for (int j = 0; j < steps; j++)
                     {
                         p1.X += diff.X;
@@ -352,6 +350,7 @@ namespace Whorl
                         iPoints.Add(p1);
                     }
                 }
+                p1 = p2;
             }
             return iPoints;
         }
