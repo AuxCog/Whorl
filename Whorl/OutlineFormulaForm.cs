@@ -57,10 +57,18 @@ namespace Whorl
         public OutlineFormulaForm()
         {
             InitializeComponent();
-            txtFormulaOrigSize = txtFormula.Size;
-            currentFormulaTextBox = txtFormula;
-            txtFormula.Enter += txtFormula_Enter;
-            txtMaxAmplitudeFormula.Enter += txtFormula_Enter;
+            try
+            {
+                txtFormulaOrigSize = txtFormula.Size;
+                currentFormulaTextBox = txtFormula;
+                txtFormula.Enter += txtFormula_Enter;
+                txtMaxAmplitudeFormula.Enter += txtFormula_Enter;
+                cboDrawType.DataSource = Enum.GetValues(typeof(PathOutline.DrawTypes));
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         private FormulaUsages GetFormulaUsage()
@@ -265,14 +273,18 @@ namespace Whorl
                 {
                     double rotationSpan;
                     if (!double.TryParse(txtRotationSpan.Text, out rotationSpan))
-                        throw new Exception("Please enter a number for Path Rotations.");
+                        throw new CustomException("Please enter a number for Path Rotations.");
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
-                    if (UseVertices)
+                    pathOutline.HasClosedPath = chkDrawClosed.Checked;
+                    if (UseVertices && cboDrawType.SelectedItem is PathOutline.DrawTypes)
                     {
-                        pathOutline.HasLineVertices = chkUsePolygonVertices.Checked;
-                        if (pathOutline.HasLineVertices)
-                            pathOutline.HasCurveVertices = false;
+                        var drawType = (PathOutline.DrawTypes)cboDrawType.SelectedItem;
+                        if (drawType == PathOutline.DrawTypes.Normal && pathOutline.UserDefinedVertices)
+                        {
+                            throw new CustomException("Draw Type cannot be Normal for User Defined Vertices.");
+                        }
+                        pathOutline.DrawType = drawType;
                     }
                 }
                 FormulaSettings formulaSettings = GetFormulaSettings();
@@ -327,7 +339,8 @@ namespace Whorl
                 this.txtFormula.Text = pathOutline.VerticesSettings.Formula;
                 currentFormulaSettings = pathOutline.VerticesSettings;
                 chkIsCSharpFormula.Checked = currentFormulaSettings.IsCSharpFormula;
-                chkUsePolygonVertices.Checked = pathOutline.HasLineVertices;
+                cboDrawType.SelectedItem = pathOutline.DrawType;
+                chkDrawClosed.Checked = pathOutline.HasClosedPath;
             }
             else
             {
@@ -335,7 +348,7 @@ namespace Whorl
                 this.txtMaxAmplitudeFormula.Text = MaxAmplitudeFormula;
                 currentFormulaSettings = basicOutline.customOutline.AmplitudeSettings;
             }
-            chkUsePolygonVertices.Enabled = UseVertices;
+            cboDrawType.Enabled = chkDrawClosed.Enabled = UseVertices;
             txtFormulaName.Text = currentFormulaSettings.FormulaName;
         }
 

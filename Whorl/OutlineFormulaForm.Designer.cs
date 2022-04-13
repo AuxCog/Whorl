@@ -36,7 +36,6 @@
             this.lblMaxFormula = new System.Windows.Forms.Label();
             this.txtMaxAmplitudeFormula = new System.Windows.Forms.TextBox();
             this.pnlPathSettings = new System.Windows.Forms.Panel();
-            this.chkUsePolygonVertices = new System.Windows.Forms.CheckBox();
             this.chkUseVertices = new System.Windows.Forms.CheckBox();
             this.txtRotationSpan = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -55,6 +54,8 @@
             this.copyModuleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyIncludeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyFormulaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showPreprocessedCodeOnErrorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtFormulaName = new System.Windows.Forms.TextBox();
@@ -73,8 +74,9 @@
             this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
             this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.copyFormulaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cboDrawType = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.chkDrawClosed = new System.Windows.Forms.CheckBox();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -144,7 +146,9 @@
             // pnlPathSettings
             // 
             this.pnlPathSettings.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.pnlPathSettings.Controls.Add(this.chkUsePolygonVertices);
+            this.pnlPathSettings.Controls.Add(this.chkDrawClosed);
+            this.pnlPathSettings.Controls.Add(this.label4);
+            this.pnlPathSettings.Controls.Add(this.cboDrawType);
             this.pnlPathSettings.Controls.Add(this.chkUseVertices);
             this.pnlPathSettings.Controls.Add(this.txtRotationSpan);
             this.pnlPathSettings.Controls.Add(this.label3);
@@ -152,16 +156,6 @@
             this.pnlPathSettings.Name = "pnlPathSettings";
             this.pnlPathSettings.Size = new System.Drawing.Size(719, 48);
             this.pnlPathSettings.TabIndex = 10;
-            // 
-            // chkUsePolygonVertices
-            // 
-            this.chkUsePolygonVertices.AutoSize = true;
-            this.chkUsePolygonVertices.Location = new System.Drawing.Point(376, 9);
-            this.chkUsePolygonVertices.Name = "chkUsePolygonVertices";
-            this.chkUsePolygonVertices.Size = new System.Drawing.Size(107, 21);
-            this.chkUsePolygonVertices.TabIndex = 11;
-            this.chkUsePolygonVertices.Text = "Use Polygon";
-            this.chkUsePolygonVertices.UseVisualStyleBackColor = true;
             // 
             // chkUseVertices
             // 
@@ -316,6 +310,21 @@
             this.copyIncludeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.copyIncludeToolStripMenuItem.Text = "Copy Include";
             this.copyIncludeToolStripMenuItem.Click += new System.EventHandler(this.copyIncludeToolStripMenuItem_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyFormulaToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // copyFormulaToolStripMenuItem
+            // 
+            this.copyFormulaToolStripMenuItem.Name = "copyFormulaToolStripMenuItem";
+            this.copyFormulaToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.copyFormulaToolStripMenuItem.Text = "Copy Formula";
+            this.copyFormulaToolStripMenuItem.Click += new System.EventHandler(this.copyFormulaToolStripMenuItem_Click);
             // 
             // settingsToolStripMenuItem
             // 
@@ -483,20 +492,33 @@
             this.label2.TabIndex = 40;
             this.label2.Text = "Category:";
             // 
-            // editToolStripMenuItem
+            // cboDrawType
             // 
-            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyFormulaToolStripMenuItem});
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem.Text = "Edit";
+            this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDrawType.FormattingEnabled = true;
+            this.cboDrawType.Location = new System.Drawing.Point(459, 9);
+            this.cboDrawType.Name = "cboDrawType";
+            this.cboDrawType.Size = new System.Drawing.Size(87, 25);
+            this.cboDrawType.TabIndex = 11;
             // 
-            // copyFormulaToolStripMenuItem
+            // label4
             // 
-            this.copyFormulaToolStripMenuItem.Name = "copyFormulaToolStripMenuItem";
-            this.copyFormulaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.copyFormulaToolStripMenuItem.Text = "Copy Formula";
-            this.copyFormulaToolStripMenuItem.Click += new System.EventHandler(this.copyFormulaToolStripMenuItem_Click);
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(373, 12);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(80, 17);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "Draw Type:";
+            // 
+            // chkDrawClosed
+            // 
+            this.chkDrawClosed.AutoSize = true;
+            this.chkDrawClosed.Location = new System.Drawing.Point(561, 9);
+            this.chkDrawClosed.Name = "chkDrawClosed";
+            this.chkDrawClosed.Size = new System.Drawing.Size(106, 21);
+            this.chkDrawClosed.TabIndex = 13;
+            this.chkDrawClosed.Text = "Draw Closed";
+            this.chkDrawClosed.UseVisualStyleBackColor = true;
             // 
             // OutlineFormulaForm
             // 
@@ -582,7 +604,6 @@
         private System.Windows.Forms.LinkLabel lnkShowErrors;
         private System.Windows.Forms.Label lblParseStatus;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.CheckBox chkUsePolygonVertices;
         private System.Windows.Forms.CheckBox chkIsMaxAmpCSharp;
         private System.Windows.Forms.ToolStripMenuItem translateMaxAmplitudeToCToolStripMenuItem;
         private System.Windows.Forms.ComboBox cboFormulaUsage;
@@ -591,5 +612,8 @@
         private System.Windows.Forms.ToolStripMenuItem saveIncludeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyFormulaToolStripMenuItem;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ComboBox cboDrawType;
+        private System.Windows.Forms.CheckBox chkDrawClosed;
     }
 }

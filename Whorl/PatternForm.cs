@@ -133,6 +133,7 @@ namespace Whorl
                 cboFillType.DataSource = Enum.GetValues(typeof(FillInfo.FillTypes));
                 cboMergeOperation.DataSource = Enum.GetValues(typeof(Pattern.MergeOperations));
                 cboDrawingMode.DataSource = Enum.GetValues(typeof(RibbonDrawingModes));
+                cboDrawType.DataSource = Enum.GetValues(typeof(PathOutline.DrawTypes));
                 //cboPathMode.DataSource = Enum.GetValues(typeof(RibbonPathModes));
                 cboRenderMode.DataSource = Enum.GetValues(typeof(Pattern.RenderModes));
                 cboStainBlendType.DataSource = Enum.GetValues(typeof(ColorBlendTypes));
@@ -655,8 +656,9 @@ namespace Whorl
                 }
                 PopulateOutlinesControls();
                 PathOutline pathOutline = pattern.BasicOutlines.Find(otl => otl.UseSingleOutline) as PathOutline;
-                ChkDrawCurve.Enabled = ChkDrawClosed.Enabled = pathOutline != null;
-                ChkDrawCurve.Checked = pathOutline != null && pathOutline.HasCurveVertices;
+                cboDrawType.Enabled = ChkDrawClosed.Enabled = pathOutline != null;
+                if (pathOutline != null)
+                    cboDrawType.SelectedItem = pathOutline.DrawType;
                 ChkDrawClosed.Checked = pathOutline != null && pathOutline.HasClosedPath;
                 //CurrentCartesianPathOutline = pathPattern?.CartesianPathOutline;
                 //chkCartesianPath.Checked = CurrentCartesianPathOutline != null;
@@ -898,9 +900,10 @@ namespace Whorl
                     outlineType != BasicOutlineTypes.Path)
                     return;
                 outline = GetDataRowBasicOutline(dRow, (BasicOutlineTypes)outlineType);
-                if (chkCartesianPath.Checked && outline is PathOutline)
+                var pathOutline = outline as PathOutline;
+                if (chkCartesianPath.Checked && pathOutline != null)
                 {
-                    EditCartesianFormula((PathOutline)outline);
+                    EditCartesianFormula(pathOutline);
                     return;
                 }
                 FormulaSettings formulaSettings = outline.GetFormulaSettings();
@@ -918,6 +921,11 @@ namespace Whorl
                         //    formulaSettings.FormulaName = frm.FormulaName;
                         //dRow["AmplitudeFormula"] = frm.AmplitudeFormula;
                         //dRow["MaxAmplitudeFormula"] = frm.MaxAmplitudeFormula;
+                        if (pathOutline != null)
+                        {
+                            cboDrawType.SelectedItem = pathOutline.DrawType;
+                            ChkDrawClosed.Checked = pathOutline.HasClosedPath;
+                        }
                         AddParameterControls(pnlOutlineParameters, formulaSettings);
                     }
                 }
@@ -1238,10 +1246,16 @@ namespace Whorl
                 }
             }
             PathOutline pathOutline = pattern.BasicOutlines.Find(otl => otl.UseSingleOutline) as PathOutline;
-            if (pathOutline != null)
+            if (pathOutline != null && cboDrawType.SelectedItem is PathOutline.DrawTypes)
             {
-                pattern.ZVector = pathOutline.UpdateUserDefinedVertices(pattern.ZVector, 
-                                  ChkDrawCurve.Checked, ChkDrawClosed.Checked);
+                var drawType = (PathOutline.DrawTypes)cboDrawType.SelectedItem;
+                if (pathOutline.UserDefinedVertices)
+                {
+                    pattern.ZVector = pathOutline.UpdateUserDefinedVertices(pattern.ZVector,
+                                      drawType, ChkDrawClosed.Checked);
+                }
+                else
+                    pathOutline.DrawType = drawType;
             }
             pattern.MergeOperation = (Pattern.MergeOperations)cboMergeOperation.SelectedItem;
             pattern.RenderMode = (Pattern.RenderModes)cboRenderMode.SelectedItem;

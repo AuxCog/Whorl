@@ -293,8 +293,9 @@
             this.chkPreviewFullSize = new System.Windows.Forms.CheckBox();
             this.chkSmoothedDraft = new System.Windows.Forms.CheckBox();
             this.ChkFlipX = new System.Windows.Forms.CheckBox();
-            this.ChkDrawCurve = new System.Windows.Forms.CheckBox();
             this.ChkDrawClosed = new System.Windows.Forms.CheckBox();
+            this.label57 = new System.Windows.Forms.Label();
+            this.cboDrawType = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -348,7 +349,7 @@
             // 
             this.picPreview.BackColor = System.Drawing.Color.White;
             this.picPreview.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.picPreview.Location = new System.Drawing.Point(332, 399);
+            this.picPreview.Location = new System.Drawing.Point(349, 406);
             this.picPreview.Name = "picPreview";
             this.picPreview.Size = new System.Drawing.Size(300, 300);
             this.picPreview.TabIndex = 4;
@@ -406,7 +407,7 @@
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(637, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(661, 24);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -2838,7 +2839,7 @@
             // label55
             // 
             this.label55.AutoSize = true;
-            this.label55.Location = new System.Drawing.Point(331, 368);
+            this.label55.Location = new System.Drawing.Point(355, 384);
             this.label55.Name = "label55";
             this.label55.Size = new System.Drawing.Size(48, 13);
             this.label55.TabIndex = 53;
@@ -2846,7 +2847,7 @@
             // 
             // txtPreviewZoomPct
             // 
-            this.txtPreviewZoomPct.Location = new System.Drawing.Point(379, 365);
+            this.txtPreviewZoomPct.Location = new System.Drawing.Point(403, 380);
             this.txtPreviewZoomPct.Name = "txtPreviewZoomPct";
             this.txtPreviewZoomPct.Size = new System.Drawing.Size(48, 20);
             this.txtPreviewZoomPct.TabIndex = 54;
@@ -2857,7 +2858,7 @@
             // 
             // txtPreviewRotation
             // 
-            this.txtPreviewRotation.Location = new System.Drawing.Point(577, 369);
+            this.txtPreviewRotation.Location = new System.Drawing.Point(601, 380);
             this.txtPreviewRotation.Name = "txtPreviewRotation";
             this.txtPreviewRotation.Size = new System.Drawing.Size(48, 20);
             this.txtPreviewRotation.TabIndex = 56;
@@ -2869,7 +2870,7 @@
             // label56
             // 
             this.label56.AutoSize = true;
-            this.label56.Location = new System.Drawing.Point(521, 372);
+            this.label56.Location = new System.Drawing.Point(545, 384);
             this.label56.Name = "label56";
             this.label56.Size = new System.Drawing.Size(50, 13);
             this.label56.TabIndex = 55;
@@ -2878,7 +2879,7 @@
             // chkPreviewFullSize
             // 
             this.chkPreviewFullSize.AutoSize = true;
-            this.chkPreviewFullSize.Location = new System.Drawing.Point(433, 368);
+            this.chkPreviewFullSize.Location = new System.Drawing.Point(457, 382);
             this.chkPreviewFullSize.Name = "chkPreviewFullSize";
             this.chkPreviewFullSize.Size = new System.Drawing.Size(42, 17);
             this.chkPreviewFullSize.TabIndex = 57;
@@ -2902,40 +2903,49 @@
             // ChkFlipX
             // 
             this.ChkFlipX.AutoSize = true;
-            this.ChkFlipX.Location = new System.Drawing.Point(237, 499);
+            this.ChkFlipX.Location = new System.Drawing.Point(242, 499);
             this.ChkFlipX.Name = "ChkFlipX";
             this.ChkFlipX.Size = new System.Drawing.Size(52, 17);
             this.ChkFlipX.TabIndex = 59;
             this.ChkFlipX.Text = "Flip X";
             this.ChkFlipX.UseVisualStyleBackColor = true;
             // 
-            // ChkDrawCurve
-            // 
-            this.ChkDrawCurve.AutoSize = true;
-            this.ChkDrawCurve.Location = new System.Drawing.Point(212, 397);
-            this.ChkDrawCurve.Name = "ChkDrawCurve";
-            this.ChkDrawCurve.Size = new System.Drawing.Size(82, 17);
-            this.ChkDrawCurve.TabIndex = 60;
-            this.ChkDrawCurve.Text = "Draw Curve";
-            this.ChkDrawCurve.UseVisualStyleBackColor = true;
-            // 
             // ChkDrawClosed
             // 
             this.ChkDrawClosed.AutoSize = true;
-            this.ChkDrawClosed.Location = new System.Drawing.Point(212, 419);
+            this.ChkDrawClosed.Location = new System.Drawing.Point(242, 526);
             this.ChkDrawClosed.Name = "ChkDrawClosed";
             this.ChkDrawClosed.Size = new System.Drawing.Size(86, 17);
             this.ChkDrawClosed.TabIndex = 61;
             this.ChkDrawClosed.Text = "Draw Closed";
             this.ChkDrawClosed.UseVisualStyleBackColor = true;
             // 
+            // label57
+            // 
+            this.label57.AutoSize = true;
+            this.label57.Location = new System.Drawing.Point(174, 552);
+            this.label57.Name = "label57";
+            this.label57.Size = new System.Drawing.Size(62, 13);
+            this.label57.TabIndex = 62;
+            this.label57.Text = "Draw Type:";
+            // 
+            // cboDrawType
+            // 
+            this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDrawType.FormattingEnabled = true;
+            this.cboDrawType.Location = new System.Drawing.Point(242, 549);
+            this.cboDrawType.Name = "cboDrawType";
+            this.cboDrawType.Size = new System.Drawing.Size(86, 21);
+            this.cboDrawType.TabIndex = 63;
+            // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(637, 711);
+            this.ClientSize = new System.Drawing.Size(661, 711);
+            this.Controls.Add(this.cboDrawType);
+            this.Controls.Add(this.label57);
             this.Controls.Add(this.ChkDrawClosed);
-            this.Controls.Add(this.ChkDrawCurve);
             this.Controls.Add(this.ChkFlipX);
             this.Controls.Add(this.chkSmoothedDraft);
             this.Controls.Add(this.chkPreviewFullSize);
@@ -3284,7 +3294,8 @@
         private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
         private System.Windows.Forms.Button BtnEditPatternLayerInMainForm;
         private System.Windows.Forms.CheckBox ChkFlipX;
-        private System.Windows.Forms.CheckBox ChkDrawCurve;
         private System.Windows.Forms.CheckBox ChkDrawClosed;
+        private System.Windows.Forms.Label label57;
+        private System.Windows.Forms.ComboBox cboDrawType;
     }
 }

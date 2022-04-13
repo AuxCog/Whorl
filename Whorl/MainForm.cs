@@ -973,7 +973,9 @@ namespace Whorl
         {
             polygonOutline = new PathOutline();
             polygonOutline.InitUserDefinedVertices(
-                           drawCurveToolStripMenuItem.Checked,
+                           drawCurveToolStripMenuItem.Checked ? 
+                                PathOutline.DrawTypes.Curve : 
+                                PathOutline.DrawTypes.Lines,
                            closeOutlineToolStripMenuItem.Checked);
             getPolygonCenter = false;
         }

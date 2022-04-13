@@ -2756,7 +2756,7 @@ namespace Whorl
         private List<BasicOutline> seedOutlines;
         private List<PatternTransform> seedTransforms;
         private BasicOutline.CustomOutline seedCustomOutline;
-        private PathOutline seedVerticesOutline;
+        private PathOutline seedVerticesOutline { get; set; }
         private List<CustomParameter> randomRangeParams;
         private bool seedPatternIsPath;
         private double seedUnitFactor;

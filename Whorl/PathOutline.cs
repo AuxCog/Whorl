@@ -21,6 +21,14 @@ namespace Whorl
     {
         public const double MaxModulus = 800.0;
         public const double PolygonUnitFactor = 1.0 / MaxModulus;
+
+        public enum DrawTypes
+        {
+            Normal,
+            Lines,
+            Curve
+        }
+
         private class UserVertexInfo
         {
             public int Index { get; }
@@ -55,6 +63,11 @@ namespace Whorl
             {
                 PathOutline.AddVertex(x, y);
             }
+
+            public void AddVertex(PointF vertex)
+            {
+                PathOutline.AddVertex(vertex);
+            }
         }
         public PathOutlineVars GlobalInfo { get; }
         //Multiple of 2 * pi:
@@ -71,13 +84,27 @@ namespace Whorl
         public bool UserDefinedVertices { get; set; }
         public bool HasClosedPath { get; set; } = true;
 
+        private DrawTypes _drawType = DrawTypes.Normal;
+        public DrawTypes DrawType 
+        {
+            get => _drawType;
+            set
+            {
+                //if (UserDefinedVertices && value == DrawTypes.Normal)
+                //    throw new CustomException("DrawType cannot be Normal for UserDefinedVertices.");
+                _drawType = value;
+                HasCurveVertices = _drawType == DrawTypes.Curve;
+                HasLineVertices = _drawType == DrawTypes.Lines;
+            }
+        }
+
         [XmlPreviousProperty("ClosedCurveVertices")]
-        public bool HasCurveVertices { get; set; }
+        public bool HasCurveVertices { get; private set; }
 
         [XmlPreviousProperty("PolygonUserVertices")]
-        public bool HasLineVertices { get; set; }
+        public bool HasLineVertices { get; private set; }
 
-        public override bool UseSingleOutline => HasLineVertices || HasCurveVertices;
+        public override bool UseSingleOutline => DrawType != DrawTypes.Normal;
 
         public List<int> CurveCornerIndices { get; } = new List<int>();
 
@@ -123,10 +150,12 @@ namespace Whorl
         public PathOutline(PathOutline source) : base(BasicOutlineTypes.Path)
         {
             GlobalInfo = new PathOutlineVars(this);
+            DrawType = source.DrawType;
             VerticesSettings = source.VerticesSettings.GetCopy(ConfigureParser);
             CopyProperties(source, excludedPropertyNames:
                 new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
-                               nameof(SegmentVertices), nameof(LineVertices) });
+                               nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
+                               nameof(HasCurveVertices), nameof(HasLineVertices) });
             CurveCornerIndices.AddRange(source.CurveCornerIndices);
             if (source.pathPoints != null)
                 pathPoints = new List<PointF>(source.pathPoints);
@@ -179,34 +208,32 @@ namespace Whorl
                 return base.GetFormulaSettings();
         }
 
-        public void InitUserDefinedVertices(bool forCurveVertices, bool hasClosedPath)
+        public void InitUserDefinedVertices(DrawTypes drawType, bool hasClosedPath)
         {
             UserDefinedVertices = UseVertices = true;
+            DrawType = drawType;
             HasClosedPath = hasClosedPath;
-            HasCurveVertices = forCurveVertices;
-            HasLineVertices = !HasCurveVertices;
             SegmentVertices = new List<PointF>();
             CurveCornerIndices.Clear();
         }
 
-        public Complex UpdateUserDefinedVertices(Complex zVector, bool forCurveVertices, bool hasClosedPath)
+        public Complex UpdateUserDefinedVertices(Complex zVector, DrawTypes drawType, bool hasClosedPath)
         {
             UserDefinedVertices = UseVertices = true;
             bool changed = false, curveChanged = false;
+            if (DrawType != drawType)
+            {
+                DrawType = drawType;
+                changed = curveChanged = true;
+            }
             if (HasClosedPath != hasClosedPath)
             {
                 HasClosedPath = hasClosedPath;
                 changed = true;
             }
-            if (HasCurveVertices != forCurveVertices)
-            {
-                HasCurveVertices = forCurveVertices;
-                changed = curveChanged = true;
-            }
-            HasLineVertices = !HasCurveVertices;
             if (changed)
             {
-                if (HasLineVertices)
+                if (DrawType == DrawTypes.Lines)
                     FinishUserDefinedVertices();
                 else
                     SetCurvePathPoints();
@@ -214,7 +241,7 @@ namespace Whorl
                 if (curveChanged)
                 {
                     double maxModulus = GetPolygonMaxModulus(SegmentVerticesCenter);
-                    if (HasLineVertices)
+                    if (DrawType == DrawTypes.Lines)
                     {
                         zVector *= maxModulus / MaxPathFactor;
                     }
@@ -287,14 +314,14 @@ namespace Whorl
         {
             if (HasLineVertices)
                 return;
-            bool setCurve;
+            bool fitCurve;
             if (segmentPoints.Count < 3)
-                setCurve = false;
+                fitCurve = false;
             else
-                setCurve = HasCurveVertices;
+                fitCurve = HasCurveVertices && UserDefinedVertices;
             if (HasClosedPath)
                 Tools.ClosePoints(segmentPoints);
-            if (setCurve)
+            if (fitCurve)
             {
                 pathPoints = CubicSpline.FitParametric(segmentPoints, CurveCornerIndices, HasClosedPath);
             }
@@ -381,6 +408,10 @@ namespace Whorl
                         SegmentVertices = new List<PointF>(pathPoints);
                         FinishUserDefinedVertices(PointF.Empty);
                     }
+                    else if (HasCurveVertices)
+                    {
+                        NormalizePathVertices();
+                    }
                 }
             }
         }
@@ -392,10 +423,15 @@ namespace Whorl
         /// <param name="y"></param>
         public void AddVertex(double x, double y)
         {
+            AddVertex(new PointF((float)x, (float)y));
+        }
+
+        public void AddVertex(PointF vertex)
+        {
             const int maxVerticesCount = 10000;
             if (pathPoints.Count >= maxVerticesCount)
                 throw new Exception($"More than {maxVerticesCount} calls to AddVertex.");
-            pathPoints.Add(new PointF((float)x, (float)y));
+            pathPoints.Add(vertex);
         }
 
         private void NormalizeVertices()
@@ -674,6 +710,20 @@ namespace Whorl
         public override void FromXml(XmlNode node)
         {
             base.FromXml(node);
+            if (node.Attributes[nameof(DrawType)] == null)
+            {
+                if (HasLineVertices)
+                    DrawType = DrawTypes.Lines;
+                else if (HasCurveVertices)
+                    DrawType = DrawTypes.Curve;
+            }
+            if (UserDefinedVertices && DrawType == DrawTypes.Normal)
+            {
+                if (HasCurveVertices)
+                    DrawType = DrawTypes.Curve;
+                else
+                    DrawType = DrawTypes.Lines;
+            }
             if (node.Attributes[nameof(UseVertices)] == null)
                 UseVertices = VerticesSettings.IsValid;
             if (UseVertices)
