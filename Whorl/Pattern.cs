@@ -1298,11 +1298,28 @@ namespace Whorl
                     return;
                 PointF pLast = points[0];
                 segmentPoints.Add(pLast);
+                double len2Sq = 4.0 * lenSq;
+                double segFac = 1.0 / Math.Sqrt(lenSq);
                 for (int i = 1; i < points.Length; i++)
                 {
-                    if (Tools.DistanceSquared(pLast, points[i]) >= lenSq)
+                    PointF p = points[i];
+                    double distSq = Tools.DistanceSquared(pLast, p);
+                    if (distSq >= lenSq)
                     {
-                        pLast = points[i];
+                        if (distSq >= len2Sq)
+                        {
+                            int steps = (int)(segFac * Math.Sqrt(distSq));
+                            float fac = 1F / steps;
+                            PointF dp = new PointF(fac * (p.X - pLast.X), 
+                                                   fac * (p.Y - pLast.Y));
+                            for (int j = 1; j < steps; j++)
+                            {
+                                pLast.X += dp.X;
+                                pLast.Y += dp.Y;
+                                segmentPoints.Add(pLast);
+                            }
+                        }
+                        pLast = p;
                         segmentPoints.Add(pLast);
                     }
                 }
