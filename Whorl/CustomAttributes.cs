@@ -107,4 +107,15 @@ namespace Whorl
             IsGlobal = isGlobal;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class XmlPreviousProperty: Attribute
+    {
+        public string PreviousPropertyNames { get; set; }
+
+        public XmlPreviousProperty(string previousName)
+        {
+            PreviousPropertyNames = previousName;
+        }
+    }
 }

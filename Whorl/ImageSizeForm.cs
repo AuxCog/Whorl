@@ -118,14 +118,12 @@ namespace Whorl
         {
             string message = null;
             int width = 0, height = 0;
-            object oVal = Tools.ConvertNumericInput(txtWidth.Text, typeof(int),
-                          "Image Width", ref message, minValue: 1);
-            if (oVal is int)
-                width = (int)oVal;
-            oVal = Tools.ConvertNumericInput(txtHeight.Text, typeof(int),
-                   "Image Height", ref message, minValue: 1);
-            if (oVal is int)
-                height = (int)oVal;
+            int? iVal = Tools.ConvertNumericInput<int>(txtWidth.Text, "Image Width", ref message, minValue: 1);
+            if (iVal != null)
+                width = (int)iVal;
+            iVal = Tools.ConvertNumericInput<int>(txtHeight.Text, "Image Height", ref message, minValue: 1);
+            if (iVal != null)
+                height = (int)iVal;
             if (message != null)
             {
                 MessageBox.Show(message, "Message");

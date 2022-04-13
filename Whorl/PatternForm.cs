@@ -1915,7 +1915,7 @@ namespace Whorl
             if (pathOtl == null)
                 return false;
             pathOtl.AddVertices();
-            IEnumerable<PointF> vertices = pathOtl.PathVertices;
+            IEnumerable<PointF> vertices = pathOtl.PathPoints;
             if (vertices.Count() == 0)
                 return false;
             double xMax = vertices.Select(p => p.X).Max();

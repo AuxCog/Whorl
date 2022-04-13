@@ -269,7 +269,7 @@ namespace Whorl
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
                     if (UseVertices)
-                        pathOutline.PolygonUserVertices = chkUsePolygonVertices.Checked;
+                        pathOutline.HasLineVertices = chkUsePolygonVertices.Checked;
                 }
                 FormulaSettings formulaSettings = GetFormulaSettings();
                 if (formulaSettings != null)
@@ -323,7 +323,7 @@ namespace Whorl
                 this.txtFormula.Text = pathOutline.VerticesSettings.Formula;
                 currentFormulaSettings = pathOutline.VerticesSettings;
                 chkIsCSharpFormula.Checked = currentFormulaSettings.IsCSharpFormula;
-                chkUsePolygonVertices.Checked = pathOutline.PolygonUserVertices;
+                chkUsePolygonVertices.Checked = pathOutline.HasLineVertices;
             }
             else
             {

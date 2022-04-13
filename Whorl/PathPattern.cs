@@ -124,11 +124,11 @@ namespace Whorl
         private bool ComputeCartesianCurvePoints(Complex zVector)
         {
             PathOutline otl = CartesianPathOutline;
-            if (otl == null || otl.PathVertices == null)
+            if (otl == null || otl.PathPoints == null)
                 return false;
             List<PointF> points = new List<PointF>();
             PointF prevPoint = PointF.Empty;
-            foreach (PointF p in otl.PathVertices)
+            foreach (PointF p in otl.PathPoints)
             {
                 Complex zP = new Complex(p.X, p.Y);
                 zP *= zVector;  //Rotate and scale.

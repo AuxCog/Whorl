@@ -105,13 +105,12 @@ namespace Whorl
                     RepeatMode = RepeatModes.Vertical;
                 else
                     message = "Please select Circular, Radial, Horizontal, or Vertical.";
-                object oVal;
                 if (message == null)
                 {
-                    oVal = Tools.ConvertNumericInput(txtGridInterval.Text, typeof(float), "Grid Squares Interval", ref message, 
-                        minValue: 0.001F, defaultValue: (chkFillGrid.Checked ? (object)0F : null));
-                    if (oVal is float)
-                        GridInterval = (float)oVal;
+                    float? fVal = Tools.ConvertNumericInput<float>(txtGridInterval.Text, "Grid Squares Interval", ref message, 
+                        minValue: 0.001F, defaultValue: (chkFillGrid.Checked ? (float?)0 : null));
+                    if (fVal != null)
+                        GridInterval = (float)fVal;
                 }
                 if (chkFillGrid.Checked && GridInterval != 0)
                 {
@@ -119,9 +118,9 @@ namespace Whorl
                 }
                 else if (message == null)
                 {
-                    oVal = Tools.ConvertNumericInput(txtRepetitions.Text, typeof(int), "Repetitions", ref message, minValue: 1);
-                    if (oVal is int)
-                        Repetitions = (int)oVal;
+                    int? iVal = Tools.ConvertNumericInput<int>(txtRepetitions.Text, "Repetitions", ref message, minValue: 1);
+                    if (iVal != null)
+                        Repetitions = (int)iVal;
                 }
                 if (message != null)
                 {

@@ -675,7 +675,7 @@ namespace Whorl
         //}
 
         private Point mouseDownPoint;
-        private PathOutline polygonOutline;
+        private PathOutline polygonOutline { get; set; }
         //private List<PointF> polygonPoints;
         private bool getPolygonCenter;
         private bool selectingRectangle;
@@ -972,9 +972,9 @@ namespace Whorl
         private void StartDrawnPolygon()
         {
             polygonOutline = new PathOutline();
-            if (!drawClosedCurveToolStripMenuItem.Checked)
-                polygonOutline.PolygonUserVertices = true; //WhorlSettings.Instance.UseNewPolygonVersion;
-            polygonOutline.InitUserDefinedVertices(drawClosedCurveToolStripMenuItem.Checked);
+            polygonOutline.InitUserDefinedVertices(
+                           drawCurveToolStripMenuItem.Checked,
+                           closeOutlineToolStripMenuItem.Checked);
             getPolygonCenter = false;
         }
 
@@ -984,10 +984,8 @@ namespace Whorl
         {
             if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count >= 3)
             {
-                //polygonOutline.SegmentVerticesCenter = center;
                 polygonOutline.FinishUserDefinedVertices(center);
-                polygonOutline.SetClosedVertices(polygonOutline.SegmentVertices,
-                                                 drawClosedCurveToolStripMenuItem.Checked);
+                polygonOutline.SetCurveVertices();
                 Complex zVector = polygonOutline.NormalizePathVertices();
                 PathPattern ptn = new PathPattern(Design);
                 ptn.BoundaryColor = Color.Red;
@@ -1005,8 +1003,8 @@ namespace Whorl
 
         private void CancelDrawnPolygon()
         {
-            drawPolygonToolStripMenuItem.Checked =
-                drawClosedCurveToolStripMenuItem.Checked = false;
+            drawLinesToolStripMenuItem.Checked =
+                drawCurveToolStripMenuItem.Checked = false;
             polygonOutline = null;
         }
 
@@ -1114,9 +1112,9 @@ namespace Whorl
         private void UpdatePolygonOutlineHelper()
         {
             editedPolygonPathOutline.FinishUserDefinedVertices();
-            if (editedPolygonPathOutline.ClosedCurveVertices)
+            if (editedPolygonPathOutline.HasCurveVertices)
             {
-                editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                editedPolygonPathOutline.SetCurveVertices();
                 editedPolygonPathOutline.NormalizePathVertices();
             }
         }
@@ -1475,15 +1473,22 @@ namespace Whorl
                     {
                         if (points.Count == 2)
                             e.Graphics.DrawLines(Pens.Red, points.ToArray());
-                        else if (drawClosedCurveToolStripMenuItem.Checked &&
-                                 points.Count >= 3)
+                        else 
                         {
-                            polygonOutline.SetClosedVertices(points, setCurve: true);
-                            e.Graphics.DrawPolygon(Pens.Red,
-                                        polygonOutline.PathVertices.ToArray());
+                            if (polygonOutline.HasCurveVertices && points.Count >= 3)
+                            {
+                                polygonOutline.SetCurvePathPoints(points);
+                                points = polygonOutline.PathPoints.ToList();
+                            }
+                            if (polygonOutline.HasClosedPath)
+                            {
+                                e.Graphics.DrawPolygon(Pens.Red, points.ToArray());
+                            }
+                            else
+                            {
+                                e.Graphics.DrawLines(Pens.Red, points.ToArray());
+                            }
                         }
-                        else
-                            e.Graphics.DrawPolygon(Pens.Red, points.ToArray());
                     }
                     if (showGrid)
                     {
@@ -1494,12 +1499,12 @@ namespace Whorl
                 if (testClosedCurveToolStripMenuItem.Checked && testClosedCurvePattern != null)
                 {
                     PathOutline potl = testClosedCurvePattern.BasicOutlines.Select(o => o as PathOutline)
-                                       .FirstOrDefault(po => po != null && po.ClosedCurveVertices);
+                                       .FirstOrDefault(po => po != null && po.HasCurveVertices);
                     if (potl != null)
                     {
                         PointF picCenter = GetPictureBoxCenter();
                         float fac = (float)testClosedCurvePattern.ZVector.GetModulus();
-                        e.Graphics.DrawPolygon(Pens.Red, potl.PathVertices
+                        e.Graphics.DrawPolygon(Pens.Red, potl.PathPoints
                                   .Select(p => new PointF(fac * p.X + picCenter.X, fac * p.Y + picCenter.Y)).ToArray());
                     }
                 }
@@ -6470,7 +6475,7 @@ namespace Whorl
                     }
                 }
                 RedrawPatterns(computeRandom: true);
-                WriteStatus("Copied new random settings.");
+                WriteStatus("Reset to original random settings.");
             }
             catch (Exception ex)
             {
@@ -6498,23 +6503,23 @@ namespace Whorl
         {
             get
             {
-                return drawClosedCurveToolStripMenuItem.Checked ||
-                       drawPolygonToolStripMenuItem.Checked;
+                return drawCurveToolStripMenuItem.Checked ||
+                       drawLinesToolStripMenuItem.Checked;
             }
         }
 
-        private void drawPolygonToolStripMenuItem_Click(object sender, EventArgs e)
+        private void drawLinesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (drawPolygonToolStripMenuItem.Checked)
-                drawClosedCurveToolStripMenuItem.Checked = false;
-            setCornerToolStripMenuItem.Enabled = drawClosedCurveToolStripMenuItem.Checked;
+            if (drawLinesToolStripMenuItem.Checked)
+                drawCurveToolStripMenuItem.Checked = false;
+            setCornerToolStripMenuItem.Enabled = drawCurveToolStripMenuItem.Checked;
         }
 
-        private void drawClosedCurveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void drawCurveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (drawClosedCurveToolStripMenuItem.Checked)
-                drawPolygonToolStripMenuItem.Checked = false;
-            setCornerToolStripMenuItem.Enabled = drawClosedCurveToolStripMenuItem.Checked;
+            if (drawCurveToolStripMenuItem.Checked)
+                drawLinesToolStripMenuItem.Checked = false;
+            setCornerToolStripMenuItem.Enabled = drawCurveToolStripMenuItem.Checked;
         }
 
         private DesignLayersForm designLayersForm = new DesignLayersForm();
@@ -8075,7 +8080,7 @@ namespace Whorl
             PointF center = editedPolygonPattern.Center;
             //PointF vertexCenter = editedPolygonPathOutline.SegmentVerticesCenter;
             polygonVertexInfos.Add(new DrawnPoint() { IdText = "C", Location = center });
-            List<PointF> vertices = editedPolygonPathOutline.PolygonVertices;
+            List<PointF> vertices = editedPolygonPathOutline.LineVertices;
             PointF vertex1 = vertices[0];
             for (int i = 0; i < vertices.Count; i++)
             {
@@ -8105,7 +8110,7 @@ namespace Whorl
                 Pattern pattern = patternInfo?.Pattern;
                 if (pattern == null) return;
                 editedPolygonPathOutline = pattern.BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
-                if (editedPolygonPathOutline?.PolygonVertices == null)
+                if (editedPolygonPathOutline?.LineVertices == null)
                 {
                     editedPolygonPathOutline = null;
                     editPolygonVerticesToolStripMenuItem.Checked = false;
@@ -8149,7 +8154,7 @@ namespace Whorl
                 int index = -1;
                 double minDistance = double.MaxValue;
                 var vertices = new List<PointF>(editedPolygonPathOutline.SegmentVertices);
-                if (vertices.Last() != vertices.First())
+                if (editedPolygonPathOutline.HasClosedPath && vertices.Last() != vertices.First())
                 {
                     vertices.Add(vertices.First());
                 }
@@ -8166,7 +8171,7 @@ namespace Whorl
                 if (index == -1) return;
                 index = Math.Min(index + 1, editedPolygonPathOutline.SegmentVertices.Count);
                 editedPolygonPathOutline.SegmentVertices.Insert(index, p);
-                if (editedPolygonPathOutline.ClosedCurveVertices)
+                if (editedPolygonPathOutline.HasCurveVertices)
                 {
                     var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
                     for (int i = 0; i < cornerIndices.Count; i++)
@@ -8199,7 +8204,7 @@ namespace Whorl
             {
                 if (nearestPolygonVertex == null ||
                     editedPolygonPathOutline == null ||
-                    !editedPolygonPathOutline.ClosedCurveVertices)
+                    !editedPolygonPathOutline.HasCurveVertices)
                 {
                     return;
                 }
@@ -8212,7 +8217,7 @@ namespace Whorl
                     editedPolygonPathOutline.CurveCornerIndices.Add(index);
                     editedPolygonPathOutline.CurveCornerIndices.Sort();
                 }
-                editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                editedPolygonPathOutline.SetCurveVertices();
                 editedPolygonPathOutline.NormalizePathVertices();
                 editedPolygonPattern.ComputeSeedPoints();
                 RedrawPatterns();
@@ -8245,7 +8250,7 @@ namespace Whorl
                     vertices.RemoveAt(vertices.Count - 1);
                 }
                 editedPolygonPathOutline.FinishUserDefinedVertices();
-                if (editedPolygonPathOutline.ClosedCurveVertices)
+                if (editedPolygonPathOutline.HasCurveVertices)
                 {
                     var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
                     cornerIndices.Remove(index);
@@ -8254,7 +8259,7 @@ namespace Whorl
                         if (cornerIndices[i] > index)
                             cornerIndices[i]--;
                     }
-                    editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                    editedPolygonPathOutline.SetCurveVertices();
                     editedPolygonPathOutline.NormalizePathVertices();
                 }
                 editedPolygonPattern.ComputeSeedPoints();
@@ -8287,9 +8292,9 @@ namespace Whorl
                     vertices[i] = p;
                 }
                 editedPolygonPathOutline.FinishUserDefinedVertices();
-                if (editedPolygonPathOutline.ClosedCurveVertices)
+                if (editedPolygonPathOutline.HasCurveVertices)
                 {
-                    editedPolygonPathOutline.SetClosedVertices(editedPolygonPathOutline.SegmentVertices, setCurve: true);
+                    editedPolygonPathOutline.SetCurveVertices();
                     editedPolygonPathOutline.NormalizePathVertices();
                 }
                 editedPolygonPattern.ComputeSeedPoints();
@@ -8969,6 +8974,21 @@ namespace Whorl
         private void testClosedCurveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             picDesign.Refresh();
+        }
+
+        private void cancelDrawOutlineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                drawCurveToolStripMenuItem.Checked = false;
+                drawLinesToolStripMenuItem.Checked = false;
+                polygonOutline = null;
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
     }
 }

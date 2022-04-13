@@ -68,47 +68,48 @@ namespace Whorl
                     WhorlSettings.Instance.FilesFolder = txtFilesFolder.Text;
                 }
                 string message = null;
-                object oVal;
-                oVal = Tools.ConvertNumericInput(txtQualitySize.Text, typeof(int), "Quality Size", 
+                int? iVal;
+                iVal = Tools.ConvertNumericInput<int>(txtQualitySize.Text,  "Quality Size", 
                                                  ref message, minValue: 100);
-                if (oVal is int)
-                    WhorlSettings.Instance.QualitySize = (int)oVal;
-                oVal = Tools.ConvertNumericInput(txtBufferSize.Text, typeof(int), "Buffer Size",
+                if (iVal != null)
+                    WhorlSettings.Instance.QualitySize = (int)iVal;
+                iVal = Tools.ConvertNumericInput<int>(txtBufferSize.Text,  "Buffer Size",
                                                  ref message, minValue: 0);
-                if (oVal is int)
-                    WhorlSettings.Instance.BufferSize = (int)oVal;
-                oVal = Tools.ConvertNumericInput(txtThumbnailSize.Text, typeof(int), "Thumbnail Height",
+                if (iVal != null)
+                    WhorlSettings.Instance.BufferSize = (int)iVal;
+                iVal = Tools.ConvertNumericInput<int>(txtThumbnailSize.Text,  "Thumbnail Height",
                                                  ref message, minValue: 50, maxValue: 500);
-                if (oVal is int)
-                    WhorlSettings.Instance.DesignThumbnailHeight = (int)oVal;
-                oVal = Tools.ConvertNumericInput(txtImprovisationLevel.Text, typeof(double), "Improvisation Level", ref message, 
+                if (iVal != null)
+                    WhorlSettings.Instance.DesignThumbnailHeight = (int)iVal;
+                double? dVal;
+                dVal = Tools.ConvertNumericInput<double>(txtImprovisationLevel.Text,  "Improvisation Level", ref message, 
                        minValue: 0, maxValue: 500);
-                if (oVal is double)
-                    WhorlSettings.Instance.ImprovisationLevel = (double)oVal / 1000D;
-                oVal = Tools.ConvertNumericInput(txtRecomputeInterval.Text, typeof(double), "Recompute Interval", ref message, 
+                if (dVal != null)
+                    WhorlSettings.Instance.ImprovisationLevel = (double)dVal / 1000D;
+                dVal = Tools.ConvertNumericInput<double>(txtRecomputeInterval.Text,  "Recompute Interval", ref message, 
                        minValue: 0.1);
-                if (oVal is double)
-                    WhorlSettings.Instance.RecomputeInterval = (double)oVal;
-                oVal = Tools.ConvertNumericInput(txtImprovDamping.Text, typeof(double), 
+                if (dVal != null)
+                    WhorlSettings.Instance.RecomputeInterval = (double)dVal;
+                dVal = Tools.ConvertNumericInput<double>(txtImprovDamping.Text,  
                        "Improvisation Damping", ref message, minValue: 0.1);
-                if (oVal is double)
-                    WhorlSettings.Instance.ImprovDamping = (double)oVal;
-                oVal = Tools.ConvertNumericInput(txtAnimationRate.Text, typeof(int), "Animation Rate", ref message,
+                if (dVal != null)
+                    WhorlSettings.Instance.ImprovDamping = (double)iVal;
+                iVal = Tools.ConvertNumericInput<int>(txtAnimationRate.Text,  "Animation Rate", ref message,
                        minValue: 1, maxValue: 100);
-                if (oVal is int)
-                    WhorlSettings.Instance.AnimationRate = (int)oVal;
-                oVal = Tools.ConvertNumericInput(txtSpinRate.Text, typeof(double), "Spin Rate", ref message,
+                if (iVal != null)
+                    WhorlSettings.Instance.AnimationRate = (int)iVal;
+                dVal = Tools.ConvertNumericInput<double>(txtSpinRate.Text,  "Spin Rate", ref message,
                        minValue: -1000, maxValue: 1000);
-                if (oVal is double)
-                    WhorlSettings.Instance.SpinRate = (double)oVal;
-                oVal = Tools.ConvertNumericInput(txtRevolveRate.Text, typeof(double), "Revolve Rate", ref message,
+                if (dVal != null)
+                    WhorlSettings.Instance.SpinRate = (double)dVal;
+                dVal = Tools.ConvertNumericInput<double>(txtRevolveRate.Text,  "Revolve Rate", ref message,
                        minValue: -1000, maxValue: 1000);
-                if (oVal is double)
-                    WhorlSettings.Instance.RevolveRate = (double)oVal;
-                oVal = Tools.ConvertNumericInput(txtMaxLoopCount.Text, typeof(int), "Max Loop Count", ref message);
-                if (oVal is int)
+                if (dVal != null)
+                    WhorlSettings.Instance.RevolveRate = (double)dVal;
+                iVal = Tools.ConvertNumericInput<int>(txtMaxLoopCount.Text,  "Max Loop Count", ref message);
+                if (iVal != null)
                 {
-                    int maxLoopCount = (int)oVal;
+                    int maxLoopCount = (int)iVal;
                     if (maxLoopCount <= 0)
                         maxLoopCount = int.MaxValue;
                     WhorlSettings.Instance.MaxLoopCount = maxLoopCount;

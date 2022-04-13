@@ -128,23 +128,24 @@ namespace Whorl
         public static double PathLength(PointF[] points)
         {
             return PathLength(points, 0, points.Length - 1);
-            //return points.Length < 2 ? 0 : Enumerable.Range(1, points.Length - 1).Select(i => Distance(points[i - 1], points[i])).Sum();
         }
 
         public static double PathLength(List<PointF> points)
         {
             return PathLength(points, 0, points.Count - 1);
-            //return points.Count < 2 ? 0 : Enumerable.Range(1, points.Count - 1).Select(i => Distance(points[i - 1], points[i])).Sum();
         }
 
         public static PointF Centroid(IEnumerable<PointF> polygonPoints)
         {
-            if (polygonPoints.Count() == 0)
-                return PointF.Empty;
-            else
+            if (polygonPoints.Any())
+            {
                 return new PointF(
                     polygonPoints.Select(p => p.X).Average(),
                     polygonPoints.Select(p => p.Y).Average());
+            }
+            else
+                return PointF.Empty;
+
         }
 
         public static bool PointsDiffer(PointF p1, PointF p2)
@@ -240,12 +241,12 @@ namespace Whorl
             var v = new PointF(B.X - A.X, B.Y - A.Y);
             var u = new PointF(A.X - P.X, A.Y - P.Y);
             float vu = v.X * u.X + v.Y * u.Y;
-            float vv = VectorLength(v);
+            float vv = VectorLengthSquared(v);
             float t = -vu / vv;
             if (t >= 0 && t <= 1)
                 return VectorToSegment2D(t, PointF.Empty, A, B);
-            float g0 = VectorLength(VectorToSegment2D(0, P, A, B));
-            float g1 = VectorLength(VectorToSegment2D(1, P, A, B));
+            float g0 = VectorLengthSquared(VectorToSegment2D(0, P, A, B));
+            float g1 = VectorLengthSquared(VectorToSegment2D(1, P, A, B));
             return g0 <= g1 ? A : B;
         }
 
@@ -255,7 +256,7 @@ namespace Whorl
                               (1 - t) * A.Y + t * B.Y - P.Y);
         }
 
-        public static float VectorLength(PointF P)
+        public static float VectorLengthSquared(PointF P)
         {
             return P.X * P.X + P.Y * P.Y;
         }
@@ -268,7 +269,7 @@ namespace Whorl
         public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
         {
             var pathOutline = basicOutline as PathOutline;
-            return pathOutline != null && (allowCurve || pathOutline.PolygonUserVertices) && pathOutline.UserDefinedVertices;
+            return pathOutline != null && (allowCurve || pathOutline.HasLineVertices) && pathOutline.UserDefinedVertices;
         }
 
         public static RectangleF RectangleFromVertices(PointF topLeft, PointF bottomRight)
@@ -443,8 +444,6 @@ namespace Whorl
         public static void SavePngOrJpegImageFile(string fileName, Bitmap bitmap)
         {
             string extension = Path.GetExtension(fileName).ToLower();
-            System.Drawing.Imaging.ImageFormat fmt =
-                System.Drawing.Imaging.ImageFormat.Jpeg;
             if (extension == ".png")
             {
                 bitmap.Save(fileName, ImageFormat.Png);
@@ -455,7 +454,7 @@ namespace Whorl
                 var encoder = ImageCodecInfo.GetImageEncoders().First(
                               c => c.FormatID == ImageFormat.Jpeg.Guid);
                 var encParams = new EncoderParameters() {
-                    Param = new[] { new EncoderParameter(
+                    Param = new EncoderParameter[] { new EncoderParameter(
                         System.Drawing.Imaging.Encoder.Quality, 100L) } };
                 bitmap.Save(fileName, encoder, encParams);
             }
@@ -466,8 +465,8 @@ namespace Whorl
             string baseFileName = Path.GetFileName(fileName);
             if (!WhorlSettings.Instance.TextureFileNames.Contains(baseFileName))
             {
-                string fileName2 = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.TexturesFolder, WhorlSettings.AllTexturesFolder, 
-                                                baseFileName);
+                string fileName2 = Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.TexturesFolder, 
+                                                WhorlSettings.AllTexturesFolder, baseFileName);
                 if (File.Exists(fileName2))
                     fileName = fileName2;
             }
@@ -488,7 +487,6 @@ namespace Whorl
                 if (predicate.Invoke(array[i]))
                 {
                     int ind = i >> 5;
-                    //uint bit = 1u << (i & 0x1FF);
                     bitmap[ind] |= GetBitmapBit(i);
                     matchedCount++;
                 }
@@ -552,31 +550,6 @@ namespace Whorl
             return val;
         }
 
-        //public static string GetXml(Point point, string nodeName)
-        //{
-        //    return "<" + nodeName + " X='" + point.X.ToString() + "' Y='" + point.Y.ToString() + "'/>";
-        //}
-
-        //public static string GetXml(PointF point, string nodeName)
-        //{
-        //    return "<" + nodeName + " X='" + point.X.ToString() + "' Y='" + point.Y.ToString() + "'/>";
-        //}
-
-        //public static string GetXml(Size size, string nodeName)
-        //{
-        //    return $"<{nodeName} Width='{size.Width}' Height='{size.Height}'/>";
-        //}
-
-        //public static string GetXml(Complex z, string nodeName)
-        //{
-        //    return "<" + nodeName + " Re='" + z.Re.ToString() + "' Im='" + z.Im.ToString() + "'/>";
-        //}
-
-        //public static string GetXml(Color color, string nodeName)
-        //{
-        //    return "<" + nodeName + " Color='" + color.ToArgb().ToString() +  "'/>";
-        //}
-
         public static Point GetPointFromXml(XmlNode node)
         {
             return new Point((int)GetXmlAttribute("X", typeof(int), node), (int)GetXmlAttribute("Y", typeof(int), node));
@@ -605,48 +578,6 @@ namespace Whorl
             return Color.FromArgb((int)GetXmlAttribute("Color", typeof(int), node));
         }
 
-        //public static void AppendXmlAttribute(StringBuilder sb, string attrName, object attrValue)
-        //{
-        //    if (attrValue != null)
-        //    {
-        //        sb.Append(" " + attrName + "='" + attrValue.ToString() + "'");
-        //    }
-        //}
-
-        //public static void AppendXmlAttributes(object o, StringBuilder sb, 
-        //                                       string[] excludedProperties = null)
-        //{
-        //    foreach (PropertyInfo prp in o.GetType().GetProperties())
-        //    {
-        //        if (excludedProperties != null && excludedProperties.Contains(prp.Name))
-        //            continue;
-        //        if (!(prp.CanRead && prp.CanWrite))
-        //            continue;
-        //        object prpVal = prp.GetValue(o);
-        //        if (prpVal is String || prpVal is Enum ||
-        //           (prpVal != null && prpVal.GetType().IsPrimitive))
-        //            sb.Append($" {prp.Name}='{prpVal}'");
-        //    }
-        //}
-
-        //public static void AppendXmlNode(StringBuilder sb, string nodeName, string nodeValue)
-        //{
-        //    nodeValue = SecurityElement.Escape(nodeValue);
-        //    sb.AppendLine($"<{nodeName}>{nodeValue}</{nodeName}>");
-        //}
-        //public static void AppendXmlAttributes(object o, StringBuilder sb, string[] propertyNames)
-        //{
-        //    foreach (string prpName in propertyNames)
-        //    {
-        //        PropertyInfo prp = o.GetType().GetProperty(prpName);
-        //        if (prp == null)
-        //            throw new Exception("Property " + prpName + " was not found.");
-        //        object prpVal = prp.GetValue(o);
-        //        if (prpVal != null)
-        //            sb.Append(" " + prp.Name + "='" + prpVal.ToString() + "'");
-        //    }
-        //}
-
         public static void GetXmlAttributes(object o, XmlNode node, params string[] propertyNames)
         {
             foreach (string propName in propertyNames)
@@ -674,11 +605,26 @@ namespace Whorl
         public static void GetXmlAttributesExcept(object o, XmlNode node,
                                                   params string[] excludedPropertyNames)
         {
+            Type objType = o.GetType();
             foreach (XmlAttribute attr in node.Attributes)
             {
                 if (excludedPropertyNames.Contains(attr.Name))
                     continue;
-                PropertyInfo prp = o.GetType().GetProperty(attr.Name);
+                PropertyInfo prp = objType.GetProperty(attr.Name);
+                if (prp == null)
+                {
+                    var infos = objType.GetProperties()
+                        .Select(p => new Tuple<PropertyInfo, XmlPreviousProperty>(p, p.GetCustomAttribute<XmlPreviousProperty>()))
+                        .Where(a => a.Item2 != null);
+                    foreach (var info in infos)
+                    {
+                        if (info.Item2.PreviousPropertyNames.Split(',').Contains(attr.Name))
+                        {
+                            prp = info.Item1;
+                            break;
+                        }
+                    }
+                }
                 if (prp != null)
                 {
                     if (prp.CanWrite && !prp.SetMethod.IsStatic)
@@ -770,21 +716,6 @@ namespace Whorl
             }
             return oVal;
         }
-
-        //public static void WriteToXml(string fileName, IXml obj, string topLevelNodeName = null)
-        //{
-        //    WriteToXml(fileName, obj.ToXml(topLevelNodeName));
-        //}
-
-        //public static void WriteToXml(string fileName, string xml)
-        //{
-        //    using (TextWriter w = GetTextWriter(fileName))
-        //    {
-        //        w.WriteLine(XmlHeader);
-        //        w.Write(xml);
-        //        w.Flush();
-        //    }
-        //}
 
         public static string GetTexturesFolder()
         {
@@ -934,45 +865,45 @@ namespace Whorl
             return angle >= 0 ? angle : 2.0 * Math.PI + angle;
         }
 
-        public static object ConvertNumericInput(string textInput, Type targetType, string label,
-                       ref string errorMessage, double? minValue = null, double? maxValue = null, object defaultValue = null)
+        public static T? ConvertNumericInput<T>(string textInput, string label, ref string errorMessage, 
+                                                double? minValue = null, double? maxValue = null, 
+                                                T? defaultValue = null) where T: struct
         {
-            object retVal = null;
-            if (errorMessage == null)
+            if (errorMessage != null)
+                return null;
+            T? retVal;
+            if (string.IsNullOrWhiteSpace(textInput) && defaultValue != null)
+                return (T)defaultValue;
+            bool valid = false;
+            try
             {
-                if (string.IsNullOrWhiteSpace(textInput) && defaultValue != null)
-                    return defaultValue;
-                bool valid = false;
-                try
-                {
-                    retVal = Convert.ChangeType(textInput, targetType);
-                }
-                catch
-                {
+                retVal = (T)Convert.ChangeType(textInput, typeof(T));
+            }
+            catch
+            {
+                retVal = null;
+            }
+            if (retVal != null)
+            {
+                double dblVal = Convert.ToDouble(retVal);
+                if ((minValue == null || dblVal >= minValue) && (maxValue == null || dblVal <= maxValue))
+                    valid = true;
+                else
                     retVal = null;
-                }
-                if (retVal != null)
+            }
+            if (!valid)
+            {
+                errorMessage = "Please enter " + (typeof(T) == typeof(int) ? "an integer" : "a number");
+                if (minValue != null)
                 {
-                    double dblVal = Convert.ToDouble(retVal);
-                    if ((minValue == null || dblVal >= minValue) && (maxValue == null || dblVal <= maxValue))
-                        valid = true;
+                    if (maxValue != null)
+                        errorMessage += $" between {minValue} and {maxValue}";
                     else
-                        retVal = null;
+                        errorMessage += $" greater than {minValue}";
                 }
-                if (!valid)
-                {
-                    errorMessage = "Please enter " + (targetType == typeof(int) ? "an integer" : "a number");
-                    if (minValue != null)
-                    {
-                        if (maxValue != null)
-                            errorMessage += " between " + minValue.ToString() + " and " + maxValue.ToString();
-                        else
-                            errorMessage += " greater than " + minValue.ToString();
-                    }
-                    else if (maxValue != null)
-                        errorMessage += " less than " + maxValue.ToString();
-                    errorMessage += " for " + label + ".";
-                }
+                else if (maxValue != null)
+                    errorMessage += $" less than {maxValue}";
+                errorMessage += $" for {label}.";
             }
             return retVal;
         }
@@ -1038,9 +969,9 @@ namespace Whorl
 
         public static int GetTopLeftIndex(IEnumerable<PointF> points)
         {
-            Point[] iPoints = points.Select(p => new Point((int)Math.Round(p.X), (int)Math.Round(p.Y))).ToArray();
-            if (iPoints.Length == 0)
+            if (!points.Any())
                 return -1;
+            Point[] iPoints = points.Select(p => new Point((int)Math.Round(p.X), (int)Math.Round(p.Y))).ToArray();
             var infoList = Enumerable.Range(0, iPoints.Length).Select(i => new Tuple<int, PointF>(i, iPoints[i]));
             var info = infoList.OrderBy(tpl => tpl.Item2.Y).ThenBy(tpl => tpl.Item2.X).First();
             return info.Item1;

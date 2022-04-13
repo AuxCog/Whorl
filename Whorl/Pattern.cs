@@ -2924,11 +2924,11 @@ namespace Whorl
 
         public IEnumerable<PointF> GetPolygonVertices(bool allowCurve = false)
         {
-            PathOutline outline = BasicOutlines.Select(otl => otl as PathOutline).FirstOrDefault(po => po != null && po.PolygonVertices != null);
+            PathOutline outline = BasicOutlines.Select(otl => otl as PathOutline).FirstOrDefault(po => po != null && po.LineVertices != null);
             if (outline == null)
                 return new PointF[] { };
             else
-                return outline.PolygonVertices;
+                return outline.LineVertices;
         }
 
         public IEnumerable<FillInfo> GetFillInfos()
@@ -4222,10 +4222,10 @@ namespace Whorl
             PathOutline userVerticesOutline =
                 BasicOutlines.Find(otl => otl is PathOutline
                                    && ((PathOutline)otl).UserDefinedVertices) as PathOutline;
-            if (userVerticesOutline == null || userVerticesOutline.PathVertices == null)
+            if (userVerticesOutline == null || userVerticesOutline.PathPoints == null)
                 return null;
             List<double> vertexAngles = new List<double>();
-            foreach (PointF vertex in userVerticesOutline.PathVertices)
+            foreach (PointF vertex in userVerticesOutline.PathPoints)
             {
                 double angle = Math.Atan2(vertex.Y, vertex.X);
                 if (angle < 0)

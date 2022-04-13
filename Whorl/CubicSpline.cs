@@ -423,9 +423,10 @@ namespace Whorl
         /// <param name="points"></param>
         /// <param name="nOutputPoints"></param>
         /// <returns></returns>
-        public static PointF[] FitParametricClosed(IEnumerable<PointF> points, 
-                                                   int nOutputPoints)
+        public static PointF[] FitParametric(IEnumerable<PointF> points, int nOutputPoints, bool closeCurve)
         {
+			if (!closeCurve)
+				return FitParametric(points, nOutputPoints);
             float[] xS, yS;
             PointF[] aPoints = points.ToArray();
             int n = aPoints.Length;
@@ -445,14 +446,18 @@ namespace Whorl
             return pSpline;
         }
 
-		public static List<PointF> FitParametricClosed(List<PointF> points, List<int> cornerIndices)
+		public static List<PointF> FitParametric(List<PointF> points, List<int> cornerIndices, bool closeCurve)
 		{
 			if (cornerIndices.Count == 0)
             {
-				return FitParametricClosed(points, (int)Tools.PathLength(points)).ToList();
+				return FitParametric(points, (int)Tools.PathLength(points), closeCurve).ToList();
             }
 			int ind1 = 0;
 			var outputPoints = new List<PointF>();
+			if (!closeCurve)
+            {
+				cornerIndices.RemoveAll(i => i == 0 || i == points.Count - 1);
+            }
 			bool smoothJoin = cornerIndices.First() != 0 && cornerIndices.Last() != points.Count - 1;
 			PointF dAvg;
 			if (smoothJoin)
