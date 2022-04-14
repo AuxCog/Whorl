@@ -336,6 +336,7 @@
       <DependentUpon>PatternZOrderForm.cs</DependentUpon>
     </Compile>
     <Compile Include="PixelRenderInfo.cs" />
+    <Compile Include="PointsExpander.cs" />
     <Compile Include="PointsRandomOps.cs" />
     <Compile Include="PolarCoord.cs" />
     <Compile Include="PropertyAction.cs" />

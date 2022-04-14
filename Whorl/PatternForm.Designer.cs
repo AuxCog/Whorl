@@ -131,8 +131,6 @@
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -296,6 +294,12 @@
             this.ChkDrawClosed = new System.Windows.Forms.CheckBox();
             this.label57 = new System.Windows.Forms.Label();
             this.cboDrawType = new System.Windows.Forms.ComboBox();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.txtStretchPercent = new System.Windows.Forms.TextBox();
+            this.label58 = new System.Windows.Forms.Label();
+            this.txtStretchAngle = new System.Windows.Forms.TextBox();
+            this.label59 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -308,7 +312,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -323,11 +326,12 @@
             this.tabStringPattern.SuspendLayout();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(395, 22);
+            this.btnOK.Location = new System.Drawing.Point(480, 27);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 2;
@@ -337,7 +341,7 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(476, 22);
+            this.btnCancel.Location = new System.Drawing.Point(561, 27);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -349,7 +353,7 @@
             // 
             this.picPreview.BackColor = System.Drawing.Color.White;
             this.picPreview.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.picPreview.Location = new System.Drawing.Point(349, 406);
+            this.picPreview.Location = new System.Drawing.Point(345, 439);
             this.picPreview.Name = "picPreview";
             this.picPreview.Size = new System.Drawing.Size(300, 300);
             this.picPreview.TabIndex = 4;
@@ -390,7 +394,7 @@
             // 
             // btnPreview
             // 
-            this.btnPreview.Location = new System.Drawing.Point(314, 22);
+            this.btnPreview.Location = new System.Drawing.Point(399, 27);
             this.btnPreview.Name = "btnPreview";
             this.btnPreview.Size = new System.Drawing.Size(75, 23);
             this.btnPreview.TabIndex = 5;
@@ -1318,18 +1322,6 @@
             this.colTransformEnabled.HeaderText = "Enabled";
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
-            // 
-            // transformNameDataGridViewTextBoxColumn
-            // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
             // 
             // tabRibbon
             // 
@@ -2496,7 +2488,7 @@
             "Ribbon",
             "Path",
             "Text"});
-            this.cboPatternType.Location = new System.Drawing.Point(107, 395);
+            this.cboPatternType.Location = new System.Drawing.Point(105, 446);
             this.cboPatternType.Margin = new System.Windows.Forms.Padding(2);
             this.cboPatternType.Name = "cboPatternType";
             this.cboPatternType.Size = new System.Drawing.Size(92, 21);
@@ -2507,7 +2499,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(18, 395);
+            this.label11.Location = new System.Drawing.Point(16, 446);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(34, 13);
             this.label11.TabIndex = 24;
@@ -2516,7 +2508,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(18, 420);
+            this.label12.Location = new System.Drawing.Point(16, 471);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(75, 13);
             this.label12.TabIndex = 26;
@@ -2530,7 +2522,7 @@
             "Pattern",
             "Ribbon",
             "Path"});
-            this.cboRenderMode.Location = new System.Drawing.Point(107, 420);
+            this.cboRenderMode.Location = new System.Drawing.Point(105, 471);
             this.cboRenderMode.Margin = new System.Windows.Forms.Padding(2);
             this.cboRenderMode.Name = "cboRenderMode";
             this.cboRenderMode.Size = new System.Drawing.Size(92, 21);
@@ -2538,7 +2530,7 @@
             // 
             // txtStainWidth
             // 
-            this.txtStainWidth.Location = new System.Drawing.Point(107, 446);
+            this.txtStainWidth.Location = new System.Drawing.Point(105, 497);
             this.txtStainWidth.Name = "txtStainWidth";
             this.txtStainWidth.Size = new System.Drawing.Size(67, 20);
             this.txtStainWidth.TabIndex = 40;
@@ -2547,7 +2539,7 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(18, 448);
+            this.label13.Location = new System.Drawing.Point(16, 499);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(65, 13);
             this.label13.TabIndex = 39;
@@ -2556,7 +2548,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(12, 474);
+            this.label14.Location = new System.Drawing.Point(10, 525);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(91, 13);
             this.label14.TabIndex = 42;
@@ -2570,7 +2562,7 @@
             "Pattern",
             "Ribbon",
             "Path"});
-            this.cboStainBlendType.Location = new System.Drawing.Point(107, 471);
+            this.cboStainBlendType.Location = new System.Drawing.Point(105, 522);
             this.cboStainBlendType.Margin = new System.Windows.Forms.Padding(2);
             this.cboStainBlendType.Name = "cboStainBlendType";
             this.cboStainBlendType.Size = new System.Drawing.Size(92, 21);
@@ -2578,16 +2570,16 @@
             // 
             // txtZoomPercentage
             // 
-            this.txtZoomPercentage.Location = new System.Drawing.Point(107, 497);
+            this.txtZoomPercentage.Location = new System.Drawing.Point(106, 363);
             this.txtZoomPercentage.Name = "txtZoomPercentage";
-            this.txtZoomPercentage.Size = new System.Drawing.Size(61, 20);
+            this.txtZoomPercentage.Size = new System.Drawing.Size(49, 20);
             this.txtZoomPercentage.TabIndex = 44;
             this.txtZoomPercentage.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(18, 499);
+            this.label22.Location = new System.Drawing.Point(16, 366);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(48, 13);
             this.label22.TabIndex = 43;
@@ -2595,7 +2587,7 @@
             // 
             // txtRotationSteps
             // 
-            this.txtRotationSteps.Location = new System.Drawing.Point(107, 523);
+            this.txtRotationSteps.Location = new System.Drawing.Point(105, 553);
             this.txtRotationSteps.Name = "txtRotationSteps";
             this.txtRotationSteps.Size = new System.Drawing.Size(61, 20);
             this.txtRotationSteps.TabIndex = 46;
@@ -2604,7 +2596,7 @@
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(15, 526);
+            this.label28.Location = new System.Drawing.Point(13, 556);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(53, 13);
             this.label28.TabIndex = 45;
@@ -2621,7 +2613,7 @@
             this.pnlShrinkPattern.Controls.Add(this.txtShrinkPadding);
             this.pnlShrinkPattern.Controls.Add(this.label31);
             this.pnlShrinkPattern.Controls.Add(this.chkShrinkPattern);
-            this.pnlShrinkPattern.Location = new System.Drawing.Point(9, 598);
+            this.pnlShrinkPattern.Location = new System.Drawing.Point(7, 628);
             this.pnlShrinkPattern.Name = "pnlShrinkPattern";
             this.pnlShrinkPattern.Size = new System.Drawing.Size(227, 108);
             this.pnlShrinkPattern.TabIndex = 47;
@@ -2702,7 +2694,7 @@
             // 
             // txtLoopFactor
             // 
-            this.txtLoopFactor.Location = new System.Drawing.Point(107, 549);
+            this.txtLoopFactor.Location = new System.Drawing.Point(105, 579);
             this.txtLoopFactor.Name = "txtLoopFactor";
             this.txtLoopFactor.Size = new System.Drawing.Size(61, 20);
             this.txtLoopFactor.TabIndex = 49;
@@ -2711,7 +2703,7 @@
             // label33
             // 
             this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(15, 552);
+            this.label33.Location = new System.Drawing.Point(13, 582);
             this.label33.Name = "label33";
             this.label33.Size = new System.Drawing.Size(78, 13);
             this.label33.TabIndex = 48;
@@ -2720,7 +2712,7 @@
             // chkAllowRandom
             // 
             this.chkAllowRandom.AutoSize = true;
-            this.chkAllowRandom.Location = new System.Drawing.Point(18, 575);
+            this.chkAllowRandom.Location = new System.Drawing.Point(16, 605);
             this.chkAllowRandom.Name = "chkAllowRandom";
             this.chkAllowRandom.Size = new System.Drawing.Size(94, 17);
             this.chkAllowRandom.TabIndex = 50;
@@ -2729,7 +2721,7 @@
             // 
             // txtPatternName
             // 
-            this.txtPatternName.Location = new System.Drawing.Point(107, 370);
+            this.txtPatternName.Location = new System.Drawing.Point(105, 421);
             this.txtPatternName.Name = "txtPatternName";
             this.txtPatternName.Size = new System.Drawing.Size(213, 20);
             this.txtPatternName.TabIndex = 52;
@@ -2739,7 +2731,7 @@
             // label39
             // 
             this.label39.AutoSize = true;
-            this.label39.Location = new System.Drawing.Point(18, 372);
+            this.label39.Location = new System.Drawing.Point(16, 423);
             this.label39.Name = "label39";
             this.label39.Size = new System.Drawing.Size(75, 13);
             this.label39.TabIndex = 51;
@@ -2839,7 +2831,7 @@
             // label55
             // 
             this.label55.AutoSize = true;
-            this.label55.Location = new System.Drawing.Point(355, 384);
+            this.label55.Location = new System.Drawing.Point(350, 420);
             this.label55.Name = "label55";
             this.label55.Size = new System.Drawing.Size(48, 13);
             this.label55.TabIndex = 53;
@@ -2847,7 +2839,7 @@
             // 
             // txtPreviewZoomPct
             // 
-            this.txtPreviewZoomPct.Location = new System.Drawing.Point(403, 380);
+            this.txtPreviewZoomPct.Location = new System.Drawing.Point(398, 416);
             this.txtPreviewZoomPct.Name = "txtPreviewZoomPct";
             this.txtPreviewZoomPct.Size = new System.Drawing.Size(48, 20);
             this.txtPreviewZoomPct.TabIndex = 54;
@@ -2858,7 +2850,7 @@
             // 
             // txtPreviewRotation
             // 
-            this.txtPreviewRotation.Location = new System.Drawing.Point(601, 380);
+            this.txtPreviewRotation.Location = new System.Drawing.Point(596, 416);
             this.txtPreviewRotation.Name = "txtPreviewRotation";
             this.txtPreviewRotation.Size = new System.Drawing.Size(48, 20);
             this.txtPreviewRotation.TabIndex = 56;
@@ -2870,7 +2862,7 @@
             // label56
             // 
             this.label56.AutoSize = true;
-            this.label56.Location = new System.Drawing.Point(545, 384);
+            this.label56.Location = new System.Drawing.Point(540, 420);
             this.label56.Name = "label56";
             this.label56.Size = new System.Drawing.Size(50, 13);
             this.label56.TabIndex = 55;
@@ -2879,7 +2871,7 @@
             // chkPreviewFullSize
             // 
             this.chkPreviewFullSize.AutoSize = true;
-            this.chkPreviewFullSize.Location = new System.Drawing.Point(457, 382);
+            this.chkPreviewFullSize.Location = new System.Drawing.Point(452, 418);
             this.chkPreviewFullSize.Name = "chkPreviewFullSize";
             this.chkPreviewFullSize.Size = new System.Drawing.Size(42, 17);
             this.chkPreviewFullSize.TabIndex = 57;
@@ -2891,7 +2883,7 @@
             // chkSmoothedDraft
             // 
             this.chkSmoothedDraft.AutoSize = true;
-            this.chkSmoothedDraft.Location = new System.Drawing.Point(138, 575);
+            this.chkSmoothedDraft.Location = new System.Drawing.Point(136, 605);
             this.chkSmoothedDraft.Name = "chkSmoothedDraft";
             this.chkSmoothedDraft.Size = new System.Drawing.Size(100, 17);
             this.chkSmoothedDraft.TabIndex = 58;
@@ -2903,7 +2895,7 @@
             // ChkFlipX
             // 
             this.ChkFlipX.AutoSize = true;
-            this.ChkFlipX.Location = new System.Drawing.Point(242, 499);
+            this.ChkFlipX.Location = new System.Drawing.Point(172, 366);
             this.ChkFlipX.Name = "ChkFlipX";
             this.ChkFlipX.Size = new System.Drawing.Size(52, 17);
             this.ChkFlipX.TabIndex = 59;
@@ -2913,7 +2905,7 @@
             // ChkDrawClosed
             // 
             this.ChkDrawClosed.AutoSize = true;
-            this.ChkDrawClosed.Location = new System.Drawing.Point(242, 526);
+            this.ChkDrawClosed.Location = new System.Drawing.Point(14, 391);
             this.ChkDrawClosed.Name = "ChkDrawClosed";
             this.ChkDrawClosed.Size = new System.Drawing.Size(86, 17);
             this.ChkDrawClosed.TabIndex = 61;
@@ -2923,7 +2915,7 @@
             // label57
             // 
             this.label57.AutoSize = true;
-            this.label57.Location = new System.Drawing.Point(174, 552);
+            this.label57.Location = new System.Drawing.Point(105, 392);
             this.label57.Name = "label57";
             this.label57.Size = new System.Drawing.Size(62, 13);
             this.label57.TabIndex = 62;
@@ -2933,16 +2925,66 @@
             // 
             this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboDrawType.FormattingEnabled = true;
-            this.cboDrawType.Location = new System.Drawing.Point(242, 549);
+            this.cboDrawType.Location = new System.Drawing.Point(173, 389);
             this.cboDrawType.Name = "cboDrawType";
             this.cboDrawType.Size = new System.Drawing.Size(86, 21);
             this.cboDrawType.TabIndex = 63;
+            // 
+            // transformNameDataGridViewTextBoxColumn
+            // 
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
+            // 
+            // txtStretchPercent
+            // 
+            this.txtStretchPercent.Location = new System.Drawing.Point(298, 363);
+            this.txtStretchPercent.Name = "txtStretchPercent";
+            this.txtStretchPercent.Size = new System.Drawing.Size(49, 20);
+            this.txtStretchPercent.TabIndex = 65;
+            this.txtStretchPercent.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label58
+            // 
+            this.label58.AutoSize = true;
+            this.label58.Location = new System.Drawing.Point(237, 368);
+            this.label58.Name = "label58";
+            this.label58.Size = new System.Drawing.Size(55, 13);
+            this.label58.TabIndex = 64;
+            this.label58.Text = "Stretch %:";
+            // 
+            // txtStretchAngle
+            // 
+            this.txtStretchAngle.Location = new System.Drawing.Point(444, 364);
+            this.txtStretchAngle.Name = "txtStretchAngle";
+            this.txtStretchAngle.Size = new System.Drawing.Size(49, 20);
+            this.txtStretchAngle.TabIndex = 67;
+            this.txtStretchAngle.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label59
+            // 
+            this.label59.AutoSize = true;
+            this.label59.Location = new System.Drawing.Point(365, 366);
+            this.label59.Name = "label59";
+            this.label59.Size = new System.Drawing.Size(74, 13);
+            this.label59.TabIndex = 66;
+            this.label59.Text = "Stretch Angle:";
             // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(661, 711);
+            this.ClientSize = new System.Drawing.Size(661, 744);
+            this.Controls.Add(this.txtStretchAngle);
+            this.Controls.Add(this.label59);
+            this.Controls.Add(this.txtStretchPercent);
+            this.Controls.Add(this.label58);
             this.Controls.Add(this.cboDrawType);
             this.Controls.Add(this.label57);
             this.Controls.Add(this.ChkDrawClosed);
@@ -3000,7 +3042,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -3024,6 +3065,7 @@
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3297,5 +3339,9 @@
         private System.Windows.Forms.CheckBox ChkDrawClosed;
         private System.Windows.Forms.Label label57;
         private System.Windows.Forms.ComboBox cboDrawType;
+        private System.Windows.Forms.TextBox txtStretchPercent;
+        private System.Windows.Forms.Label label58;
+        private System.Windows.Forms.TextBox txtStretchAngle;
+        private System.Windows.Forms.Label label59;
     }
 }

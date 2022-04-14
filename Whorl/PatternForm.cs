@@ -720,7 +720,9 @@ namespace Whorl
                 this.cboRenderMode.SelectedItem = pattern.RenderMode;
                 this.cboStainBlendType.SelectedItem = pattern.StainBlendType;
                 this.txtStainWidth.Text = pattern.StainWidth.ToString();
-                this.txtZoomPercentage.Text = Math.Round(100D * pattern.ZoomFactor, 1).ToString();
+                this.txtZoomPercentage.Text = (100D * pattern.ZoomFactor).ToString("0.#");
+                txtStretchPercent.Text = (100F * pattern.StretchFactor).ToString("0.#");
+                txtStretchAngle.Text = pattern.StretchAngle.ToString("0.##");
                 this.txtLoopFactor.Text = pattern.LoopFactor.ToString();
                 this.chkShrinkPattern.Checked = pattern.ShrinkPattern;
                 this.chkShrinkPatternLayers.Checked = pattern.ShrinkPatternLayers;
@@ -1269,9 +1271,19 @@ namespace Whorl
             if (!float.TryParse(txtZoomPercentage.Text, out fVal))
                 fVal = -1F;
             if (fVal > 0)
-                pattern.ZoomFactor = (double)fVal / 100D;
+                pattern.ZoomFactor = 0.01 * fVal;
             else
                 messages.Add("Please enter a positive number for Zoom %.");
+            if (!float.TryParse(txtStretchPercent.Text, out fVal))
+                fVal = -1F;
+            if (fVal > 0)
+                pattern.StretchFactor = 0.01F * fVal;
+            else
+                messages.Add("Please enter a positive number for Stretch %.");
+            if (float.TryParse(txtStretchAngle.Text, out fVal))
+                pattern.StretchAngle = fVal;
+            else
+                messages.Add("Please enter a number for Stretch Angle.");
             if (float.TryParse(txtLoopFactor.Text, out fVal))
             {
                 if (fVal >= 0F && fVal < 1000F)

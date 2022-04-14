@@ -2404,6 +2404,11 @@ namespace Whorl
         public double ZoomFactor { get; set; } = 1D;
 
         public bool FlipX { get; set; }
+        public float StretchFactor { get; set; } = 1F;
+        /// <summary>
+        /// Stretch angle in degrees.
+        /// </summary>
+        public float StretchAngle { get; set; }
 
         public Complex OutlineZVector { get; set; }
 
@@ -3277,18 +3282,45 @@ namespace Whorl
                     curvePointsList[curvePointsList.Count - 1] = curvePointsList[0]; //Close curve.
                 curvePoints = curvePointsList.ToArray();
             }
-            if (FlipX && curvePoints != null && curvePoints.Length != 0)
-            {
-                float minX = curvePoints.Select(p => p.X).Min();
-                float maxX = curvePoints.Select(p => p.X).Max();
-                float xC2 = minX + maxX;  //2 * middle X
-                for (int i = 0; i < curvePoints.Length; i++)
-                {
-                    curvePoints[i].X = xC2 - curvePoints[i].X;
-                }
-            }
+            TransformCurvePoints(curvePoints);
             curvePointsList = null;
             return curvePoints;
+        }
+
+        private void TransformCurvePoints(PointF[] curvePoints)
+        {
+            bool stretch = StretchFactor != 1F;
+            if (!(FlipX || stretch) || curvePoints == null || curvePoints.Length == 0)
+                return;
+            float xC2 = 0;
+            PointF pRotate = PointF.Empty, pRevRotate = PointF.Empty;
+            RectangleF boundingRect = Tools.GetBoundingRectangle(curvePoints);
+            PointF pCenter = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
+                                        boundingRect.Y + 0.5F * boundingRect.Height);
+            if (FlipX)
+            {
+                xC2 = 2F * pCenter.X;
+            }
+            if (stretch)
+            {
+                double radians = Tools.DegreesToRadians(StretchAngle);
+                pRotate = Tools.GetRotationVector(radians);
+                pRevRotate = Tools.GetRotationVector(-radians);
+            }
+            for (int i = 0; i < curvePoints.Length; i++)
+            {
+                PointF p = curvePoints[i];
+                if (stretch)
+                {
+                    p = Tools.RotatePoint(new PointF(p.X - pCenter.X, p.Y - pCenter.Y), pRotate);
+                    p.X *= StretchFactor;
+                    p = Tools.RotatePoint(p, pRevRotate);
+                    p = new PointF(p.X + pCenter.X, p.Y + pCenter.Y);
+                }
+                if (FlipX)
+                    p.X = xC2 - p.X;
+                curvePoints[i] = p;
+            }
         }
 
         public virtual bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false)
