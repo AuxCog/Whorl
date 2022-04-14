@@ -55,6 +55,11 @@ namespace Whorl
             [ReadOnly]
             public double AngleOffset { get; set; }
             public IEnumerable<PointF> PathPoints => pathOutline.PathPoints;
+            public bool HasClosedPath
+            {
+                get => pathOutline.HasClosedPath;
+                set => pathOutline.HasClosedPath = value;
+            }
 
             public PathOutlineVars(PathOutline pathOutline)
             {
