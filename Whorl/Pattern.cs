@@ -4438,6 +4438,7 @@ namespace Whorl
             Tools.SetXmlVersion(node, xmlTools);
             xmlTools.AppendXmlAttributes(node, this, nameof(PatternIsEnabled), nameof(RotationSteps), 
                                          nameof(MergeOperation), nameof(DrawCurve),
+                                         nameof(StretchFactor), nameof(StretchAngle),
                                          nameof(RenderMode), nameof(StainBlendType), nameof(StainWidth), 
                                          nameof(ZoomFactor), nameof(LoopFactor), nameof(KeyGuid), nameof(FlipX),
                                          nameof(ShrinkPattern), nameof(ShrinkPatternLayers), nameof(ShrinkClipCenterFactor),
