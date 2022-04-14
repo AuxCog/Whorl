@@ -4339,6 +4339,11 @@ namespace Whorl
             nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList), "Patterns"
         };
 
+        protected virtual IEnumerable<string> GetExtraExcludedCopyProperties()
+        {
+            yield break;
+        }
+
         protected virtual void CopyProperties(Pattern sourcePattern, 
                                       bool copyFillInfo = true,
                                       bool copySharedPatternID = true,
@@ -4347,7 +4352,9 @@ namespace Whorl
                                       WhorlDesign design = null)
         {
             Design = design ?? sourcePattern.Design;
-            Tools.CopyProperties(this, sourcePattern, excludedPropertyNames: excludedCopyProperties);
+            var exclProps = new HashSet<string>(excludedCopyProperties);
+            exclProps.UnionWith(GetExtraExcludedCopyProperties());
+            Tools.CopyProperties(this, sourcePattern, excludedPropertyNames: exclProps);
             InfluencePointInfoList = new InfluencePointInfoList(sourcePattern.InfluencePointInfoList, this);
             if (copySharedPatternID)
                 SetKeyGuid(sourcePattern);

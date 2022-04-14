@@ -267,6 +267,7 @@
     <Compile Include="InitialSetup.cs" />
     <Compile Include="IntColor.cs" />
     <Compile Include="IRenderCaller.cs" />
+    <Compile Include="JoinedPatterns.cs" />
     <Compile Include="KeyEnumInfo.cs" />
     <Compile Include="MemberItemInfo.cs" />
     <Compile Include="MergedPattern.cs" />
