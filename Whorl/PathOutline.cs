@@ -46,32 +46,41 @@ namespace Whorl
         }
         public class PathOutlineVars
         {
-            public PathOutline PathOutline { get; }
+            private PathOutline pathOutline { get; }
+
             [ReadOnly]
             public double AddDenom { get; set; }
             [ReadOnly]
             public double Petals { get; set; }
             [ReadOnly]
             public double AngleOffset { get; set; }
+            public IEnumerable<PointF> PathPoints => pathOutline.PathPoints;
 
             public PathOutlineVars(PathOutline pathOutline)
             {
-                PathOutline = pathOutline;
+                this.pathOutline = pathOutline;
             }
 
             public void AddVertex(double x, double y)
             {
-                PathOutline.AddVertex(x, y);
+                pathOutline.AddVertex(x, y);
             }
 
             public void AddVertex(PointF vertex)
             {
-                PathOutline.AddVertex(vertex);
+                pathOutline.AddVertex(vertex);
+            }
+
+            public void SetPathPoints(IEnumerable<PointF> points)
+            {
+                pathOutline.SetPathPoints(points);
             }
         }
         public PathOutlineVars GlobalInfo { get; }
         //Multiple of 2 * pi:
         public double RotationSpan { get; set; } = 1D;
+
+        public int MaxPathPoints { get; set; } = 10000;
 
         private List<PointF> pathPoints { get; set; }
 
@@ -333,6 +342,8 @@ namespace Whorl
 
         private float GetMaxPathFactor()
         {
+            if (pathPoints == null || pathPoints.Count == 0)
+                return 1F;
             float xMax = Math.Max(Math.Abs(pathPoints.Select(p => p.X).Min()),
                       Math.Abs(pathPoints.Select(p => p.X).Max()));
             float yMax = Math.Max(Math.Abs(pathPoints.Select(p => p.Y).Min()),
@@ -428,10 +439,14 @@ namespace Whorl
 
         public void AddVertex(PointF vertex)
         {
-            const int maxVerticesCount = 10000;
-            if (pathPoints.Count >= maxVerticesCount)
-                throw new Exception($"More than {maxVerticesCount} calls to AddVertex.");
+            if (pathPoints.Count >= MaxPathPoints)
+                throw new CustomException($"There were more than {MaxPathPoints} calls to AddVertex.");
             pathPoints.Add(vertex);
+        }
+
+        public void SetPathPoints(IEnumerable<PointF> points)
+        {
+            pathPoints = points.ToList();
         }
 
         private void NormalizeVertices()
@@ -455,7 +470,7 @@ namespace Whorl
 
         private void InitVertexIndices()
         {
-            VertexIndices = new int[pathPoints.Count - 1];
+            VertexIndices = new int[Math.Max(0, pathPoints.Count - 1)];
             verticesIndex = 0;
             pathIndex = 0;
             prevVerticesIndex = -1;
@@ -568,6 +583,8 @@ namespace Whorl
 
         public double GetPolygonMaxModulus(PointF center)
         {
+            if (SegmentVertices.Count == 0)
+                return 0;
             return Math.Sqrt(SegmentVertices.Select(p => Tools.DistanceSquared(p, center)).Max());
         }
 

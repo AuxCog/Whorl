@@ -1606,7 +1606,7 @@ $@"public void {methodName}()
                 nameTok = GetToken(tokenIndex++);
                 if (!ParseReservedWord(nameTok.Text, out _, ReservedWords.NestedParameters))
                 {
-                    AddError(nameTok, "Expecting @NestedParamters.");
+                    AddError(nameTok, "Expecting @NestedParameters.");
                     return false;
                 }
                 isNestedParamsParam = true;
@@ -1629,17 +1629,7 @@ $@"public void {methodName}()
                     if (tok.TokenType == Token.TokenTypes.Identifier)
                     {
                         typeName = tok.Text;
-                        //tok = GetToken(tokenIndex++);
                         isValid = true;
-                        //if (tok.Text == "=")
-                        //{
-                        //    tok = GetToken(tokenIndex++);
-                        //    if (tok.TokenType == Token.TokenTypes.Identifier)
-                        //    {
-                        //        initializer = tok.Text;
-                        //        isValid = true;
-                        //    }
-                        //}
                     }
                 }
                 if (!isValid)
@@ -1755,7 +1745,7 @@ $@"public void {methodName}()
                                 case ReservedWords.Enum:
                                     isValid = typeName == null;
                                     paramCategory = ParamCategories.Enumerated;
-                                    typeName = ParseType(ref tokenIndex, "Expecting enumerated type.");
+                                    typeName = ParseType(ref tokenIndex, "Expecting enumerated type.", allowGeneric: false);
                                     if (typeName == null)
                                         return false;
                                     break;
@@ -1857,7 +1847,7 @@ $@"public void {methodName}()
                         tokenIndex++;
                         if (paramCategory == ParamCategories.Enumerated)
                         {
-                            defaultValue = ParseType(ref tokenIndex, "Expecting enumerated value.");
+                            defaultValue = ParseType(ref tokenIndex, "Expecting enumerated value.", allowGeneric: false);
                         }
                         else
                         {
@@ -1959,7 +1949,7 @@ $@"public void {methodName}()
             return ErrorMessages.Count == prevErrorCount;
         }
 
-        private string ParseType(ref int tokenIndex, string errMsg)
+        private string ParseType(ref int tokenIndex, string errMsg, bool allowGeneric = true)
         {
             int startIndex = tokenIndex;
             var parts = new List<string>();
@@ -1974,14 +1964,39 @@ $@"public void {methodName}()
                 parts.Add(tok.Text);
                 tok = GetToken(tokenIndex);
                 if (tok.Text != ".")
+                {
+                    if (tok.Text == "<")
+                    {   //Parse generic arguments.
+                        parts.Add(tok.Text);
+                        tokenIndex++;
+                        while (tok.Text != ">")
+                        {
+                            string subtype = ParseType(ref tokenIndex, errMsg, allowGeneric: true);
+                            if (subtype == null)
+                                return null;
+                            else
+                            {
+                                tok = GetToken(tokenIndex);
+                                if (tok.Text != ">" && tok.Text != ",")
+                                {
+                                    AddError(tok, "Expecting '>' or ',' for generic type.");
+                                    return null;
+                                }
+                                parts.Add(subtype);
+                                tokenIndex++;
+                                parts.Add(tok.Text);
+                            }
+                        }
+                    }
                     break;
+                }
                 else
                 {
                     parts.Add(tok.Text);
                     tokenIndex++;
                 }
             }
-            return string.Join(string.Empty, parts);
+            return string.Concat(parts);
         }
 
         private bool? TryParseType(ref int tokenIndex, out List<Token> tokens)

@@ -36,6 +36,9 @@
             this.lblMaxFormula = new System.Windows.Forms.Label();
             this.txtMaxAmplitudeFormula = new System.Windows.Forms.TextBox();
             this.pnlPathSettings = new System.Windows.Forms.Panel();
+            this.chkDrawClosed = new System.Windows.Forms.CheckBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.cboDrawType = new System.Windows.Forms.ComboBox();
             this.chkUseVertices = new System.Windows.Forms.CheckBox();
             this.txtRotationSpan = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -74,9 +77,8 @@
             this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
             this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.cboDrawType = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.chkDrawClosed = new System.Windows.Forms.CheckBox();
+            this.txtMaxPathPoints = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -146,6 +148,8 @@
             // pnlPathSettings
             // 
             this.pnlPathSettings.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlPathSettings.Controls.Add(this.txtMaxPathPoints);
+            this.pnlPathSettings.Controls.Add(this.label6);
             this.pnlPathSettings.Controls.Add(this.chkDrawClosed);
             this.pnlPathSettings.Controls.Add(this.label4);
             this.pnlPathSettings.Controls.Add(this.cboDrawType);
@@ -154,8 +158,36 @@
             this.pnlPathSettings.Controls.Add(this.label3);
             this.pnlPathSettings.Location = new System.Drawing.Point(12, 437);
             this.pnlPathSettings.Name = "pnlPathSettings";
-            this.pnlPathSettings.Size = new System.Drawing.Size(719, 48);
+            this.pnlPathSettings.Size = new System.Drawing.Size(719, 77);
             this.pnlPathSettings.TabIndex = 10;
+            // 
+            // chkDrawClosed
+            // 
+            this.chkDrawClosed.AutoSize = true;
+            this.chkDrawClosed.Location = new System.Drawing.Point(561, 9);
+            this.chkDrawClosed.Name = "chkDrawClosed";
+            this.chkDrawClosed.Size = new System.Drawing.Size(106, 21);
+            this.chkDrawClosed.TabIndex = 13;
+            this.chkDrawClosed.Text = "Draw Closed";
+            this.chkDrawClosed.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(373, 12);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(80, 17);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "Draw Type:";
+            // 
+            // cboDrawType
+            // 
+            this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDrawType.FormattingEnabled = true;
+            this.cboDrawType.Location = new System.Drawing.Point(459, 9);
+            this.cboDrawType.Name = "cboDrawType";
+            this.cboDrawType.Size = new System.Drawing.Size(87, 25);
+            this.cboDrawType.TabIndex = 11;
             // 
             // chkUseVertices
             // 
@@ -492,39 +524,30 @@
             this.label2.TabIndex = 40;
             this.label2.Text = "Category:";
             // 
-            // cboDrawType
+            // txtMaxPathPoints
             // 
-            this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboDrawType.FormattingEnabled = true;
-            this.cboDrawType.Location = new System.Drawing.Point(459, 9);
-            this.cboDrawType.Name = "cboDrawType";
-            this.cboDrawType.Size = new System.Drawing.Size(87, 25);
-            this.cboDrawType.TabIndex = 11;
+            this.txtMaxPathPoints.Location = new System.Drawing.Point(120, 36);
+            this.txtMaxPathPoints.Name = "txtMaxPathPoints";
+            this.txtMaxPathPoints.Size = new System.Drawing.Size(84, 23);
+            this.txtMaxPathPoints.TabIndex = 15;
+            this.txtMaxPathPoints.Text = "10000";
+            this.txtMaxPathPoints.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
-            // label4
+            // label6
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(373, 12);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(80, 17);
-            this.label4.TabIndex = 12;
-            this.label4.Text = "Draw Type:";
-            // 
-            // chkDrawClosed
-            // 
-            this.chkDrawClosed.AutoSize = true;
-            this.chkDrawClosed.Location = new System.Drawing.Point(561, 9);
-            this.chkDrawClosed.Name = "chkDrawClosed";
-            this.chkDrawClosed.Size = new System.Drawing.Size(106, 21);
-            this.chkDrawClosed.TabIndex = 13;
-            this.chkDrawClosed.Text = "Draw Closed";
-            this.chkDrawClosed.UseVisualStyleBackColor = true;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(26, 39);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(80, 17);
+            this.label6.TabIndex = 14;
+            this.label6.Text = "Max Points:";
             // 
             // OutlineFormulaForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(743, 497);
+            this.ClientSize = new System.Drawing.Size(743, 526);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cboFormulaUsage);
             this.Controls.Add(this.chkIsMaxAmpCSharp);
@@ -615,5 +638,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ComboBox cboDrawType;
         private System.Windows.Forms.CheckBox chkDrawClosed;
+        private System.Windows.Forms.TextBox txtMaxPathPoints;
+        private System.Windows.Forms.Label label6;
     }
 }

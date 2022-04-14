@@ -372,7 +372,8 @@ namespace Whorl
     {
         public Func1Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
                               bool addDefaultMethodTypes = true) 
-            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addDefaultMethodTypes, addIdent: true)
+            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, 
+                   addDefaultMethodTypes, addIdent: typeof(T) == typeof(double))
         {
         }
 

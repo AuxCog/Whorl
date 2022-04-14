@@ -277,14 +277,20 @@ namespace Whorl
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
                     pathOutline.HasClosedPath = chkDrawClosed.Checked;
-                    if (UseVertices && cboDrawType.SelectedItem is PathOutline.DrawTypes)
+                    if (UseVertices)
                     {
-                        var drawType = (PathOutline.DrawTypes)cboDrawType.SelectedItem;
-                        if (drawType == PathOutline.DrawTypes.Normal && pathOutline.UserDefinedVertices)
+                        if (cboDrawType.SelectedItem is PathOutline.DrawTypes)
                         {
-                            throw new CustomException("Draw Type cannot be Normal for User Defined Vertices.");
+                            var drawType = (PathOutline.DrawTypes)cboDrawType.SelectedItem;
+                            if (drawType == PathOutline.DrawTypes.Normal && pathOutline.UserDefinedVertices)
+                            {
+                                throw new CustomException("Draw Type cannot be Normal for User Defined Vertices.");
+                            }
+                            pathOutline.DrawType = drawType;
                         }
-                        pathOutline.DrawType = drawType;
+                        if (!int.TryParse(txtMaxPathPoints.Text, out int maxPoints))
+                            throw new CustomException("Please enter an integer for Max Points.");
+                        pathOutline.MaxPathPoints = maxPoints;
                     }
                 }
                 FormulaSettings formulaSettings = GetFormulaSettings();
@@ -341,6 +347,7 @@ namespace Whorl
                 chkIsCSharpFormula.Checked = currentFormulaSettings.IsCSharpFormula;
                 cboDrawType.SelectedItem = pathOutline.DrawType;
                 chkDrawClosed.Checked = pathOutline.HasClosedPath;
+                txtMaxPathPoints.Text = pathOutline.MaxPathPoints.ToString();
             }
             else
             {
