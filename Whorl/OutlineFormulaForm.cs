@@ -143,6 +143,12 @@ namespace Whorl
                     chkIsCSharpFormula.Checked = customOutline.AmplitudeSettings.IsCSharpFormula;
                     chkIsMaxAmpCSharp.Checked = customOutline.MaxAmplitudeSettings.IsCSharpFormula;
                 }
+                if (pathOutline != null)
+                {
+                    cboDrawType.SelectedItem = pathOutline.DrawType;
+                    chkDrawClosed.Checked = pathOutline.HasClosedPath;
+                    txtMaxPathPoints.Text = pathOutline.MaxPathPoints.ToString();
+                }
                 this.txtRotationSpan.Text = outline.GetRotationSpan().ToString();
                 this.pnlPathSettings.Enabled = pathOutline != null;
                 UseVertices = pathOutline != null && pathOutline.UseVertices;
@@ -345,9 +351,6 @@ namespace Whorl
                 this.txtFormula.Text = pathOutline.VerticesSettings.Formula;
                 currentFormulaSettings = pathOutline.VerticesSettings;
                 chkIsCSharpFormula.Checked = currentFormulaSettings.IsCSharpFormula;
-                cboDrawType.SelectedItem = pathOutline.DrawType;
-                chkDrawClosed.Checked = pathOutline.HasClosedPath;
-                txtMaxPathPoints.Text = pathOutline.MaxPathPoints.ToString();
             }
             else
             {
@@ -355,7 +358,7 @@ namespace Whorl
                 this.txtMaxAmplitudeFormula.Text = MaxAmplitudeFormula;
                 currentFormulaSettings = basicOutline.customOutline.AmplitudeSettings;
             }
-            cboDrawType.Enabled = chkDrawClosed.Enabled = UseVertices;
+            cboDrawType.Enabled = txtMaxPathPoints.Enabled = UseVertices;
             txtFormulaName.Text = currentFormulaSettings.FormulaName;
         }
 

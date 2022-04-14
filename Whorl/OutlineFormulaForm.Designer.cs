@@ -536,12 +536,12 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(26, 39);
+            this.label6.Location = new System.Drawing.Point(4, 39);
             this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(80, 17);
+            this.label6.Size = new System.Drawing.Size(113, 17);
             this.label6.TabIndex = 14;
-            this.label6.Text = "Max Points:";
+            this.label6.Text = "Max Path Points:";
             // 
             // OutlineFormulaForm
             // 
