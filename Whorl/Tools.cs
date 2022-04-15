@@ -261,6 +261,11 @@ namespace Whorl
             return P.X * P.X + P.Y * P.Y;
         }
 
+        public static int ManhattanDistance(Point p1, Point p2)
+        {
+            return Math.Abs(p1.X - p2.X) + Math.Abs(p1.Y - p2.Y);
+        }
+
         public static bool InBounds(Rectangle boundsRect, Point p)
         {
             return boundsRect.Contains(p);
@@ -277,7 +282,7 @@ namespace Whorl
             return new RectangleF(topLeft, new SizeF(bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y));
         }
 
-        public static RectangleF GetBoundingRectangle(IEnumerable<PointF> points)
+        public static RectangleF GetBoundingRectangleF(IEnumerable<PointF> points)
         {
             if (!points.Any())
                 return new RectangleF(0, 0, 0, 0);
@@ -286,6 +291,16 @@ namespace Whorl
             float yMin = points.Select(p => p.Y).Min();
             float yMax = points.Select(p => p.Y).Max();
             return RectangleFromVertices(new PointF(xMin, yMin), new PointF(xMax, yMax));
+        }
+        public static Rectangle GetBoundingRectangle(IEnumerable<Point> points, int padding = 0)
+        {
+            if (!points.Any())
+                return new Rectangle(0, 0, 0, 0);
+            int xMin = points.Select(p => p.X).Min() - padding;
+            int xMax = points.Select(p => p.X).Max() + padding;
+            int yMin = points.Select(p => p.Y).Min() - padding;
+            int yMax = points.Select(p => p.Y).Max() + padding;
+            return new Rectangle(xMin, yMin, xMax - xMin + 1, yMax - yMin + 1);
         }
 
         public static double DegreesToRadians(double degrees)
@@ -321,9 +336,13 @@ namespace Whorl
                                   (int)Interpolate(color1.B, color2.B, factor));
         }
 
-        public static List<PointF> InterpolatePoints(PointF[] points)
+        public static List<PointF> InterpolatePoints(PointF[] points, float minDistanceSquared = -1F, float stepSize = 1F)
         {
-            const float distMin = 4F;
+            const float distMin = 2F;
+            if (stepSize <= 0)
+                throw new ArgumentOutOfRangeException("stepSize must be positive.");
+            float interpMin = stepSize * stepSize * distMin;
+            double stepFac = 1.0 / stepSize;
             var iPoints = new List<PointF>();
             if (points.Length == 0)
                 return iPoints;
@@ -334,22 +353,21 @@ namespace Whorl
                 PointF p2 = points[i];
                 PointF diff = new PointF(p2.X - p1.X, p2.Y - p1.Y);
                 float distSquared = diff.X * diff.X + diff.Y * diff.Y;
-                if (distSquared <= distMin)
+                if (distSquared < minDistanceSquared)
+                    continue;
+                if (distSquared > interpMin)
                 {
-                    iPoints.Add(p2);
-                }
-                else
-                {
-                    int steps = (int)Math.Floor(Math.Sqrt(distSquared));
+                    int steps = (int)Math.Ceiling(stepFac * Math.Sqrt(distSquared));
                     diff.X /= steps;
                     diff.Y /= steps;
-                    for (int j = 0; j < steps; j++)
+                    for (int j = 1; j < steps; j++)
                     {
                         p1.X += diff.X;
                         p1.Y += diff.Y;
                         iPoints.Add(p1);
                     }
                 }
+                iPoints.Add(p2);
                 p1 = p2;
             }
             return iPoints;

@@ -41,6 +41,14 @@ namespace Whorl
             DistancePattern
         }
 
+        //private enum JoinPatternStates
+        //{
+        //    None,
+        //    SetStartPoint,
+        //    SetEndPoint,
+        //    SetPattern2,
+        //    Join
+        //}
 
         private const int controlMargin = 5;
 
@@ -254,6 +262,8 @@ namespace Whorl
         public FormulaSettings EditedFormulaSettings { get; set; }
         private KeyEnumParameters editedKeyEnumParameters { get; set; }
         private object editedParametersObject { get; set; }
+
+        //private JoinPatternStates joinPatternState { get; set; } = JoinPatternStates.None;
 
         private bool FilesFolderExists()
         {
@@ -823,6 +833,12 @@ namespace Whorl
                 else  //Show context menu.
                 {
                     dragStart = new Point(e.X, e.Y);
+                    //if (joinPatternState == JoinPatternStates.SetStartPoint ||
+                    //    joinPatternState == JoinPatternStates.SetEndPoint)
+                    //{
+                    //    setJoinPointAndSetEndPointToolStripMenuItem.Enabled = joinPatternState == JoinPatternStates.SetStartPoint;
+                    //    joinMenuStrip.Show(picDesign, dragStart);
+                    //}
                     if (editInfluencePointsModeToolStripMenuItem.Checked
                         && influencePointsPattern != null)
                     {
@@ -1688,6 +1704,23 @@ namespace Whorl
                 {
                     ShowGrid(e.Graphics);
                 }
+                if (testJoinedPatternsToolStripMenuItem.Checked && joinedPatterns != null)
+                {
+                    foreach (PointF p in joinedPatterns.JoinPoints)
+                    {
+                        Tools.DrawSquare(e.Graphics, Color.Red, p);
+                    }
+                }
+                //if (joinPatternState != JoinPatternStates.None && joinedPatterns != null)
+                //{
+                //    PointF p1 = joinedPatterns.Pattern1.CurvePoints[joinedPatterns.InsertIndex];
+                //    Tools.DrawSquare(e.Graphics, Color.Red, p1);
+                //    if (joinedPatterns.EndInsertIndex >= 0)
+                //    {
+                //        p1 = joinedPatterns.Pattern1.CurvePoints[joinedPatterns.EndInsertIndex];
+                //        Tools.DrawSquare(e.Graphics, Color.LimeGreen, p1);
+                //    }
+                //}
                 if (currentMergedPattern != null && testMergeOutlineToolStripMenuItem.Checked)
                 {
                     currentMergedPattern.DrawBoundary(e.Graphics);
@@ -8985,6 +9018,169 @@ namespace Whorl
                 drawCurveToolStripMenuItem.Checked = false;
                 drawLinesToolStripMenuItem.Checked = false;
                 polygonOutline = null;
+                picDesign.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        //private JoinedPatterns joinedPatterns { get; set; }
+
+        //private void startJoinedPatternToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        var nearbyPtnInfo = NearestPattern(dragStart);
+        //        if (nearbyPtnInfo != null)
+        //        {
+        //            joinedPatterns = new JoinedPatterns(Design);
+        //            joinedPatterns.Pattern1 = nearbyPtnInfo.Pattern;
+        //            joinPatternState = JoinPatternStates.SetStartPoint;
+        //            WriteStatus("Right-click on the start point of the pattern boundary.");
+        //        }
+        //        else
+        //            joinPatternState = JoinPatternStates.None;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void set2ndJoinedPatternToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (joinPatternState != JoinPatternStates.SetPattern2)
+        //            return;
+        //        var nearbyPtnInfo = NearestPattern(dragStart);
+        //        if (nearbyPtnInfo != null)
+        //        {
+        //            Pattern pattern1 = joinedPatterns.Pattern1;
+        //            Pattern pattern2 = nearbyPtnInfo.Pattern;
+        //            joinedPatterns.Pattern1 = joinedPatterns.Pattern1.GetCopy();
+        //            joinedPatterns.Pattern2 = pattern2.GetCopy();
+        //            if (joinedPatterns.FinishJoin())
+        //            {
+        //                joinPatternState = JoinPatternStates.None;
+        //                Design.AddPattern(joinedPatterns);
+        //                joinedPatterns = null;
+        //                pattern1.PatternIsEnabled = false;
+        //                pattern2.PatternIsEnabled = false;
+        //                RedrawPatterns();
+        //            }
+        //            else
+        //                MessageBox.Show("Couldn't perform join.");
+        //        }
+        //        else
+        //            MessageBox.Show("Didn't find 2nd joined pattern.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private bool SetCurrentJoinPoint()
+        //{
+        //    if (joinPatternState != JoinPatternStates.SetStartPoint && joinPatternState != JoinPatternStates.SetEndPoint)
+        //        return false;
+        //    PointF joinPoint = dragStart;
+        //    int index = JoinedPatterns.FindInsertIndex(joinedPatterns.Pattern1, joinPoint);
+        //    if (index == -1)
+        //    {
+        //        MessageBox.Show("Didn't find the point on the pattern's boundary.");
+        //        return false;
+        //    }
+        //    if (joinPatternState == JoinPatternStates.SetStartPoint)
+        //        joinedPatterns.InsertIndex = index;
+        //    else
+        //        joinedPatterns.EndInsertIndex = index;
+        //    picDesign.Refresh();
+        //    return true;
+        //}
+
+        //private void setCurrentJoinPointToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (SetCurrentJoinPoint())
+        //        {
+        //            joinPatternState = JoinPatternStates.SetPattern2;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void setJoinPointAndSetEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (SetCurrentJoinPoint())
+        //        {
+        //            if (joinPatternState == JoinPatternStates.SetStartPoint)
+        //                joinPatternState = JoinPatternStates.SetEndPoint;
+        //            else
+        //                joinPatternState = JoinPatternStates.SetPattern2;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void cancelPatternJoinToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        joinedPatterns = null;
+        //        joinPatternState = JoinPatternStates.None;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        private JoinedPatterns joinedPatterns { get; set; }
+
+        private void joinSelectedPatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selPatterns = Design.EnabledPatterns.Where(x => x.Selected);
+                if (selPatterns.Count() < 2)
+                {
+                    MessageBox.Show("Please select at least 2 patterns to join.");
+                    return;
+                }
+                joinedPatterns = new JoinedPatterns(Design);
+                joinedPatterns.AddPatterns(selPatterns);
+                if (joinedPatterns.FinishJoin())
+                {
+                    Design.RemovePatterns(selPatterns.ToList());
+                    Design.AddPattern(joinedPatterns);
+                    RedrawPatterns();
+                }
+                else
+                    MessageBox.Show("Join failed.");
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void testJoinedPatternsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
                 picDesign.Refresh();
             }
             catch (Exception ex)

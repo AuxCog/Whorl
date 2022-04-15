@@ -1137,7 +1137,7 @@ namespace Whorl
             private int InitRender(ref PointF[] points, Pattern pattern)
             {
                 //distancePoints = null;
-                BoundsRect = Tools.GetBoundingRectangle(points);
+                BoundsRect = Tools.GetBoundingRectangleF(points);
                 //Info.BoundsSize = BoundsRect.Size;
                 PointF center = pattern.Center;
                 double maxPosition = ZoomFactor * Tools.Distance(center, BoundsRect.Location);
@@ -1171,11 +1171,11 @@ namespace Whorl
 
             private void AddPatternBoundsInfo(Pattern distPtn, int index)
             {
-                var boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                var boundsRect = Tools.GetBoundingRectangleF(distPtn.CurvePoints);
                 var origRect = boundsRect;
                 distPtn.Center = new PointF(distPtn.Center.X - boundsRect.Left, distPtn.Center.Y - boundsRect.Top);
                 distPtn.ComputeCurvePoints(distPtn.ZVector, forOutline: true);
-                boundsRect = Tools.GetBoundingRectangle(distPtn.CurvePoints);
+                boundsRect = Tools.GetBoundingRectangleF(distPtn.CurvePoints);
                 var rect = new Rectangle((int)Math.Ceiling(boundsRect.Left), (int)Math.Ceiling(boundsRect.Top),
                                          (int)Math.Ceiling(boundsRect.Width), (int)Math.Ceiling(boundsRect.Height));
                 uint[] pixelBitmap = GetBoundsBitmap(distPtn.CurvePoints, rect.Size,
@@ -3177,7 +3177,7 @@ namespace Whorl
             PathFillInfo pathFillInfo = fillInfo as PathFillInfo;
             if (checkLinearGradient && UseLinearGradient && pathFillInfo != null)
             {
-                RectangleF bounds = Tools.GetBoundingRectangle(points);
+                RectangleF bounds = Tools.GetBoundingRectangleF(points);
                 if (patternAngle == null)
                     patternAngle = ZVector.GetArgument();
                 float angle = (float)(Tools.RadiansToDegrees((double)patternAngle + GradientRotation));
@@ -3294,7 +3294,7 @@ namespace Whorl
                 return;
             float xC2 = 0;
             PointF pRotate = PointF.Empty, pRevRotate = PointF.Empty;
-            RectangleF boundingRect = Tools.GetBoundingRectangle(curvePoints);
+            RectangleF boundingRect = Tools.GetBoundingRectangleF(curvePoints);
             PointF pCenter = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
                                         boundingRect.Y + 0.5F * boundingRect.Height);
             if (FlipX)
@@ -3780,7 +3780,7 @@ namespace Whorl
                         Image img = TextureFillInfo.GetTextureImage(textureFillInfo.TextureImageFileName);
                         if (img == null)
                             return false;
-                        RectangleF boundingRect = Tools.GetBoundingRectangle(points);
+                        RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
                         PointF[] rectPoints = new PointF[] 
                         {
                             boundingRect.Location,
@@ -4523,6 +4523,8 @@ namespace Whorl
                     return new MergedPattern(design, node);
                 case nameof(StringPattern):
                     return new StringPattern(design, node);
+                case nameof(JoinedPatterns):
+                    return new JoinedPatterns(design, node);
                 default:
                     if (throwOnError)
                     {

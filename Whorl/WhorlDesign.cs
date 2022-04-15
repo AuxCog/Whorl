@@ -1299,9 +1299,7 @@ namespace Whorl
 
         private void AddPatternFromXml(XmlNode patternNode)
         {
-            Pattern pattern = Pattern.CreatePatternFromXml(this, patternNode);
-            if (pattern == null)
-                throw new Exception("Invalid pattern node in XML.");
+            Pattern pattern = Pattern.CreatePatternFromXml(this, patternNode, throwOnError: true);
             AddDesignPattern(pattern);
         }
 

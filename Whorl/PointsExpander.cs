@@ -25,7 +25,7 @@ namespace Whorl
         {
             if (points.Count == 0)
                 return PointF.Empty;
-            RectangleF boundingRect = Tools.GetBoundingRectangle(points);
+            RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
             PointF center = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
                                        boundingRect.Y + 0.5F * boundingRect.Height);
             return points.OrderBy(p => Tools.Distance(p, center)).First();
