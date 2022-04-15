@@ -368,6 +368,7 @@ namespace Whorl
                 CurvePoints = seedCurvePoints.Select(p => Tools.RotatePoint(p, pTransform))
                                              .Select(p => new PointF(p.X + Center.X, p.Y + Center.Y))
                                              .ToArray();
+                TransformCurvePoints(CurvePoints);
             }
             else
                 CurvePoints = new PointF[0];

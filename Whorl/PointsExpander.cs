@@ -13,6 +13,7 @@ namespace Whorl
         public double EndSlope { get; set; } = 5.0;
         public double EndOffset { get; set; } = 20.0;
         public float Thickness { get; set; } = 10F;
+        public float[] Scales { get; set; }
 
         private double tanhSlope { get; set; }
 
@@ -28,7 +29,7 @@ namespace Whorl
             RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
             PointF center = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
                                        boundingRect.Y + 0.5F * boundingRect.Height);
-            return points.OrderBy(p => Tools.Distance(p, center)).First();
+            return points.OrderBy(p => Tools.DistanceSquared(p, center)).First();
         }
 
         public static List<PointF> SetCenter(List<PointF> points, out PointF center)
@@ -47,6 +48,7 @@ namespace Whorl
             path.Add(points[0]);
             path2.Add(points[0]);
             tanhSlope = 0.01 * EndSlope;
+            bool useScale = Scales != null && Scales.Length > 0;
             for (int i = 1; i < points.Count; i++)
             {
                 PointF prevP = points[i - 1];
@@ -59,6 +61,10 @@ namespace Whorl
                 double tanh2 = GetTanh(points.Count - i);
                 float scale = Math.Max(0.5F, Thickness * (float)(tanh1 * tanh2))
                               / (float)Math.Sqrt(perp.X * perp.X + perp.Y * perp.Y);
+                if (useScale)
+                {
+                    scale *= Scales[Tools.GetIndexInRange(i, Scales.Length)];
+                }
                 perp = new PointF(scale * perp.X, scale * perp.Y);
                 path.Add(new PointF(p.X + perp.X, p.Y + perp.Y));
                 path2.Add(new PointF(p.X - perp.X, p.Y - perp.Y));
