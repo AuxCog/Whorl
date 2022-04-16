@@ -334,10 +334,9 @@ namespace Whorl
             if (HasLineVertices)
                 ComputeLinePathPoints();
             else if (UserDefinedVertices)
-            {
                 SetCurvePathPoints(SegmentVertices);
+            if (HasLineVertices || UserDefinedVertices)
                 zVector = NormalizePathVertices();
-            }
             else
                 AddVertices();
             return zVector;
@@ -389,7 +388,10 @@ namespace Whorl
         {
             if (HasLineVertices)
             {
-                return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
+                if (SegmentVertices != null)
+                    return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
+                else
+                    return Complex.One;
             }
             PointF center = SegmentVerticesCenter;
             pathPoints = pathPoints.Select(
@@ -611,7 +613,7 @@ namespace Whorl
 
         public double GetPolygonMaxModulus(PointF center)
         {
-            if (SegmentVertices.Count == 0)
+            if (SegmentVertices == null || SegmentVertices.Count == 0)
                 return 0;
             return Math.Sqrt(SegmentVertices.Select(p => Tools.DistanceSquared(p, center)).Max());
         }
