@@ -152,10 +152,7 @@ namespace Whorl
         //}
 
         private WhorlDesign _design { get; set; }
-        public WhorlDesign Design
-        {
-            get { return _design; }
-        }
+        public WhorlDesign Design => _design;
 
         private void SetDesign(WhorlDesign newDesign)
         {
@@ -262,6 +259,7 @@ namespace Whorl
         public FormulaSettings EditedFormulaSettings { get; set; }
         private KeyEnumParameters editedKeyEnumParameters { get; set; }
         private object editedParametersObject { get; set; }
+        private PathOutlineList pathOutlineList { get; set; }
 
         //private JoinPatternStates joinPatternState { get; set; } = JoinPatternStates.None;
 
@@ -2390,6 +2388,7 @@ namespace Whorl
         private void InitializeForDesign()
         {
             influencePointsPattern = null;
+            pathOutlineList = null;
             showInfluencePointsDistancePattern = null;
             showInfluencePointsToolStripMenuItem.Checked = false;
             showDistanceInfluencePointsToolStripMenuItem.Checked = false;
