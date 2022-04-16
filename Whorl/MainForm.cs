@@ -858,7 +858,7 @@ namespace Whorl
                             if (item != addVertexToolStripMenuItem && item != endEditingVerticesToolStripMenuItem)
                                 item.Visible = nearestPolygonVertex != null;
                         }
-                        isCornerVertexToolStripMenuItem.Checked = VertexIsCorner(nearestPolygonVertex, editedPolygonPathOutline, out _);
+                        isCornerVertexToolStripMenuItem.Checked = VertexIsCorner(nearestPolygonVertex, editedPathOutline, out _);
                         polygonMenuStrip.Show(picDesign, dragStart);
                     }
                     else if (DrawUserVertices) // && polygonOutline != null)
@@ -996,15 +996,15 @@ namespace Whorl
             getPolygonCenter = false;
         }
 
-        private PathPattern testClosedCurvePattern { get; set; }
+        //private PathPattern testClosedCurvePattern { get; set; }
 
         private void FinishDrawnPolygon(PointF center)
         {
             if (polygonOutline?.SegmentVertices != null && polygonOutline.SegmentVertices.Count >= 3)
             {
-                polygonOutline.FinishUserDefinedVertices(center);
-                polygonOutline.SetCurvePathPoints();
-                Complex zVector = polygonOutline.NormalizePathVertices();
+                Complex zVector = polygonOutline.FinishUserDefinedVertices(center);
+                //polygonOutline.SetCurvePathPoints();
+                //Complex zVector = polygonOutline.NormalizePathVertices();
                 PathPattern ptn = new PathPattern(Design);
                 ptn.BoundaryColor = Color.Red;
                 ptn.ZVector = zVector;
@@ -1012,7 +1012,7 @@ namespace Whorl
                 ptn.BasicOutlines.Add(polygonOutline);
                 ptn.SetVertexAnglesParameters();
                 ptn.ComputeSeedPoints();
-                testClosedCurvePattern = ptn;
+                //testClosedCurvePattern = ptn;
                 Design.AddPattern(ptn);
                 RedrawPatterns();
             }
@@ -1120,21 +1120,22 @@ namespace Whorl
 
         private PointF GetPolygonVertex(PointF p)
         {
-            PointF center = editedPolygonPattern.Center;
-            var zP = new Complex(p.X - center.X, p.Y - center.Y) / editedPolygonPattern.ZVector;
+            PointF center = editedPathPattern.Center;
+            var zP = new Complex(p.X - center.X, p.Y - center.Y) / editedPathPattern.ZVector;
             p = new PointF((float)zP.Re, (float)zP.Im);
-            return editedPolygonPathOutline.GetOrigSegmentVertex(p);
+            return editedPathOutline.GetOrigSegmentVertex(p);
         }
 
 
         private void UpdatePolygonOutlineHelper()
         {
-            editedPolygonPathOutline.FinishUserDefinedVertices();
-            if (editedPolygonPathOutline.HasCurveVertices)
-            {
-                editedPolygonPathOutline.SetCurvePathPoints();
-                editedPolygonPathOutline.NormalizePathVertices();
-            }
+            editedPathOutline.FinishUserDefinedVertices();
+            //editedPolygonPathOutline.ComputePathPoints();
+            //if (editedPolygonPathOutline.HasCurveVertices)
+            //{
+            //    editedPolygonPathOutline.SetCurvePathPoints();
+            //    editedPolygonPathOutline.NormalizePathVertices();
+            //}
         }
 
         private void UpdatePolygonOutline()
@@ -1146,23 +1147,23 @@ namespace Whorl
             bool isCenter = index == 0;  //Center point.
             index--;
             PointF p = nearestPolygonVertex.Location;
-            double prevMax = editedPolygonPathOutline.GetPolygonMaxModulus(editedPolygonPathOutline.SegmentVerticesCenter);
+            double prevMax = editedPathOutline.GetPolygonMaxModulus(editedPathOutline.SegmentVerticesCenter);
             if (isCenter)
             {
-                PointF center = editedPolygonPattern.Center;
+                PointF center = editedPathPattern.Center;
                 PointF pDiff = new PointF(p.X - center.X, p.Y - center.Y);
-                PointF vCenter = editedPolygonPathOutline.SegmentVerticesCenter;
-                editedPolygonPathOutline.SegmentVerticesCenter = new PointF(vCenter.X + pDiff.X, vCenter.Y + pDiff.Y);
-                editedPolygonPattern.Center = p;
+                PointF vCenter = editedPathOutline.SegmentVerticesCenter;
+                editedPathOutline.SegmentVerticesCenter = new PointF(vCenter.X + pDiff.X, vCenter.Y + pDiff.Y);
+                editedPathPattern.Center = p;
             }
             else
             {
                 p = GetPolygonVertex(p);
-                if (index == 0 && editedPolygonPathOutline.SegmentVertices.First() == editedPolygonPathOutline.SegmentVertices.Last())
+                if (index == 0 && editedPathOutline.SegmentVertices.First() == editedPathOutline.SegmentVertices.Last())
                 {
-                    editedPolygonPathOutline.SegmentVertices.RemoveAt(editedPolygonPathOutline.SegmentVertices.Count - 1);
+                    editedPathOutline.SegmentVertices.RemoveAt(editedPathOutline.SegmentVertices.Count - 1);
                 }
-                editedPolygonPathOutline.SegmentVertices[index] = p;
+                editedPathOutline.SegmentVertices[index] = p;
             }
             UpdatePolygonOutlineHelper();
             if (isCenter)
@@ -1171,8 +1172,8 @@ namespace Whorl
             }
             else
             {
-                double scale = editedPolygonPathOutline.GetPolygonMaxModulus(editedPolygonPathOutline.SegmentVerticesCenter) / prevMax;
-                editedPolygonPattern.ZVector *= scale;
+                double scale = editedPathOutline.GetPolygonMaxModulus(editedPathOutline.SegmentVerticesCenter) / prevMax;
+                editedPathPattern.ZVector *= scale;
             }
         }
 
@@ -1247,10 +1248,10 @@ namespace Whorl
                 if (moveVertexToolStripMenuItem.Checked)
                 {
                     MovePolygonVertex(e.X - saveDragEnd.X, e.Y - saveDragEnd.Y);
-                    if (editedPolygonPattern != null)
+                    if (editedPathPattern != null)
                     {
                         UpdatePolygonOutline();
-                        editedPolygonPattern.ComputeSeedPoints();
+                        editedPathPattern.ComputeSeedPoints();
                         RedrawPatterns();
                         Design.IsDirty = true;
                         EndMoveVertex();
@@ -1514,18 +1515,18 @@ namespace Whorl
                     }
                     return;
                 }
-                if (testClosedCurveToolStripMenuItem.Checked && testClosedCurvePattern != null)
-                {
-                    PathOutline potl = testClosedCurvePattern.BasicOutlines.Select(o => o as PathOutline)
-                                       .FirstOrDefault(po => po != null && po.HasCurveVertices);
-                    if (potl != null)
-                    {
-                        PointF picCenter = GetPictureBoxCenter();
-                        float fac = (float)testClosedCurvePattern.ZVector.GetModulus();
-                        e.Graphics.DrawPolygon(Pens.Red, potl.PathPoints
-                                  .Select(p => new PointF(fac * p.X + picCenter.X, fac * p.Y + picCenter.Y)).ToArray());
-                    }
-                }
+                //if (testClosedCurveToolStripMenuItem.Checked && testClosedCurvePattern != null)
+                //{
+                //    PathOutline potl = testClosedCurvePattern.BasicOutlines.Select(o => o as PathOutline)
+                //                       .FirstOrDefault(po => po != null && po.HasCurveVertices);
+                //    if (potl != null)
+                //    {
+                //        PointF picCenter = GetPictureBoxCenter();
+                //        float fac = (float)testClosedCurvePattern.ZVector.GetModulus();
+                //        e.Graphics.DrawPolygon(Pens.Red, potl.PathPoints
+                //                  .Select(p => new PointF(fac * p.X + picCenter.X, fac * p.Y + picCenter.Y)).ToArray());
+                //    }
+                //}
                 if (Animating && !pauseImprovToolStripMenuItem.Checked)
                 {
                     if (ShouldDrawDesignLayersForAnimate())
@@ -8105,24 +8106,24 @@ namespace Whorl
             }
         }
 
-        private Pattern editedPolygonPattern { get; set; }
-        private PathOutline editedPolygonPathOutline { get; set; }
+        private Pattern editedPathPattern { get; set; }
+        private PathOutline editedPathOutline { get; set; }
         private List<DrawnPoint> polygonVertexInfos { get; set; }
 
         private void InitPolygonVertexInfos()
         {
             polygonVertexInfos = new List<DrawnPoint>();
-            PointF center = editedPolygonPattern.Center;
+            PointF center = editedPathPattern.Center;
             //PointF vertexCenter = editedPolygonPathOutline.SegmentVerticesCenter;
             polygonVertexInfos.Add(new DrawnPoint() { IdText = "C", Location = center });
-            List<PointF> vertices = editedPolygonPathOutline.LineVertices;
+            List<PointF> vertices = editedPathOutline.LineVertices;
             PointF vertex1 = vertices[0];
             for (int i = 0; i < vertices.Count; i++)
             {
                 PointF vertex = vertices[i];
                 if (i == vertices.Count - 1 && vertex == vertex1)
                     break;
-                Complex vec = editedPolygonPattern.ZVector * new Complex(vertex.X, vertex.Y);
+                Complex vec = editedPathPattern.ZVector * new Complex(vertex.X, vertex.Y);
                 vertex = new PointF((float)vec.Re + center.X, (float)vec.Im + center.Y);
                 polygonVertexInfos.Add(new DrawnPoint() { IdText = (i + 1).ToString(), Location = vertex });
             }
@@ -8133,8 +8134,8 @@ namespace Whorl
         {
             try
             {
-                editedPolygonPattern = null;
-                editedPolygonPathOutline = null;
+                editedPathPattern = null;
+                editedPathOutline = null;
                 polygonVertexInfos = null;
                 if (!editPolygonVerticesToolStripMenuItem.Checked)
                 {
@@ -8144,14 +8145,14 @@ namespace Whorl
                 var patternInfo = NearestPattern(dragStart);
                 Pattern pattern = patternInfo?.Pattern;
                 if (pattern == null) return;
-                editedPolygonPathOutline = pattern.BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
-                if (editedPolygonPathOutline?.LineVertices == null)
+                editedPathOutline = pattern.BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
+                if (editedPathOutline?.LineVertices == null)
                 {
-                    editedPolygonPathOutline = null;
+                    editedPathOutline = null;
                     editPolygonVerticesToolStripMenuItem.Checked = false;
                     return;
                 }
-                editedPolygonPattern = pattern;
+                editedPathPattern = pattern;
                 InitPolygonVertexInfos();
             }
             catch (Exception ex)
@@ -8184,12 +8185,12 @@ namespace Whorl
         {
             try
             {
-                if (editedPolygonPathOutline == null) return;
+                if (editedPathOutline == null) return;
                 PointF p = GetPolygonVertex(dragStart);
                 int index = -1;
                 double minDistance = double.MaxValue;
-                var vertices = new List<PointF>(editedPolygonPathOutline.SegmentVertices);
-                if (editedPolygonPathOutline.HasClosedPath && vertices.Last() != vertices.First())
+                var vertices = new List<PointF>(editedPathOutline.SegmentVertices);
+                if (editedPathOutline.HasClosedPath && vertices.Last() != vertices.First())
                 {
                     vertices.Add(vertices.First());
                 }
@@ -8204,11 +8205,11 @@ namespace Whorl
                     }
                 }
                 if (index == -1) return;
-                index = Math.Min(index + 1, editedPolygonPathOutline.SegmentVertices.Count);
-                editedPolygonPathOutline.SegmentVertices.Insert(index, p);
-                if (editedPolygonPathOutline.HasCurveVertices)
+                index = Math.Min(index + 1, editedPathOutline.SegmentVertices.Count);
+                editedPathOutline.SegmentVertices.Insert(index, p);
+                if (editedPathOutline.HasCurveVertices)
                 {
-                    var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
+                    var cornerIndices = editedPathOutline.CurveCornerIndices;
                     for (int i = 0; i < cornerIndices.Count; i++)
                     {
                         if (cornerIndices[i] >= index)
@@ -8216,7 +8217,7 @@ namespace Whorl
                     }
                 }
                 UpdatePolygonOutlineHelper();
-                editedPolygonPattern.ComputeSeedPoints();
+                editedPathPattern.ComputeSeedPoints();
                 RedrawPatterns();
                 InitPolygonVertexInfos();
                 picDesign.Refresh();
@@ -8238,23 +8239,24 @@ namespace Whorl
             try
             {
                 if (nearestPolygonVertex == null ||
-                    editedPolygonPathOutline == null ||
-                    !editedPolygonPathOutline.HasCurveVertices)
+                    editedPathOutline == null ||
+                    !editedPathOutline.HasCurveVertices)
                 {
                     return;
                 }
-                bool isCorner = VertexIsCorner(nearestPolygonVertex, editedPolygonPathOutline, out int index);
+                bool isCorner = VertexIsCorner(nearestPolygonVertex, editedPathOutline, out int index);
                 if (index < 0) return;
                 if (isCorner)
-                    editedPolygonPathOutline.CurveCornerIndices.Remove(index);
+                    editedPathOutline.CurveCornerIndices.Remove(index);
                 else
                 {
-                    editedPolygonPathOutline.CurveCornerIndices.Add(index);
-                    editedPolygonPathOutline.CurveCornerIndices.Sort();
+                    editedPathOutline.CurveCornerIndices.Add(index);
+                    editedPathOutline.CurveCornerIndices.Sort();
                 }
-                editedPolygonPathOutline.SetCurvePathPoints();
-                editedPolygonPathOutline.NormalizePathVertices();
-                editedPolygonPattern.ComputeSeedPoints();
+                editedPathOutline.ComputePathPoints();
+                //editedPolygonPathOutline.SetCurvePathPoints(editedPolygonPathOutline.SegmentVertices);
+                //editedPolygonPathOutline.NormalizePathVertices();
+                editedPathPattern.ComputeSeedPoints();
                 RedrawPatterns();
                 Design.IsDirty = true;
             }
@@ -8271,7 +8273,7 @@ namespace Whorl
                 if (nearestPolygonVertex == null) return;
                 int index = polygonVertexInfos.IndexOf(nearestPolygonVertex);
                 if (index <= 0) return;
-                var vertices = editedPolygonPathOutline.SegmentVertices;
+                var vertices = editedPathOutline.SegmentVertices;
                 if (vertices.Count <= 3)
                 {
                     WriteStatus("Must have at least 3 vertices.");
@@ -8284,20 +8286,21 @@ namespace Whorl
                 {
                     vertices.RemoveAt(vertices.Count - 1);
                 }
-                editedPolygonPathOutline.FinishUserDefinedVertices();
-                if (editedPolygonPathOutline.HasCurveVertices)
+                editedPathOutline.FinishUserDefinedVertices();
+                if (editedPathOutline.HasCurveVertices)
                 {
-                    var cornerIndices = editedPolygonPathOutline.CurveCornerIndices;
+                    var cornerIndices = editedPathOutline.CurveCornerIndices;
                     cornerIndices.Remove(index);
                     for (int i = 0; i < cornerIndices.Count; i++)
                     {
                         if (cornerIndices[i] > index)
                             cornerIndices[i]--;
                     }
-                    editedPolygonPathOutline.SetCurvePathPoints();
-                    editedPolygonPathOutline.NormalizePathVertices();
+                    editedPathOutline.ComputePathPoints();
+                    //editedPolygonPathOutline.SetCurvePathPoints();
+                    //editedPolygonPathOutline.NormalizePathVertices();
                 }
-                editedPolygonPattern.ComputeSeedPoints();
+                editedPathPattern.ComputeSeedPoints();
                 RedrawPatterns();
                 InitPolygonVertexInfos();
                 picDesign.Refresh();
@@ -8313,10 +8316,10 @@ namespace Whorl
         {
             try
             {
-                if (editedPolygonPathOutline == null)
+                if (editedPathOutline == null)
                     return;
-                var vertices = editedPolygonPathOutline.SegmentVertices;
-                PointF center = editedPolygonPathOutline.SegmentVerticesCenter;
+                var vertices = editedPathOutline.SegmentVertices;
+                PointF center = editedPathOutline.SegmentVerticesCenter;
                 for (int i = 0; i < vertices.Count; i++)
                 {
                     PointF p = vertices[i];
@@ -8326,13 +8329,14 @@ namespace Whorl
                         p.Y = center.Y - (p.Y - center.Y);
                     vertices[i] = p;
                 }
-                editedPolygonPathOutline.FinishUserDefinedVertices();
-                if (editedPolygonPathOutline.HasCurveVertices)
-                {
-                    editedPolygonPathOutline.SetCurvePathPoints();
-                    editedPolygonPathOutline.NormalizePathVertices();
-                }
-                editedPolygonPattern.ComputeSeedPoints();
+                editedPathOutline.FinishUserDefinedVertices();
+                //editedPolygonPathOutline.ComputePathPoints();
+                //if (editedPolygonPathOutline.HasCurveVertices)
+                //{
+                //    editedPolygonPathOutline.SetCurvePathPoints();
+                //    editedPolygonPathOutline.NormalizePathVertices();
+                //}
+                editedPathPattern.ComputeSeedPoints();
                 RedrawPatterns();
                 InitPolygonVertexInfos();
                 picDesign.Refresh();
@@ -8359,8 +8363,8 @@ namespace Whorl
             try
             {
                 editPolygonVerticesToolStripMenuItem.Checked = false;
-                editedPolygonPattern = null;
-                editedPolygonPathOutline = null;
+                editedPathPattern = null;
+                editedPathOutline = null;
                 polygonVertexInfos = null;
                 RedrawPatterns();
                 picDesign.Refresh();

@@ -249,8 +249,9 @@ namespace Whorl
             {
                 if (DrawType == DrawTypes.Lines)
                     FinishUserDefinedVertices();
-                else
-                    SetCurvePathPoints();
+                //else
+                //    SetCurvePathPoints();
+                ComputePathPoints();
                 NormalizePathVertices();
                 if (curveChanged)
                 {
@@ -272,21 +273,27 @@ namespace Whorl
         /// Normalize SegmentVertices.
         /// </summary>
         /// <param name="center"></param>
-        public void FinishUserDefinedVertices(PointF center)
+        public Complex FinishUserDefinedVertices(PointF center)
         {
             SegmentVerticesCenter = center;
-            FinishUserDefinedVertices();
+            return FinishUserDefinedVertices();
         }
 
-        public void FinishUserDefinedVertices()
+        public Complex FinishUserDefinedVertices()
         {
-            PointF center = SegmentVerticesCenter;
-            if ((UserDefinedVertices || HasLineVertices) && !HasCurveVertices)
+            Complex zVector = Complex.One;
+            if (UserDefinedVertices || HasLineVertices)
             {
-                float scale = (float)(1.0 / GetPolygonMaxModulus(center));
-                var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
-                LineVertices = scaledVertices.ToList();
+                if (!HasCurveVertices && SegmentVertices != null)
+                {
+                    PointF center = SegmentVerticesCenter;
+                    float scale = (float)(1.0 / GetPolygonMaxModulus(center));
+                    var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
+                    LineVertices = scaledVertices.ToList();
+                }
+                zVector = ComputePathPoints();
             }
+            return zVector;
         }
 
         /// <summary>
@@ -319,10 +326,27 @@ namespace Whorl
         //    pathVertices.Add(vertex);
         //}
 
-        public void SetCurvePathPoints()
+        public Complex ComputePathPoints()
         {
-            SetCurvePathPoints(SegmentVertices);
+            Complex zVector = Complex.One;
+            if (!UseVertices)
+                return zVector;
+            if (HasLineVertices)
+                ComputeLinePathPoints();
+            else if (UserDefinedVertices)
+            {
+                SetCurvePathPoints(SegmentVertices);
+                zVector = NormalizePathVertices();
+            }
+            else
+                AddVertices();
+            return zVector;
         }
+
+        //public void SetCurvePathPoints()
+        //{
+        //    SetCurvePathPoints(SegmentVertices);
+        //}
 
         public void SetCurvePathPoints(List<PointF> segmentPoints)
         {
@@ -361,7 +385,7 @@ namespace Whorl
         /// Translate vertices so center is at (0, 0), and scale to have max modulus of 1.
         /// </summary>
         /// <returns></returns>
-        public Complex NormalizePathVertices()
+        private Complex NormalizePathVertices()
         {
             if (HasLineVertices)
             {
@@ -416,7 +440,7 @@ namespace Whorl
                 {
                     if (PathOutlineType == PathOutlineTypes.Cartesian)
                     {
-                        NormalizeVertices();
+                        NormalizePathPoints();
                         NormalizedPathLength = Tools.PathLength(pathPoints);
                     }
                     else if (HasLineVertices)
@@ -454,7 +478,7 @@ namespace Whorl
             pathPoints = points.ToList();
         }
 
-        private void NormalizeVertices()
+        private void NormalizePathPoints()
         {
             if (pathPoints == null || pathPoints.Count == 0)
                 return;
@@ -494,7 +518,7 @@ namespace Whorl
                     retVal = LineVertices != null && LineVertices.Count >= 3;
                     if (retVal)
                     {
-                        InitComputePolygon(rotationSteps);
+                        InitComputePolygon();
                     }
                 }
                 else
@@ -539,8 +563,7 @@ namespace Whorl
         /// <summary>
         /// Initialize userVertexInfos array.  Already determined SegmentVertices.Count >= 3.
         /// </summary>
-        /// <param name="rotationSteps"></param>
-        private void InitComputePolygon(int rotationSteps)
+        private void InitComputePolygon()
         {
             if (!HasLineVertices) return;
             verticesIndex = 0;
@@ -605,16 +628,17 @@ namespace Whorl
             return steps;
         }
 
-        public double ComputeVerticesPoint(int ind, out double angle)
+        public bool ComputeLinePathPoints()
         {
-            double modulus;
-            if (HasCurveVertices)
-            {
-                PointF p = pathPoints[ind];
-                angle = Math.Atan2(p.Y, p.X);
-                modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
-            }
-            else
+            if (!(UseSingleOutline && HasLineVertices))
+                return false;
+            pathPoints = new List<PointF>();
+            if (LineVertices == null || LineVertices.Count < 3)
+                return false;
+            InitComputePolygon();
+            PointF p = Point.Empty;
+            int maxInd = userVertexInfos.Select(v => v.Steps).Sum(); ;
+            for (int ind = 0; ind < maxInd; ind++)
             {
                 UserVertexInfo pInfo = userVertexInfos[verticesIndex];
                 if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
@@ -623,19 +647,52 @@ namespace Whorl
                 }
                 if (ind == pInfo.Index)
                 {
-                    currPolygonPoint = pInfo.UserVertex;
+                    p = pInfo.UserVertex;
                 }
                 else
                 {
-                    currPolygonPoint = new PointF(
-                        currPolygonPoint.X + pInfo.UnitVector.X,
-                        currPolygonPoint.Y + pInfo.UnitVector.Y);
+                    p = new PointF(p.X + pInfo.UnitVector.X, p.Y + pInfo.UnitVector.Y);
                 }
-                var pVec = currPolygonPoint;
-                modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
-                angle = Math.Atan2(pVec.Y, pVec.X);
+                pathPoints.Add(p);
             }
+            return true;
+        }
+
+        public double ComputeVerticesPoint(int ind, out double angle)
+        {
+            PointF p = pathPoints[ind];
+            angle = Math.Atan2(p.Y, p.X);
+            double modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
             return modulus;
+            //double modulus;
+            //if (HasCurveVertices)
+            //{
+            //    PointF p = pathPoints[ind];
+            //    angle = Math.Atan2(p.Y, p.X);
+            //    modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
+            //}
+            //else
+            //{
+            //    UserVertexInfo pInfo = userVertexInfos[verticesIndex];
+            //    if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
+            //    {
+            //        pInfo = userVertexInfos[++verticesIndex];
+            //    }
+            //    if (ind == pInfo.Index)
+            //    {
+            //        currPolygonPoint = pInfo.UserVertex;
+            //    }
+            //    else
+            //    {
+            //        currPolygonPoint = new PointF(
+            //            currPolygonPoint.X + pInfo.UnitVector.X,
+            //            currPolygonPoint.Y + pInfo.UnitVector.Y);
+            //    }
+            //    var pVec = currPolygonPoint;
+            //    modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
+            //    angle = Math.Atan2(pVec.Y, pVec.X);
+            //}
+            //return modulus;
         }
 
         private PointF currPolygonPoint { get; set; }
@@ -748,20 +805,22 @@ namespace Whorl
             }
             if (node.Attributes[nameof(UseVertices)] == null)
                 UseVertices = VerticesSettings.IsValid;
-            if (UseVertices)
-            {
-                if (UserDefinedVertices)
-                {
-                    FinishUserDefinedVertices();
-                    if (!HasLineVertices)
-                    {
-                        SetCurvePathPoints();
-                        NormalizePathVertices();
-                    }
-                }
-                else
-                    AddVertices();
-            }
+            FinishUserDefinedVertices();
+            ComputePathPoints();
+            //if (UseVertices)
+            //{
+            //    if (UserDefinedVertices)
+            //    {
+            //        FinishUserDefinedVertices();
+            //        if (!HasLineVertices)
+            //        {
+            //            SetCurvePathPoints();
+            //            NormalizePathVertices();
+            //        }
+            //    }
+            //    else
+            //        AddVertices();
+            //}
         }
 
         protected override bool FromExtraXml(XmlNode node)

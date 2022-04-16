@@ -317,6 +317,7 @@
       <DependentUpon>ParserErrorsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="PathOutline.cs" />
+    <Compile Include="PathOutlineList.cs" />
     <Compile Include="PathPattern.cs" />
     <Compile Include="PatternBoundsInfo.cs" />
     <Compile Include="PatternGroupList.cs" />
