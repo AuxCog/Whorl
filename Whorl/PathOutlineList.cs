@@ -20,7 +20,9 @@ namespace Whorl
             public PointF OrigCenter { get; private set; }
             public int StartIndex { get; set; }
             public int EndIndex { get; set; }
+            public bool Clockwise { get; set; }
             public float SortId { get; set; }
+            public PointF[] FullCurvePoints { get; private set; }
 
             public PathInfo(PathOutline pathOutline, float sortId)
             {
@@ -56,21 +58,40 @@ namespace Whorl
                     PathPattern = new PathPattern(source.PathPattern);
             }
 
-            public void SetForPreview(Size picSize)
+            public static void GetPreviewValues(Size picSize, RectangleF boundingRect,
+                                                out double scale, out PointF center)
             {
-                PointF center = new PointF(0.5F * picSize.Width, 0.5F * picSize.Height);
-                PointF bndCenter = new PointF(0.5F * BoundingRectangle.Width, 0.5F * BoundingRectangle.Height);
-                double boundsDiag = Math.Sqrt(BoundingRectangle.Width * BoundingRectangle.Width + 
-                                              BoundingRectangle.Height * BoundingRectangle.Height);
+                center = new PointF(0.5F * picSize.Width, 0.5F * picSize.Height);
+                double boundsDiag = Math.Sqrt(boundingRect.Width * boundingRect.Width +
+                                              boundingRect.Height * boundingRect.Height);
                 double picDiag = Math.Sqrt(picSize.Width * picSize.Width + picSize.Height * picSize.Height);
-                double scale = 0.65 * picDiag / boundsDiag;
-                //double scale = Math.Max((double)picSize.Width / BoundingRectangle.Width, 
-                //                        (double)picSize.Height / BoundingRectangle.Height);
-                PointF dc = new PointF(OrigCenter.X - BoundingRectangle.X - bndCenter.X, 
-                                       OrigCenter.Y - BoundingRectangle.Y - bndCenter.Y);
-                PathPattern.Center = new PointF(center.X + (float)scale * dc.X, center.Y + (float)scale * dc.Y);
-                //Complex zVector = OrigZVector / Math.Max(BoundingRectangle.Width, BoundingRectangle.Height);
+                scale = 0.65 * picDiag / boundsDiag;
+            }
+
+            public static PointF GetDeltaCenter(RectangleF boundingRect, PointF origCenter)
+            {
+                PointF bndCenter = new PointF(0.5F * boundingRect.Width, 0.5F * boundingRect.Height);
+                return new PointF(origCenter.X - boundingRect.X - bndCenter.X,
+                                  origCenter.Y - boundingRect.Y - bndCenter.Y);
+            }
+
+            public void SetForPreview(Size picSize, Point panXY, double zoom = 1)
+            {
+                GetPreviewValues(picSize, BoundingRectangle, out double scale, out PointF center);
+                scale *= zoom;
+                SetForPreview(BoundingRectangle, scale, center, panXY);
+            }
+
+            public void SetForPreview(RectangleF boundingRect, double scale, PointF center, Point panXY)
+            {
+                PointF dc = GetDeltaCenter(boundingRect, OrigCenter);
+                PathPattern.Center = new PointF(center.X + (float)scale * dc.X + panXY.X, 
+                                                center.Y + (float)scale * dc.Y + panXY.Y);
                 PathPattern.ZVector = scale * OrigZVector;
+                if (FullCurvePoints != null)
+                {
+                    ComputePoints();
+                }
             }
 
             public void SetPathOutline(PathOutline pathOutline)
@@ -92,15 +113,40 @@ namespace Whorl
                 }
             }
 
-            public int FindClosestIndex(PointF p)
+            public void ComputePoints()
             {
-                if (PathPattern == null)
-                    throw new NullReferenceException("PathPattern is null.");
-                if (!PathPattern.ComputeCurvePoints(PathPattern.ZVector))
-                    throw new Exception("ComputeCurvePoints failed.");
-                if (PathPattern.CurvePoints.Length != PathOutline.PathPoints.Count())
-                    throw new Exception("PathPoints length not equal to CurvePoints");
-                return Tools.FindClosestIndex(p, PathPattern.CurvePoints);
+                double modulus = PathPattern.ZVector.GetModulus();
+                double angle = PathPattern.ZVector.GetArgument();
+                var points = PathPattern.SeedPoints.Select(sp => 
+                             Pattern.ComputeCurvePoint(angle + sp.Angle, modulus * sp.Modulus, 
+                                                       PathPattern.Center)).ToArray();
+                PathPattern.TransformCurvePoints(points);
+                FullCurvePoints = points;
+            }
+
+            public void ClearPoints()
+            {
+                FullCurvePoints = null;
+            }
+
+            public int FindClosestIndex(PointF p, out PointF foundPoint)
+            {
+                if (FullCurvePoints == null)
+                    throw new Exception("ComputePoints was not called.");
+                if (FullCurvePoints.Length != PathOutline.PathPoints.Count())
+                    throw new Exception("PathPoints length not equal to SeedPoints");
+                int index = Tools.FindClosestIndex(p, FullCurvePoints);
+                foundPoint = index >= 0 ? FullCurvePoints[index] : PointF.Empty;
+                return index;
+            }
+
+            public PointF GetCurvePoint(int index)
+            {
+                if (FullCurvePoints == null)
+                    throw new Exception("ComputePoints was not called.");
+                if (index < 0 || index >= FullCurvePoints.Length)
+                    throw new ArgumentOutOfRangeException("index is out of range.");
+                return FullCurvePoints[index];
             }
 
             public string Validate()
@@ -122,13 +168,13 @@ namespace Whorl
                     throw new ArgumentException("Invalid pathOutline.");
             }
 
-            public IEnumerable<PointF> GetPathSection()
-            {
-                string message = Validate();
-                if (message != null)
-                    throw new CustomException(message);
-                return PathOutline.PathPoints.Skip(StartIndex).Take(EndIndex - StartIndex);
-            }
+            //public IEnumerable<PointF> GetPathSection()
+            //{
+            //    string message = Validate();
+            //    if (message != null)
+            //        throw new CustomException(message);
+            //    return PathOutline.PathPoints.Skip(StartIndex).Take(EndIndex - StartIndex);
+            //}
 
             public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
             {
@@ -166,6 +212,7 @@ namespace Whorl
         private List<PathInfo> pathInfos { get; set; } = new List<PathInfo>();
         public IEnumerable<PathInfo> PathInfos => pathInfos;
         public WhorlDesign Design { get; }
+        private RectangleF boundingRect { get; set; } = RectangleF.Empty;
         //public Complex PathPatternZVector { get; private set; }
         //public PointF PathPatternCenter { get; private set; }
 
@@ -207,14 +254,38 @@ namespace Whorl
 
         public override Complex ComputePathPoints()
         {
-            var points = pathInfos.SelectMany(pi => pi.GetPathSection());
-            SetPathPoints(points);
+            pathPoints = new List<PointF>();
+            foreach (PathInfo pathInfo in pathInfos)
+            {
+                if (pathInfo.StartIndex < 0 || pathInfo.EndIndex < 0)
+                    continue;
+                var points = pathInfo.PathOutline.PathPoints.ToArray();
+                if (pathInfo.StartIndex >= points.Length)
+                    throw new Exception("StartIndex is out of range.");
+                if (pathInfo.EndIndex >= points.Length)
+                    throw new Exception("EndIndex is out of range.");
+                int ind = pathInfo.StartIndex;
+                int endInd = pathInfo.EndIndex;
+                if (pathPoints.Count == 0 || pathPoints.Last() != points[ind])
+                    pathPoints.Add(points[ind]);
+                int increment = pathInfo.Clockwise ? -1 : 1;
+                do
+                {
+                    ind += increment;
+                    if (ind < 0)
+                        ind = points.Length - 1;
+                    else if (ind >= points.Length)
+                        ind = 0;
+                    pathPoints.Add(points[ind]);
+                } while (ind != endInd);
+            }
             return Complex.DefaultZVector;
         }
 
         public void ClearPathInfos()
         {
             pathInfos.Clear();
+            boundingRect = RectangleF.Empty;
         }
 
         public static IEnumerable<PathOutline> GetPathOutlines(Pattern pattern)
@@ -231,6 +302,16 @@ namespace Whorl
                 return 1F + pathInfos.Select(p => p.SortId).Max();
         }
 
+        public void SetForPreview(Size picSize, Point panXY, double zoom = 1)
+        {
+            PathInfo.GetPreviewValues(picSize, boundingRect, out double scale, out PointF center);
+            scale *= zoom;
+            foreach (var pathInfo in pathInfos)
+            {
+                pathInfo.SetForPreview(boundingRect, scale, center, panXY);
+            }
+        }
+
         public PathInfo GetPathInfo(int i)
         {
             return pathInfos[i];
@@ -245,6 +326,10 @@ namespace Whorl
                     throw new ArgumentException("Didn't find valid PathOutline in pattern.");
                 var pathInfo = new PathInfo(pattern, pathOutline, GetNextSortId(), Design);
                 pathInfos.Add(pathInfo);
+                if (boundingRect == RectangleF.Empty)
+                    boundingRect = pathInfo.BoundingRectangle;
+                else
+                    boundingRect = Tools.GetBoundingRectangleF(boundingRect, pathInfo.BoundingRectangle);
             }
         }
 

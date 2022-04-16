@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.picOutline = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.BtnOK = new System.Windows.Forms.Button();
@@ -36,24 +37,35 @@
             this.BtnSort = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.cboDisplayMode = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtZoomPercent = new System.Windows.Forms.TextBox();
+            this.cboMode = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.setStartPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setEndPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // picOutline
             // 
             this.picOutline.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.picOutline.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.picOutline.Location = new System.Drawing.Point(318, 41);
+            this.picOutline.Location = new System.Drawing.Point(321, 99);
             this.picOutline.Name = "picOutline";
             this.picOutline.Size = new System.Drawing.Size(300, 300);
             this.picOutline.TabIndex = 0;
             this.picOutline.TabStop = false;
             this.picOutline.Paint += new System.Windows.Forms.PaintEventHandler(this.picOutline_Paint);
+            this.picOutline.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picOutline_MouseDown);
+            this.picOutline.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picOutline_MouseMove);
+            this.picOutline.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picOutline_MouseUp);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 17);
+            this.label1.Location = new System.Drawing.Point(12, 75);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(73, 13);
             this.label1.TabIndex = 2;
@@ -61,7 +73,7 @@
             // 
             // BtnOK
             // 
-            this.BtnOK.Location = new System.Drawing.Point(475, 12);
+            this.BtnOK.Location = new System.Drawing.Point(475, 35);
             this.BtnOK.Name = "BtnOK";
             this.BtnOK.Size = new System.Drawing.Size(62, 23);
             this.BtnOK.TabIndex = 3;
@@ -70,7 +82,7 @@
             // 
             // BtnCancel
             // 
-            this.BtnCancel.Location = new System.Drawing.Point(543, 12);
+            this.BtnCancel.Location = new System.Drawing.Point(543, 35);
             this.BtnCancel.Name = "BtnCancel";
             this.BtnCancel.Size = new System.Drawing.Size(75, 23);
             this.BtnCancel.TabIndex = 4;
@@ -81,14 +93,14 @@
             // 
             this.pnlOutlines.AutoScroll = true;
             this.pnlOutlines.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.pnlOutlines.Location = new System.Drawing.Point(15, 41);
+            this.pnlOutlines.Location = new System.Drawing.Point(15, 99);
             this.pnlOutlines.Name = "pnlOutlines";
             this.pnlOutlines.Size = new System.Drawing.Size(297, 300);
             this.pnlOutlines.TabIndex = 7;
             // 
             // BtnSort
             // 
-            this.BtnSort.Location = new System.Drawing.Point(113, 12);
+            this.BtnSort.Location = new System.Drawing.Point(113, 70);
             this.BtnSort.Name = "BtnSort";
             this.BtnSort.Size = new System.Drawing.Size(54, 23);
             this.BtnSort.TabIndex = 8;
@@ -98,7 +110,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(318, 17);
+            this.label2.Location = new System.Drawing.Point(318, 40);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(44, 13);
             this.label2.TabIndex = 9;
@@ -108,17 +120,81 @@
             // 
             this.cboDisplayMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboDisplayMode.FormattingEnabled = true;
-            this.cboDisplayMode.Location = new System.Drawing.Point(368, 14);
+            this.cboDisplayMode.Location = new System.Drawing.Point(368, 37);
             this.cboDisplayMode.Name = "cboDisplayMode";
             this.cboDisplayMode.Size = new System.Drawing.Size(76, 21);
             this.cboDisplayMode.TabIndex = 10;
             this.cboDisplayMode.SelectedIndexChanged += new System.EventHandler(this.cboDisplayMode_SelectedIndexChanged);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(314, 75);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(48, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Zoom %:";
+            // 
+            // txtZoomPercent
+            // 
+            this.txtZoomPercent.AcceptsReturn = true;
+            this.txtZoomPercent.Location = new System.Drawing.Point(368, 72);
+            this.txtZoomPercent.Name = "txtZoomPercent";
+            this.txtZoomPercent.Size = new System.Drawing.Size(49, 20);
+            this.txtZoomPercent.TabIndex = 12;
+            this.txtZoomPercent.Text = "100";
+            this.txtZoomPercent.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.txtZoomPercent.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtZoomPercent_KeyUp);
+            // 
+            // cboMode
+            // 
+            this.cboMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboMode.FormattingEnabled = true;
+            this.cboMode.Location = new System.Drawing.Point(475, 72);
+            this.cboMode.Name = "cboMode";
+            this.cboMode.Size = new System.Drawing.Size(143, 21);
+            this.cboMode.TabIndex = 14;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(432, 75);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(37, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "Mode:";
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setStartPointToolStripMenuItem,
+            this.setEndPointToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(149, 48);
+            // 
+            // setStartPointToolStripMenuItem
+            // 
+            this.setStartPointToolStripMenuItem.Name = "setStartPointToolStripMenuItem";
+            this.setStartPointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setStartPointToolStripMenuItem.Text = "Set Start Point";
+            this.setStartPointToolStripMenuItem.Click += new System.EventHandler(this.setStartPointToolStripMenuItem_Click);
+            // 
+            // setEndPointToolStripMenuItem
+            // 
+            this.setEndPointToolStripMenuItem.Name = "setEndPointToolStripMenuItem";
+            this.setEndPointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setEndPointToolStripMenuItem.Text = "Set  End Point";
+            this.setEndPointToolStripMenuItem.Click += new System.EventHandler(this.setEndPointToolStripMenuItem_Click);
+            // 
             // FrmPathOutlineList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(630, 351);
+            this.ClientSize = new System.Drawing.Size(630, 407);
+            this.Controls.Add(this.cboMode);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.txtZoomPercent);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.cboDisplayMode);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.BtnSort);
@@ -131,6 +207,7 @@
             this.Text = "Path Outlines Editor";
             this.Load += new System.EventHandler(this.FrmPathOutlineList_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).EndInit();
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -146,5 +223,12 @@
         private System.Windows.Forms.Button BtnSort;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cboDisplayMode;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtZoomPercent;
+        private System.Windows.Forms.ComboBox cboMode;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem setStartPointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setEndPointToolStripMenuItem;
     }
 }

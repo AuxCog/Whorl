@@ -3288,7 +3288,7 @@ namespace Whorl
             return curvePoints;
         }
 
-        protected void TransformCurvePoints(PointF[] curvePoints)
+        public void TransformCurvePoints(PointF[] curvePoints)
         {
             bool stretch = StretchFactor != 1F;
             if (!(FlipX || stretch) || curvePoints == null || curvePoints.Length == 0)
