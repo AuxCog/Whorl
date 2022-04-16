@@ -87,7 +87,7 @@ namespace Whorl
 
         public int MaxPathPoints { get; set; } = 10000;
 
-        private List<PointF> pathPoints { get; set; }
+        protected List<PointF> pathPoints { get; set; }
 
         public IEnumerable<PointF> PathPoints => pathPoints;
 
@@ -281,7 +281,7 @@ namespace Whorl
 
         public Complex FinishUserDefinedVertices()
         {
-            Complex zVector = Complex.One;
+            Complex zVector = Complex.DefaultZVector;
             if (UserDefinedVertices || HasLineVertices)
             {
                 if (!HasCurveVertices && SegmentVertices != null)
@@ -326,9 +326,9 @@ namespace Whorl
         //    pathVertices.Add(vertex);
         //}
 
-        public Complex ComputePathPoints()
+        public virtual Complex ComputePathPoints()
         {
-            Complex zVector = Complex.One;
+            Complex zVector = Complex.DefaultZVector;
             if (!UseVertices)
                 return zVector;
             if (HasLineVertices)
@@ -391,7 +391,7 @@ namespace Whorl
                 if (SegmentVertices != null)
                     return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
                 else
-                    return Complex.One;
+                    return Complex.DefaultZVector;
             }
             PointF center = SegmentVerticesCenter;
             pathPoints = pathPoints.Select(
@@ -615,7 +615,7 @@ namespace Whorl
             //return steps;
         }
 
-        public bool ComputeLinePathPoints()
+        private bool ComputeLinePathPoints()
         {
             if (!(UseSingleOutline && HasLineVertices))
                 return false;

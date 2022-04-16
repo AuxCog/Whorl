@@ -8,6 +8,7 @@ namespace ParserEngine
         static readonly private double halfOfRoot2 = 0.5 * Math.Sqrt(2);
         static readonly public Complex One = new Complex(1, 0);
         static readonly public Complex Zero = new Complex(0, 0);
+        static readonly public Complex DefaultZVector = new Complex(100, 0);
         static readonly public Complex I = new Complex(0, 1);
         static readonly public Complex MaxValue = new Complex(double.MaxValue, double.MaxValue);
         static readonly public Complex MinValue = new Complex(double.MinValue, double.MinValue);

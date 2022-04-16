@@ -271,6 +271,18 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
+        public static int FindClosestIndex(PointF p, PointF[] points, double bufferSize = 30.0)
+        {
+            var infos = Enumerable.Range(0, points.Length)
+                        .Select(i => new Tuple<int, double>(i, Tools.DistanceSquared(p, points[i])))
+                        .Where(tpl => tpl.Item2 <= bufferSize)
+                        .OrderBy(tpl => tpl.Item2).ThenBy(tpl => tpl.Item1);
+            if (infos.Any())
+                return infos.First().Item1;
+            else
+                return -1;
+        }
+
         public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
         {
             var pathOutline = basicOutline as PathOutline;

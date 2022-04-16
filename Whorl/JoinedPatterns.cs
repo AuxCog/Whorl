@@ -383,6 +383,18 @@ namespace Whorl
             return true;
         }
 
+        public static int FindClosestIndex(PointF p, PointF[] points, double bufferSize = 30.0)
+        {
+            var infos = Enumerable.Range(0, points.Length)
+                        .Select(i => new Tuple<int, double>(i, Tools.DistanceSquared(p, points[i])))
+                        .Where(tpl => tpl.Item2 <= bufferSize)
+                        .OrderBy(tpl => tpl.Item2).ThenBy(tpl => tpl.Item1);
+            if (infos.Any())
+                return infos.First().Item1;
+            else
+                return -1;
+        }
+
         public static int FindInsertIndex(Pattern pattern, PointF joinPoint, double bufferSize = 30.0)
         {
             if (pattern.CurvePoints == null)
@@ -390,14 +402,7 @@ namespace Whorl
                 if (!pattern.ComputeCurvePoints(pattern.ZVector))
                     return -1;
             }
-            var infos = Enumerable.Range(0, pattern.CurvePoints.Length)
-                        .Select(i => new Tuple<int, double>(i, Tools.DistanceSquared(joinPoint, pattern.CurvePoints[i])))
-                        .Where(tpl => tpl.Item2 <= bufferSize)
-                        .OrderBy(tpl => tpl.Item2).ThenBy(tpl => tpl.Item1);
-            if (infos.Any())
-                return infos.First().Item1;
-            else
-                return -1;
+            return Tools.FindClosestIndex(joinPoint, pattern.CurvePoints, bufferSize);
         }
 
         //private void AppendPatternXml(XmlNode parentNode, Pattern pattern, string nodeName, XmlTools xmlTools)
