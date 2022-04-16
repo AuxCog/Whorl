@@ -569,22 +569,6 @@ namespace Whorl
         {
             if (!HasLineVertices) return;
             verticesIndex = 0;
-            List<PointF> vertices = new List<PointF>(LineVertices);
-            //Add first vertex to end of list if not there:
-            if (HasClosedPath)
-                Tools.ClosePoints(vertices);
-            userVertexInfos = new UserVertexInfo[vertices.Count - 1];
-            int index = 0;
-            for (int i = 0; i < vertices.Count - 1; i++)
-            {
-                PointF vertex = vertices[i];
-                PointF nextVertex = vertices[i + 1];
-                int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
-                PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
-                                               (nextVertex.Y - vertex.Y) / steps);
-                userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
-                index += steps;
-            }
         }
 
         //private void InitComputePolygon(int rotationSteps)
@@ -620,14 +604,15 @@ namespace Whorl
 
         public int GetVertexSteps()
         {
-            int steps;
-            if (HasLineVertices)
-                steps = userVertexInfos.Select(v => v.Steps).Sum();
-            else if (pathPoints != null)
-                steps = pathPoints.Count;
+            //int steps;
+            //if (HasLineVertices)
+            //    steps = userVertexInfos.Select(v => v.Steps).Sum();
+            //else 
+            if (pathPoints != null)
+                return pathPoints.Count;
             else
-                throw new Exception("pathVertices is null for curve.");
-            return steps;
+                throw new Exception("pathPoints is null for PathOutline.");
+            //return steps;
         }
 
         public bool ComputeLinePathPoints()
@@ -638,22 +623,38 @@ namespace Whorl
             if (LineVertices == null || LineVertices.Count < 3)
                 return false;
             InitComputePolygon();
+            List<PointF> vertices = new List<PointF>(LineVertices);
+            //Add first vertex to end of list if not there:
+            if (HasClosedPath)
+                Tools.ClosePoints(vertices);
+            var userVertexInfos = new UserVertexInfo[vertices.Count - 1];
+            int index = 0;
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                PointF vertex = vertices[i];
+                PointF nextVertex = vertices[i + 1];
+                int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
+                PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
+                                               (nextVertex.Y - vertex.Y) / steps);
+                userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
+                index += steps;
+            }
             PointF p = Point.Empty;
-            int maxInd = userVertexInfos.Select(v => v.Steps).Sum(); ;
+            int maxInd = userVertexInfos.Select(v => v.Steps).Sum();
             for (int ind = 0; ind < maxInd; ind++)
             {
-                UserVertexInfo pInfo = userVertexInfos[verticesIndex];
-                if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
+                UserVertexInfo uvInfo = userVertexInfos[verticesIndex];
+                if (ind == uvInfo.Index + uvInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
                 {
-                    pInfo = userVertexInfos[++verticesIndex];
+                    uvInfo = userVertexInfos[++verticesIndex];
                 }
-                if (ind == pInfo.Index)
+                if (ind == uvInfo.Index)
                 {
-                    p = pInfo.UserVertex;
+                    p = uvInfo.UserVertex;
                 }
                 else
                 {
-                    p = new PointF(p.X + pInfo.UnitVector.X, p.Y + pInfo.UnitVector.Y);
+                    p = new PointF(p.X + uvInfo.UnitVector.X, p.Y + uvInfo.UnitVector.Y);
                 }
                 pathPoints.Add(p);
             }
@@ -697,8 +698,8 @@ namespace Whorl
             //return modulus;
         }
 
-        private PointF currPolygonPoint { get; set; }
-        private UserVertexInfo[] userVertexInfos { get; set; }
+        //private PointF currPolygonPoint { get; set; }
+        //private UserVertexInfo[] userVertexInfos { get; set; }
         private int verticesIndex = 0;
         private int prevVerticesIndex = -1;
         private Complex zP0;

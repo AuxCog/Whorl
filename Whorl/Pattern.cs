@@ -2819,7 +2819,6 @@ namespace Whorl
                         if (pathOutline != null)
                         {
                             if (pathOutline.UseSingleOutline && seedVerticesOutline == null)
-                            //if (pathOutline.PolygonUserVertices && seedVerticesOutline == null)
                             {
                                 seedVerticesOutline = pathOutline;
                                 pointCount = seedVerticesOutline.GetVertexSteps();
@@ -2908,7 +2907,9 @@ namespace Whorl
                     transform.FinalizeSettings();
                 }
                 if (!seedPatternIsPath)
+                {
                     SeedPoints[SeedPoints.Length - 1] = SeedPoints[0];  //Close the curve.
+                }
                 SeedPointsNormalizationFactor = maxModulus == 0 ? 1F : 1F / (float)Math.Abs(maxModulus);
                 for (int i = 0; i < SeedPoints.Length; i++)
                     SeedPoints[i].Modulus *= SeedPointsNormalizationFactor;

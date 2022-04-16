@@ -14,6 +14,11 @@ namespace Whorl
             Modulus = modulus;
         }
 
+        public bool IsEqual(PolarCoord pc) 
+        { 
+            return Angle == pc.Angle && Modulus == pc.Modulus; 
+        }
+
         public PointF ToRectangular()
         {
             return new PointF(Modulus * (float)Math.Cos(Angle), Modulus * (float)Math.Sin(Angle));
