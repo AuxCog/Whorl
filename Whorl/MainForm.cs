@@ -9191,5 +9191,36 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private FrmPathOutlineList frmPathOutlineList { get; set; }
+
+        private void editSelectedPathOutlinesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selPatterns = Design.EnabledPatterns.Where(
+                                  x => x.Selected &&
+                                  PathOutlineList.GetPathOutlines(x).Any());
+                if (!selPatterns.Any())
+                {
+                    MessageBox.Show("Please select at least 1 pattern with a valid path outline.");
+                    return;
+                }
+                if (pathOutlineList == null)
+                    pathOutlineList = new PathOutlineList(Design);
+                else
+                    pathOutlineList.ClearPathInfos();
+                pathOutlineList.AddPathInfos(selPatterns);
+                if (frmPathOutlineList == null || frmPathOutlineList.IsDisposed)
+                    frmPathOutlineList = new FrmPathOutlineList();
+                frmPathOutlineList.Initialize(pathOutlineList, Design.DesignSize);
+                frmPathOutlineList.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
+        }
     }
 }

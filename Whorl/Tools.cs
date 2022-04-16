@@ -304,6 +304,15 @@ namespace Whorl
             float yMax = points.Select(p => p.Y).Max();
             return RectangleFromVertices(new PointF(xMin, yMin), new PointF(xMax, yMax));
         }
+
+        public static RectangleF GetBoundingRectangleF(RectangleF r1, RectangleF r2)
+        {
+            PointF topLeft = new PointF(Math.Min(r1.X, r2.X), Math.Min(r1.Y, r2.Y));
+            PointF bottomRight = new PointF(Math.Max(r1.Right, r2.Right), Math.Max(r1.Bottom, r2.Bottom));
+            SizeF sizeF = new SizeF(bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+            return new RectangleF(topLeft, sizeF);
+        }
+
         public static Rectangle GetBoundingRectangle(IEnumerable<Point> points, int padding = 0)
         {
             if (!points.Any())

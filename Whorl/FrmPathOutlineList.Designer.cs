@@ -32,9 +32,10 @@
             this.label1 = new System.Windows.Forms.Label();
             this.BtnOK = new System.Windows.Forms.Button();
             this.BtnCancel = new System.Windows.Forms.Button();
-            this.ChkDisplayResult = new System.Windows.Forms.CheckBox();
             this.pnlOutlines = new System.Windows.Forms.Panel();
             this.BtnSort = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.cboDisplayMode = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,6 +48,7 @@
             this.picOutline.Size = new System.Drawing.Size(300, 300);
             this.picOutline.TabIndex = 0;
             this.picOutline.TabStop = false;
+            this.picOutline.Paint += new System.Windows.Forms.PaintEventHandler(this.picOutline_Paint);
             // 
             // label1
             // 
@@ -75,18 +77,9 @@
             this.BtnCancel.Text = "Cancel";
             this.BtnCancel.UseVisualStyleBackColor = true;
             // 
-            // ChkDisplayResult
-            // 
-            this.ChkDisplayResult.AutoSize = true;
-            this.ChkDisplayResult.Location = new System.Drawing.Point(318, 16);
-            this.ChkDisplayResult.Name = "ChkDisplayResult";
-            this.ChkDisplayResult.Size = new System.Drawing.Size(93, 17);
-            this.ChkDisplayResult.TabIndex = 6;
-            this.ChkDisplayResult.Text = "Display Result";
-            this.ChkDisplayResult.UseVisualStyleBackColor = true;
-            // 
             // pnlOutlines
             // 
+            this.pnlOutlines.AutoScroll = true;
             this.pnlOutlines.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlOutlines.Location = new System.Drawing.Point(15, 41);
             this.pnlOutlines.Name = "pnlOutlines";
@@ -102,20 +95,41 @@
             this.BtnSort.Text = "Sort";
             this.BtnSort.UseVisualStyleBackColor = true;
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(318, 17);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(44, 13);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "Display:";
+            // 
+            // cboDisplayMode
+            // 
+            this.cboDisplayMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDisplayMode.FormattingEnabled = true;
+            this.cboDisplayMode.Location = new System.Drawing.Point(368, 14);
+            this.cboDisplayMode.Name = "cboDisplayMode";
+            this.cboDisplayMode.Size = new System.Drawing.Size(76, 21);
+            this.cboDisplayMode.TabIndex = 10;
+            this.cboDisplayMode.SelectedIndexChanged += new System.EventHandler(this.cboDisplayMode_SelectedIndexChanged);
+            // 
             // FrmPathOutlineList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(630, 351);
+            this.Controls.Add(this.cboDisplayMode);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.BtnSort);
             this.Controls.Add(this.pnlOutlines);
-            this.Controls.Add(this.ChkDisplayResult);
             this.Controls.Add(this.BtnCancel);
             this.Controls.Add(this.BtnOK);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.picOutline);
             this.Name = "FrmPathOutlineList";
             this.Text = "Path Outlines Editor";
+            this.Load += new System.EventHandler(this.FrmPathOutlineList_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -128,8 +142,9 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button BtnOK;
         private System.Windows.Forms.Button BtnCancel;
-        private System.Windows.Forms.CheckBox ChkDisplayResult;
         private System.Windows.Forms.Panel pnlOutlines;
         private System.Windows.Forms.Button BtnSort;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox cboDisplayMode;
     }
 }
