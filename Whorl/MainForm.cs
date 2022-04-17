@@ -9198,12 +9198,10 @@ namespace Whorl
         {
             try
             {
-                var selPatterns = Design.EnabledPatterns.Where(
-                                  x => x.Selected &&
-                                  PathOutlineListForForm.GetPathOutlines(x).Any());
+                var selPatterns = Design.EnabledPatterns.Where(x => x.Selected);
                 if (!selPatterns.Any())
                 {
-                    MessageBox.Show("Please select at least 1 pattern with a valid path outline.");
+                    MessageBox.Show("Please select at least 1 pattern.");
                     return;
                 }
                 if (pathOutlineListForForm == null)

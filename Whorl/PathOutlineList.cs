@@ -13,7 +13,7 @@ namespace Whorl
     {
         public class PathInfo
         {
-            public PathOutline PathOutline { get; private set; }
+            //public PathOutline PathOutline { get; private set; }
             public PathPattern PathPattern { get; protected set; }
             public int StartIndex { get; set; }
             public int EndIndex { get; set; }
@@ -27,11 +27,11 @@ namespace Whorl
                 SortId = sortId;
             }
 
-            public PathInfo(float sortId, PathOutline pathOutline, PathPattern pathPattern)
+            public PathInfo(float sortId, PathPattern pathPattern)
             {
                 SortId = sortId;
                 PathPattern = pathPattern;
-                SetPathOutline(pathOutline);
+                //SetPathOutline(pathOutline);
             }
 
             public PathInfo(XmlNode node, WhorlDesign design)
@@ -41,7 +41,7 @@ namespace Whorl
 
             public PathInfo(PathInfo source)
             {
-                SetPathOutline(new PathOutline(source.PathOutline));
+                //SetPathOutline(new PathOutline(source.PathOutline));
                 PathPattern = (PathPattern)source.PathPattern.GetCopy();
                 Tools.CopyProperties(this, source, excludedPropertyNames:
                                      new string[] { nameof(PathOutline), nameof(PathPattern) });
@@ -49,7 +49,7 @@ namespace Whorl
 
             public PathInfo(PathOutlineListForForm.PathInfoForForm pathInfoForForm)
             {
-                SetPathOutline(new PathOutline(pathInfoForForm.PathOutline));
+                //SetPathOutline(new PathOutline(pathInfoForForm.PathOutline));
                 PathPattern = (PathPattern)pathInfoForForm.PathPattern.GetCopy();
                 StartIndex = pathInfoForForm.StartIndex;
                 EndIndex = pathInfoForForm.EndIndex;
@@ -59,24 +59,24 @@ namespace Whorl
                 OrigZVector = pathInfoForForm.OrigZVector;
             }
 
-            public virtual void SetPathOutline(PathOutline pathOutline)
-            {
-                if (pathOutline == null)
-                    throw new ArgumentNullException("pathOutline cannot be null.");
-                pathOutline.ComputePathPoints();
-                if (pathOutline.PathPoints == null)
-                    throw new Exception("PathPoints is null for pathOutline");
-                PathOutline = pathOutline;
-                StartIndex = -1;
-                EndIndex = -1;
-                if (PathPattern != null)
-                {
-                    if (PathPattern.BasicOutlines.Count == 0)
-                        PathPattern.BasicOutlines.Add(pathOutline);
-                    else
-                        PathPattern.BasicOutlines[0] = pathOutline;
-                }
-            }
+            //public virtual void SetPathOutline(PathOutline pathOutline)
+            //{
+            //    if (pathOutline == null)
+            //        throw new ArgumentNullException("pathOutline cannot be null.");
+            //    pathOutline.ComputePathPoints();
+            //    if (pathOutline.PathPoints == null)
+            //        throw new Exception("PathPoints is null for pathOutline");
+            //    PathOutline = pathOutline;
+            //    StartIndex = -1;
+            //    EndIndex = -1;
+            //    if (PathPattern != null)
+            //    {
+            //        if (PathPattern.BasicOutlines.Count == 0)
+            //            PathPattern.BasicOutlines.Add(pathOutline);
+            //        else
+            //            PathPattern.BasicOutlines[0] = pathOutline;
+            //    }
+            //}
 
             public PointF[] ComputePathCurvePoints()
             {
@@ -95,7 +95,9 @@ namespace Whorl
             {
                 if (StartIndex < 0 || EndIndex < 0)
                     return null;
-                int pathLength = PathOutline.PathPoints.Count();
+                if (PathPattern.SeedPoints == null)
+                    PathPattern.ComputeSeedPoints();
+                int pathLength = PathPattern.SeedPoints.Length;
                 if (StartIndex >= pathLength)
                     return "StartIndex is out of bounds.";
                 else if (EndIndex >= pathLength)
@@ -104,13 +106,13 @@ namespace Whorl
                     return null;
             }
 
-            public static void ValidatePathOutline(PathOutline pathOutline)
-            {
-                if (pathOutline == null)
-                    throw new ArgumentNullException("pathOutline cannot be null.");
-                if (!pathOutline.UseVertices)
-                    throw new ArgumentException("Invalid pathOutline.");
-            }
+            //public static void ValidatePathOutline(PathOutline pathOutline)
+            //{
+            //    if (pathOutline == null)
+            //        throw new ArgumentNullException("pathOutline cannot be null.");
+            //    if (!pathOutline.UseVertices)
+            //        throw new ArgumentException("Invalid pathOutline.");
+            //}
 
             public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
             {
@@ -118,7 +120,7 @@ namespace Whorl
                     xmlNodeName = nameof(PathInfo);
                 XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
                 xmlTools.AppendXmlAttributesExcept(xmlNode, this, nameof(PathOutline));
-                PathOutline.ToXml(xmlNode, xmlTools);
+                //PathOutline.ToXml(xmlNode, xmlTools);
                 PathPattern.ToXml(xmlNode, xmlTools);
                 xmlNode.AppendChild(xmlTools.CreateXmlNode(nameof(OrigCenter), OrigCenter));
                 xmlNode.AppendChild(xmlTools.CreateXmlNode(nameof(OrigZVector), OrigZVector));
@@ -133,17 +135,17 @@ namespace Whorl
                     switch (childNode.Name)
                     {
                         case nameof(PathOutline):
-                            PathOutline = new PathOutline();
-                            PathOutline.FromXml(childNode);
-                            break;
-                        case nameof(PathPattern):
-                            PathPattern = (PathPattern)Pattern.CreatePatternFromXml(design, childNode, throwOnError: true);
+                            //PathOutline = new PathOutline();
+                            //PathOutline.FromXml(childNode);
                             break;
                         case nameof(OrigCenter):
                             OrigCenter = Tools.GetPointFFromXml(childNode);
                             break;
                         case nameof(OrigZVector):
                             OrigZVector = Tools.GetComplexFromXml(childNode);
+                            break;
+                        case nameof(PathPattern):
+                            PathPattern = (PathPattern)Pattern.CreatePatternFromXml(design, childNode, throwOnError: true);
                             break;
                     }
                 }
@@ -253,12 +255,12 @@ namespace Whorl
                 return 1F + pathInfos.Select(p => p.SortId).Max();
         }
 
-        protected void AddPathOutline(PathOutline pathOutline, PathPattern pathPattern)
-        {
-            PathInfo.ValidatePathOutline(pathOutline);
-            var copy = new PathOutline(pathOutline);
-            pathInfos.Add(new PathInfo(GetNextSortId(), copy, pathPattern));
-        }
+        //protected void AddPathOutline(PathOutline pathOutline, PathPattern pathPattern)
+        //{
+        //    PathInfo.ValidatePathOutline(pathOutline);
+        //    var copy = new PathOutline(pathOutline);
+        //    pathInfos.Add(new PathInfo(GetNextSortId(), copy, pathPattern));
+        //}
 
         public virtual void SortPathInfos()
         {
