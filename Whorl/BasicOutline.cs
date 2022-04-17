@@ -196,6 +196,8 @@ namespace Whorl
         /// </summary>
         public virtual bool UseSingleOutline => false;  //Overriden in PathOutline class.
 
+        public virtual bool NoCustomOutline => false;
+
         public BasicOutline()
         {
         }
@@ -267,9 +269,9 @@ namespace Whorl
                         AngleOffset = 0D;
                         computeAmplitude = RectangleComputeAmplitude;
                         break;
-                    case BasicOutlineTypes.Custom:
                     case BasicOutlineTypes.Path:
-                        if (customOutline == null)
+                    case BasicOutlineTypes.Custom:
+                        if (customOutline == null && !NoCustomOutline)
                             customOutline = new CustomOutline(this);
                         computeAmplitude = CustomComputeAmplitude;
                         break;
@@ -540,11 +542,15 @@ namespace Whorl
 
         protected double CustomComputeAmplitude(double angle)
         {
+            if (NoCustomOutline)
+                return 1;
             return customOutline.ComputeAmplitude(angle);
         }
 
         private double CustomMaxAmplitude()
         {
+            if (NoCustomOutline)
+                return 1;
             return customOutline.ComputeMaxAmplitude();
         }
 

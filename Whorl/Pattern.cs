@@ -4604,6 +4604,11 @@ namespace Whorl
                         if (pathOutline.UserDefinedVertices)
                             haveUserVertices = true;
                         break;
+                    case nameof(PathOutlineList):
+                        var pathOutlineList = new PathOutlineList(Design);
+                        pathOutlineList.FromXml(childNode);
+                        BasicOutlines.Add(pathOutlineList);
+                        break;
                     case "Center":
                         this.Center = Tools.GetPointFFromXml(childNode);
                         break;

@@ -324,6 +324,7 @@
     </Compile>
     <Compile Include="PathOutline.cs" />
     <Compile Include="PathOutlineList.cs" />
+    <Compile Include="PathOutlineListForForm.cs" />
     <Compile Include="PathPattern.cs" />
     <Compile Include="PatternBoundsInfo.cs" />
     <Compile Include="PatternGroupList.cs" />

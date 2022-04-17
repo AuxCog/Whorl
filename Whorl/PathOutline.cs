@@ -26,7 +26,8 @@ namespace Whorl
         {
             Normal,
             Lines,
-            Curve
+            Curve,
+            Custom
         }
 
         private class UserVertexInfo
@@ -311,7 +312,7 @@ namespace Whorl
         {
             get
             {
-                if (UserDefinedVertices)
+                if (UserDefinedVertices || DrawType == DrawTypes.Custom)
                     return true;
                 else
                 {
@@ -384,7 +385,7 @@ namespace Whorl
         /// Translate vertices so center is at (0, 0), and scale to have max modulus of 1.
         /// </summary>
         /// <returns></returns>
-        private Complex NormalizePathVertices()
+        protected Complex NormalizePathVertices()
         {
             if (HasLineVertices)
             {
@@ -400,7 +401,7 @@ namespace Whorl
             float factor = 1F / MaxPathFactor;
             pathPoints = pathPoints.Select(
                 p => new PointF(factor * p.X, factor * p.Y)).ToList();
-            if (pathPoints.Count >= 2 && !HasCurveVertices)
+            if (pathPoints.Count >= 2 && !HasCurveVertices && DrawType != DrawTypes.Custom)
             {
                 Complex zOrig = new Complex(pathPoints[0].X,
                                             pathPoints[0].Y);
@@ -423,7 +424,7 @@ namespace Whorl
 
         public void AddVertices()
         {
-            if (UserDefinedVertices)
+            if (UserDefinedVertices || DrawType == DrawTypes.Custom)
                 return;
             if (!UseVertices || !VerticesSettings.IsValid)
                 pathPoints = null;
@@ -525,6 +526,11 @@ namespace Whorl
                 }
                 else
                 {
+                    if (DrawType == DrawTypes.Custom)
+                    {
+                        if (pathPoints == null)
+                            ComputePathPoints();
+                    }
                     retVal = pathPoints != null && pathPoints.Count > 1;
                     if (retVal)
                     {

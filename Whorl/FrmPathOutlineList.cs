@@ -55,11 +55,11 @@ namespace Whorl
 
         private static readonly Size pictureBoxSize = new Size(75, 75);
 
-        private PathOutlineList pathOutlineList { get; set; }
-        private PathOutlineList.PathInfo[] pathInfos { get; set; }
+        private PathOutlineListForForm pathOutlineListForForm { get; set; }
+        private PathOutlineListForForm.PathInfoForForm[] pathInfos { get; set; }
         private List<OutlineInfo> outlineInfos { get; } = new List<OutlineInfo>();
         private List<PointInfo> pointInfos { get; } = new List<PointInfo>();
-        private Size designSize { get; set; }
+        //private Size designSize { get; set; }
         private int selectedRowIndex { get; set; } = -1;
         private double zoomFactor { get; set; } = 1;
         private Point[] panXYs { get; } = new Point[3];
@@ -67,6 +67,7 @@ namespace Whorl
         private Point dragStart { get; set; }
         private Point dragEnd { get; set; }
         private bool dragging { get; set; }
+        private string zoomText { get; set; }
 
         private void FrmPathOutlineList_Load(object sender, EventArgs e)
         {
@@ -77,6 +78,7 @@ namespace Whorl
                 cboMode.DataSource = Enum.GetValues(typeof(EditModes));
                 cboMode.SelectedItem = EditModes.Default;
                 PopulatePanel();
+                zoomText = txtZoomPercent.Text;
             }
             catch (Exception ex)
             {
@@ -94,15 +96,41 @@ namespace Whorl
             return (EditModes)cboMode.SelectedItem;
         }
 
-        public void Initialize(PathOutlineList pathOutlineList, Size designSize)
+        public void Initialize(PathOutlineListForForm pathOutlineList)
         {
             try
             {
-                this.pathOutlineList = pathOutlineList;
-                pathInfos = pathOutlineList.PathInfos.Where(p => p.PathPattern != null).ToArray();
-                this.designSize = designSize;
+                this.pathOutlineListForForm = pathOutlineList;
+                pathInfos = pathOutlineList.PathInfoForForms.ToArray();
+                //this.designSize = designSize;
                 for (int i = 0; i < panXYs.Length; i++)
                     panXYs[i] = new Point(0, 0);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void BtnOK_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DialogResult = DialogResult.OK;
+                Hide();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DialogResult = DialogResult.Cancel;
+                Hide();
             }
             catch (Exception ex)
             {
@@ -122,26 +150,48 @@ namespace Whorl
             return bitmap;
         }
 
+        private void UpdateInfos()
+        {
+            for (int i = 0; i < outlineInfos.Count; i++)
+            {
+                var info = outlineInfos[i];
+                pathInfos[i].Clockwise = info.ChkClockwise.Checked;
+            }
+        }
+
+        private bool SortInfos()
+        {
+            bool changed = false;
+            for (int i = 0; i < outlineInfos.Count; i++)
+            {
+                var info = outlineInfos[i];
+                if (float.TryParse(info.TxtSortId.Text, out float x))
+                {
+                    if (pathInfos[i].SortId != x)
+                    {
+                        pathInfos[i].SortId = x;
+                        changed = true;
+                    }
+                }
+                else
+                {
+                    throw new CustomException("Please enter a number for Sort.");
+                }
+            }
+            if (changed)
+            {
+                pathOutlineListForForm.SortPathInfos();
+                pathInfos = pathOutlineListForForm.PathInfoForForms.ToArray();
+                PopulatePanel();
+            }
+            return changed;
+        }
+
         private void BtnSort_Click(object sender, EventArgs e)
         {
             try
             {
-                for (int i = 0; i < outlineInfos.Count; i++)
-                {
-                    var info = outlineInfos[i];
-                    if (float.TryParse(info.TxtSortId.Text, out float x))
-                    {
-                        pathInfos[i].SortId = x;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Please enter a number for Sort.");
-                        return;
-                    }
-                }
-                pathOutlineList.SortPathInfos();
-                pathInfos = pathOutlineList.PathInfos.Where(p => p.PathPattern != null).ToArray();
-                PopulatePanel();
+                SortInfos();
             }
             catch (Exception ex)
             {
@@ -176,6 +226,14 @@ namespace Whorl
         {
             try
             {
+                if (GetDisplayMode() == DisplayModes.Result)
+                {
+                    if (pathOutlineListForForm.ResultPathPattern == null)
+                    {
+                        if (!CreateResultOutline())
+                            return;
+                    }
+                }
                 picOutline.Refresh();
             }
             catch (Exception ex)
@@ -184,22 +242,86 @@ namespace Whorl
             }
         }
 
-        private void txtZoomPercent_KeyUp(object sender, KeyEventArgs e)
+        private void SetZoom()
+        {
+            if (txtZoomPercent.Text == zoomText)
+                return;
+            if (double.TryParse(txtZoomPercent.Text, out double value))
+            {
+                zoomFactor = 0.01 * value;
+                zoomText = txtZoomPercent.Text;
+                picOutline.Refresh();
+            }
+        }
+
+        private bool CreateResultOutline()
+        {
+            string errMessage = pathOutlineListForForm.Validate();
+            if (errMessage != null)
+            {
+                MessageBox.Show(errMessage);
+                return false;
+            }
+            SortInfos();
+            UpdateInfos();
+            pathOutlineListForForm.SetResultPathPattern();
+            return true;
+        }
+
+        private void computeResultOutlineToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                if (e.KeyCode == Keys.Enter)
+                if (CreateResultOutline())
+                    picOutline.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void overlayResultOutlineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (overlayResultOutlineToolStripMenuItem.Checked)
                 {
-                    if (double.TryParse(txtZoomPercent.Text, out double value))
+                    if (pathOutlineListForForm.ResultPathPattern == null)
                     {
-                        double fac = 0.01 * value;
-                        if (zoomFactor != fac)
+                        if (!CreateResultOutline())
                         {
-                            zoomFactor = fac;
-                            picOutline.Refresh();
+                            overlayResultOutlineToolStripMenuItem.Checked = false;
+                            return;
                         }
                     }
                 }
+                picOutline.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void txtZoomPercent_Leave(object sender, EventArgs e)
+        {
+            try
+            {
+                SetZoom();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void txtZoomPercent_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            try
+            {
+                if (e.KeyChar == '\r')
+                    SetZoom();
             }
             catch (Exception ex)
             {
@@ -394,13 +516,18 @@ namespace Whorl
             }
         }
 
-        private void ShowPoint(Graphics g, PathOutlineList.PathInfo pathInfo, int index, 
+        private void ShowPoint(Graphics g, PathOutlineListForForm.PathInfoForForm pathInfo, int index, 
                                bool isStart, bool isSelected)
         {
             if (index >= 0)
             {
                 PointF pt = pathInfo.GetCurvePoint(index);
-                Tools.DrawSquare(g, isStart ? Color.Blue : Color.LimeGreen, pt, size: isSelected ? 3 : 1);
+                Color color;
+                if (isSelected)
+                    color = isStart ? Color.Blue : Color.LimeGreen;
+                else
+                    color = Color.Yellow;
+                Tools.DrawSquare(g, color, pt, size: isSelected ? 3 : 1);
             }
         }
 
@@ -419,7 +546,7 @@ namespace Whorl
                 }
                 else if (displayMode == DisplayModes.All)
                 {
-                    pathOutlineList.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
+                    pathOutlineListForForm.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
                     for (int i = 0; i < pathInfos.Length; i++)
                     {
                         var pathInfo = pathInfos[i];
@@ -445,6 +572,14 @@ namespace Whorl
                             ShowPoint(e.Graphics, pathInfo, pathInfo.StartIndex, isStart: true, isSelected: false);
                             ShowPoint(e.Graphics, pathInfo, pathInfo.EndIndex, isStart: false, isSelected: false);
                         }
+                    }
+                }
+                if (displayMode == DisplayModes.Result || overlayResultOutlineToolStripMenuItem.Checked)
+                {
+                    var pattern = pathOutlineListForForm.ResultPathPattern;
+                    if (pattern != null)
+                    {
+                        pattern.DrawFilled(e.Graphics, null);
                     }
                 }
             }

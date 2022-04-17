@@ -49,6 +49,8 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetPanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.overlayResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.computeResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -85,6 +87,7 @@
             this.BtnOK.TabIndex = 3;
             this.BtnOK.Text = "OK";
             this.BtnOK.UseVisualStyleBackColor = true;
+            this.BtnOK.Click += new System.EventHandler(this.BtnOK_Click);
             // 
             // BtnCancel
             // 
@@ -94,6 +97,7 @@
             this.BtnCancel.TabIndex = 4;
             this.BtnCancel.Text = "Cancel";
             this.BtnCancel.UseVisualStyleBackColor = true;
+            this.BtnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
             // pnlOutlines
             // 
@@ -151,7 +155,8 @@
             this.txtZoomPercent.TabIndex = 12;
             this.txtZoomPercent.Text = "100";
             this.txtZoomPercent.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.txtZoomPercent.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtZoomPercent_KeyUp);
+            this.txtZoomPercent.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtZoomPercent_KeyPress);
+            this.txtZoomPercent.Leave += new System.EventHandler(this.txtZoomPercent_Leave);
             // 
             // cboMode
             // 
@@ -222,7 +227,9 @@
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.resetPanToolStripMenuItem});
+            this.resetPanToolStripMenuItem,
+            this.overlayResultOutlineToolStripMenuItem,
+            this.computeResultOutlineToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -233,6 +240,21 @@
             this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.resetPanToolStripMenuItem.Text = "Reset Pan";
             this.resetPanToolStripMenuItem.Click += new System.EventHandler(this.resetPanToolStripMenuItem_Click);
+            // 
+            // overlayResultOutlineToolStripMenuItem
+            // 
+            this.overlayResultOutlineToolStripMenuItem.CheckOnClick = true;
+            this.overlayResultOutlineToolStripMenuItem.Name = "overlayResultOutlineToolStripMenuItem";
+            this.overlayResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.overlayResultOutlineToolStripMenuItem.Text = "Overlay Result Outline";
+            this.overlayResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.overlayResultOutlineToolStripMenuItem_Click);
+            // 
+            // computeResultOutlineToolStripMenuItem
+            // 
+            this.computeResultOutlineToolStripMenuItem.Name = "computeResultOutlineToolStripMenuItem";
+            this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.computeResultOutlineToolStripMenuItem.Text = "Compute Result Outline";
+            this.computeResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.computeResultOutlineToolStripMenuItem_Click);
             // 
             // FrmPathOutlineList
             // 
@@ -286,5 +308,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetPanToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem overlayResultOutlineToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem computeResultOutlineToolStripMenuItem;
     }
 }

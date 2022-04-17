@@ -70,6 +70,7 @@
             this.copySelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mergeSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editSelectedPathOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.alwaysFillMovedPattternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -277,8 +278,9 @@
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelDrawOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.editSelectedPathOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -634,6 +636,13 @@
             this.joinSelectedPatternsToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
             this.joinSelectedPatternsToolStripMenuItem.Text = "Join Selected Patterns";
             this.joinSelectedPatternsToolStripMenuItem.Click += new System.EventHandler(this.joinSelectedPatternsToolStripMenuItem_Click);
+            // 
+            // editSelectedPathOutlinesToolStripMenuItem
+            // 
+            this.editSelectedPathOutlinesToolStripMenuItem.Name = "editSelectedPathOutlinesToolStripMenuItem";
+            this.editSelectedPathOutlinesToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
+            this.editSelectedPathOutlinesToolStripMenuItem.Text = "Edit Selected Path Outlines";
+            this.editSelectedPathOutlinesToolStripMenuItem.Click += new System.EventHandler(this.editSelectedPathOutlinesToolStripMenuItem_Click);
             // 
             // groupSelectedPatternsToolStripMenuItem
             // 
@@ -1615,7 +1624,7 @@
             this.pasteCopiedPatternsToolStripMenuItem,
             this.mergedPatternToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 356);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(245, 378);
             // 
             // selectPatternToolStripMenuItem
             // 
@@ -2050,7 +2059,9 @@
             // 
             this.pathToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fillPathToolStripMenuItem,
-            this.showPathToolStripMenuItem});
+            this.showPathToolStripMenuItem,
+            this.editPathOutlineListToolStripMenuItem,
+            this.splitPathOutlineListToolStripMenuItem});
             this.pathToolStripMenuItem.Name = "pathToolStripMenuItem";
             this.pathToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.pathToolStripMenuItem.Text = "Path";
@@ -2058,7 +2069,7 @@
             // fillPathToolStripMenuItem
             // 
             this.fillPathToolStripMenuItem.Name = "fillPathToolStripMenuItem";
-            this.fillPathToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.fillPathToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.fillPathToolStripMenuItem.Text = "Fill Path";
             this.fillPathToolStripMenuItem.Click += new System.EventHandler(this.fillPathToolStripMenuItem_Click);
             // 
@@ -2066,7 +2077,7 @@
             // 
             this.showPathToolStripMenuItem.CheckOnClick = true;
             this.showPathToolStripMenuItem.Name = "showPathToolStripMenuItem";
-            this.showPathToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.showPathToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.showPathToolStripMenuItem.Text = "Show Path";
             // 
             // setLogoPatternToolStripMenuItem
@@ -2353,6 +2364,13 @@
             this.cancelDrawOutlineToolStripMenuItem.Text = "Cancel";
             this.cancelDrawOutlineToolStripMenuItem.Click += new System.EventHandler(this.cancelDrawOutlineToolStripMenuItem_Click);
             // 
+            // editPathOutlineListToolStripMenuItem
+            // 
+            this.editPathOutlineListToolStripMenuItem.Name = "editPathOutlineListToolStripMenuItem";
+            this.editPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.editPathOutlineListToolStripMenuItem.Text = "Edit PathOutlineList";
+            this.editPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.editPathOutlineListToolStripMenuItem_Click);
+            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2368,12 +2386,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // editSelectedPathOutlinesToolStripMenuItem
+            // splitPathOutlineListToolStripMenuItem
             // 
-            this.editSelectedPathOutlinesToolStripMenuItem.Name = "editSelectedPathOutlinesToolStripMenuItem";
-            this.editSelectedPathOutlinesToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
-            this.editSelectedPathOutlinesToolStripMenuItem.Text = "Edit Selected Path Outlines";
-            this.editSelectedPathOutlinesToolStripMenuItem.Click += new System.EventHandler(this.editSelectedPathOutlinesToolStripMenuItem_Click);
+            this.splitPathOutlineListToolStripMenuItem.Name = "splitPathOutlineListToolStripMenuItem";
+            this.splitPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.splitPathOutlineListToolStripMenuItem.Text = "Split PathOutlineList";
+            this.splitPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.splitPathOutlineListToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2659,6 +2677,8 @@
         private System.Windows.Forms.ToolStripMenuItem joinSelectedPatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem testJoinedPatternsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editSelectedPathOutlinesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editPathOutlineListToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem splitPathOutlineListToolStripMenuItem;
     }
 }
 
