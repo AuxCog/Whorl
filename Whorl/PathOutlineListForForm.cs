@@ -10,16 +10,17 @@ namespace Whorl
 {
     public class PathOutlineListForForm: PathOutlineList
     {
+        public class PathDetailForForm: PathOutlineList.PathDetail
+        {
+            public PathDetailForForm(PathInfoForForm pathInfo): base(pathInfo, 0)
+            {
+            }
+        }
         public class PathInfoForForm: PathInfo
         {
             public RectangleF BoundingRectangle { get; private set; }
-            public PointF[] FullCurvePoints { get; private set; }
 
-            private bool _fullPointsAreUpToDate;
-            public bool FullPointsAreUpToDate => FullCurvePoints != null && _fullPointsAreUpToDate;
-
-            public PathInfoForForm(Pattern pattern, float sortId, WhorlDesign design) :
-                   base(sortId)
+            public PathInfoForForm(Pattern pattern, float sortId, WhorlDesign design)
             {
                 OrigZVector = pattern.ZVector;
                 OrigCenter = pattern.Center;
@@ -36,7 +37,7 @@ namespace Whorl
                 BoundingRectangle = Tools.GetBoundingRectangleF(PathPattern.CurvePoints);
             }
 
-            public PathInfoForForm(PathOutlineList.PathInfo pathInfo) : base(pathInfo.SortId)
+            public PathInfoForForm(PathOutlineList.PathInfo pathInfo)
             {
                 OrigCenter = pathInfo.OrigCenter;
                 OrigZVector = pathInfo.OrigZVector;
@@ -46,8 +47,9 @@ namespace Whorl
                 //SetPathOutline(pathInfo.PathOutline);
                 PathPattern.ComputeCurvePoints(PathPattern.ZVector);
                 BoundingRectangle = Tools.GetBoundingRectangleF(PathPattern.CurvePoints);
-                StartIndex = pathInfo.StartIndex;
-                EndIndex = pathInfo.EndIndex;
+                //StartIndex = pathInfo.StartIndex;
+                //EndIndex = pathInfo.EndIndex;
+                PathDetails.AddRange(pathInfo.PathDetails);
                 Clockwise = pathInfo.Clockwise;
             }
 
@@ -96,17 +98,6 @@ namespace Whorl
                 pathPattern.ZVector = scale * origZVector;
             }
 
-            public void ComputePoints()
-            {
-                FullCurvePoints = ComputePathCurvePoints();
-                _fullPointsAreUpToDate = true;
-            }
-
-            public void ClearPoints()
-            {
-                FullCurvePoints = null;
-            }
-
             public int FindClosestIndex(PointF p, out PointF foundPoint)
             {
                 if (!FullPointsAreUpToDate)
@@ -118,16 +109,16 @@ namespace Whorl
                 return index;
             }
 
-            public void GetStartEndPoints(out PointF? startPoint, out PointF? endPoint)
+            public void GetStartEndPoints(PathDetail detail, out PointF? startPoint, out PointF? endPoint)
             {
                 startPoint = null;
                 endPoint = null;
-                if (StartIndex >= 0 || EndIndex >= 0)
+                if (detail.StartIndex >= 0 || detail.EndIndex >= 0)
                 {
-                    if (StartIndex >= 0)
-                        startPoint = GetCurvePoint(StartIndex);
-                    if (EndIndex >= 0)
-                        endPoint = GetCurvePoint(EndIndex);
+                    if (detail.StartIndex >= 0)
+                        startPoint = GetCurvePoint(detail.StartIndex);
+                    if (detail.EndIndex >= 0)
+                        endPoint = GetCurvePoint(detail.EndIndex);
                 }
             }
 
@@ -175,10 +166,10 @@ namespace Whorl
             boundingRect = RectangleF.Empty;
         }
 
-        public override void SortPathInfos()
-        {
-            pathInfoForForms = pathInfoForForms.OrderBy(i => i.SortId).ToList();
-        }
+        //public override void SortPathInfos()
+        //{
+        //    pathInfoForForms = pathInfoForForms.OrderBy(i => i.SortId).ToList();
+        //}
 
         //public static IEnumerable<PathOutline> GetPathOutlines(Pattern pattern)
         //{
@@ -194,19 +185,27 @@ namespace Whorl
             {
                 pathInfo.SetForPreview(boundingRect, scale, center, panXY);
             }
-            if (ResultPathPattern != null && pathInfoForForms.Exists(p => p.StartIndex >= 0 && p.EndIndex >= 0))
+            if (ResultPathPattern != null && 
+                pathInfoForForms.Exists(p => p.PathDetails.Any(d => d.StartIndex >= 0 && d.EndIndex >= 0)))
             {
                 SetResultForPreview(picSize, panXY, zoom);
             }
+        }
+
+        private PathInfoForForm GetFirstPathInfo()
+        {
+            var detail1 = pathInfoForForms.SelectMany(p => p.PathDetails)
+                          .FirstOrDefault(p => p.StartIndex >= 0 && p.EndIndex >= 0);
+            if (detail1 == null)
+                throw new InvalidOperationException("No valid PathInfo found.");
+            return (PathInfoForForm)detail1.Parent;
         }
 
         public void SetResultForPreview(Size picSize, Point panXY, double zoom = 1)
         {
             if (ResultPathPattern == null)
                 throw new InvalidOperationException("ResultPathPattern is null.");
-            var pathInfo1 = pathInfoForForms.Find(p => p.StartIndex >= 0 && p.EndIndex >= 0);
-            if (pathInfo1 == null)
-                throw new InvalidOperationException("No valid PathInfo found.");
+            var pathInfo1 = GetFirstPathInfo();
             PathInfoForForm.GetPreviewValues(picSize, boundingRect, out double scale, out PointF center);
             scale *= zoom;
             PathInfoForForm.SetForPreview(ResultPathPattern, pathInfo1.OrigCenter,
@@ -217,12 +216,18 @@ namespace Whorl
         {
             if (ResultPathPattern == null)
                 throw new InvalidOperationException("ResultPathPattern is null.");
-            var pathInfo1 = pathInfoForForms.Find(p => p.StartIndex >= 0 && p.EndIndex >= 0);
-            if (pathInfo1 == null)
-                throw new InvalidOperationException("No valid PathInfo found.");
+            var pathInfo1 = GetFirstPathInfo();
             ResultPathPattern.Center = pathInfo1.OrigCenter;
             ResultPathPattern.ZVector = pathInfo1.OrigZVector;
         }
+
+        //protected override float GetNextSortId()
+        //{
+        //    if (pathInfoForForms.Count == 0)
+        //        return 1F;
+        //    else
+        //        return 1F + pathInfoForForms.Select(p => p.SortId).Max();
+        //}
 
         public void AddPathInfos(IEnumerable<Pattern> patterns)
         {
@@ -231,7 +236,7 @@ namespace Whorl
                 //PathOutline pathOutline = GetPathOutlines(pattern).FirstOrDefault();
                 //if (pathOutline == null)
                 //    throw new ArgumentException("Didn't find valid PathOutline in pattern.");
-                var pathInfo = new PathInfoForForm(pattern, GetNextSortId(), Design);
+                var pathInfo = new PathInfoForForm(pattern, 0, Design);
                 pathInfoForForms.Add(pathInfo);
                 if (boundingRect == RectangleF.Empty)
                     boundingRect = pathInfo.BoundingRectangle;

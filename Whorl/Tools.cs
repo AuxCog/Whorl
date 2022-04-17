@@ -76,7 +76,7 @@ namespace Whorl
                 g.DrawCurve(pen, points);
         }
 
-        public static double DistanceSquared(PointF p1, PointF p2)
+        public static float DistanceSquared(PointF p1, PointF p2)
         {
             PointF pDiff = new PointF(p1.X - p2.X, p1.Y - p2.Y);
             return pDiff.X * pDiff.X + pDiff.Y * pDiff.Y;
@@ -271,16 +271,27 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
-        public static int FindClosestIndex(PointF p, PointF[] points, double bufferSize = 30.0)
+        public static int FindClosestIndex(PointF p, PointF[] points, out float distanceSquared, float bufferSize = 30F)
         {
             var infos = Enumerable.Range(0, points.Length)
-                        .Select(i => new Tuple<int, double>(i, Tools.DistanceSquared(p, points[i])))
+                        .Select(i => new Tuple<int, float>(i, Tools.DistanceSquared(p, points[i])))
                         .Where(tpl => tpl.Item2 <= bufferSize)
                         .OrderBy(tpl => tpl.Item2).ThenBy(tpl => tpl.Item1);
             if (infos.Any())
+            {
+                distanceSquared = infos.First().Item2;
                 return infos.First().Item1;
+            }
             else
+            {
+                distanceSquared = 0;
                 return -1;
+            }
+        }
+
+        public static int FindClosestIndex(PointF p, PointF[] points, float bufferSize = 30F)
+        {
+            return FindClosestIndex(p, points, out _, bufferSize);
         }
 
         public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)

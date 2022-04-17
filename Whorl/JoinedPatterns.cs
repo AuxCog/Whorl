@@ -395,7 +395,7 @@ namespace Whorl
                 return -1;
         }
 
-        public static int FindInsertIndex(Pattern pattern, PointF joinPoint, double bufferSize = 30.0)
+        public static int FindInsertIndex(Pattern pattern, PointF joinPoint, float bufferSize = 30F)
         {
             if (pattern.CurvePoints == null)
             {

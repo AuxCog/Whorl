@@ -51,6 +51,7 @@
             this.resetPanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.overlayResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.computeResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.snapToIntersectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -229,7 +230,8 @@
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.resetPanToolStripMenuItem,
             this.overlayResultOutlineToolStripMenuItem,
-            this.computeResultOutlineToolStripMenuItem});
+            this.computeResultOutlineToolStripMenuItem,
+            this.snapToIntersectionsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -255,6 +257,13 @@
             this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
             this.computeResultOutlineToolStripMenuItem.Text = "Compute Result Outline";
             this.computeResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.computeResultOutlineToolStripMenuItem_Click);
+            // 
+            // snapToIntersectionsToolStripMenuItem
+            // 
+            this.snapToIntersectionsToolStripMenuItem.CheckOnClick = true;
+            this.snapToIntersectionsToolStripMenuItem.Name = "snapToIntersectionsToolStripMenuItem";
+            this.snapToIntersectionsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.snapToIntersectionsToolStripMenuItem.Text = "Snap to Intersections";
             // 
             // FrmPathOutlineList
             // 
@@ -310,5 +319,6 @@
         private System.Windows.Forms.ToolStripMenuItem resetPanToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem overlayResultOutlineToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem computeResultOutlineToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem snapToIntersectionsToolStripMenuItem;
     }
 }

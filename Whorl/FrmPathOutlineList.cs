@@ -38,14 +38,29 @@ namespace Whorl
         private class PointInfo
         {
             public PointF Point { get; }
-            public int Index { get; }
+            public int PatternIndex { get; }
             public bool IsStartPoint { get; }
+            public PathOutlineList.PathDetail PathDetail { get; }
 
-            public PointInfo(PointF point, int index, bool isStartPoint)
+            public PointInfo(PointF point, int index, bool isStartPoint, PathOutlineList.PathDetail pathDetail)
             {
                 Point = point;
-                Index = index;
+                PatternIndex = index;
                 IsStartPoint = isStartPoint;
+                PathDetail = pathDetail;
+            }
+        }
+        private class IntersectionInfo
+        {
+            public PointF Point { get; }
+            public int PointIndex { get; }
+            public int PatternIndex { get; }
+
+            public IntersectionInfo(PointF point, int pointIndex, int patternIndex)
+            {
+                Point = point;
+                PointIndex = pointIndex;
+                PatternIndex = patternIndex;
             }
         }
         public FrmPathOutlineList()
@@ -159,39 +174,39 @@ namespace Whorl
             }
         }
 
-        private bool SortInfos()
-        {
-            bool changed = false;
-            for (int i = 0; i < outlineInfos.Count; i++)
-            {
-                var info = outlineInfos[i];
-                if (float.TryParse(info.TxtSortId.Text, out float x))
-                {
-                    if (pathInfos[i].SortId != x)
-                    {
-                        pathInfos[i].SortId = x;
-                        changed = true;
-                    }
-                }
-                else
-                {
-                    throw new CustomException("Please enter a number for Sort.");
-                }
-            }
-            if (changed)
-            {
-                pathOutlineListForForm.SortPathInfos();
-                pathInfos = pathOutlineListForForm.PathInfoForForms.ToArray();
-                PopulatePanel();
-            }
-            return changed;
-        }
+        //private bool SortInfos()
+        //{
+        //    bool changed = false;
+        //    for (int i = 0; i < outlineInfos.Count; i++)
+        //    {
+        //        var info = outlineInfos[i];
+        //        if (float.TryParse(info.TxtSortId.Text, out float x))
+        //        {
+        //            if (pathInfos[i].SortId != x)
+        //            {
+        //                pathInfos[i].SortId = x;
+        //                changed = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            throw new CustomException("Please enter a number for Sort.");
+        //        }
+        //    }
+        //    if (changed)
+        //    {
+        //        pathOutlineListForForm.SortPathInfos();
+        //        pathInfos = pathOutlineListForForm.PathInfoForForms.ToArray();
+        //        PopulatePanel();
+        //    }
+        //    return changed;
+        //}
 
         private void BtnSort_Click(object sender, EventArgs e)
         {
             try
             {
-                SortInfos();
+                //SortInfos();
             }
             catch (Exception ex)
             {
@@ -262,7 +277,7 @@ namespace Whorl
                 MessageBox.Show(errMessage);
                 return false;
             }
-            SortInfos();
+            //SortInfos();
             UpdateInfos();
             pathOutlineListForForm.SetResultPathPattern();
             return true;
@@ -335,11 +350,14 @@ namespace Whorl
             for (int i = 0; i < pathInfos.Length; i++)
             {
                 var pathInfo = pathInfos[i];
-                pathInfo.GetStartEndPoints(out PointF? startP, out PointF? endP);
-                if (startP != null)
-                    pointInfos.Add(new PointInfo((PointF)startP, i, isStartPoint: true));
-                if (endP != null)
-                    pointInfos.Add(new PointInfo((PointF)endP, i, isStartPoint: false));
+                foreach (var detail in pathInfo.PathDetails)
+                {
+                    pathInfo.GetStartEndPoints(detail, out PointF? startP, out PointF? endP);
+                    if (startP != null)
+                        pointInfos.Add(new PointInfo((PointF)startP, i, isStartPoint: true, detail));
+                    if (endP != null)
+                        pointInfos.Add(new PointInfo((PointF)endP, i, isStartPoint: false, detail));
+                }
             }
         }
 
@@ -349,34 +367,41 @@ namespace Whorl
                 return;
             var pathInfo = pathInfos[selectedRowIndex];
             int index = -1;
-            PointF foundPoint = PointF.Empty;
-            if (lockToPoints)
+            SetAllStartEndPoints();
+            PointF[] joinPoints = pointInfos.Select(pi => pi.Point).ToArray();
+            int pointInfosIndex = Tools.FindClosestIndex(p, joinPoints);
+            if (pointInfosIndex >= 0)
             {
-                SetAllStartEndPoints();
-                PointF[] joinPoints = pointInfos.Select(pi => pi.Point).ToArray();
-                index = Tools.FindClosestIndex(p, joinPoints);
-                if (index >= 0)
+                if (lockToPoints)
                 {
-                    PointF lockPoint = joinPoints[index];
+                    PointF lockPoint = joinPoints[pointInfosIndex];
                     index = pathInfo.FindClosestIndex(lockPoint, out PointF p2);
-                    if (index >= 0)
-                        foundPoint = p2;
                 }
             }
             if (index < 0)
-                index = pathInfo.FindClosestIndex(p, out foundPoint);
-            if (index < 0)
             {
-                MessageBox.Show("Didn't find the point on the path outline.");
-                return;
+                index = pathInfo.FindClosestIndex(p, out _);
+                if (index < 0)
+                {
+                    MessageBox.Show("Didn't find the point on the path outline.");
+                    return;
+                }
+            }
+            PathOutlineList.PathDetail detail;
+            if (pointInfosIndex >= 0)
+                detail = pointInfos[pointInfosIndex].PathDetail;
+            else
+            {
+                detail = new PathOutlineList.PathDetail(pathInfo, 0);
+                pathInfo.PathDetails.Add(detail);
             }
             if (isStart)
             {
-                pathInfo.StartIndex = index;
+                detail.StartIndex = index;
             }
             else
             {
-                pathInfo.EndIndex = index;
+                detail.EndIndex = index;
             }
             picOutline.Refresh();
         }
@@ -428,7 +453,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
-
 
         private int GetDisplayIndex()
         {
@@ -561,16 +585,22 @@ namespace Whorl
                     if (selectedRowIndex >= 0)
                     {
                         var selPathInfo = pathInfos[selectedRowIndex];
-                        ShowPoint(e.Graphics, selPathInfo, selPathInfo.StartIndex, isStart: true, isSelected: true);
-                        ShowPoint(e.Graphics, selPathInfo, selPathInfo.EndIndex, isStart: false, isSelected: true);
+                        foreach (var detail in selPathInfo.PathDetails)
+                        {
+                            ShowPoint(e.Graphics, selPathInfo, detail.StartIndex, isStart: true, isSelected: true);
+                            ShowPoint(e.Graphics, selPathInfo, detail.EndIndex, isStart: false, isSelected: true);
+                        }
                     }
                     for (int i = 0; i < pathInfos.Length; i++)
                     {
                         if (i != selectedRowIndex)
                         {
                             var pathInfo = pathInfos[i];
-                            ShowPoint(e.Graphics, pathInfo, pathInfo.StartIndex, isStart: true, isSelected: false);
-                            ShowPoint(e.Graphics, pathInfo, pathInfo.EndIndex, isStart: false, isSelected: false);
+                            foreach (var detail in pathInfo.PathDetails)
+                            {
+                                ShowPoint(e.Graphics, pathInfo, detail.StartIndex, isStart: true, isSelected: false);
+                                ShowPoint(e.Graphics, pathInfo, detail.EndIndex, isStart: false, isSelected: false);
+                            }
                         }
                     }
                 }
@@ -614,24 +644,24 @@ namespace Whorl
 
                 Point saveLoc = new Point(left, top);
 
-                Label lbl = new Label();
-                lbl.AutoSize = true;
-                lbl.Text = "Sort:";
-                lbl.Location = new Point(left, top);
-                pnlOutlines.Controls.Add(lbl);
-                left += 35;
+                //Label lbl = new Label();
+                //lbl.AutoSize = true;
+                //lbl.Text = "Sort:";
+                //lbl.Location = new Point(left, top);
+                //pnlOutlines.Controls.Add(lbl);
+                //left += 35;
 
-                var txtSort = new TextBox();
-                txtSort.Tag = index;
-                txtSort.Width = 40;
-                txtSort.TextAlign = HorizontalAlignment.Right;
-                txtSort.Text = pathInfo.SortId.ToString("0.##");
-                txtSort.Location = new Point(left, top);
-                rowOutlineInfo.TxtSortId = txtSort;
-                pnlOutlines.Controls.Add(txtSort);
+                //var txtSort = new TextBox();
+                //txtSort.Tag = index;
+                //txtSort.Width = 40;
+                //txtSort.TextAlign = HorizontalAlignment.Right;
+                //txtSort.Text = pathInfo.SortId.ToString("0.##");
+                //txtSort.Location = new Point(left, top);
+                //rowOutlineInfo.TxtSortId = txtSort;
+                //pnlOutlines.Controls.Add(txtSort);
 
-                top += 20;
-                left = saveLoc.X;
+                //top += 20;
+                //left = saveLoc.X;
                 var chkClockwise = new CheckBox();
                 chkClockwise.Text = "Clockwise";
                 chkClockwise.Location = new Point(left, top);
