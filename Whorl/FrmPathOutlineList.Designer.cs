@@ -44,8 +44,14 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.setStartPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setEndPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setLockedStartPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setLockedEndPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetPanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // picOutline
@@ -100,12 +106,13 @@
             // 
             // BtnSort
             // 
-            this.BtnSort.Location = new System.Drawing.Point(113, 70);
+            this.BtnSort.Location = new System.Drawing.Point(91, 70);
             this.BtnSort.Name = "BtnSort";
             this.BtnSort.Size = new System.Drawing.Size(54, 23);
             this.BtnSort.TabIndex = 8;
             this.BtnSort.Text = "Sort";
             this.BtnSort.UseVisualStyleBackColor = true;
+            this.BtnSort.Click += new System.EventHandler(this.BtnSort_Click);
             // 
             // label2
             // 
@@ -168,29 +175,71 @@
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.setStartPointToolStripMenuItem,
-            this.setEndPointToolStripMenuItem});
+            this.setEndPointToolStripMenuItem,
+            this.setLockedStartPointToolStripMenuItem,
+            this.setLockedEndPointToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(149, 48);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 92);
             // 
             // setStartPointToolStripMenuItem
             // 
             this.setStartPointToolStripMenuItem.Name = "setStartPointToolStripMenuItem";
-            this.setStartPointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setStartPointToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.setStartPointToolStripMenuItem.Text = "Set Start Point";
             this.setStartPointToolStripMenuItem.Click += new System.EventHandler(this.setStartPointToolStripMenuItem_Click);
             // 
             // setEndPointToolStripMenuItem
             // 
             this.setEndPointToolStripMenuItem.Name = "setEndPointToolStripMenuItem";
-            this.setEndPointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setEndPointToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.setEndPointToolStripMenuItem.Text = "Set  End Point";
             this.setEndPointToolStripMenuItem.Click += new System.EventHandler(this.setEndPointToolStripMenuItem_Click);
+            // 
+            // setLockedStartPointToolStripMenuItem
+            // 
+            this.setLockedStartPointToolStripMenuItem.Name = "setLockedStartPointToolStripMenuItem";
+            this.setLockedStartPointToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.setLockedStartPointToolStripMenuItem.Text = "Set Locked Start Point";
+            this.setLockedStartPointToolStripMenuItem.Click += new System.EventHandler(this.setLockedStartPointToolStripMenuItem_Click);
+            // 
+            // setLockedEndPointToolStripMenuItem
+            // 
+            this.setLockedEndPointToolStripMenuItem.Name = "setLockedEndPointToolStripMenuItem";
+            this.setLockedEndPointToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.setLockedEndPointToolStripMenuItem.Text = "Set Locked End Point";
+            this.setLockedEndPointToolStripMenuItem.Click += new System.EventHandler(this.setLockedEndPointToolStripMenuItem_Click);
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.editToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(630, 24);
+            this.menuStrip1.TabIndex = 15;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.resetPanToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // resetPanToolStripMenuItem
+            // 
+            this.resetPanToolStripMenuItem.Name = "resetPanToolStripMenuItem";
+            this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.resetPanToolStripMenuItem.Text = "Reset Pan";
+            this.resetPanToolStripMenuItem.Click += new System.EventHandler(this.resetPanToolStripMenuItem_Click);
             // 
             // FrmPathOutlineList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(630, 407);
+            this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.cboMode);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.txtZoomPercent);
@@ -208,6 +257,8 @@
             this.Load += new System.EventHandler(this.FrmPathOutlineList_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -230,5 +281,10 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem setStartPointToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setEndPointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setLockedStartPointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setLockedEndPointToolStripMenuItem;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resetPanToolStripMenuItem;
     }
 }

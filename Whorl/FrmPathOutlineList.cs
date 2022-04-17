@@ -23,16 +23,29 @@ namespace Whorl
             Default,
             Pan
         }
-        private class OutlineControls
+        private class OutlineInfo
         {
             public int Index { get; }
             public PictureBox PictureBox { get; set; }
             public TextBox TxtSortId { get; set; }
             public CheckBox ChkClockwise { get; set; }
 
-            public OutlineControls(int index)
+            public OutlineInfo(int index)
             {
                 Index = index;
+            }
+        }
+        private class PointInfo
+        {
+            public PointF Point { get; }
+            public int Index { get; }
+            public bool IsStartPoint { get; }
+
+            public PointInfo(PointF point, int index, bool isStartPoint)
+            {
+                Point = point;
+                Index = index;
+                IsStartPoint = isStartPoint;
             }
         }
         public FrmPathOutlineList()
@@ -43,7 +56,9 @@ namespace Whorl
         private static readonly Size pictureBoxSize = new Size(75, 75);
 
         private PathOutlineList pathOutlineList { get; set; }
-        private List<OutlineControls> outlineControls { get; } = new List<OutlineControls>();
+        private PathOutlineList.PathInfo[] pathInfos { get; set; }
+        private List<OutlineInfo> outlineInfos { get; } = new List<OutlineInfo>();
+        private List<PointInfo> pointInfos { get; } = new List<PointInfo>();
         private Size designSize { get; set; }
         private int selectedRowIndex { get; set; } = -1;
         private double zoomFactor { get; set; } = 1;
@@ -84,6 +99,7 @@ namespace Whorl
             try
             {
                 this.pathOutlineList = pathOutlineList;
+                pathInfos = pathOutlineList.PathInfos.Where(p => p.PathPattern != null).ToArray();
                 this.designSize = designSize;
                 for (int i = 0; i < panXYs.Length; i++)
                     panXYs[i] = new Point(0, 0);
@@ -106,6 +122,33 @@ namespace Whorl
             return bitmap;
         }
 
+        private void BtnSort_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                for (int i = 0; i < outlineInfos.Count; i++)
+                {
+                    var info = outlineInfos[i];
+                    if (float.TryParse(info.TxtSortId.Text, out float x))
+                    {
+                        pathInfos[i].SortId = x;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please enter a number for Sort.");
+                        return;
+                    }
+                }
+                pathOutlineList.SortPathInfos();
+                pathInfos = pathOutlineList.PathInfos.Where(p => p.PathPattern != null).ToArray();
+                PopulatePanel();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         private void Pic1Outline_Click(object sender, EventArgs e)
         {
             try
@@ -116,14 +159,10 @@ namespace Whorl
                     return;
                 if (selectedRowIndex >= 0)
                 {
-                    outlineControls[selectedRowIndex].PictureBox.BorderStyle = BorderStyle.None;
-                    var prevPathInfo = pathOutlineList.GetPathInfo(selectedRowIndex);
-                    prevPathInfo.ClearPoints();
+                    outlineInfos[selectedRowIndex].PictureBox.BorderStyle = BorderStyle.None;
                 }
                 selectedRowIndex = newIndex;
                 pic.BorderStyle = BorderStyle.Fixed3D;
-                var pathInfo = pathOutlineList.GetPathInfo(selectedRowIndex);
-                pathInfo.ComputePoints();
                 if (GetDisplayMode() != DisplayModes.Result)
                     picOutline.Refresh();
             }
@@ -168,12 +207,42 @@ namespace Whorl
             }
         }
 
-        private void SetPointIndex(PointF p, bool isStart)
+        private void SetAllStartEndPoints()
+        {
+            pointInfos.Clear();
+            for (int i = 0; i < pathInfos.Length; i++)
+            {
+                var pathInfo = pathInfos[i];
+                pathInfo.GetStartEndPoints(out PointF? startP, out PointF? endP);
+                if (startP != null)
+                    pointInfos.Add(new PointInfo((PointF)startP, i, isStartPoint: true));
+                if (endP != null)
+                    pointInfos.Add(new PointInfo((PointF)endP, i, isStartPoint: false));
+            }
+        }
+
+        private void SetPointIndex(PointF p, bool isStart, bool lockToPoints = false)
         {
             if (selectedRowIndex < 0 || GetDisplayMode() != DisplayModes.All)
                 return;
-            var pathInfo = pathOutlineList.GetPathInfo(selectedRowIndex);
-            int index = pathInfo.FindClosestIndex(p, out PointF foundPoint);
+            var pathInfo = pathInfos[selectedRowIndex];
+            int index = -1;
+            PointF foundPoint = PointF.Empty;
+            if (lockToPoints)
+            {
+                SetAllStartEndPoints();
+                PointF[] joinPoints = pointInfos.Select(pi => pi.Point).ToArray();
+                index = Tools.FindClosestIndex(p, joinPoints);
+                if (index >= 0)
+                {
+                    PointF lockPoint = joinPoints[index];
+                    index = pathInfo.FindClosestIndex(lockPoint, out PointF p2);
+                    if (index >= 0)
+                        foundPoint = p2;
+                }
+            }
+            if (index < 0)
+                index = pathInfo.FindClosestIndex(p, out foundPoint);
             if (index < 0)
             {
                 MessageBox.Show("Didn't find the point on the path outline.");
@@ -214,6 +283,31 @@ namespace Whorl
             }
         }
 
+        private void setLockedStartPointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SetPointIndex(dragStart, isStart: true, lockToPoints: true);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void setLockedEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SetPointIndex(dragStart, isStart: false, lockToPoints: true);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+
         private int GetDisplayIndex()
         {
             return (int)GetDisplayMode();
@@ -224,6 +318,20 @@ namespace Whorl
             int ind = GetDisplayIndex();
             panXYs[ind] = new Point(startPanXY.X + p.X - dragStart.X, 
                                     startPanXY.Y + p.Y - dragStart.Y);
+        }
+
+        private void resetPanToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                for (int i = 0; i < panXYs.Length; i++)
+                    panXYs[i] = new Point(0, 0);
+                picOutline.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         private void picOutline_MouseDown(object sender, MouseEventArgs e)
@@ -286,12 +394,13 @@ namespace Whorl
             }
         }
 
-        private void ShowPoint(Graphics g, PathOutlineList.PathInfo pathInfo, int index, bool isStart)
+        private void ShowPoint(Graphics g, PathOutlineList.PathInfo pathInfo, int index, 
+                               bool isStart, bool isSelected)
         {
             if (index >= 0)
             {
                 PointF pt = pathInfo.GetCurvePoint(index);
-                Tools.DrawSquare(g, isStart ? Color.Blue : Color.LimeGreen, pt);
+                Tools.DrawSquare(g, isStart ? Color.Blue : Color.LimeGreen, pt, size: isSelected ? 3 : 1);
             }
         }
 
@@ -304,16 +413,16 @@ namespace Whorl
                 {
                     if (selectedRowIndex < 0)
                         return;
-                    var pathInfo = pathOutlineList.GetPathInfo(selectedRowIndex);
+                    var pathInfo = pathInfos[selectedRowIndex];
                     pathInfo.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
                     pathInfo.PathPattern.DrawFilled(e.Graphics, null);
                 }
                 else if (displayMode == DisplayModes.All)
                 {
                     pathOutlineList.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
-                    int i = 0;
-                    foreach (var pathInfo in pathOutlineList.PathInfos)
+                    for (int i = 0; i < pathInfos.Length; i++)
                     {
+                        var pathInfo = pathInfos[i];
                         Color color = pathInfo.PathPattern.BoundaryColor;
                         if (i == selectedRowIndex)
                             pathInfo.PathPattern.BoundaryColor = Color.Red;
@@ -321,13 +430,21 @@ namespace Whorl
                             pathInfo.PathPattern.BoundaryColor = Color.Black;
                         pathInfo.PathPattern.DrawFilled(e.Graphics, null);
                         pathInfo.PathPattern.BoundaryColor = color;
-                        i++;
                     }
                     if (selectedRowIndex >= 0)
                     {
-                        var pathInfo = pathOutlineList.GetPathInfo(selectedRowIndex);
-                        ShowPoint(e.Graphics, pathInfo, pathInfo.StartIndex, isStart: true);
-                        ShowPoint(e.Graphics, pathInfo, pathInfo.EndIndex, isStart: false);
+                        var selPathInfo = pathInfos[selectedRowIndex];
+                        ShowPoint(e.Graphics, selPathInfo, selPathInfo.StartIndex, isStart: true, isSelected: true);
+                        ShowPoint(e.Graphics, selPathInfo, selPathInfo.EndIndex, isStart: false, isSelected: true);
+                    }
+                    for (int i = 0; i < pathInfos.Length; i++)
+                    {
+                        if (i != selectedRowIndex)
+                        {
+                            var pathInfo = pathInfos[i];
+                            ShowPoint(e.Graphics, pathInfo, pathInfo.StartIndex, isStart: true, isSelected: false);
+                            ShowPoint(e.Graphics, pathInfo, pathInfo.EndIndex, isStart: false, isSelected: false);
+                        }
                     }
                 }
             }
@@ -339,15 +456,14 @@ namespace Whorl
 
         private void PopulatePanel()
         {
-            outlineControls.Clear();
+            outlineInfos.Clear();
             pnlOutlines.Controls.Clear();
             selectedRowIndex = -1;
-            int index = 0, left = 5, top = 5;
-            foreach (var pathInfo in pathOutlineList.PathInfos)
+            int left = 5, top = 5;
+            for (int index = 0; index < pathInfos.Length; index++)
             {
-                if (pathInfo.PathPattern == null)
-                    continue;
-                var rowOutlineControls = new OutlineControls(index);
+                var pathInfo = pathInfos[index];
+                var rowOutlineInfo = new OutlineInfo(index);
 
                 var pic1Outline = new PictureBox();
                 pic1Outline.Tag = index;
@@ -357,7 +473,7 @@ namespace Whorl
                 pathInfo.SetForPreview(pic1Outline.ClientSize, Point.Empty);
                 pic1Outline.Image = GetPatternImage(pathInfo.PathPattern, pic1Outline.ClientSize);
                 pic1Outline.Click += Pic1Outline_Click;
-                rowOutlineControls.PictureBox = pic1Outline;
+                rowOutlineInfo.PictureBox = pic1Outline;
                 pnlOutlines.Controls.Add(pic1Outline);
                 left += pictureBoxSize.Width + 5;
 
@@ -376,7 +492,7 @@ namespace Whorl
                 txtSort.TextAlign = HorizontalAlignment.Right;
                 txtSort.Text = pathInfo.SortId.ToString("0.##");
                 txtSort.Location = new Point(left, top);
-                rowOutlineControls.TxtSortId = txtSort;
+                rowOutlineInfo.TxtSortId = txtSort;
                 pnlOutlines.Controls.Add(txtSort);
 
                 top += 20;
@@ -385,14 +501,13 @@ namespace Whorl
                 chkClockwise.Text = "Clockwise";
                 chkClockwise.Location = new Point(left, top);
                 chkClockwise.Checked = pathInfo.Clockwise;
-                rowOutlineControls.ChkClockwise = chkClockwise;
+                rowOutlineInfo.ChkClockwise = chkClockwise;
                 pnlOutlines.Controls.Add(chkClockwise);
 
-                outlineControls.Add(rowOutlineControls);
+                outlineInfos.Add(rowOutlineInfo);
 
                 top = saveLoc.Y + pictureBoxSize.Height + 5;
                 left = 5;
-                index++;
             }
         }
 

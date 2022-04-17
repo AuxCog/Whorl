@@ -24,6 +24,9 @@ namespace Whorl
             public float SortId { get; set; }
             public PointF[] FullCurvePoints { get; private set; }
 
+            private bool _fullPointsAreUpToDate;
+            public bool FullPointsAreUpToDate => FullCurvePoints != null && _fullPointsAreUpToDate;
+
             public PathInfo(PathOutline pathOutline, float sortId)
             {
                 SortId = sortId;
@@ -84,14 +87,13 @@ namespace Whorl
 
             public void SetForPreview(RectangleF boundingRect, double scale, PointF center, Point panXY)
             {
+                if (PathPattern == null)
+                    return;
                 PointF dc = GetDeltaCenter(boundingRect, OrigCenter);
                 PathPattern.Center = new PointF(center.X + (float)scale * dc.X + panXY.X, 
                                                 center.Y + (float)scale * dc.Y + panXY.Y);
                 PathPattern.ZVector = scale * OrigZVector;
-                if (FullCurvePoints != null)
-                {
-                    ComputePoints();
-                }
+                _fullPointsAreUpToDate = false;
             }
 
             public void SetPathOutline(PathOutline pathOutline)
@@ -122,6 +124,7 @@ namespace Whorl
                                                        PathPattern.Center)).ToArray();
                 PathPattern.TransformCurvePoints(points);
                 FullCurvePoints = points;
+                _fullPointsAreUpToDate = true;
             }
 
             public void ClearPoints()
@@ -131,8 +134,8 @@ namespace Whorl
 
             public int FindClosestIndex(PointF p, out PointF foundPoint)
             {
-                if (FullCurvePoints == null)
-                    throw new Exception("ComputePoints was not called.");
+                if (!FullPointsAreUpToDate)
+                    ComputePoints();
                 if (FullCurvePoints.Length != PathOutline.PathPoints.Count())
                     throw new Exception("PathPoints length not equal to SeedPoints");
                 int index = Tools.FindClosestIndex(p, FullCurvePoints);
@@ -140,10 +143,23 @@ namespace Whorl
                 return index;
             }
 
+            public void GetStartEndPoints(out PointF? startPoint, out PointF? endPoint)
+            {
+                startPoint = null;
+                endPoint = null;
+                if (StartIndex >= 0 || EndIndex >= 0)
+                {
+                    if (StartIndex >= 0)
+                        startPoint = GetCurvePoint(StartIndex);
+                    if (EndIndex >= 0)
+                        endPoint = GetCurvePoint(EndIndex);
+                }
+            }
+
             public PointF GetCurvePoint(int index)
             {
-                if (FullCurvePoints == null)
-                    throw new Exception("ComputePoints was not called.");
+                if (!FullPointsAreUpToDate)
+                    ComputePoints();
                 if (index < 0 || index >= FullCurvePoints.Length)
                     throw new ArgumentOutOfRangeException("index is out of range.");
                 return FullCurvePoints[index];
@@ -351,6 +367,10 @@ namespace Whorl
         public void SortPathInfos()
         {
             pathInfos = pathInfos.OrderBy(p => p.SortId).ToList();
+            for (int i = 0; i < pathInfos.Count; i++)
+            {
+                pathInfos[i].SortId = i + 1;
+            }
         }
 
         public void RemovePathOutline(int index)
