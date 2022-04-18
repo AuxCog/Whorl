@@ -271,22 +271,60 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
-        public static int FindClosestIndex(PointF p, PointF[] points, out float distanceSquared, float bufferSize = 30F)
+        public static IEnumerable<Tuple<int, TResult>> GetIndexedTuples<TElem, TResult>(
+                                                       TElem[] elems, Func<TElem, TResult> func)
         {
-            var infos = Enumerable.Range(0, points.Length)
-                        .Select(i => new Tuple<int, float>(i, Tools.DistanceSquared(p, points[i])))
-                        .Where(tpl => tpl.Item2 <= bufferSize)
-                        .OrderBy(tpl => tpl.Item2).ThenBy(tpl => tpl.Item1);
-            if (infos.Any())
+            return Enumerable.Range(0, elems.Length).Select(i => new Tuple<int, TResult>(i, func(elems[i])));
+        }
+
+        public static IEnumerable<Tuple<int, TResult>> GetIndexedTuples<TElem, TResult>(
+                                                       List<TElem> elems, Func<TElem, TResult> func)
+        {
+            return Enumerable.Range(0, elems.Count).Select(i => new Tuple<int, TResult>(i, func(elems[i])));
+        }
+
+        public static int FindIndexOfLeast<TResult>(IEnumerable<Tuple<int, TResult>> tuples,
+                                                    out TResult result,
+                                                    Func<Tuple<int, TResult>, bool> filter = null) 
+                                                    where TResult : IComparable
+        {
+            if (tuples.Any())
             {
-                distanceSquared = infos.First().Item2;
-                return infos.First().Item1;
+                if (filter != null)
+                    tuples = tuples.Where(f => filter(f));
+                tuples = tuples.OrderBy(x => x.Item2).ThenBy(x => x.Item1);
+                var first = tuples.First();
+                result = first.Item2;
+                return first.Item1;
             }
             else
             {
-                distanceSquared = 0;
+                result = default(TResult);
                 return -1;
             }
+        }
+
+        public static int FindClosestIndex(PointF p, PointF[] points, out float distanceSquared, float bufferSize = 30F)
+        {
+            return FindIndexOfLeast(GetIndexedTuples(points, pt => DistanceSquared(pt, p)), 
+                                    out distanceSquared,
+                                    tuple => tuple.Item2 <= bufferSize);
+        }
+
+        public static int FindClosestIndex(PointF p, List<PointF> points, out float distanceSquared, float bufferSize = 30F)
+        {
+            return FindIndexOfLeast(GetIndexedTuples(points, pt => DistanceSquared(pt, p)),
+                                    out distanceSquared,
+                                    tuple => tuple.Item2 <= bufferSize);
+        }
+
+        public static int FindClosestIndex(PointF p, List<IEnumerable<PointF>> pointsList, 
+                                           out float distanceSquared, float bufferSize = 30F)
+        {
+            return FindIndexOfLeast(GetIndexedTuples(pointsList, 
+                                                     points => points.Select(pt => DistanceSquared(pt, p)).Min()),
+                                    out distanceSquared,
+                                    tuple => tuple.Item2 <= bufferSize);
         }
 
         public static int FindClosestIndex(PointF p, PointF[] points, float bufferSize = 30F)
