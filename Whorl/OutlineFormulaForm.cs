@@ -148,6 +148,7 @@ namespace Whorl
                     cboDrawType.SelectedItem = pathOutline.DrawType;
                     chkDrawClosed.Checked = pathOutline.HasClosedPath;
                     txtMaxPathPoints.Text = pathOutline.MaxPathPoints.ToString();
+                    chkUsesInfluencePoints.Checked = pathOutline.UsesInfluencePoints;
                 }
                 this.txtRotationSpan.Text = outline.GetRotationSpan().ToString();
                 this.pnlPathSettings.Enabled = pathOutline != null;
@@ -283,6 +284,7 @@ namespace Whorl
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
                     pathOutline.HasClosedPath = chkDrawClosed.Checked;
+                    pathOutline.UsesInfluencePoints = chkUsesInfluencePoints.Checked;
                     if (UseVertices)
                     {
                         if (cboDrawType.SelectedItem is PathOutline.DrawTypes)

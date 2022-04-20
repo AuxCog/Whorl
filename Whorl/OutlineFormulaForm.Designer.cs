@@ -36,6 +36,8 @@
             this.lblMaxFormula = new System.Windows.Forms.Label();
             this.txtMaxAmplitudeFormula = new System.Windows.Forms.TextBox();
             this.pnlPathSettings = new System.Windows.Forms.Panel();
+            this.txtMaxPathPoints = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.chkDrawClosed = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
             this.cboDrawType = new System.Windows.Forms.ComboBox();
@@ -77,8 +79,7 @@
             this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
             this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.txtMaxPathPoints = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
+            this.chkUsesInfluencePoints = new System.Windows.Forms.CheckBox();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -148,6 +149,7 @@
             // pnlPathSettings
             // 
             this.pnlPathSettings.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlPathSettings.Controls.Add(this.chkUsesInfluencePoints);
             this.pnlPathSettings.Controls.Add(this.txtMaxPathPoints);
             this.pnlPathSettings.Controls.Add(this.label6);
             this.pnlPathSettings.Controls.Add(this.chkDrawClosed);
@@ -160,6 +162,25 @@
             this.pnlPathSettings.Name = "pnlPathSettings";
             this.pnlPathSettings.Size = new System.Drawing.Size(719, 77);
             this.pnlPathSettings.TabIndex = 10;
+            // 
+            // txtMaxPathPoints
+            // 
+            this.txtMaxPathPoints.Location = new System.Drawing.Point(120, 36);
+            this.txtMaxPathPoints.Name = "txtMaxPathPoints";
+            this.txtMaxPathPoints.Size = new System.Drawing.Size(84, 23);
+            this.txtMaxPathPoints.TabIndex = 15;
+            this.txtMaxPathPoints.Text = "10000";
+            this.txtMaxPathPoints.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(4, 39);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(113, 17);
+            this.label6.TabIndex = 14;
+            this.label6.Text = "Max Path Points:";
             // 
             // chkDrawClosed
             // 
@@ -524,24 +545,15 @@
             this.label2.TabIndex = 40;
             this.label2.Text = "Category:";
             // 
-            // txtMaxPathPoints
+            // chkUsesInfluencePoints
             // 
-            this.txtMaxPathPoints.Location = new System.Drawing.Point(120, 36);
-            this.txtMaxPathPoints.Name = "txtMaxPathPoints";
-            this.txtMaxPathPoints.Size = new System.Drawing.Size(84, 23);
-            this.txtMaxPathPoints.TabIndex = 15;
-            this.txtMaxPathPoints.Text = "10000";
-            this.txtMaxPathPoints.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(4, 39);
-            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(113, 17);
-            this.label6.TabIndex = 14;
-            this.label6.Text = "Max Path Points:";
+            this.chkUsesInfluencePoints.AutoSize = true;
+            this.chkUsesInfluencePoints.Location = new System.Drawing.Point(227, 38);
+            this.chkUsesInfluencePoints.Name = "chkUsesInfluencePoints";
+            this.chkUsesInfluencePoints.Size = new System.Drawing.Size(163, 21);
+            this.chkUsesInfluencePoints.TabIndex = 16;
+            this.chkUsesInfluencePoints.Text = "Uses Influence Points";
+            this.chkUsesInfluencePoints.UseVisualStyleBackColor = true;
             // 
             // OutlineFormulaForm
             // 
@@ -640,5 +652,6 @@
         private System.Windows.Forms.CheckBox chkDrawClosed;
         private System.Windows.Forms.TextBox txtMaxPathPoints;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.CheckBox chkUsesInfluencePoints;
     }
 }
