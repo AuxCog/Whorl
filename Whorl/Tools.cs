@@ -271,6 +271,24 @@ namespace Whorl
             return boundsRect.Contains(p);
         }
 
+        public static void SortPair<T>(ref T a1, ref T a2, bool ascending = true) where T: IComparable
+        {
+            if ((ascending ? 1 : -1) * a1.CompareTo(a2) > 0)
+            {
+                T tmp = a2;
+                a2 = a1;
+                a1 = tmp;
+            }
+        }
+
+        public static bool Overlaps<T>(T a1, T a2, T b1, T b2) where T: IComparable
+        {
+            SortPair(ref a1, ref a2);
+            SortPair(ref b1, ref b2);
+            //Overlaps if bMax >= aMin and bMin <= aMax.
+            return b2.CompareTo(a1) >= 0 && b1.CompareTo(a2) <= 0;
+        }
+
         public static IEnumerable<Tuple<int, TResult>> GetIndexedTuples<TElem, TResult>(
                                                        TElem[] elems, Func<TElem, TResult> func)
         {
@@ -288,10 +306,10 @@ namespace Whorl
                                                     Func<Tuple<int, TResult>, bool> filter = null) 
                                                     where TResult : IComparable
         {
+            if (filter != null)
+                tuples = tuples.Where(f => filter(f));
             if (tuples.Any())
             {
-                if (filter != null)
-                    tuples = tuples.Where(f => filter(f));
                 tuples = tuples.OrderBy(x => x.Item2).ThenBy(x => x.Item1);
                 var first = tuples.First();
                 result = first.Item2;
@@ -322,7 +340,21 @@ namespace Whorl
                                            out float distanceSquared, float bufferSize = 30F)
         {
             return FindIndexOfLeast(GetIndexedTuples(pointsList, 
-                                                     points => points.Select(pt => DistanceSquared(pt, p)).Min()),
+                                    points => points.Any() ? points.Select(pt => DistanceSquared(pt, p)).Min() : float.MaxValue),
+                                    out distanceSquared,
+                                    tuple => tuple.Item2 <= bufferSize);
+        }
+
+        public static int FindClosestIndex(List<PointF> points1, IEnumerable<PointF> points2,
+                                           out float distanceSquared, float bufferSize = 30F)
+        {
+            if (!points2.Any())
+            {
+                distanceSquared = 0;
+                return -1;
+            }
+            return FindIndexOfLeast(GetIndexedTuples(points1, 
+                                    pt => points2.Select(p => DistanceSquared(pt, p)).Min()),
                                     out distanceSquared,
                                     tuple => tuple.Item2 <= bufferSize);
         }
@@ -335,7 +367,7 @@ namespace Whorl
         public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
         {
             var pathOutline = basicOutline as PathOutline;
-            return pathOutline != null && (allowCurve || pathOutline.HasLineVertices) && pathOutline.UserDefinedVertices;
+            return pathOutline != null && pathOutline.UserDefinedVertices && (allowCurve || pathOutline.HasLineVertices);
         }
 
         public static RectangleF RectangleFromVertices(PointF topLeft, PointF bottomRight)

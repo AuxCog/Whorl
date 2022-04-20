@@ -34,7 +34,6 @@
             this.BtnOK = new System.Windows.Forms.Button();
             this.BtnCancel = new System.Windows.Forms.Button();
             this.pnlOutlines = new System.Windows.Forms.Panel();
-            this.BtnSort = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.cboDisplayMode = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,16 +41,17 @@
             this.cboMode = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.setStartPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setEndPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setLockedStartPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setLockedEndPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setNextPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.selectCurveSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteCurveSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetPanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.overlayResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.computeResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.snapToIntersectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.selectNextSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.selectPreviousSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeCurvePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -59,7 +59,7 @@
             // 
             // picOutline
             // 
-            this.picOutline.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.picOutline.BackColor = System.Drawing.SystemColors.ButtonShadow;
             this.picOutline.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.picOutline.Location = new System.Drawing.Point(321, 99);
             this.picOutline.Name = "picOutline";
@@ -74,11 +74,11 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 75);
+            this.label1.Location = new System.Drawing.Point(13, 40);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(73, 13);
+            this.label1.Size = new System.Drawing.Size(74, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Path Outlines:";
+            this.label1.Text = "Path Patterns:";
             // 
             // BtnOK
             // 
@@ -104,20 +104,10 @@
             // 
             this.pnlOutlines.AutoScroll = true;
             this.pnlOutlines.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.pnlOutlines.Location = new System.Drawing.Point(15, 99);
+            this.pnlOutlines.Location = new System.Drawing.Point(15, 64);
             this.pnlOutlines.Name = "pnlOutlines";
-            this.pnlOutlines.Size = new System.Drawing.Size(297, 300);
+            this.pnlOutlines.Size = new System.Drawing.Size(297, 335);
             this.pnlOutlines.TabIndex = 7;
-            // 
-            // BtnSort
-            // 
-            this.BtnSort.Location = new System.Drawing.Point(91, 70);
-            this.BtnSort.Name = "BtnSort";
-            this.BtnSort.Size = new System.Drawing.Size(54, 23);
-            this.BtnSort.TabIndex = 8;
-            this.BtnSort.Text = "Sort";
-            this.BtnSort.UseVisualStyleBackColor = true;
-            this.BtnSort.Click += new System.EventHandler(this.BtnSort_Click);
             // 
             // label2
             // 
@@ -180,40 +170,33 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.setStartPointToolStripMenuItem,
-            this.setEndPointToolStripMenuItem,
-            this.setLockedStartPointToolStripMenuItem,
-            this.setLockedEndPointToolStripMenuItem});
+            this.setNextPointToolStripMenuItem,
+            this.selectCurveSectionToolStripMenuItem,
+            this.deleteCurveSectionToolStripMenuItem,
+            this.closeCurvePathToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 92);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(208, 92);
             // 
-            // setStartPointToolStripMenuItem
+            // setNextPointToolStripMenuItem
             // 
-            this.setStartPointToolStripMenuItem.Name = "setStartPointToolStripMenuItem";
-            this.setStartPointToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
-            this.setStartPointToolStripMenuItem.Text = "Set Start Point";
-            this.setStartPointToolStripMenuItem.Click += new System.EventHandler(this.setStartPointToolStripMenuItem_Click);
+            this.setNextPointToolStripMenuItem.Name = "setNextPointToolStripMenuItem";
+            this.setNextPointToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.setNextPointToolStripMenuItem.Text = "Set Next Point";
+            this.setNextPointToolStripMenuItem.Click += new System.EventHandler(this.setNextPointToolStripMenuItem_Click);
             // 
-            // setEndPointToolStripMenuItem
+            // selectCurveSectionToolStripMenuItem
             // 
-            this.setEndPointToolStripMenuItem.Name = "setEndPointToolStripMenuItem";
-            this.setEndPointToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
-            this.setEndPointToolStripMenuItem.Text = "Set  End Point";
-            this.setEndPointToolStripMenuItem.Click += new System.EventHandler(this.setEndPointToolStripMenuItem_Click);
+            this.selectCurveSectionToolStripMenuItem.Name = "selectCurveSectionToolStripMenuItem";
+            this.selectCurveSectionToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.selectCurveSectionToolStripMenuItem.Text = "Display Curve Section";
+            this.selectCurveSectionToolStripMenuItem.Click += new System.EventHandler(this.selectCurveSectionToolStripMenuItem_Click);
             // 
-            // setLockedStartPointToolStripMenuItem
+            // deleteCurveSectionToolStripMenuItem
             // 
-            this.setLockedStartPointToolStripMenuItem.Name = "setLockedStartPointToolStripMenuItem";
-            this.setLockedStartPointToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.setLockedStartPointToolStripMenuItem.Text = "Set Locked Start Point";
-            this.setLockedStartPointToolStripMenuItem.Click += new System.EventHandler(this.setLockedStartPointToolStripMenuItem_Click);
-            // 
-            // setLockedEndPointToolStripMenuItem
-            // 
-            this.setLockedEndPointToolStripMenuItem.Name = "setLockedEndPointToolStripMenuItem";
-            this.setLockedEndPointToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
-            this.setLockedEndPointToolStripMenuItem.Text = "Set Locked End Point";
-            this.setLockedEndPointToolStripMenuItem.Click += new System.EventHandler(this.setLockedEndPointToolStripMenuItem_Click);
+            this.deleteCurveSectionToolStripMenuItem.Name = "deleteCurveSectionToolStripMenuItem";
+            this.deleteCurveSectionToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.deleteCurveSectionToolStripMenuItem.Text = "Delete Last Curve Section";
+            this.deleteCurveSectionToolStripMenuItem.Click += new System.EventHandler(this.deleteCurveSectionToolStripMenuItem_Click);
             // 
             // menuStrip1
             // 
@@ -231,7 +214,8 @@
             this.resetPanToolStripMenuItem,
             this.overlayResultOutlineToolStripMenuItem,
             this.computeResultOutlineToolStripMenuItem,
-            this.snapToIntersectionsToolStripMenuItem});
+            this.selectNextSectionToolStripMenuItem,
+            this.selectPreviousSectionToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -239,7 +223,7 @@
             // resetPanToolStripMenuItem
             // 
             this.resetPanToolStripMenuItem.Name = "resetPanToolStripMenuItem";
-            this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
             this.resetPanToolStripMenuItem.Text = "Reset Pan";
             this.resetPanToolStripMenuItem.Click += new System.EventHandler(this.resetPanToolStripMenuItem_Click);
             // 
@@ -247,23 +231,39 @@
             // 
             this.overlayResultOutlineToolStripMenuItem.CheckOnClick = true;
             this.overlayResultOutlineToolStripMenuItem.Name = "overlayResultOutlineToolStripMenuItem";
-            this.overlayResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.overlayResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
             this.overlayResultOutlineToolStripMenuItem.Text = "Overlay Result Outline";
             this.overlayResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.overlayResultOutlineToolStripMenuItem_Click);
             // 
             // computeResultOutlineToolStripMenuItem
             // 
             this.computeResultOutlineToolStripMenuItem.Name = "computeResultOutlineToolStripMenuItem";
-            this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
             this.computeResultOutlineToolStripMenuItem.Text = "Compute Result Outline";
             this.computeResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.computeResultOutlineToolStripMenuItem_Click);
             // 
-            // snapToIntersectionsToolStripMenuItem
+            // selectNextSectionToolStripMenuItem
             // 
-            this.snapToIntersectionsToolStripMenuItem.CheckOnClick = true;
-            this.snapToIntersectionsToolStripMenuItem.Name = "snapToIntersectionsToolStripMenuItem";
-            this.snapToIntersectionsToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
-            this.snapToIntersectionsToolStripMenuItem.Text = "Snap to Intersections";
+            this.selectNextSectionToolStripMenuItem.Name = "selectNextSectionToolStripMenuItem";
+            this.selectNextSectionToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.selectNextSectionToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.selectNextSectionToolStripMenuItem.Text = "Display Next Section";
+            this.selectNextSectionToolStripMenuItem.Click += new System.EventHandler(this.selectNextSectionToolStripMenuItem_Click);
+            // 
+            // selectPreviousSectionToolStripMenuItem
+            // 
+            this.selectPreviousSectionToolStripMenuItem.Name = "selectPreviousSectionToolStripMenuItem";
+            this.selectPreviousSectionToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
+            this.selectPreviousSectionToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.selectPreviousSectionToolStripMenuItem.Text = "Display Previous Section";
+            this.selectPreviousSectionToolStripMenuItem.Click += new System.EventHandler(this.selectPreviousSectionToolStripMenuItem_Click);
+            // 
+            // closeCurvePathToolStripMenuItem
+            // 
+            this.closeCurvePathToolStripMenuItem.Name = "closeCurvePathToolStripMenuItem";
+            this.closeCurvePathToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.closeCurvePathToolStripMenuItem.Text = "Close Curve Path";
+            this.closeCurvePathToolStripMenuItem.Click += new System.EventHandler(this.closeCurvePathToolStripMenuItem_Click);
             // 
             // FrmPathOutlineList
             // 
@@ -277,7 +277,6 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.cboDisplayMode);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.BtnSort);
             this.Controls.Add(this.pnlOutlines);
             this.Controls.Add(this.BtnCancel);
             this.Controls.Add(this.BtnOK);
@@ -302,7 +301,6 @@
         private System.Windows.Forms.Button BtnOK;
         private System.Windows.Forms.Button BtnCancel;
         private System.Windows.Forms.Panel pnlOutlines;
-        private System.Windows.Forms.Button BtnSort;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cboDisplayMode;
         private System.Windows.Forms.Label label3;
@@ -310,15 +308,16 @@
         private System.Windows.Forms.ComboBox cboMode;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem setStartPointToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem setEndPointToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem setLockedStartPointToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem setLockedEndPointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setNextPointToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetPanToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem overlayResultOutlineToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem computeResultOutlineToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem snapToIntersectionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem selectCurveSectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteCurveSectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem selectNextSectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem selectPreviousSectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeCurvePathToolStripMenuItem;
     }
 }

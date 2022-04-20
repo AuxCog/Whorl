@@ -190,6 +190,7 @@ namespace Whorl
         private double addDenom;
         private double angleOffset = 0D;
         public CustomOutline customOutline { get; private set; }
+        public virtual bool SupportsInfluencePoints => false;
 
         /// <summary>
         /// True if only one of this type of outline is supported for a pattern.

@@ -9192,8 +9192,6 @@ namespace Whorl
             }
         }
 
-        private FrmPathOutlineList frmPathOutlineList { get; set; }
-
         private void editSelectedPathOutlinesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
@@ -9209,16 +9207,17 @@ namespace Whorl
                 else
                     pathOutlineListForForm.ClearSettings();
                 pathOutlineListForForm.AddPathInfos(selPatterns);
-                if (frmPathOutlineList == null || frmPathOutlineList.IsDisposed)
-                    frmPathOutlineList = new FrmPathOutlineList();
-                frmPathOutlineList.Initialize(pathOutlineListForForm);
-                if (frmPathOutlineList.ShowDialog() == DialogResult.OK)
+                using (var frm = new FrmPathOutlineList())
                 {
-                    if (pathOutlineListForForm.ResultPathPattern != null)
+                    frm.Initialize(pathOutlineListForForm);
+                    if (frm.ShowDialog() == DialogResult.OK)
                     {
-                        pathOutlineListForForm.SetResultForDesign();
-                        Design.AddPattern(pathOutlineListForForm.ResultPathPattern);
-                        RedrawPatterns();
+                        if (pathOutlineListForForm.ResultPathPattern != null)
+                        {
+                            pathOutlineListForForm.SetResultForDesign();
+                            Design.AddPattern(pathOutlineListForForm.ResultPathPattern);
+                            RedrawPatterns();
+                        }
                     }
                 }
             }
@@ -9245,17 +9244,18 @@ namespace Whorl
                 var pathOutlineList = pattern.BasicOutlines.Select(o => o as PathOutlineList).First(o => o != null);
                 int outlineIndex = pattern.BasicOutlines.IndexOf(pathOutlineList);
                 pathOutlineListForForm = new PathOutlineListForForm(pathOutlineList, Design);
-                if (frmPathOutlineList == null || frmPathOutlineList.IsDisposed)
-                    frmPathOutlineList = new FrmPathOutlineList();
-                frmPathOutlineList.Initialize(pathOutlineListForForm);
-                if (frmPathOutlineList.ShowDialog() == DialogResult.OK)
+                using (var frm = new FrmPathOutlineList())
                 {
-                    if (pathOutlineListForForm.ResultPathPattern != null)
+                    frm.Initialize(pathOutlineListForForm);
+                    if (frm.ShowDialog() == DialogResult.OK)
                     {
-                        pathOutlineList = (PathOutlineList)pathOutlineListForForm.ResultPathPattern.BasicOutlines[0];
-                        pattern.BasicOutlines[outlineIndex] = pathOutlineList;
-                        pattern.ComputeSeedPoints();
-                        RedrawPatterns();
+                        if (pathOutlineListForForm.ResultPathPattern != null)
+                        {
+                            pathOutlineList = (PathOutlineList)pathOutlineListForForm.ResultPathPattern.BasicOutlines[0];
+                            pattern.BasicOutlines[outlineIndex] = pathOutlineList;
+                            pattern.ComputeSeedPoints();
+                            RedrawPatterns();
+                        }
                     }
                 }
             }

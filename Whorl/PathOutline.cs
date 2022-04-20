@@ -98,6 +98,7 @@ namespace Whorl
         public bool UseVertices { get; set; }
         public bool UserDefinedVertices { get; set; }
         public bool HasClosedPath { get; set; } = true;
+        public override bool SupportsInfluencePoints => VerticesSettings != null;
 
         private DrawTypes _drawType = DrawTypes.Normal;
         public DrawTypes DrawType 

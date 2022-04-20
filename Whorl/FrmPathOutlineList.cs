@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParserEngine;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -40,14 +41,14 @@ namespace Whorl
             public PointF Point { get; }
             public int PatternIndex { get; }
             public bool IsStartPoint { get; }
-            public PathOutlineList.PathDetail PathDetail { get; }
+            public PathOutlineListForForm.PathDetailForForm PathDetailForForm { get; }
 
-            public PointInfo(PointF point, int index, bool isStartPoint, PathOutlineList.PathDetail pathDetail)
+            public PointInfo(PointF point, int index, bool isStartPoint, PathOutlineListForForm.PathDetailForForm pathDetail)
             {
                 Point = point;
                 PatternIndex = index;
                 IsStartPoint = isStartPoint;
-                PathDetail = pathDetail;
+                PathDetailForForm = pathDetail;
             }
         }
         private class IntersectionInfo
@@ -75,7 +76,9 @@ namespace Whorl
         private List<OutlineInfo> outlineInfos { get; } = new List<OutlineInfo>();
         private List<PointInfo> pointInfos { get; } = new List<PointInfo>();
         //private Size designSize { get; set; }
-        private int selectedRowIndex { get; set; } = -1;
+        private int selectedPathInfoIndex { get; set; } = -1;
+        private List<PathOutlineListForForm.PathDetailForForm> allSections { get; set; }
+        private PathOutlineListForForm.PathDetailForForm displayedSection { get; set; }
         private double zoomFactor { get; set; } = 1;
         private Point[] panXYs { get; } = new Point[3];
         private Point startPanXY { get; set; }
@@ -83,6 +86,7 @@ namespace Whorl
         private Point dragEnd { get; set; }
         private bool dragging { get; set; }
         private string zoomText { get; set; }
+
 
         private void FrmPathOutlineList_Load(object sender, EventArgs e)
         {
@@ -115,9 +119,16 @@ namespace Whorl
         {
             try
             {
-                this.pathOutlineListForForm = pathOutlineList;
+                if (!pathOutlineList.PathInfoForForms.Any())
+                {
+                    throw new Exception("No PathInfos were found.");
+                }
+                pathOutlineListForForm = pathOutlineList;
+                pathOutlineListForForm.SortPathInfos();
                 pathInfos = pathOutlineList.PathInfoForForms.ToArray();
-                //this.designSize = designSize;
+                allSections = pathInfos.SelectMany(pi => pi.PathDetailsForForm).OrderBy(d => d.SortId).ToList();
+                InitializeSections();
+                displayedSection = allSections.First();
                 for (int i = 0; i < panXYs.Length; i++)
                     panXYs[i] = new Point(0, 0);
             }
@@ -127,10 +138,22 @@ namespace Whorl
             }
         }
 
+        private void InitializeSections()
+        {
+            if (allSections.Count == 0)
+            {
+                var pathInfo = pathInfos[0];
+                var firstSection = new PathOutlineListForForm.PathDetailForForm(pathInfo);
+                allSections.Add(firstSection);
+            }
+        }
+
         private void BtnOK_Click(object sender, EventArgs e)
         {
             try
             {
+                if (!CreateResultOutline())
+                    return;
                 DialogResult = DialogResult.OK;
                 Hide();
             }
@@ -220,16 +243,31 @@ namespace Whorl
             {
                 PictureBox pic = (PictureBox)sender;
                 int newIndex = (int)pic.Tag;
-                if (newIndex == selectedRowIndex)
+                if (newIndex == selectedPathInfoIndex)
                     return;
-                if (selectedRowIndex >= 0)
+                if (selectedPathInfoIndex >= 0)
                 {
-                    outlineInfos[selectedRowIndex].PictureBox.BorderStyle = BorderStyle.None;
+                    outlineInfos[selectedPathInfoIndex].PictureBox.BorderStyle = BorderStyle.None;
                 }
-                selectedRowIndex = newIndex;
+                selectedPathInfoIndex = newIndex;
                 pic.BorderStyle = BorderStyle.Fixed3D;
                 if (GetDisplayMode() != DisplayModes.Result)
                     picOutline.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void ChkClockwise_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                var chkBox = (CheckBox)sender;
+                int index = (int)chkBox.Tag;
+                pathInfos[index].Clockwise = chkBox.Checked;
+                picOutline.Refresh();
             }
             catch (Exception ex)
             {
@@ -271,6 +309,14 @@ namespace Whorl
 
         private bool CreateResultOutline()
         {
+            for (int i = 0; i < allSections.Count; i++)
+            {
+                allSections[i].SortId = i + 1;
+            }
+            foreach (var pathInfo in pathInfos)
+            {
+                pathInfo.SetPathDetails(allSections.Where(d => d.GetParent() == pathInfo));
+            }
             string errMessage = pathOutlineListForForm.Validate();
             if (errMessage != null)
             {
@@ -344,40 +390,75 @@ namespace Whorl
             }
         }
 
-        private void SetAllStartEndPoints()
+        private void UpdateAllCurvePoints()
         {
-            pointInfos.Clear();
-            for (int i = 0; i < pathInfos.Length; i++)
+            foreach (var pathInfo in pathInfos)
             {
-                var pathInfo = pathInfos[i];
-                foreach (var detail in pathInfo.PathDetails)
-                {
-                    pathInfo.GetStartEndPoints(detail, out PointF? startP, out PointF? endP);
-                    if (startP != null)
-                        pointInfos.Add(new PointInfo((PointF)startP, i, isStartPoint: true, detail));
-                    if (endP != null)
-                        pointInfos.Add(new PointInfo((PointF)endP, i, isStartPoint: false, detail));
-                }
+                if (!pathInfo.FullPointsAreUpToDate)
+                    pathInfo.ComputePoints();
             }
         }
 
-        private void SetPointIndex(PointF p, bool isStart, bool lockToPoints = false)
+        private PathOutlineListForForm.PathDetailForForm GetClosestSection(PointF p, bool messageIfNull = true)
         {
-            if (selectedRowIndex < 0 || GetDisplayMode() != DisplayModes.All)
-                return;
-            var pathInfo = pathInfos[selectedRowIndex];
-            int index = -1;
-            SetAllStartEndPoints();
-            PointF[] joinPoints = pointInfos.Select(pi => pi.Point).ToArray();
-            int pointInfosIndex = Tools.FindClosestIndex(p, joinPoints);
-            if (pointInfosIndex >= 0)
+            var pointsList = allSections.Select(d => d.GetCurveSection().AsEnumerable()).ToList();
+            int index = Tools.FindClosestIndex(p, pointsList, out _);
+            PathOutlineListForForm.PathDetailForForm section = index < 0 ? null : allSections[index];
+            if (section == null && messageIfNull)
             {
-                if (lockToPoints)
-                {
-                    PointF lockPoint = joinPoints[pointInfosIndex];
-                    index = pathInfo.FindClosestIndex(lockPoint, out PointF p2);
-                }
+                MessageBox.Show("Didn't find the closest Curve Section.");
             }
+            return section;
+        }
+
+        //private void SetAllStartEndPoints()
+        //{
+        //    pointInfos.Clear();
+        //    for (int i = 0; i < pathInfos.Length; i++)
+        //    {
+        //        var pathInfo = pathInfos[i];
+        //        foreach (var detail in pathInfo.PathDetailsForForm)
+        //        {
+        //            pathInfo.GetStartEndPoints(detail, out PointF? startP, out PointF? endP);
+        //            if (startP != null)
+        //                pointInfos.Add(new PointInfo((PointF)startP, i, isStartPoint: true, detail));
+        //            if (endP != null)
+        //                pointInfos.Add(new PointInfo((PointF)endP, i, isStartPoint: false, detail));
+        //        }
+        //    }
+        //}
+
+        private void SetNextPointIndex(PointF p, bool isStart, bool lockToPoints = false)
+        {
+            if (selectedPathInfoIndex < 0 || GetDisplayMode() != DisplayModes.All)
+                return;
+            var section = allSections.Last();
+            if (allSections.Count == 1 && section.EndIndex < 0 && selectedPathInfoIndex != 0)
+            {
+                MessageBox.Show("Please select the first path pattern.");
+                return;
+            }
+            if (section.EndIndex >= 0)
+            {
+                if (!AddNewSection())
+                    return;
+                section = allSections.Last();
+            }
+            if (section.StartIndex < 0 && allSections.Count > 1)
+                throw new Exception("The last section is invalid.");
+            var pathInfo = section.GetParent();
+            int index = -1;
+            //if (lockToPoints)
+            //{
+            //    SetAllStartEndPoints();
+            //    PointF[] joinPoints = pointInfos.Select(pi => pi.Point).ToArray();
+            //    int pointInfosIndex = Tools.FindClosestIndex(p, joinPoints);
+            //    if (pointInfosIndex >= 0)
+            //    {
+            //        PointF lockPoint = joinPoints[pointInfosIndex];
+            //        index = pathInfo.FindClosestIndex(lockPoint, out PointF p2);
+            //    }
+            //}
             if (index < 0)
             {
                 index = pathInfo.FindClosestIndex(p, out _);
@@ -387,30 +468,23 @@ namespace Whorl
                     return;
                 }
             }
-            PathOutlineList.PathDetail detail;
-            if (pointInfosIndex >= 0)
-                detail = pointInfos[pointInfosIndex].PathDetail;
+            if (section.StartIndex < 0)
+                section.StartIndex = index;
             else
-            {
-                detail = new PathOutlineList.PathDetail(pathInfo, 0);
-                pathInfo.PathDetails.Add(detail);
-            }
-            if (isStart)
-            {
-                detail.StartIndex = index;
-            }
-            else
-            {
-                detail.EndIndex = index;
-            }
+                section.EndIndex = index;
             picOutline.Refresh();
         }
 
-        private void setStartPointToolStripMenuItem_Click(object sender, EventArgs e)
+        private void selectCurveSectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                SetPointIndex(dragStart, isStart: true);
+                var section = GetClosestSection(dragStart, messageIfNull: true);
+                if (section != null)
+                {
+                    displayedSection = section;
+                    picOutline.Refresh();
+                }
             }
             catch (Exception ex)
             {
@@ -418,11 +492,21 @@ namespace Whorl
             }
         }
 
-        private void setEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SelectNextSection(int increment)
+        {
+            if (displayedSection == null || allSections.Count <= 1)
+                return;
+            int index = allSections.IndexOf(displayedSection) + increment;
+            index = Tools.GetIndexInRange(index, allSections.Count);
+            displayedSection = allSections[index];
+            picOutline.Refresh();
+        }
+
+        private void selectNextSectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                SetPointIndex(dragStart, isStart: false);
+                SelectNextSection(increment: 1);
             }
             catch (Exception ex)
             {
@@ -430,11 +514,11 @@ namespace Whorl
             }
         }
 
-        private void setLockedStartPointToolStripMenuItem_Click(object sender, EventArgs e)
+        private void selectPreviousSectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                SetPointIndex(dragStart, isStart: true, lockToPoints: true);
+                SelectNextSection(increment: -1);
             }
             catch (Exception ex)
             {
@@ -442,17 +526,233 @@ namespace Whorl
             }
         }
 
-        private void setLockedEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        private bool AddNewSection()
+        {
+            string errMessage = _AddNewSection();
+            if (errMessage != null)
+                MessageBox.Show(errMessage);
+            return errMessage == null;
+        }
+
+        private string _AddNewSection()
+        {
+            var section = allSections.Last();
+            if (section.EndIndex < 0)
+                return "Please set the end point first.";
+            var pathInfo = pathInfos[selectedPathInfoIndex];
+            if (pathInfo == section.GetParent())
+                return "Please select a different path pattern.";
+            if (!SetIntersectionIndex(section, pathInfo, out int index2))
+                return "No intersecting point was found.";
+            var newSection = new PathOutlineListForForm.PathDetailForForm(pathInfo, 0);
+            newSection.StartIndex = index2;
+            allSections.Add(newSection);
+            return null;
+        }
+
+        private bool SetIntersectionIndex(PathOutlineListForForm.PathDetailForForm section,
+                                          PathOutlineListForForm.PathInfoForForm pathInfo,
+                                          out int index2)
+        {
+            PointF endPoint = section.GetParent().GetCurvePoint(section.EndIndex);
+            index2 = pathInfo.FindClosestIndex(endPoint, out float distSquared, bufferSize: 30F);
+            bool isValid = index2 >= 0;
+            if (isValid && distSquared > 5F)
+            {
+                int index1 = section.EndIndex;
+                distSquared = FindIntersectionIndex(section.GetParent().FullCurvePoints,
+                                                    pathInfo.FullCurvePoints,
+                                                    ref index1, ref index2);
+                isValid = distSquared <= 5F;
+                if (isValid)
+                    section.EndIndex = index1;
+            }
+            return isValid;
+        }
+
+        private int FindBoundIndex(PointF[] points, int index, int increment, float distSquared)
+        {
+            int foundIndex = -1;
+            PointF p = points[index];
+            int startInd = index;
+            float curDist = float.MinValue;
+            do
+            {
+                float dist = Tools.DistanceSquared(p, points[index]);
+                if (dist > curDist)
+                {
+                    curDist = dist;
+                    foundIndex = index;
+                    if (dist >= distSquared)
+                        break;
+                }
+                index = Tools.GetIndexInRange(index + increment, points.Length);
+            } while (index != startInd);
+            return foundIndex;
+        }
+
+        private List<PointF> GetSectionPoints(PointF[] points, int index, float maxSegLen = 0.5F)
+        {
+            const float maxDistSquared = 100F;
+            var sectionPoints = new List<PointF>();
+            int iMin = FindBoundIndex(points, index, -1, maxDistSquared);
+            int iMax = FindBoundIndex(points, index, 1, maxDistSquared);
+            PointF prevP = points[iMin];
+            sectionPoints.Add(prevP);
+            for (int i = iMin; i <= iMax; i++)
+            {
+                int ind = Tools.GetIndexInRange(i, points.Length);
+                PointF p = points[ind];
+                if (Tools.DistanceSquared(prevP, p) >= maxSegLen)
+                {
+                    sectionPoints.Add(p);
+                    prevP = p;
+                }
+            }
+            return sectionPoints;
+        }
+
+        private float FindIntersectionIndex(PointF[] curvePoints1,
+                                            PointF[] curvePoints2,
+                                            ref int ind1, ref int ind2)
+        {
+            var sect1 = GetSectionPoints(curvePoints1, ind1);
+            var sect2 = GetSectionPoints(curvePoints2, ind2);
+            int si1 = Tools.FindClosestIndex(sect1, sect2, out float distSq, bufferSize: 5F);
+            if (si1 >= 0)
+            {
+                PointF pt = sect1[si1];
+                ind1 = Tools.FindClosestIndex(pt, curvePoints1);
+                ind2 = Tools.FindClosestIndex(pt, curvePoints2);
+            }
+            else
+                distSq = float.MaxValue;
+            return distSq;
+        }
+
+        //private void addCurveSectionToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        string errMessage = AddNewSection();
+        //        if (errMessage != null)
+        //            MessageBox.Show(errMessage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        private void deleteCurveSectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                SetPointIndex(dragStart, isStart: false, lockToPoints: true);
+                var section = allSections.Last();
+                allSections.Remove(section);
+                if (allSections.Count == 0)
+                    InitializeSections();
+                if (displayedSection == section)
+                {
+                    displayedSection = allSections.First();
+                    picOutline.Refresh();
+                }
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
             }
         }
+
+        private void setNextPointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SetNextPointIndex(dragStart, isStart: true);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void closeCurvePathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var section = allSections.Last();
+                bool notFirstPattern = section.GetParent() != pathInfos[0];
+                if (selectedPathInfoIndex != 0 && notFirstPattern)
+                {
+                    MessageBox.Show("Please select the first path pattern.");
+                    return;
+                }
+                if (!AddNewSection())
+                    return;
+                section = allSections.Last();
+                notFirstPattern = section.GetParent() != pathInfos[0];
+                var firstSection = allSections.First();
+                int index2 = firstSection.StartIndex;
+                if (notFirstPattern)
+                {
+                    PointF pt = firstSection.GetParent().GetCurvePoint(index2);
+                    section.EndIndex = section.GetParent().FindClosestIndex(pt, out _);
+                    if (section.EndIndex >= 0 &&
+                        SetIntersectionIndex(section, firstSection.GetParent(), out index2))
+                    {
+                        firstSection.StartIndex = index2;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Didn't find closing intersection point.");
+                        allSections.Remove(section);
+                        return;
+                    }
+                }
+                else
+                    section.EndIndex = firstSection.StartIndex;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        //private void setEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        SetPointIndex(dragStart, isStart: false);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void setLockedStartPointToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        SetPointIndex(dragStart, isStart: true, lockToPoints: true);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void setLockedEndPointToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        SetPointIndex(dragStart, isStart: false, lockToPoints: true);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
 
         private int GetDisplayIndex()
         {
@@ -555,6 +855,15 @@ namespace Whorl
             }
         }
 
+        private void ShowSection(Graphics g, PathOutlineListForForm.PathDetailForForm section)
+        {
+            if (section.StartIndex < 0 || section.EndIndex < 0)
+                return;
+            PointF[] points = section.GetCurveSection().ToArray();
+            if (points.Length > 1)
+                g.DrawLines(Pens.LightBlue, points);
+        }
+
         private void picOutline_Paint(object sender, PaintEventArgs e)
         {
             try
@@ -562,9 +871,9 @@ namespace Whorl
                 DisplayModes displayMode = GetDisplayMode();
                 if (displayMode == DisplayModes.One)
                 {
-                    if (selectedRowIndex < 0)
+                    if (selectedPathInfoIndex < 0)
                         return;
-                    var pathInfo = pathInfos[selectedRowIndex];
+                    var pathInfo = pathInfos[selectedPathInfoIndex];
                     pathInfo.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
                     pathInfo.PathPattern.DrawFilled(e.Graphics, null);
                 }
@@ -575,32 +884,33 @@ namespace Whorl
                     {
                         var pathInfo = pathInfos[i];
                         Color color = pathInfo.PathPattern.BoundaryColor;
-                        if (i == selectedRowIndex)
+                        if (i == selectedPathInfoIndex)
                             pathInfo.PathPattern.BoundaryColor = Color.Red;
                         else
                             pathInfo.PathPattern.BoundaryColor = Color.Black;
                         pathInfo.PathPattern.DrawFilled(e.Graphics, null);
                         pathInfo.PathPattern.BoundaryColor = color;
                     }
-                    if (selectedRowIndex >= 0)
+                    PathOutlineListForForm.PathInfoForForm selPathInfo = null;
+                    if (selectedPathInfoIndex >= 0)
                     {
-                        var selPathInfo = pathInfos[selectedRowIndex];
-                        foreach (var detail in selPathInfo.PathDetails)
+                        selPathInfo = pathInfos[selectedPathInfoIndex];
+                        foreach (var detail in allSections)
                         {
-                            ShowPoint(e.Graphics, selPathInfo, detail.StartIndex, isStart: true, isSelected: true);
-                            ShowPoint(e.Graphics, selPathInfo, detail.EndIndex, isStart: false, isSelected: true);
+                            if (detail.GetParent() == selPathInfo)
+                            {
+                                ShowPoint(e.Graphics, selPathInfo, detail.StartIndex, isStart: true, isSelected: true);
+                                ShowPoint(e.Graphics, selPathInfo, detail.EndIndex, isStart: false, isSelected: true);
+                            }
                         }
                     }
-                    for (int i = 0; i < pathInfos.Length; i++)
+                    foreach (var detail in allSections)
                     {
-                        if (i != selectedRowIndex)
+                        var pathInfo = detail.GetParent();
+                        if (pathInfo != selPathInfo)
                         {
-                            var pathInfo = pathInfos[i];
-                            foreach (var detail in pathInfo.PathDetails)
-                            {
-                                ShowPoint(e.Graphics, pathInfo, detail.StartIndex, isStart: true, isSelected: false);
-                                ShowPoint(e.Graphics, pathInfo, detail.EndIndex, isStart: false, isSelected: false);
-                            }
+                            ShowPoint(e.Graphics, pathInfo, detail.StartIndex, isStart: true, isSelected: false);
+                            ShowPoint(e.Graphics, pathInfo, detail.EndIndex, isStart: false, isSelected: false);
                         }
                     }
                 }
@@ -609,8 +919,16 @@ namespace Whorl
                     var pattern = pathOutlineListForForm.ResultPathPattern;
                     if (pattern != null)
                     {
+                        if (pattern.ZVector == Complex.Zero)
+                        {
+                            pathOutlineListForForm.SetForPreview(picOutline.ClientSize, panXYs[GetDisplayIndex()], zoomFactor);
+                        }
                         pattern.DrawFilled(e.Graphics, null);
                     }
+                }
+                if (displayMode == DisplayModes.All && displayedSection != null)
+                {
+                    ShowSection(e.Graphics, displayedSection);
                 }
             }
             catch (Exception ex)
@@ -623,7 +941,7 @@ namespace Whorl
         {
             outlineInfos.Clear();
             pnlOutlines.Controls.Clear();
-            selectedRowIndex = -1;
+            selectedPathInfoIndex = -1;
             int left = 5, top = 5;
             for (int index = 0; index < pathInfos.Length; index++)
             {
@@ -642,7 +960,7 @@ namespace Whorl
                 pnlOutlines.Controls.Add(pic1Outline);
                 left += pictureBoxSize.Width + 5;
 
-                Point saveLoc = new Point(left, top);
+                //Point saveLoc = new Point(left, top);
 
                 //Label lbl = new Label();
                 //lbl.AutoSize = true;
@@ -663,15 +981,17 @@ namespace Whorl
                 //top += 20;
                 //left = saveLoc.X;
                 var chkClockwise = new CheckBox();
+                chkClockwise.Tag = index;
                 chkClockwise.Text = "Clockwise";
                 chkClockwise.Location = new Point(left, top);
                 chkClockwise.Checked = pathInfo.Clockwise;
+                chkClockwise.CheckedChanged += ChkClockwise_CheckedChanged;
                 rowOutlineInfo.ChkClockwise = chkClockwise;
                 pnlOutlines.Controls.Add(chkClockwise);
 
                 outlineInfos.Add(rowOutlineInfo);
 
-                top = saveLoc.Y + pictureBoxSize.Height + 5;
+                top += pictureBoxSize.Height + 5;
                 left = 5;
             }
         }

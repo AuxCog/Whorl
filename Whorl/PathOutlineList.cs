@@ -52,6 +52,37 @@ namespace Whorl
                     return null;
             }
 
+            public List<PointF> GetCurveSection()
+            {
+                var section = new List<PointF>();
+                AppendCurveSection(section);
+                return section;
+            }
+
+            public bool AppendCurveSection(List<PointF> points)
+            {
+                if (StartIndex < 0 || EndIndex < 0)
+                    return false;
+                if (!Parent.FullPointsAreUpToDate)
+                    Parent.ComputePoints();
+                if (StartIndex >= Parent.FullCurvePoints.Length)
+                    throw new Exception("StartIndex is out of range.");
+                if (EndIndex >= Parent.FullCurvePoints.Length)
+                    throw new Exception("EndIndex is out of range.");
+                int ind = StartIndex;
+                int increment = Parent.Clockwise ? 1 : -1;
+                while (ind != EndIndex)
+                {
+                    points.Add(Parent.FullCurvePoints[ind]);
+                    ind += increment;
+                    if (ind == 0)
+                        ind = Parent.FullCurvePoints.Length - 1;
+                    else if (ind == Parent.FullCurvePoints.Length - 1)
+                        ind = 0;
+                }
+                return true;
+            }
+
             public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
             {
                 if (xmlNodeName == null)
@@ -73,7 +104,8 @@ namespace Whorl
             public bool Clockwise { get; set; }
             public Complex OrigZVector { get; protected set; }
             public PointF OrigCenter { get; protected set; }
-            public List<PathDetail> PathDetails { get; } = new List<PathDetail>();
+            private List<PathDetail> pathDetails { get; } = new List<PathDetail>();
+            public IEnumerable<PathDetail> PathDetails => pathDetails;
             public PointF[] FullCurvePoints { get; protected set; }
             protected bool _fullPointsAreUpToDate { get; set; }
             public bool FullPointsAreUpToDate => FullCurvePoints != null && _fullPointsAreUpToDate;
@@ -104,25 +136,24 @@ namespace Whorl
                 PathPattern = (PathPattern)source.PathPattern.GetCopy();
                 Tools.CopyProperties(this, source, excludedPropertyNames:
                                      new string[] { nameof(PathPattern) });
-                PathDetails.AddRange(source.PathDetails.Select(d => new PathDetail(this, d)));
+                pathDetails.AddRange(source.pathDetails.Select(d => new PathDetail(this, d)));
             }
 
             public PathInfo(PathOutlineListForForm.PathInfoForForm pathInfoForForm)
             {
                 //SetPathOutline(new PathOutline(pathInfoForForm.PathOutline));
                 PathPattern = (PathPattern)pathInfoForForm.PathPattern.GetCopy();
-                PathDetails.AddRange(pathInfoForForm.PathDetails.Select(d => new PathDetail(this, d)));
+                pathDetails.AddRange(pathInfoForForm.PathDetailsForForm.Select(d => new PathDetail(this, d)));
                 Clockwise = pathInfoForForm.Clockwise;
                 OrigCenter = pathInfoForForm.OrigCenter;
                 OrigZVector = pathInfoForForm.OrigZVector;
             }
 
-            public void AddDetail(float sortId, int startIndex, int endIndex)
+            public virtual PathDetail AddDetail(float sortId)
             {
                 var detail = new PathDetail(this, sortId);
-                detail.StartIndex = startIndex;
-                detail.EndIndex = endIndex;
-                PathDetails.Add(detail);
+                pathDetails.Add(detail);
+                return detail;
             }
 
             //public virtual void SetPathOutline(PathOutline pathOutline)
@@ -155,7 +186,7 @@ namespace Whorl
                 FullCurvePoints = null;
             }
 
-            public PointF[] ComputePathCurvePoints()
+            private PointF[] ComputePathCurvePoints()
             {
                 double modulus = PathPattern.ZVector.GetModulus();
                 double angle = PathPattern.ZVector.GetArgument();
@@ -173,7 +204,7 @@ namespace Whorl
                 if (PathPattern.SeedPoints == null)
                     PathPattern.ComputeSeedPoints();
                 int pathLength = PathPattern.SeedPoints.Length;
-                return PathDetails.Select(d => d.Validate(pathLength)).FirstOrDefault(s => s != null);
+                return pathDetails.Select(d => d.Validate(pathLength)).FirstOrDefault(s => s != null);
             }
 
             //public static void ValidatePathOutline(PathOutline pathOutline)
@@ -189,8 +220,9 @@ namespace Whorl
                 if (xmlNodeName == null)
                     xmlNodeName = nameof(PathInfo);
                 XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
-                xmlTools.AppendXmlAttributesExcept(xmlNode, this, nameof(PathPattern));
-                foreach (PathDetail pathDetail in PathDetails)
+                xmlTools.AppendXmlAttributesExcept(xmlNode, this, nameof(PathPattern),
+                                                   nameof(SortId), nameof(StartIndex), nameof(EndIndex));
+                foreach (PathDetail pathDetail in pathDetails)
                 {
                     if (pathDetail.StartIndex >= 0 && pathDetail.EndIndex >= 0)
                     {
@@ -212,7 +244,7 @@ namespace Whorl
                     switch (childNode.Name)
                     {
                         case nameof(PathDetail):
-                            PathDetails.Add(new PathDetail(this, childNode));
+                            pathDetails.Add(new PathDetail(this, childNode));
                             break;
                         case nameof(PathOutline):
                             //Legacy case.
@@ -233,7 +265,9 @@ namespace Whorl
                 //Legacy code:
                 if (node.Attributes[nameof(SortId)] != null)
                 {
-                    AddDetail(SortId, StartIndex, EndIndex);
+                    var detail = AddDetail(SortId);
+                    detail.StartIndex = StartIndex;
+                    detail.EndIndex = EndIndex;
                 }
                 if (OrigCenter == PointF.Empty)
                     OrigCenter = PathPattern.Center;
@@ -245,7 +279,7 @@ namespace Whorl
         private List<PathInfo> pathInfos { get; set; } = new List<PathInfo>();
         public IEnumerable<PathInfo> PathInfos => pathInfos;
         public WhorlDesign Design { get; }
-        public PathDetail FirstPathDetail { get; set; }
+        public bool InitializedFromForm { get; private set; }
         public override bool NoCustomOutline => true;
 
         private void Init()
@@ -271,8 +305,10 @@ namespace Whorl
         public PathOutlineList(PathOutlineListForForm source, WhorlDesign design = null): base()
         {
             Design = design ?? source.Design;
+            Tools.CopyProperties(this, source);
             pathInfos.AddRange(source.PathInfoForForms.Select(p => new PathInfo(p)));
             Init();
+            InitializedFromForm = true;
         }
 
         public override object Clone()
@@ -282,9 +318,15 @@ namespace Whorl
 
         public List<PathDetail> GetOrderedPathDetails()
         {
+            if (InitializedFromForm)
+            {
+                return pathInfos.SelectMany(p => p.PathDetails).OrderBy(d => d.SortId).ToList();
+            }
             var details = new List<PathDetail>();
             var allDetails = pathInfos.SelectMany(p => p.PathDetails)
                              .Where(d => d.StartIndex >= 0 && d.EndIndex >= 0).ToList();
+            if (!allDetails.Any())
+                return details;
             foreach (var detail in allDetails)
             {
                 PathInfo pathInfo = detail.Parent;
@@ -298,23 +340,7 @@ namespace Whorl
                 detail.StartPoint = points[detail.StartIndex];
                 detail.EndPoint = points[detail.EndIndex];
             }
-            if (FirstPathDetail == null)
-            {
-                var joinPoints = allDetails.Select(d => d.EndPoint).ToArray();
-                var inds = Enumerable.Range(0, joinPoints.Length)
-                        .Where(i =>
-                        {
-                            int j = Tools.FindClosestIndex(allDetails[i].StartPoint, joinPoints, bufferSize: 1F);
-                            return j == -1 || j == i;
-                        });
-                if (inds.Any())
-                    FirstPathDetail = allDetails[inds.First()];
-                else
-                    FirstPathDetail = allDetails.FirstOrDefault();
-                if (FirstPathDetail == null)
-                    throw new NullReferenceException("FirstPathDetail is null.");
-            }
-            PathDetail currDetail = FirstPathDetail;
+            PathDetail currDetail = allDetails.First();
             while (true)
             {
                 details.Add(currDetail);
@@ -341,29 +367,30 @@ namespace Whorl
             SegmentVerticesCenter = details.First().Parent.PathPattern.Center;
             foreach (PathDetail detail in details)
             {
-                PathInfo pathInfo = detail.Parent;
-                if (pathInfo.FullCurvePoints == null)
-                    pathInfo.ComputePoints();
-                var points = pathInfo.FullCurvePoints;
-                int ind = detail.StartIndex;
-                int endInd = detail.EndIndex;
-                if (pathPoints.Count == 0 || pathPoints.Last() != points[ind])
-                    pathPoints.Add(points[ind]);
-                int increment = pathInfo.Clockwise ? 1 : -1;
-                do
-                {
-                    ind += increment;
-                    if (ind < 0)
-                        ind = points.Length - 1;
-                    else if (ind >= points.Length)
-                        ind = 0;
-                    pathPoints.Add(points[ind]);
-                } while (ind != endInd);
+                detail.AppendCurveSection(pathPoints);
+                //PathInfo pathInfo = detail.Parent;
+                //if (pathInfo.FullCurvePoints == null)
+                //    pathInfo.ComputePoints();
+                //var points = pathInfo.FullCurvePoints;
+                //int ind = detail.StartIndex;
+                //int endInd = detail.EndIndex;
+                //if (pathPoints.Count == 0 || pathPoints.Last() != points[ind])
+                //    pathPoints.Add(points[ind]);
+                //int increment = pathInfo.Clockwise ? 1 : -1;
+                //do
+                //{
+                //    ind += increment;
+                //    if (ind < 0)
+                //        ind = points.Length - 1;
+                //    else if (ind >= points.Length)
+                //        ind = 0;
+                //    pathPoints.Add(points[ind]);
+                //} while (ind != endInd);
             }
             return NormalizePathVertices();
         }
 
-        protected string Validate(IEnumerable<PathInfo> infos)
+        private string Validate(IEnumerable<PathInfo> infos)
         {
             string errMessage = infos.Select(p => p.Validate()).FirstOrDefault(msg => msg != null);
             if (errMessage == null)
