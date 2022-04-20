@@ -127,6 +127,8 @@ namespace Whorl
             if (IsCSharp)
                 sb.Append("C#:");
             sb.Append($"{FormulaType}:");
+            if (IsSystem)
+                sb.Append("*");
             sb.Append(FormulaName);
             return sb.ToString();
         }

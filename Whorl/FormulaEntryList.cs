@@ -131,6 +131,11 @@ namespace Whorl
             return FormulaEntries.Where(fe => fe.FormulaType == formulaType);
         }
 
+        public IEnumerable<FormulaEntry> GetSystemEntries(FormulaTypes formulaType)
+        {
+            return FormulaEntries.Where(fe => fe.IsSystem && fe.FormulaType == formulaType);
+        }
+
         //public T GetNamedFormula<T>(string formulaName) where T: FormulaEntry
         //{
         //    return GetFormulaByName(formulaName) as T;

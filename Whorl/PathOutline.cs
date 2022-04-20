@@ -85,6 +85,11 @@ namespace Whorl
             {
                 pathOutline.ComputeInfluence(x, y);
             }
+
+            public List<PointF> GetPathPointsList()
+            {
+                return pathOutline.GetPathPointsList();
+            }
         }
         public PathOutlineVars GlobalInfo { get; }
         //Multiple of 2 * pi:
@@ -288,6 +293,11 @@ namespace Whorl
             return zVector;
         }
 
+        public List<PointF> GetPathPointsList()
+        {
+            return pathPoints;
+        }
+
         /// <summary>
         /// Normalize SegmentVertices.
         /// </summary>
@@ -479,11 +489,13 @@ namespace Whorl
                 pathPoints = null;
             else
             {
-                if (UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null)
+                bool useInfluence = UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null;
+                if (useInfluence)
                 {
                     try
                     {
                         computingInfluenceScale = true;
+                        //Since computingInfluenceScale is true, ComputeInfluence() does nothing.
                         _AddVertices();
                     }
                     finally
@@ -491,21 +503,38 @@ namespace Whorl
                         computingInfluenceScale = false;
                     }
                 }
-                _AddVertices();
+                if (useInfluence)
+                    VerticesSettings.InfluenceLinkParentCollection.Initialize();
+                try
+                {
+                    _AddVertices();
+                }
+                finally
+                {
+                    if (useInfluence)
+                        VerticesSettings.InfluenceLinkParentCollection.FinalizeSettings();
+                }
             }
+        }
+
+        /// <summary>
+        /// Also called from PathOutlineTransform class.
+        /// </summary>
+        /// <param name="globalInfo"></param>
+        /// <param name="verticesSettings"></param>
+        public void InitializeFormula(PathOutlineVars globalInfo, FormulaSettings verticesSettings)
+        {
+            globalInfo.AddDenom = AddDenom;
+            globalInfo.Petals = Petals;
+            globalInfo.AngleOffset = AngleOffset;
+            verticesSettings.SetCSharpInfoInstance(globalInfo);
+            verticesSettings.InitializeGlobals();
         }
 
         private void _AddVertices()
         {
             pathPoints = new List<PointF>();
-            GlobalInfo.AddDenom = AddDenom;
-            GlobalInfo.Petals = Petals;
-            GlobalInfo.AngleOffset = AngleOffset;
-            VerticesSettings.SetCSharpInfoInstance(GlobalInfo);
-            //addDenomIdent.SetCurrentValue(AddDenom);
-            //petalsIdent.SetCurrentValue(Petals);
-            //angleOffsetIdent.SetCurrentValue(AngleOffset);
-            VerticesSettings.InitializeGlobals();
+            InitializeFormula(GlobalInfo, VerticesSettings);
             if (VerticesSettings.EvalFormula())
             {
                 if (PathOutlineType == PathOutlineTypes.Cartesian)

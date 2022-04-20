@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Whorl
 {
@@ -50,6 +51,19 @@ namespace Whorl
             if (obj == null && throwException)
                 throw new NullReferenceException($"Couldn't find KeyGuid object of type {typeof(T).Name}.");
             return obj;
+        }
+
+        protected void AddKeyGuidXmlAttribute(XmlNode xmlNode, XmlTools xmlTools)
+        {
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(KeyGuid), KeyGuid);
+        }
+
+        protected bool ReadKeyGuidXmlAttribute(XmlNode xmlNode)
+        {
+            var attribute = xmlNode.Attributes[nameof(KeyGuid)];
+            if (attribute != null)
+                KeyGuid = Guid.Parse(attribute.Value);
+            return attribute != null;
         }
     }
 }

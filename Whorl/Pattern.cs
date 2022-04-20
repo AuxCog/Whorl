@@ -4552,9 +4552,10 @@ namespace Whorl
             float defaultVersion = Design.XmlVersion == 0F ? 1.1F : Design.XmlVersion;
             XmlVersion = Tools.GetXmlVersion(node, defaultVersion);
 
-            XmlAttribute guidAttr = node.Attributes[nameof(KeyGuid)];
-            if (guidAttr != null)
-                SetKeyGuid(Guid.Parse(guidAttr.Value));
+            ReadKeyGuidXmlAttribute(node);
+            //XmlAttribute guidAttr = node.Attributes[nameof(KeyGuid)];
+            //if (guidAttr != null)
+            //    SetKeyGuid(Guid.Parse(guidAttr.Value));
 
             Tools.GetXmlAttributesExcept(this, node, excludedPropertyNames: new string[]
                                    { "MergeOperation", "RenderMode", "Selected", "MergeMode",
