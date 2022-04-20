@@ -51,6 +51,7 @@
             this.clearPathRibbonToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.equalizeCentersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showSelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editTabParametersInMainFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addPatternToChoicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addPatternGroupToChoicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.autosampleForRecursionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -115,14 +116,6 @@
             this.cboMergeOperation = new System.Windows.Forms.ComboBox();
             this.label9 = new System.Windows.Forms.Label();
             this.dgvBasicOutlines = new System.Windows.Forms.DataGridView();
-            this.BasicOutlineType = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.Petals = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Weight = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Phase = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Pointiness = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colOutlineEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.btnCustomSettings = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.btnIncrementOutlineProperty = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tabTransforms = new System.Windows.Forms.TabPage();
             this.btnEditTransformInMainForm = new System.Windows.Forms.Button();
             this.pnlTransformParameters = new System.Windows.Forms.Panel();
@@ -131,8 +124,6 @@
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -300,7 +291,28 @@
             this.label58 = new System.Windows.Forms.Label();
             this.txtStretchAngle = new System.Windows.Forms.TextBox();
             this.label59 = new System.Windows.Forms.Label();
-            this.editTabParametersInMainFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.outlineContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.BasicOutlineType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.Petals = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Weight = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Phase = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Pointiness = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colOutlineEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.btnCustomSettings = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.editFormulaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editOutlineTransformsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openIncrementToolToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tabOutlineTransforms = new System.Windows.Forms.TabPage();
+            this.pnlOutlineTransforms = new System.Windows.Forms.Panel();
+            this.BtnAddOutlineTransform = new System.Windows.Forms.Button();
+            this.dgvOutlineTransforms = new System.Windows.Forms.DataGridView();
+            this.colEditOutlineTransform = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.colDeleteOutlineTransform = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.dataGridViewCheckBoxColumn1 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.formulaNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pathOutlineTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -313,7 +325,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -328,6 +339,11 @@
             this.tabStringPattern.SuspendLayout();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
+            this.outlineContextMenuStrip.SuspendLayout();
+            this.tabOutlineTransforms.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvOutlineTransforms)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
@@ -412,7 +428,7 @@
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(661, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(749, 24);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -532,6 +548,13 @@
             this.showSelectionToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.showSelectionToolStripMenuItem.Text = "Show Selection";
             this.showSelectionToolStripMenuItem.Click += new System.EventHandler(this.showSelectionToolStripMenuItem_Click);
+            // 
+            // editTabParametersInMainFormToolStripMenuItem
+            // 
+            this.editTabParametersInMainFormToolStripMenuItem.Name = "editTabParametersInMainFormToolStripMenuItem";
+            this.editTabParametersInMainFormToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.editTabParametersInMainFormToolStripMenuItem.Text = "Edit Tab Parameters in Main Form";
+            this.editTabParametersInMainFormToolStripMenuItem.Click += new System.EventHandler(this.editTabParametersInMainFormToolStripMenuItem_Click);
             // 
             // addPatternToChoicesToolStripMenuItem
             // 
@@ -699,11 +722,12 @@
             this.tabControl1.Controls.Add(this.tabTiling);
             this.tabControl1.Controls.Add(this.tabRendering);
             this.tabControl1.Controls.Add(this.tabStringPattern);
+            this.tabControl1.Controls.Add(this.tabOutlineTransforms);
             this.tabControl1.Location = new System.Drawing.Point(0, 50);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(636, 311);
+            this.tabControl1.Size = new System.Drawing.Size(744, 311);
             this.tabControl1.TabIndex = 22;
             this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             // 
@@ -719,7 +743,7 @@
             this.tabFill.Margin = new System.Windows.Forms.Padding(2);
             this.tabFill.Name = "tabFill";
             this.tabFill.Padding = new System.Windows.Forms.Padding(2);
-            this.tabFill.Size = new System.Drawing.Size(628, 285);
+            this.tabFill.Size = new System.Drawing.Size(736, 285);
             this.tabFill.TabIndex = 3;
             this.tabFill.Text = "Fill";
             this.tabFill.UseVisualStyleBackColor = true;
@@ -1099,7 +1123,7 @@
             this.tabOutlines.Margin = new System.Windows.Forms.Padding(2);
             this.tabOutlines.Name = "tabOutlines";
             this.tabOutlines.Padding = new System.Windows.Forms.Padding(2);
-            this.tabOutlines.Size = new System.Drawing.Size(628, 285);
+            this.tabOutlines.Size = new System.Drawing.Size(736, 285);
             this.tabOutlines.TabIndex = 0;
             this.tabOutlines.Text = "Outlines";
             this.tabOutlines.UseVisualStyleBackColor = true;
@@ -1107,7 +1131,7 @@
             // chkInterpolatePoints
             // 
             this.chkInterpolatePoints.AutoSize = true;
-            this.chkInterpolatePoints.Location = new System.Drawing.Point(389, 10);
+            this.chkInterpolatePoints.Location = new System.Drawing.Point(286, 9);
             this.chkInterpolatePoints.Margin = new System.Windows.Forms.Padding(2);
             this.chkInterpolatePoints.Name = "chkInterpolatePoints";
             this.chkInterpolatePoints.Size = new System.Drawing.Size(108, 17);
@@ -1127,7 +1151,7 @@
             // chkCartesianPath
             // 
             this.chkCartesianPath.AutoSize = true;
-            this.chkCartesianPath.Location = new System.Drawing.Point(290, 10);
+            this.chkCartesianPath.Location = new System.Drawing.Point(187, 9);
             this.chkCartesianPath.Margin = new System.Windows.Forms.Padding(2);
             this.chkCartesianPath.Name = "chkCartesianPath";
             this.chkCartesianPath.Size = new System.Drawing.Size(95, 17);
@@ -1164,8 +1188,7 @@
             this.Phase,
             this.Pointiness,
             this.colOutlineEnabled,
-            this.btnCustomSettings,
-            this.btnIncrementOutlineProperty});
+            this.btnCustomSettings});
             this.dgvBasicOutlines.Location = new System.Drawing.Point(10, 33);
             this.dgvBasicOutlines.Name = "dgvBasicOutlines";
             this.dgvBasicOutlines.Size = new System.Drawing.Size(537, 149);
@@ -1173,64 +1196,6 @@
             this.dgvBasicOutlines.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvBasicOutlines_CellContentClick);
             this.dgvBasicOutlines.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.dgvBasicOutlines_DataError);
             this.dgvBasicOutlines.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvBasicOutlines_RowEnter);
-            // 
-            // BasicOutlineType
-            // 
-            this.BasicOutlineType.DataPropertyName = "BasicOutlineType";
-            this.BasicOutlineType.HeaderText = "Type";
-            this.BasicOutlineType.Name = "BasicOutlineType";
-            this.BasicOutlineType.Width = 85;
-            // 
-            // Petals
-            // 
-            this.Petals.DataPropertyName = "Petals";
-            this.Petals.HeaderText = "Petals";
-            this.Petals.Name = "Petals";
-            this.Petals.Width = 60;
-            // 
-            // Weight
-            // 
-            this.Weight.DataPropertyName = "Weight";
-            this.Weight.HeaderText = "Weight";
-            this.Weight.Name = "Weight";
-            this.Weight.Width = 70;
-            // 
-            // Phase
-            // 
-            this.Phase.DataPropertyName = "Phase";
-            this.Phase.HeaderText = "Phase";
-            this.Phase.Name = "Phase";
-            this.Phase.Width = 60;
-            // 
-            // Pointiness
-            // 
-            this.Pointiness.DataPropertyName = "Pointiness";
-            this.Pointiness.HeaderText = "Pointiness";
-            this.Pointiness.Name = "Pointiness";
-            this.Pointiness.Width = 70;
-            // 
-            // colOutlineEnabled
-            // 
-            this.colOutlineEnabled.DataPropertyName = "Enabled";
-            this.colOutlineEnabled.HeaderText = "Enabled";
-            this.colOutlineEnabled.Name = "colOutlineEnabled";
-            this.colOutlineEnabled.Width = 80;
-            // 
-            // btnCustomSettings
-            // 
-            this.btnCustomSettings.HeaderText = "";
-            this.btnCustomSettings.Name = "btnCustomSettings";
-            this.btnCustomSettings.Text = "...";
-            this.btnCustomSettings.UseColumnTextForButtonValue = true;
-            this.btnCustomSettings.Width = 30;
-            // 
-            // btnIncrementOutlineProperty
-            // 
-            this.btnIncrementOutlineProperty.HeaderText = "";
-            this.btnIncrementOutlineProperty.Name = "btnIncrementOutlineProperty";
-            this.btnIncrementOutlineProperty.Text = "+/-";
-            this.btnIncrementOutlineProperty.UseColumnTextForButtonValue = true;
-            this.btnIncrementOutlineProperty.Width = 30;
             // 
             // tabTransforms
             // 
@@ -1242,7 +1207,7 @@
             this.tabTransforms.Margin = new System.Windows.Forms.Padding(2);
             this.tabTransforms.Name = "tabTransforms";
             this.tabTransforms.Padding = new System.Windows.Forms.Padding(2);
-            this.tabTransforms.Size = new System.Drawing.Size(628, 285);
+            this.tabTransforms.Size = new System.Drawing.Size(736, 285);
             this.tabTransforms.TabIndex = 1;
             this.tabTransforms.Text = "Transforms";
             this.tabTransforms.UseVisualStyleBackColor = true;
@@ -1325,18 +1290,6 @@
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
             // 
-            // transformNameDataGridViewTextBoxColumn
-            // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
-            // 
             // tabRibbon
             // 
             this.tabRibbon.Controls.Add(this.chkRibbonLinearGradientPerSegment);
@@ -1374,7 +1327,7 @@
             this.tabRibbon.Margin = new System.Windows.Forms.Padding(2);
             this.tabRibbon.Name = "tabRibbon";
             this.tabRibbon.Padding = new System.Windows.Forms.Padding(2);
-            this.tabRibbon.Size = new System.Drawing.Size(628, 285);
+            this.tabRibbon.Size = new System.Drawing.Size(736, 285);
             this.tabRibbon.TabIndex = 2;
             this.tabRibbon.Text = "Ribbon";
             this.tabRibbon.UseVisualStyleBackColor = true;
@@ -1666,7 +1619,7 @@
             this.tabRibbonFormula.Controls.Add(this.btnEditRibbonFormula);
             this.tabRibbonFormula.Location = new System.Drawing.Point(4, 22);
             this.tabRibbonFormula.Name = "tabRibbonFormula";
-            this.tabRibbonFormula.Size = new System.Drawing.Size(628, 285);
+            this.tabRibbonFormula.Size = new System.Drawing.Size(736, 285);
             this.tabRibbonFormula.TabIndex = 7;
             this.tabRibbonFormula.Text = "Ribbon Formula";
             this.tabRibbonFormula.UseVisualStyleBackColor = true;
@@ -1719,7 +1672,7 @@
             this.tabSection.Margin = new System.Windows.Forms.Padding(2);
             this.tabSection.Name = "tabSection";
             this.tabSection.Padding = new System.Windows.Forms.Padding(2);
-            this.tabSection.Size = new System.Drawing.Size(628, 285);
+            this.tabSection.Size = new System.Drawing.Size(736, 285);
             this.tabSection.TabIndex = 4;
             this.tabSection.Text = "Section";
             this.tabSection.UseVisualStyleBackColor = true;
@@ -1769,7 +1722,7 @@
             this.tabPatternLayers.Margin = new System.Windows.Forms.Padding(2);
             this.tabPatternLayers.Name = "tabPatternLayers";
             this.tabPatternLayers.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPatternLayers.Size = new System.Drawing.Size(628, 285);
+            this.tabPatternLayers.Size = new System.Drawing.Size(736, 285);
             this.tabPatternLayers.TabIndex = 5;
             this.tabPatternLayers.Text = "Pattern Layers";
             this.tabPatternLayers.UseVisualStyleBackColor = true;
@@ -1847,7 +1800,7 @@
             this.tabRecursion.Margin = new System.Windows.Forms.Padding(2);
             this.tabRecursion.Name = "tabRecursion";
             this.tabRecursion.Padding = new System.Windows.Forms.Padding(2);
-            this.tabRecursion.Size = new System.Drawing.Size(628, 285);
+            this.tabRecursion.Size = new System.Drawing.Size(736, 285);
             this.tabRecursion.TabIndex = 6;
             this.tabRecursion.Text = "Recursion";
             this.tabRecursion.UseVisualStyleBackColor = true;
@@ -2134,7 +2087,7 @@
             this.tabTiling.Controls.Add(this.chkTilePattern);
             this.tabTiling.Location = new System.Drawing.Point(4, 22);
             this.tabTiling.Name = "tabTiling";
-            this.tabTiling.Size = new System.Drawing.Size(628, 285);
+            this.tabTiling.Size = new System.Drawing.Size(736, 285);
             this.tabTiling.TabIndex = 8;
             this.tabTiling.Tag = "X";
             this.tabTiling.Text = "Tiling";
@@ -2281,7 +2234,7 @@
             this.tabRendering.Controls.Add(this.chkPixelRendering);
             this.tabRendering.Location = new System.Drawing.Point(4, 22);
             this.tabRendering.Name = "tabRendering";
-            this.tabRendering.Size = new System.Drawing.Size(628, 285);
+            this.tabRendering.Size = new System.Drawing.Size(736, 285);
             this.tabRendering.TabIndex = 9;
             this.tabRendering.Text = "Rendering";
             this.tabRendering.UseVisualStyleBackColor = true;
@@ -2450,7 +2403,7 @@
             this.tabStringPattern.Controls.Add(this.label54);
             this.tabStringPattern.Location = new System.Drawing.Point(4, 22);
             this.tabStringPattern.Name = "tabStringPattern";
-            this.tabStringPattern.Size = new System.Drawing.Size(628, 285);
+            this.tabStringPattern.Size = new System.Drawing.Size(736, 285);
             this.tabStringPattern.TabIndex = 10;
             this.tabStringPattern.Text = "Text";
             this.tabStringPattern.UseVisualStyleBackColor = true;
@@ -2978,18 +2931,189 @@
             this.label59.TabIndex = 66;
             this.label59.Text = "Stretch Angle:";
             // 
-            // editTabParametersInMainFormToolStripMenuItem
+            // outlineContextMenuStrip
             // 
-            this.editTabParametersInMainFormToolStripMenuItem.Name = "editTabParametersInMainFormToolStripMenuItem";
-            this.editTabParametersInMainFormToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
-            this.editTabParametersInMainFormToolStripMenuItem.Text = "Edit Tab Parameters in Main Form";
-            this.editTabParametersInMainFormToolStripMenuItem.Click += new System.EventHandler(this.editTabParametersInMainFormToolStripMenuItem_Click);
+            this.outlineContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.editFormulaToolStripMenuItem,
+            this.editOutlineTransformsToolStripMenuItem,
+            this.openIncrementToolToolStripMenuItem});
+            this.outlineContextMenuStrip.Name = "outlineContextMenuStrip";
+            this.outlineContextMenuStrip.Size = new System.Drawing.Size(198, 70);
+            // 
+            // BasicOutlineType
+            // 
+            this.BasicOutlineType.DataPropertyName = "BasicOutlineType";
+            this.BasicOutlineType.HeaderText = "Type";
+            this.BasicOutlineType.Name = "BasicOutlineType";
+            this.BasicOutlineType.Width = 85;
+            // 
+            // Petals
+            // 
+            this.Petals.DataPropertyName = "Petals";
+            this.Petals.HeaderText = "Petals";
+            this.Petals.Name = "Petals";
+            this.Petals.Width = 60;
+            // 
+            // Weight
+            // 
+            this.Weight.DataPropertyName = "Weight";
+            this.Weight.HeaderText = "Weight";
+            this.Weight.Name = "Weight";
+            this.Weight.Width = 70;
+            // 
+            // Phase
+            // 
+            this.Phase.DataPropertyName = "Phase";
+            this.Phase.HeaderText = "Phase";
+            this.Phase.Name = "Phase";
+            this.Phase.Width = 60;
+            // 
+            // Pointiness
+            // 
+            this.Pointiness.DataPropertyName = "Pointiness";
+            this.Pointiness.HeaderText = "Pointiness";
+            this.Pointiness.Name = "Pointiness";
+            this.Pointiness.Width = 70;
+            // 
+            // colOutlineEnabled
+            // 
+            this.colOutlineEnabled.DataPropertyName = "Enabled";
+            this.colOutlineEnabled.HeaderText = "Enabled";
+            this.colOutlineEnabled.Name = "colOutlineEnabled";
+            this.colOutlineEnabled.Width = 80;
+            // 
+            // btnCustomSettings
+            // 
+            this.btnCustomSettings.HeaderText = "";
+            this.btnCustomSettings.Name = "btnCustomSettings";
+            this.btnCustomSettings.Text = "...";
+            this.btnCustomSettings.UseColumnTextForButtonValue = true;
+            this.btnCustomSettings.Width = 30;
+            // 
+            // editFormulaToolStripMenuItem
+            // 
+            this.editFormulaToolStripMenuItem.Name = "editFormulaToolStripMenuItem";
+            this.editFormulaToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.editFormulaToolStripMenuItem.Text = "Edit Formula";
+            this.editFormulaToolStripMenuItem.Click += new System.EventHandler(this.editFormulaToolStripMenuItem_Click);
+            // 
+            // editOutlineTransformsToolStripMenuItem
+            // 
+            this.editOutlineTransformsToolStripMenuItem.Name = "editOutlineTransformsToolStripMenuItem";
+            this.editOutlineTransformsToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.editOutlineTransformsToolStripMenuItem.Text = "Edit Outline Transforms";
+            this.editOutlineTransformsToolStripMenuItem.Click += new System.EventHandler(this.editOutlineTransformsToolStripMenuItem_Click);
+            // 
+            // openIncrementToolToolStripMenuItem
+            // 
+            this.openIncrementToolToolStripMenuItem.Name = "openIncrementToolToolStripMenuItem";
+            this.openIncrementToolToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.openIncrementToolToolStripMenuItem.Text = "Open Increment Tool";
+            this.openIncrementToolToolStripMenuItem.Click += new System.EventHandler(this.openIncrementToolToolStripMenuItem_Click);
+            // 
+            // tabOutlineTransforms
+            // 
+            this.tabOutlineTransforms.Controls.Add(this.pnlOutlineTransforms);
+            this.tabOutlineTransforms.Controls.Add(this.BtnAddOutlineTransform);
+            this.tabOutlineTransforms.Controls.Add(this.dgvOutlineTransforms);
+            this.tabOutlineTransforms.Location = new System.Drawing.Point(4, 22);
+            this.tabOutlineTransforms.Name = "tabOutlineTransforms";
+            this.tabOutlineTransforms.Size = new System.Drawing.Size(736, 285);
+            this.tabOutlineTransforms.TabIndex = 11;
+            this.tabOutlineTransforms.Text = "Outline Transforms";
+            this.tabOutlineTransforms.UseVisualStyleBackColor = true;
+            // 
+            // pnlOutlineTransforms
+            // 
+            this.pnlOutlineTransforms.AutoScroll = true;
+            this.pnlOutlineTransforms.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlOutlineTransforms.Location = new System.Drawing.Point(2, 160);
+            this.pnlOutlineTransforms.Name = "pnlOutlineTransforms";
+            this.pnlOutlineTransforms.Size = new System.Drawing.Size(615, 122);
+            this.pnlOutlineTransforms.TabIndex = 11;
+            // 
+            // BtnAddOutlineTransform
+            // 
+            this.BtnAddOutlineTransform.Location = new System.Drawing.Point(516, 5);
+            this.BtnAddOutlineTransform.Name = "BtnAddOutlineTransform";
+            this.BtnAddOutlineTransform.Size = new System.Drawing.Size(38, 23);
+            this.BtnAddOutlineTransform.TabIndex = 10;
+            this.BtnAddOutlineTransform.Text = "Add";
+            this.BtnAddOutlineTransform.UseVisualStyleBackColor = true;
+            this.BtnAddOutlineTransform.Click += new System.EventHandler(this.btnAddOutlineTransform_Click);
+            // 
+            // dgvOutlineTransforms
+            // 
+            this.dgvOutlineTransforms.AllowUserToAddRows = false;
+            this.dgvOutlineTransforms.AllowUserToDeleteRows = false;
+            this.dgvOutlineTransforms.AutoGenerateColumns = false;
+            this.dgvOutlineTransforms.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvOutlineTransforms.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colEditOutlineTransform,
+            this.colDeleteOutlineTransform,
+            this.dataGridViewCheckBoxColumn1,
+            this.formulaNameDataGridViewTextBoxColumn});
+            this.dgvOutlineTransforms.DataSource = this.pathOutlineTransformBindingSource;
+            this.dgvOutlineTransforms.Location = new System.Drawing.Point(7, 6);
+            this.dgvOutlineTransforms.Margin = new System.Windows.Forms.Padding(2);
+            this.dgvOutlineTransforms.Name = "dgvOutlineTransforms";
+            this.dgvOutlineTransforms.RowTemplate.Height = 24;
+            this.dgvOutlineTransforms.Size = new System.Drawing.Size(507, 149);
+            this.dgvOutlineTransforms.TabIndex = 9;
+            // 
+            // colEditOutlineTransform
+            // 
+            this.colEditOutlineTransform.HeaderText = "";
+            this.colEditOutlineTransform.Name = "colEditOutlineTransform";
+            this.colEditOutlineTransform.ReadOnly = true;
+            this.colEditOutlineTransform.Text = "Edit";
+            this.colEditOutlineTransform.UseColumnTextForButtonValue = true;
+            this.colEditOutlineTransform.Width = 50;
+            // 
+            // colDeleteOutlineTransform
+            // 
+            this.colDeleteOutlineTransform.HeaderText = "";
+            this.colDeleteOutlineTransform.Name = "colDeleteOutlineTransform";
+            this.colDeleteOutlineTransform.ReadOnly = true;
+            this.colDeleteOutlineTransform.Text = "Delete";
+            this.colDeleteOutlineTransform.UseColumnTextForButtonValue = true;
+            this.colDeleteOutlineTransform.Width = 60;
+            // 
+            // dataGridViewCheckBoxColumn1
+            // 
+            this.dataGridViewCheckBoxColumn1.DataPropertyName = "Enabled";
+            this.dataGridViewCheckBoxColumn1.HeaderText = "Enabled";
+            this.dataGridViewCheckBoxColumn1.Name = "dataGridViewCheckBoxColumn1";
+            this.dataGridViewCheckBoxColumn1.Width = 60;
+            // 
+            // transformNameDataGridViewTextBoxColumn
+            // 
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
+            // 
+            // formulaNameDataGridViewTextBoxColumn
+            // 
+            this.formulaNameDataGridViewTextBoxColumn.DataPropertyName = "FormulaName";
+            this.formulaNameDataGridViewTextBoxColumn.HeaderText = "FormulaName";
+            this.formulaNameDataGridViewTextBoxColumn.Name = "formulaNameDataGridViewTextBoxColumn";
+            this.formulaNameDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // pathOutlineTransformBindingSource
+            // 
+            this.pathOutlineTransformBindingSource.DataSource = typeof(Whorl.PathOutlineTransform);
             // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(661, 744);
+            this.ClientSize = new System.Drawing.Size(749, 744);
             this.Controls.Add(this.txtStretchAngle);
             this.Controls.Add(this.label59);
             this.Controls.Add(this.txtStretchPercent);
@@ -3051,7 +3175,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -3075,6 +3198,11 @@
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
+            this.outlineContextMenuStrip.ResumeLayout(false);
+            this.tabOutlineTransforms.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvOutlineTransforms)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3256,14 +3384,6 @@
         private System.Windows.Forms.Label label39;
         private System.Windows.Forms.ToolStripMenuItem viewDebugMessagesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem propertyActionsFormToolStripMenuItem;
-        private System.Windows.Forms.DataGridViewComboBoxColumn BasicOutlineType;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Petals;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Weight;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Phase;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Pointiness;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn colOutlineEnabled;
-        private System.Windows.Forms.DataGridViewButtonColumn btnCustomSettings;
-        private System.Windows.Forms.DataGridViewButtonColumn btnIncrementOutlineProperty;
         private System.Windows.Forms.TabPage tabTiling;
         private System.Windows.Forms.TextBox txtTilePatternsPerRow;
         private System.Windows.Forms.Label label40;
@@ -3353,5 +3473,25 @@
         private System.Windows.Forms.TextBox txtStretchAngle;
         private System.Windows.Forms.Label label59;
         private System.Windows.Forms.ToolStripMenuItem editTabParametersInMainFormToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip outlineContextMenuStrip;
+        private System.Windows.Forms.DataGridViewComboBoxColumn BasicOutlineType;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Petals;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Weight;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Phase;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Pointiness;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn colOutlineEnabled;
+        private System.Windows.Forms.DataGridViewButtonColumn btnCustomSettings;
+        private System.Windows.Forms.ToolStripMenuItem editFormulaToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editOutlineTransformsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openIncrementToolToolStripMenuItem;
+        private System.Windows.Forms.TabPage tabOutlineTransforms;
+        private System.Windows.Forms.Panel pnlOutlineTransforms;
+        private System.Windows.Forms.Button BtnAddOutlineTransform;
+        private System.Windows.Forms.DataGridView dgvOutlineTransforms;
+        private System.Windows.Forms.BindingSource pathOutlineTransformBindingSource;
+        private System.Windows.Forms.DataGridViewButtonColumn colEditOutlineTransform;
+        private System.Windows.Forms.DataGridViewButtonColumn colDeleteOutlineTransform;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn dataGridViewCheckBoxColumn1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn formulaNameDataGridViewTextBoxColumn;
     }
 }

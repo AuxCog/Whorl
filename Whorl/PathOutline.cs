@@ -157,6 +157,8 @@ namespace Whorl
 
         public FormulaSettings VerticesSettings { get; }
 
+        public List<PathOutlineTransform> PathOutlineTransforms { get; } = new List<PathOutlineTransform>();
+
         private int pathIndex;
 
         private enum GlobalVarNames
@@ -187,6 +189,8 @@ namespace Whorl
             //                   nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
             //                   nameof(HasCurveVertices), nameof(HasLineVertices) });
             CurveCornerIndices.AddRange(source.CurveCornerIndices);
+            PathOutlineTransforms.AddRange(source.PathOutlineTransforms
+                                 .Select(ot => new PathOutlineTransform(ot, this)));
             if (source.pathPoints != null)
                 pathPoints = new List<PointF>(source.pathPoints);
             if (source.SegmentVertices != null)
@@ -513,6 +517,10 @@ namespace Whorl
                 {
                     if (useInfluence)
                         VerticesSettings.InfluenceLinkParentCollection.FinalizeSettings();
+                }
+                foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
+                {
+                    pathOutlineTransform.TransformPathPoints();
                 }
             }
         }
@@ -888,6 +896,10 @@ namespace Whorl
                     xmlTools.AppendAttributeChildNode(parentNode, nameof(CurveCornerIndices), sList);
                 }
             }
+            foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
+            {
+                pathOutlineTransform.ToXml(parentNode, xmlTools);
+            }
         }
 
         public override void FromXml(XmlNode node)
@@ -956,6 +968,11 @@ namespace Whorl
                 case nameof(CurveCornerIndices):
                     string sList = Tools.GetXmlAttribute<string>(node);
                     CurveCornerIndices.AddRange(sList.Split(',').Select(s => int.Parse(s)));
+                    break;
+                case nameof(PathOutlineTransform):
+                    PathOutlineTransform pathOutlineTransform = new PathOutlineTransform(this);
+                    pathOutlineTransform.FromXml(node);
+                    PathOutlineTransforms.Add(pathOutlineTransform);
                     break;
                 default:
                     retVal = base.FromExtraXml(node);

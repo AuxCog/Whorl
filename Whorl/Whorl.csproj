@@ -543,6 +543,7 @@
     <None Include="packages.config" />
     <None Include="Properties\DataSources\DesignLayer.datasource" />
     <None Include="Properties\DataSources\MemberItemInfo.datasource" />
+    <None Include="Properties\DataSources\PathOutlineTransform.datasource" />
     <None Include="Properties\DataSources\Pattern.PatternRecursionInfo.datasource" />
     <None Include="Properties\DataSources\PatternTransform.datasource" />
     <None Include="Properties\DataSources\StandardFormulaText.datasource" />

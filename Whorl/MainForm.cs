@@ -4381,10 +4381,12 @@ namespace Whorl
                     Design.ReplacePatterns(patternGroup.PatternsList, ptnsCopy.PatternsList);
                     if (patternForm.EditedTransform != null)
                     {
-                        var editedPattern = patternForm.EditedTransform.ParentPattern.FindByKeyGuid(ptnsCopy.Patterns);
+                        var editedPattern = 
+                            patternForm.EditedTransform.ParentPattern.FindByKeyGuid(ptnsCopy.Patterns);
                         if (editedPattern != null)
                         {
-                            var transform = patternForm.EditedTransform.FindByKeyGuid(editedPattern.Transforms);
+                            var transform = 
+                                patternForm.EditedTransform.FindByKeyGuid(editedPattern.Transforms);
                             if (transform != null)
                             {
                                 Design.EditedPattern = editedPattern;
@@ -4400,7 +4402,8 @@ namespace Whorl
                         var editedPattern = ptnsCopy.Patterns.FirstOrDefault();
                         if (editedPattern != null)
                         {
-                            var outline = patternForm.EditedBasicOutline.FindByKeyGuid(editedPattern.BasicOutlines);
+                            var outline = 
+                                patternForm.EditedBasicOutline.FindByKeyGuid(editedPattern.BasicOutlines);
                             var pathOutline = outline as PathOutline;
                             if (pathOutline != null && pathOutline.VerticesSettings != null)
                             {
@@ -4409,6 +4412,28 @@ namespace Whorl
                                 editedKeyEnumParameters = null;
                                 EditParameters();
                                 displayedParams = true;
+                            }
+                        }
+                    }
+                    else if (patternForm.EditedOutlineTransform != null)
+                    {
+                        Pattern editedPattern = ptnsCopy.Patterns.FirstOrDefault();
+                        if (editedPattern != null)
+                        {
+                            PathOutline parentOutline = patternForm.EditedOutlineTransform.PathOutline
+                                                .FindByKeyGuid(editedPattern.BasicOutlines) as PathOutline;
+                            if (parentOutline != null)
+                            {
+                                PathOutlineTransform outlineTransform = 
+                                    patternForm.EditedOutlineTransform.FindByKeyGuid(parentOutline.PathOutlineTransforms);
+                                if (outlineTransform != null)
+                                {
+                                    Design.EditedPattern = editedPattern;
+                                    EditedFormulaSettings = outlineTransform.VerticesSettings;
+                                    editedKeyEnumParameters = null;
+                                    EditParameters();
+                                    displayedParams = true;
+                                }
                             }
                         }
                     }

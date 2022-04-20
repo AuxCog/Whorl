@@ -27,35 +27,8 @@ namespace Whorl
             tabPatternLayers,
             tabTiling,
             tabRendering,
-            tabStringPattern
-        }
-
-        private TabPage GetTabPage(TabKeys tabKey)
-        {
-            return tabControl1.TabPages[tabKey.ToString()];
-        }
-
-        private TabKeys GetCurrentTabKey()
-        {
-            string tabName = tabControl1.SelectedTab.Name;
-            if (!Enum.TryParse(tabName, out TabKeys key))
-            {
-                throw new Exception($"Didn't find tab key for tab {tabName}.");
-            }
-            return key;
-        }
-
-        private void SetTabPageParametersPanel(TabKeys tabKey, Panel pnl)
-        {
-            TabPage tabPage = GetTabPage(tabKey);
-            if (tabPage == null)
-                throw new Exception($"Invalid tab key: {tabKey}.");
-            tabPage.Tag = pnl;
-        }
-
-        private Panel GetTabPageParametersPanel(TabPage tabPage)
-        {
-            return tabPage.Tag as Panel;
+            tabStringPattern,
+            tabOutlineTransforms
         }
 
         public PatternForm()
@@ -85,12 +58,14 @@ namespace Whorl
                     pnlOutlineParameters,
                     pnlRenderingParameters,
                     pnlRibbonFormulaParameters,
-                    pnlTransformParameters
+                    pnlTransformParameters,
+                    pnlOutlineTransforms
                 };
                 SetTabPageParametersPanel(TabKeys.tabOutlines, pnlOutlineParameters);
                 SetTabPageParametersPanel(TabKeys.tabRendering, pnlRenderingParameters);
                 SetTabPageParametersPanel(TabKeys.tabRibbonFormula, pnlRibbonFormulaParameters);
                 SetTabPageParametersPanel(TabKeys.tabTransforms, pnlTransformParameters);
+                SetTabPageParametersPanel(TabKeys.tabOutlineTransforms, pnlOutlineTransforms);
 
                 parameterDisplaysContainer = new ParameterDisplaysContainer(
                                              parametersPanels, OnParameterChanged, OnParameterActionSelected);
@@ -175,6 +150,40 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private TabPage GetTabPage(TabKeys tabKey)
+        {
+            return tabControl1.TabPages[tabKey.ToString()];
+        }
+
+        private TabKeys GetCurrentTabKey()
+        {
+            string tabName = tabControl1.SelectedTab.Name;
+            if (!Enum.TryParse(tabName, out TabKeys key))
+            {
+                throw new Exception($"Didn't find tab key for tab {tabName}.");
+            }
+            return key;
+        }
+
+        private void SetTabPageParametersPanel(TabKeys tabKey, Panel pnl)
+        {
+            TabPage tabPage = GetTabPage(tabKey);
+            if (tabPage == null)
+                throw new Exception($"Invalid tab key: {tabKey}.");
+            tabPage.Tag = pnl;
+        }
+
+        private Panel GetTabPageParametersPanel(TabPage tabPage)
+        {
+            return tabPage.Tag as Panel;
+        }
+
+        private void SelectTab(TabKeys tabKey)
+        {
+            tabControl1.SelectedTab = tabControl1.TabPages[tabKey.ToString()];
+        }
+
 
         private bool EditInfluenceLink(string parameterKey, Pattern pattern, FormulaSettings formulaSettings)
         {
@@ -263,6 +272,7 @@ namespace Whorl
             }
         }
         public PatternTransform EditedTransform { get; private set; }
+        public PathOutlineTransform EditedOutlineTransform { get; private set; }
         private BasicOutline selectedBasicOutline { get; set; }
         public BasicOutline EditedBasicOutline { get; private set; }
         private ParameterDisplaysContainer parameterDisplaysContainer { get; }
@@ -276,6 +286,8 @@ namespace Whorl
         private ColorGradientFormComponent colorGradientFormComponent { get; set; }
         private SelectPatternForm selectPatternForm = null;
         private PatternTransform selectedTransform { get; set; }
+        private PathOutlineTransform selectedOutlineTransform { get; set; }
+
 
         //private static DataTable EmptyParametersDataTable { get; } =
         //    FormulaSettings.CreateParametersDataTable(typeof(double));
@@ -561,7 +573,6 @@ namespace Whorl
                 throw new NullReferenceException("design cannot be null.");
             this.design = design;
             setPatternFromDefaultToolStripMenuItem.Enabled = this.design != null;
-            EditedTransform = null;
             //foreach (Pattern pattern in patternGroup.Patterns)
             //{
             //    pattern.OrigCenterPathPattern = pattern.CenterPathPattern;
@@ -576,6 +587,7 @@ namespace Whorl
             }
             EditedPatternIndex = 0;
             EditedTransform = selectedTransform = null;
+            EditedOutlineTransform = selectedOutlineTransform = null;
             EditedBasicOutline = selectedBasicOutline = null;
             //dgvTransformParameters.DataSource = EmptyParametersDataTable;
             //dgvTransformFnParameters.DataSource = EmptyFnParametersDataTable;
@@ -894,28 +906,18 @@ namespace Whorl
             return dataRowView.Row;
         }
 
-        private void dgvBasicOutlines_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private DataRow basicOutlineDataRow { get; set; }
+        private PathOutline transformsPathOutline { get; set; }
+
+        private void editFormulaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                if (e.RowIndex < 0 || e.ColumnIndex < 0)
-                    return;
-                var dgvCol = dgvBasicOutlines.Columns[e.ColumnIndex];
-                if (dgvCol != btnCustomSettings && dgvCol != btnIncrementOutlineProperty)
-                    return;
-                DataRow dRow = GetDataRow(dgvBasicOutlines, e.RowIndex);   //this.outlinesDataTable.Rows[e.RowIndex];
-                BasicOutline outline = GetDataRowBasicOutline(dRow);
-                if (dgvCol == btnIncrementOutlineProperty)
-                {
-                    if (outline != null)
-                        ShowPropertyActionsForm(outline);
-                    return;
-                }
-                BasicOutlineTypes? outlineType = GetOutlineType(dRow);
+                BasicOutlineTypes? outlineType = GetOutlineType(basicOutlineDataRow);
                 if (outlineType != BasicOutlineTypes.Custom &&
                     outlineType != BasicOutlineTypes.Path)
                     return;
-                outline = GetDataRowBasicOutline(dRow, (BasicOutlineTypes)outlineType);
+                BasicOutline outline = GetDataRowBasicOutline(basicOutlineDataRow, (BasicOutlineTypes)outlineType);
                 var pathOutline = outline as PathOutline;
                 if (chkCartesianPath.Checked && pathOutline != null)
                 {
@@ -923,20 +925,11 @@ namespace Whorl
                     return;
                 }
                 FormulaSettings formulaSettings = outline.GetFormulaSettings();
-                //object oFormula = dRow["AmplitudeFormula"];
-                //object oMaxFormula = dRow["MaxAmplitudeFormula"];
                 using (var frm = new OutlineFormulaForm())
                 {
                     frm.Initialize(outline);
-                    //formulaSettings?.FormulaName,
-                    //oFormula == DBNull.Value ? string.Empty : oFormula.ToString(),
-                    //oMaxFormula == DBNull.Value ? string.Empty : oMaxFormula.ToString());
                     if (frm.ShowDialog() == DialogResult.OK)
                     {
-                        //if (formulaSettings != null)
-                        //    formulaSettings.FormulaName = frm.FormulaName;
-                        //dRow["AmplitudeFormula"] = frm.AmplitudeFormula;
-                        //dRow["MaxAmplitudeFormula"] = frm.MaxAmplitudeFormula;
                         if (pathOutline != null)
                         {
                             cboDrawType.SelectedItem = pathOutline.DrawType;
@@ -945,6 +938,100 @@ namespace Whorl
                         AddParameterControls(pnlOutlineParameters, formulaSettings);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void editOutlineTransformsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                BasicOutlineTypes? outlineType = GetOutlineType(basicOutlineDataRow);
+                if (outlineType != BasicOutlineTypes.Path)
+                    return;
+                BasicOutline outline = GetDataRowBasicOutline(basicOutlineDataRow, (BasicOutlineTypes)outlineType);
+                var pathOutline = outline as PathOutline;
+                if (pathOutline == null || !pathOutline.UseVertices)
+                    return;
+                transformsPathOutline = pathOutline;
+                SelectTab(TabKeys.tabOutlineTransforms);
+                BindOutlineTransformsGrid();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void openIncrementToolToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                BasicOutline outline = GetDataRowBasicOutline(basicOutlineDataRow);
+                if (outline != null)
+                    ShowPropertyActionsForm(outline);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void dgvBasicOutlines_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                    return;
+                var dgvCol = dgvBasicOutlines.Columns[e.ColumnIndex];
+                if (dgvCol != btnCustomSettings) // && dgvCol != btnIncrementOutlineProperty)
+                    return;
+                basicOutlineDataRow = GetDataRow(dgvBasicOutlines, e.RowIndex);
+                outlineContextMenuStrip.Show(dgvBasicOutlines, new Point(150, 10));
+                //BasicOutline outline = GetDataRowBasicOutline(dRow);
+                //if (dgvCol == btnIncrementOutlineProperty)
+                //{
+                //    if (outline != null)
+                //        ShowPropertyActionsForm(outline);
+                //    return;
+                //}
+                //BasicOutlineTypes? outlineType = GetOutlineType(dRow);
+                //if (outlineType != BasicOutlineTypes.Custom &&
+                //    outlineType != BasicOutlineTypes.Path)
+                //    return;
+                //outline = GetDataRowBasicOutline(dRow, (BasicOutlineTypes)outlineType);
+                //var pathOutline = outline as PathOutline;
+                //if (chkCartesianPath.Checked && pathOutline != null)
+                //{
+                //    EditCartesianFormula(pathOutline);
+                //    return;
+                //}
+                //FormulaSettings formulaSettings = outline.GetFormulaSettings();
+                ////object oFormula = dRow["AmplitudeFormula"];
+                ////object oMaxFormula = dRow["MaxAmplitudeFormula"];
+                //using (var frm = new OutlineFormulaForm())
+                //{
+                //    frm.Initialize(outline);
+                //    //formulaSettings?.FormulaName,
+                //    //oFormula == DBNull.Value ? string.Empty : oFormula.ToString(),
+                //    //oMaxFormula == DBNull.Value ? string.Empty : oMaxFormula.ToString());
+                //    if (frm.ShowDialog() == DialogResult.OK)
+                //    {
+                //        //if (formulaSettings != null)
+                //        //    formulaSettings.FormulaName = frm.FormulaName;
+                //        //dRow["AmplitudeFormula"] = frm.AmplitudeFormula;
+                //        //dRow["MaxAmplitudeFormula"] = frm.MaxAmplitudeFormula;
+                //        if (pathOutline != null)
+                //        {
+                //            cboDrawType.SelectedItem = pathOutline.DrawType;
+                //            ChkDrawClosed.Checked = pathOutline.HasClosedPath;
+                //        }
+                //        AddParameterControls(pnlOutlineParameters, formulaSettings);
+                //    }
+                //}
             }
             catch (Exception ex)
             {
@@ -1033,16 +1120,6 @@ namespace Whorl
                 if (dgvTransforms.Columns[e.ColumnIndex] == btnEditTransform)
                 {
                     changed = EditTransform(transform);
-                    if (changed && transform.SequenceNumberChanged)
-                    {
-                        EditedPattern.Transforms.Remove(transform);
-                        EditedPattern.Transforms.Insert(transform.SequenceNumber, transform);
-                        for (int i = 0; i < EditedPattern.Transforms.Count; i++)
-                        {
-                            EditedPattern.Transforms[i].SequenceNumber = i;
-                            EditedPattern.Transforms[i].SequenceNumberChanged = false;
-                        }
-                    }
                 }
                 else if (dgvTransforms.Columns[e.ColumnIndex] == btnDeleteTransform)
                 {
@@ -1124,6 +1201,101 @@ namespace Whorl
         {
             if (e.ColumnIndex < 0) return;
             MessageBox.Show("Column: " + dgvTransforms.Columns[e.ColumnIndex].HeaderText +
+                ":\n" + e.Exception.Message);
+            e.ThrowException = false;
+        }
+
+        private void dgvOutlineTransforms_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                    return;
+                var dgvRow = dgvOutlineTransforms.Rows[e.RowIndex];
+                var outlineTransform = (PathOutlineTransform)dgvRow.DataBoundItem;
+                bool changed = false;
+                if (dgvOutlineTransforms.Columns[e.ColumnIndex] == colEditOutlineTransform)
+                {
+                    changed = EditOutlineTransform(outlineTransform);
+                }
+                else if (dgvOutlineTransforms.Columns[e.ColumnIndex] == colDeleteOutlineTransform)
+                {
+                    outlineTransform.PathOutline.PathOutlineTransforms.Remove(outlineTransform);
+                    changed = true;
+                }
+                if (changed)
+                {
+                    BindOutlineTransformsGrid();
+                    PreviewChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void dgvOutlineTransforms_RowEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0 || e.RowIndex >= dgvOutlineTransforms.Rows.Count)
+                    return;
+                selectedOutlineTransform = 
+                    (PathOutlineTransform)dgvOutlineTransforms.Rows[e.RowIndex].DataBoundItem;
+                AddParameterControls(pnlOutlineTransforms, 
+                                     selectedOutlineTransform.VerticesSettings);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void dgvOutlineTransforms_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex >= 0 && e.ColumnIndex >= 0
+                    && dgvOutlineTransforms.Columns[e.ColumnIndex] is DataGridViewCheckBoxColumn)
+                {
+                    dgvOutlineTransforms.EndEdit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void dgvOutlineTransforms_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex != colTransformEnabled.Index)
+                    return;
+                var cell = dgvOutlineTransforms.CurrentCell;
+                if (cell.Value is bool)
+                {
+                    var dgvRow = dgvOutlineTransforms.Rows[e.RowIndex];
+                    var outlineTransform = dgvRow.DataBoundItem as PathOutlineTransform;
+                    if (outlineTransform != null)
+                    {
+                        outlineTransform.Enabled = (bool)cell.Value;
+                        PreviewChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void dgvOutlineTransforms_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.ColumnIndex < 0) return;
+            MessageBox.Show("Column: " + dgvOutlineTransforms.Columns[e.ColumnIndex].HeaderText +
                 ":\n" + e.Exception.Message);
             e.ThrowException = false;
         }
@@ -2331,6 +2503,13 @@ namespace Whorl
             this.dgvTransforms.DataSource = patternTransformBindingSource;
         }
 
+        private void BindOutlineTransformsGrid()
+        {
+            pathOutlineTransformBindingSource.DataSource = null;
+            pathOutlineTransformBindingSource.DataSource = transformsPathOutline.PathOutlineTransforms;
+            dgvOutlineTransforms.DataSource = pathOutlineTransformBindingSource;
+        }
+
         private bool EditTransform(PatternTransform transform, bool forAdd = false)
         {
             //.Where(p => p is Parameter || p is VarFunctionParameter).ToList();
@@ -2378,6 +2557,46 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private bool EditOutlineTransform(PathOutlineTransform transform, 
+                                          bool forAdd = false)
+        {
+            int transformCount = transform.PathOutline.PathOutlineTransforms.Count;
+            if (forAdd)
+                transformCount++;
+            using (var frm = new OutlineFormulaForm())
+            {
+                frm.Initialize(transform, transformCount);
+                bool retVal = (frm.ShowDialog() == DialogResult.OK);
+                if (retVal)
+                {
+                    AddParameterControls(pnlOutlineTransforms, transform.VerticesSettings);
+                }
+                return retVal;
+            }
+        }
+
+        private void btnAddOutlineTransform_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (transformsPathOutline == null || !transformsPathOutline.UseVertices)
+                    return;
+                var outlineTransform = new PathOutlineTransform(transformsPathOutline);
+                outlineTransform.SequenceNumber = transformsPathOutline.PathOutlineTransforms.Count;
+                if (EditOutlineTransform(outlineTransform, forAdd: true))
+                {
+                    transformsPathOutline.PathOutlineTransforms.Add(outlineTransform);
+                    BindOutlineTransformsGrid();
+                    PreviewChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
 
         private PatternForm editRibbonForm;
 
@@ -3664,6 +3883,10 @@ namespace Whorl
                     case TabKeys.tabOutlines:
                         if (selectedBasicOutline != null)
                             EditedBasicOutline = selectedBasicOutline;
+                        break;
+                    case TabKeys.tabOutlineTransforms:
+                        if (selectedOutlineTransform != null)
+                            EditedOutlineTransform = selectedOutlineTransform;
                         break;
                     default:
                         MessageBox.Show("The current tab is not supported.");

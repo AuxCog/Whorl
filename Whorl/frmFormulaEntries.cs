@@ -113,7 +113,10 @@ namespace Whorl
             bool? isCSharp = booleanItem?.Value;
             var formulaTypes = new HashSet<FormulaTypes>(typeFilterCheckBoxes
                                .Where(chk => chk.Checked).Select(chk => (FormulaTypes)chk.Tag));
-            filteredFormulaEntries = formulaEntryList.FormulaEntries.Where(fe => Matches(fe, isCSharp, formulaTypes)).ToList();
+            filteredFormulaEntries = formulaEntryList.UnsortedFormulaEntries
+                                     .Where(fe => Matches(fe, isCSharp, formulaTypes))
+                                     .OrderBy(fe => fe.IsSystem ? 0 : 1)
+                                     .ThenBy(fe => fe.FormulaName).ToList();
             dgvFormulas.DataSource = filteredFormulaEntries;
         }
 

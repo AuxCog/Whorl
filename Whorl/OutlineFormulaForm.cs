@@ -15,9 +15,10 @@ namespace Whorl
         private Size txtFormulaOrigSize { get; }
         private FormulaTypes formulaType { get; set; }
         private BasicOutline basicOutline { get; set; }
-        private PathOutline pathOutline;
-        private Ribbon ribbon;
-        private Pattern.RenderingInfo renderingInfo;
+        private PathOutline pathOutline { get; set; }
+        private PathOutlineTransform pathOutlineTransform { get; set; }
+        private Ribbon ribbon { get; set; }
+        private Pattern.RenderingInfo renderingInfo { get; set; }
         private PatternTransform editedTransform { get; set; }
         private string AmplitudeFormula { get; set; }
         private string MaxAmplitudeFormula { get; set; }
@@ -46,12 +47,16 @@ namespace Whorl
         private void Init(FormulaTypes formulaType)
         {
             this.formulaType = formulaType;
-            pnlTransform.Visible = formulaType == FormulaTypes.Transform;
+            pnlTransform.Visible = formulaType == FormulaTypes.Transform ||
+                                   formulaType == FormulaTypes.OutlineTransform;
             basicOutline = null;
             pathOutline = null;
             ribbon = null;
             renderingInfo = null;
             editedTransform = null;
+            pathOutlineTransform = null;
+            UseVertices = false;
+            chkUseVertices.Enabled = false;
         }
 
         public OutlineFormulaForm()
@@ -236,6 +241,26 @@ namespace Whorl
             }
         }
 
+        public void Initialize(PathOutlineTransform pathOutlineTransform, int transformCount)
+        {
+            try
+            {
+                Init(FormulaTypes.OutlineTransform);
+                chkIsCSharpFormula.Show();
+                this.pathOutlineTransform = pathOutlineTransform;
+                this.cboSequenceNumber.DataSource = Enumerable.Range(0, transformCount).ToList();
+                pathOutlineTransform.SequenceNumber = Math.Max(0,
+                    Math.Min(transformCount - 1, pathOutlineTransform.SequenceNumber));
+                this.cboSequenceNumber.SelectedItem = pathOutlineTransform.SequenceNumber;
+                lblFormulaName.Text = "Outline Transform Name:";
+                StandardInit(pathOutlineTransform.VerticesSettings, "Outline Transform Formula:");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
         private void PopulateSavedFormulas()
         {
             if (frmFormulaEntries != null)
@@ -314,7 +339,34 @@ namespace Whorl
                 else if (editedTransform != null)
                 {
                     editedTransform.TransformName = txtFormulaName.Text;
+                    int prevSequenceNo = editedTransform.SequenceNumber;
                     editedTransform.SequenceNumber = (int)cboSequenceNumber.SelectedItem;
+                    if (editedTransform.SequenceNumber != prevSequenceNo)
+                    {
+                        var parent = editedTransform.ParentPattern;
+                        parent.Transforms.Remove(editedTransform);
+                        parent.Transforms.Insert(editedTransform.SequenceNumber, editedTransform);
+                        for (int i = 0; i < parent.Transforms.Count; i++)
+                        {
+                            parent.Transforms[i].SequenceNumber = i;
+                        }
+                    }
+                }
+                else if (pathOutlineTransform != null)
+                {
+                    int prevSequenceNo = pathOutlineTransform.SequenceNumber;
+                    pathOutlineTransform.SequenceNumber = (int)cboSequenceNumber.SelectedItem;
+                    if (pathOutlineTransform.SequenceNumber != prevSequenceNo)
+                    {
+                        var parent = pathOutlineTransform.PathOutline;
+                        parent.PathOutlineTransforms.Remove(pathOutlineTransform);
+                        parent.PathOutlineTransforms.Insert(pathOutlineTransform.SequenceNumber,
+                                                            pathOutlineTransform);
+                        for (int i = 0; i < parent.PathOutlineTransforms.Count; i++)
+                        {
+                            parent.PathOutlineTransforms[i].SequenceNumber = i;
+                        }
+                    }
                 }
                 this.DialogResult = DialogResult.OK;
                 this.Hide();

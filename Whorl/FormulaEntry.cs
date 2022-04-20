@@ -14,7 +14,8 @@ namespace Whorl
         Transform,
         PathVertices,
         Ribbon,
-        PixelRender
+        PixelRender,
+        OutlineTransform
     }
     public enum FormulaUsages
     {

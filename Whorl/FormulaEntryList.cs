@@ -36,6 +36,11 @@ namespace Whorl
             SavedFormulaCount = source.SavedFormulaCount;
         }
 
+        public IEnumerable<FormulaEntry> UnsortedFormulaEntries
+        {
+            get => formulaDict.Values;
+        }
+
         public IEnumerable<FormulaEntry> FormulaEntries
         {
             get { return formulaDict.Values.OrderBy(fe => fe.FormulaName); }

@@ -12,6 +12,9 @@ namespace Whorl
         public PathOutline PathOutline { get; }
         public FormulaSettings VerticesSettings { get; }
         public PathOutline.PathOutlineVars GlobalInfo { get; }
+        public int SequenceNumber { get; set; }
+        public bool Enabled { get; set; }
+        public string FormulaName => VerticesSettings.FormulaName;
 
         public PathOutlineTransform(PathOutline pathOutline)
         {
@@ -20,11 +23,13 @@ namespace Whorl
             VerticesSettings = new FormulaSettings(pathOutline.VerticesSettings);
         }
 
-        public PathOutlineTransform(PathOutlineTransform source): base(source)
+        public PathOutlineTransform(PathOutlineTransform source, PathOutline pathOutline): base(source)
         {
-            PathOutline = new PathOutline(source.PathOutline);
+            PathOutline = pathOutline;
             GlobalInfo = new PathOutline.PathOutlineVars(PathOutline);
             VerticesSettings = new FormulaSettings(source.VerticesSettings);
+            SequenceNumber = source.SequenceNumber;
+            Enabled = source.Enabled;
         }
 
         public void TransformPathPoints()
@@ -39,6 +44,8 @@ namespace Whorl
                 xmlNodeName = nameof(PathOutlineTransform);
             XmlNode xmlNode = xmlTools.CreateXmlNode(xmlNodeName);
             AddKeyGuidXmlAttribute(xmlNode, xmlTools);
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(SequenceNumber), SequenceNumber);
+            xmlTools.AppendXmlAttribute(xmlNode, nameof(Enabled), Enabled);
             VerticesSettings.ToXml(xmlNode, xmlTools, nameof(VerticesSettings));
             return xmlTools.AppendToParent(parentNode, xmlNode);
         }
@@ -48,6 +55,8 @@ namespace Whorl
             if (node.FirstChild == null || node.FirstChild.Name != nameof(VerticesSettings))
                 throw new ArgumentException("Invalid XML found.");
             ReadKeyGuidXmlAttribute(node);
+            SequenceNumber = Tools.GetXmlAttribute<int>(node, nameof(SequenceNumber));
+            Enabled = Tools.GetXmlAttribute<bool>(node, nameof(Enabled));
             VerticesSettings.FromXml(node.FirstChild);
         }
     }
