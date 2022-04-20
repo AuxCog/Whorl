@@ -124,15 +124,12 @@
             this.colOutlineEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.btnCustomSettings = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tabTransforms = new System.Windows.Forms.TabPage();
-            this.btnEditTransformInMainForm = new System.Windows.Forms.Button();
             this.pnlTransformParameters = new System.Windows.Forms.Panel();
             this.btnAddTransform = new System.Windows.Forms.Button();
             this.dgvTransforms = new System.Windows.Forms.DataGridView();
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -254,8 +251,6 @@
             this.colEditOutlineTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colDeleteOutlineTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.dataGridViewCheckBoxColumn1 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.formulaNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.pathOutlineTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.cboPatternType = new System.Windows.Forms.ComboBox();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
@@ -313,6 +308,10 @@
             this.editFormulaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editOutlineTransformsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openIncrementToolToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.formulaNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pathOutlineTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -325,7 +324,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -340,10 +338,11 @@
             this.tabStringPattern.SuspendLayout();
             this.tabOutlineTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOutlineTransforms)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).BeginInit();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
             this.outlineContextMenuStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
@@ -1145,7 +1144,7 @@
             this.pnlOutlineParameters.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlOutlineParameters.Location = new System.Drawing.Point(9, 188);
             this.pnlOutlineParameters.Name = "pnlOutlineParameters";
-            this.pnlOutlineParameters.Size = new System.Drawing.Size(538, 92);
+            this.pnlOutlineParameters.Size = new System.Drawing.Size(714, 92);
             this.pnlOutlineParameters.TabIndex = 27;
             // 
             // chkCartesianPath
@@ -1249,7 +1248,6 @@
             // 
             // tabTransforms
             // 
-            this.tabTransforms.Controls.Add(this.btnEditTransformInMainForm);
             this.tabTransforms.Controls.Add(this.pnlTransformParameters);
             this.tabTransforms.Controls.Add(this.btnAddTransform);
             this.tabTransforms.Controls.Add(this.dgvTransforms);
@@ -1261,16 +1259,6 @@
             this.tabTransforms.TabIndex = 1;
             this.tabTransforms.Text = "Transforms";
             this.tabTransforms.UseVisualStyleBackColor = true;
-            // 
-            // btnEditTransformInMainForm
-            // 
-            this.btnEditTransformInMainForm.Location = new System.Drawing.Point(520, 34);
-            this.btnEditTransformInMainForm.Name = "btnEditTransformInMainForm";
-            this.btnEditTransformInMainForm.Size = new System.Drawing.Size(105, 23);
-            this.btnEditTransformInMainForm.TabIndex = 8;
-            this.btnEditTransformInMainForm.Text = "Edit in Main Form";
-            this.btnEditTransformInMainForm.UseVisualStyleBackColor = true;
-            this.btnEditTransformInMainForm.Click += new System.EventHandler(this.btnEditTransformInMainForm_Click);
             // 
             // pnlTransformParameters
             // 
@@ -1339,18 +1327,6 @@
             this.colTransformEnabled.HeaderText = "Enabled";
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
-            // 
-            // transformNameDataGridViewTextBoxColumn
-            // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
             // 
             // tabRibbon
             // 
@@ -2526,7 +2502,7 @@
             this.pnlOutlineTransforms.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlOutlineTransforms.Location = new System.Drawing.Point(2, 160);
             this.pnlOutlineTransforms.Name = "pnlOutlineTransforms";
-            this.pnlOutlineTransforms.Size = new System.Drawing.Size(615, 122);
+            this.pnlOutlineTransforms.Size = new System.Drawing.Size(719, 122);
             this.pnlOutlineTransforms.TabIndex = 11;
             // 
             // BtnAddOutlineTransform
@@ -2587,17 +2563,6 @@
             this.dataGridViewCheckBoxColumn1.HeaderText = "Enabled";
             this.dataGridViewCheckBoxColumn1.Name = "dataGridViewCheckBoxColumn1";
             this.dataGridViewCheckBoxColumn1.Width = 60;
-            // 
-            // formulaNameDataGridViewTextBoxColumn
-            // 
-            this.formulaNameDataGridViewTextBoxColumn.DataPropertyName = "FormulaName";
-            this.formulaNameDataGridViewTextBoxColumn.HeaderText = "FormulaName";
-            this.formulaNameDataGridViewTextBoxColumn.Name = "formulaNameDataGridViewTextBoxColumn";
-            this.formulaNameDataGridViewTextBoxColumn.ReadOnly = true;
-            // 
-            // pathOutlineTransformBindingSource
-            // 
-            this.pathOutlineTransformBindingSource.DataSource = typeof(Whorl.PathOutlineTransform);
             // 
             // cboPatternType
             // 
@@ -3114,6 +3079,29 @@
             this.openIncrementToolToolStripMenuItem.Text = "Open Increment Tool";
             this.openIncrementToolToolStripMenuItem.Click += new System.EventHandler(this.openIncrementToolToolStripMenuItem_Click);
             // 
+            // transformNameDataGridViewTextBoxColumn
+            // 
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
+            // 
+            // formulaNameDataGridViewTextBoxColumn
+            // 
+            this.formulaNameDataGridViewTextBoxColumn.DataPropertyName = "FormulaName";
+            this.formulaNameDataGridViewTextBoxColumn.HeaderText = "FormulaName";
+            this.formulaNameDataGridViewTextBoxColumn.Name = "formulaNameDataGridViewTextBoxColumn";
+            this.formulaNameDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // pathOutlineTransformBindingSource
+            // 
+            this.pathOutlineTransformBindingSource.DataSource = typeof(Whorl.PathOutlineTransform);
+            // 
             // PatternForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -3180,7 +3168,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -3203,11 +3190,12 @@
             this.tabStringPattern.PerformLayout();
             this.tabOutlineTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvOutlineTransforms)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).EndInit();
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
             this.outlineContextMenuStrip.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pathOutlineTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3466,7 +3454,6 @@
         private System.Windows.Forms.ToolStripMenuItem draftSizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addPatternGroupToClipboardToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewInfluencePointsToolStripMenuItem;
-        private System.Windows.Forms.Button btnEditTransformInMainForm;
         private System.Windows.Forms.ToolStripMenuItem setPatternAsDefaultToolStripMenuItem;
         private System.Windows.Forms.Button BtnEditPatternLayerInMainForm;
         private System.Windows.Forms.CheckBox ChkFlipX;

@@ -3857,18 +3857,18 @@ namespace Whorl
             }
         }
 
-        private void btnEditTransformInMainForm_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (selectedTransform != null)
-                    EditedTransform = selectedTransform;
-            }
-            catch (Exception ex)
-            {
-                Tools.HandleException(ex);
-            }
-        }
+        //private void btnEditTransformInMainForm_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (selectedTransform != null)
+        //            EditedTransform = selectedTransform;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
 
         private void editTabParametersInMainFormToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -3898,7 +3898,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
-
 
         //private void AddAllParametersControls(Panel pnlParameters, FormulaSettings formulaSettings)
         //{
