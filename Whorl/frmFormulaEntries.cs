@@ -167,6 +167,7 @@ namespace Whorl
                     cboFormulaType.SelectedItem = entry.FormulaType;
                     handleEvents = true;
                     txtFormulaName.Text = entry.FormulaName;
+                    ChkIsSystem.Checked = entry.IsSystem;
                     if (entry.FormulaType == FormulaTypes.Outline)
                     {
                         txtFormula.Text = entry.Formula + Environment.NewLine + "*** " + entry.MaxAmplitudeFormula;
@@ -231,6 +232,20 @@ namespace Whorl
             }
         }
 
+        private void ChkIsSystem_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SelectedFormulaEntry == null || !handleEvents)
+                    return;
+                SelectedFormulaEntry.IsSystem = ChkIsSystem.Checked;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         private void TxtFormulaName_KeyDown(object sender, KeyEventArgs e)
         {
             try
@@ -254,5 +269,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

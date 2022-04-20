@@ -46,6 +46,7 @@
             this.cboFormulaType = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.txtFormulaName = new System.Windows.Forms.TextBox();
+            this.ChkIsSystem = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvFormulas)).BeginInit();
             this.pnlFilters.SuspendLayout();
             this.SuspendLayout();
@@ -158,12 +159,12 @@
             // 
             // txtFormula
             // 
-            this.txtFormula.Location = new System.Drawing.Point(481, 87);
+            this.txtFormula.Location = new System.Drawing.Point(481, 111);
             this.txtFormula.Multiline = true;
             this.txtFormula.Name = "txtFormula";
             this.txtFormula.ReadOnly = true;
             this.txtFormula.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtFormula.Size = new System.Drawing.Size(486, 405);
+            this.txtFormula.Size = new System.Drawing.Size(486, 381);
             this.txtFormula.TabIndex = 4;
             // 
             // btnCopyFormula
@@ -223,12 +224,24 @@
             this.txtFormulaName.TabIndex = 10;
             this.txtFormulaName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TxtFormulaName_KeyDown);
             // 
+            // ChkIsSystem
+            // 
+            this.ChkIsSystem.AutoSize = true;
+            this.ChkIsSystem.Location = new System.Drawing.Point(481, 88);
+            this.ChkIsSystem.Name = "ChkIsSystem";
+            this.ChkIsSystem.Size = new System.Drawing.Size(100, 17);
+            this.ChkIsSystem.TabIndex = 11;
+            this.ChkIsSystem.Text = "System Formula";
+            this.ChkIsSystem.UseVisualStyleBackColor = true;
+            this.ChkIsSystem.CheckedChanged += new System.EventHandler(this.ChkIsSystem_CheckedChanged);
+            // 
             // frmFormulaEntries
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(980, 499);
             this.ControlBox = false;
+            this.Controls.Add(this.ChkIsSystem);
             this.Controls.Add(this.txtFormulaName);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.cboFormulaType);
@@ -269,5 +282,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Column3;
         private System.Windows.Forms.DataGridViewButtonColumn colDeleteButton;
+        private System.Windows.Forms.CheckBox ChkIsSystem;
     }
 }

@@ -76,7 +76,18 @@ namespace Whorl
 
         public bool RemoveFormula(string formulaName)
         {
-            return formulaDict.Remove(formulaName);
+            FormulaEntry formulaEntry = GetFormulaByName(formulaName);
+            if (formulaEntry != null)
+            {
+                if (formulaEntry.IsSystem)
+                {
+                    throw new CustomException($"The formula {formulaName} is system required, and cannot be removed.");
+                }
+                formulaDict.Remove(formulaEntry.FormulaName);
+                return true;
+            }
+            else
+                return false;
         }
 
         private void SetFormulaName(FormulaEntry formulaEntry, string name)
@@ -88,6 +99,8 @@ namespace Whorl
 
         public bool RenameFormula(FormulaEntry formulaEntry, string newName, bool throwException = false)
         {
+            if (formulaEntry.IsSystem)
+                return false;
             var entry = GetFormulaByName(newName);
             if (entry != null && entry != formulaEntry)
             {

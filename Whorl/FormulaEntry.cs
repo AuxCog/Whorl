@@ -32,6 +32,7 @@ namespace Whorl
         private string formula;
         private string maxAmplitudeFormula;
         private bool isCSharp;
+        private bool isSystem;
         private FormulaUsages formulaUsage = FormulaUsages.Normal;
         //private bool isModule;
         private bool initialized;
@@ -57,6 +58,8 @@ namespace Whorl
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new Exception("FormulaName cannot be blank.");
+                if (IsSystem && !string.IsNullOrWhiteSpace(formulaName))
+                    return;  //Cannot rename system formula.
                 if (formulaName != value)
                 {
                     if (initialized && MainForm.FormulaEntryList.HandleRename)
@@ -97,6 +100,12 @@ namespace Whorl
             }
         }
 
+        public bool IsSystem
+        {
+            get { return isSystem; }
+            set { SetProperty(ref isSystem, value); }
+        }
+
         public FormulaUsages FormulaUsage
         {
             get => formulaUsage;
@@ -131,6 +140,7 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(node, "FormulaName", FormulaName);
             xmlTools.AppendXmlAttribute(node, "IsCSharp", IsCSharp);
             xmlTools.AppendXmlAttribute(node, nameof(FormulaUsage), FormulaUsage);
+            xmlTools.AppendXmlAttribute(node, nameof(IsSystem), IsSystem);
             //xmlTools.AppendXmlAttribute(node, "IsModule", IsModule);
             xmlTools.AppendChildNode(node, "Formula", Formula);
             if (FormulaType == FormulaTypes.Outline)
@@ -150,6 +160,7 @@ namespace Whorl
                 FormulaType = Tools.GetEnumXmlAttr(node, "FormulaType", FormulaTypes.Unknown);
             FormulaName = (string)Tools.GetXmlAttribute("FormulaName", typeof(string), node);
             IsCSharp = Tools.GetXmlAttribute<bool>(node, false, "IsCSharp");
+            IsSystem = Tools.GetXmlAttribute<bool>(node, false, nameof(IsSystem));
             FormulaUsage = FormulaUsages.Normal;
             if (node.Attributes["IsModule"] != null)
             {   //Legacy code:
