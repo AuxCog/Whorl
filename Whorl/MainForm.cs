@@ -4395,6 +4395,23 @@ namespace Whorl
                             }
                         }
                     }
+                    else if (patternForm.EditedBasicOutline != null)
+                    {
+                        var editedPattern = ptnsCopy.Patterns.FirstOrDefault();
+                        if (editedPattern != null)
+                        {
+                            var outline = patternForm.EditedBasicOutline.FindByKeyGuid(editedPattern.BasicOutlines);
+                            var pathOutline = outline as PathOutline;
+                            if (pathOutline != null && pathOutline.VerticesSettings != null)
+                            {
+                                Design.EditedPattern = editedPattern;
+                                EditedFormulaSettings = pathOutline.VerticesSettings;
+                                editedKeyEnumParameters = null;
+                                EditParameters();
+                                displayedParams = true;
+                            }
+                        }
+                    }
                     if (hasEditedPattern)
                     {
                         Design.EditedPattern = Design.EditedPattern.FindByKeyGuid(ptnsCopy.Patterns);

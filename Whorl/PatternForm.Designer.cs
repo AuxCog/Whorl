@@ -131,6 +131,8 @@
             this.btnEditTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.btnDeleteTransform = new System.Windows.Forms.DataGridViewButtonColumn();
             this.colTransformEnabled = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.tabRibbon = new System.Windows.Forms.TabPage();
             this.chkRibbonLinearGradientPerSegment = new System.Windows.Forms.CheckBox();
             this.btnEditRibbonCopiedPattern = new System.Windows.Forms.Button();
@@ -294,12 +296,11 @@
             this.ChkDrawClosed = new System.Windows.Forms.CheckBox();
             this.label57 = new System.Windows.Forms.Label();
             this.cboDrawType = new System.Windows.Forms.ComboBox();
-            this.transformNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.txtStretchPercent = new System.Windows.Forms.TextBox();
             this.label58 = new System.Windows.Forms.Label();
             this.txtStretchAngle = new System.Windows.Forms.TextBox();
             this.label59 = new System.Windows.Forms.Label();
+            this.editTabParametersInMainFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -312,6 +313,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).BeginInit();
             this.tabTransforms.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.tabRibbon.SuspendLayout();
             this.tabRibbonFormula.SuspendLayout();
             this.tabSection.SuspendLayout();
@@ -326,7 +328,6 @@
             this.tabStringPattern.SuspendLayout();
             this.pnlShrinkPattern.SuspendLayout();
             this.gradientContextMenu.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnOK
@@ -455,6 +456,7 @@
             this.pathRibbonToolStripMenuItem,
             this.equalizeCentersToolStripMenuItem,
             this.showSelectionToolStripMenuItem,
+            this.editTabParametersInMainFormToolStripMenuItem,
             this.addPatternToChoicesToolStripMenuItem,
             this.addPatternGroupToChoicesToolStripMenuItem,
             this.autosampleForRecursionToolStripMenuItem,
@@ -471,7 +473,7 @@
             // 
             this.editNextPatternToolStripMenuItem.Enabled = false;
             this.editNextPatternToolStripMenuItem.Name = "editNextPatternToolStripMenuItem";
-            this.editNextPatternToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.editNextPatternToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.editNextPatternToolStripMenuItem.Text = "Edit Next Pattern";
             this.editNextPatternToolStripMenuItem.Click += new System.EventHandler(this.editNextPatternToolStripMenuItem_Click);
             // 
@@ -479,14 +481,14 @@
             // 
             this.editPreviousPatternToolStripMenuItem.Enabled = false;
             this.editPreviousPatternToolStripMenuItem.Name = "editPreviousPatternToolStripMenuItem";
-            this.editPreviousPatternToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.editPreviousPatternToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.editPreviousPatternToolStripMenuItem.Text = "Edit Previous Pattern";
             this.editPreviousPatternToolStripMenuItem.Click += new System.EventHandler(this.editPreviousPatternToolStripMenuItem_Click);
             // 
             // deleteCurrentPatternToolStripMenuItem
             // 
             this.deleteCurrentPatternToolStripMenuItem.Name = "deleteCurrentPatternToolStripMenuItem";
-            this.deleteCurrentPatternToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.deleteCurrentPatternToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.deleteCurrentPatternToolStripMenuItem.Text = "Delete Current Pattern";
             this.deleteCurrentPatternToolStripMenuItem.Click += new System.EventHandler(this.deleteCurrentPatternToolStripMenuItem_Click);
             // 
@@ -496,7 +498,7 @@
             this.editPathRibbonToolStripMenuItem,
             this.clearPathRibbonToolStripMenuItem});
             this.pathRibbonToolStripMenuItem.Name = "pathRibbonToolStripMenuItem";
-            this.pathRibbonToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.pathRibbonToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.pathRibbonToolStripMenuItem.Text = "Path Ribbon";
             // 
             // editPathRibbonToolStripMenuItem
@@ -517,7 +519,7 @@
             // 
             this.equalizeCentersToolStripMenuItem.Enabled = false;
             this.equalizeCentersToolStripMenuItem.Name = "equalizeCentersToolStripMenuItem";
-            this.equalizeCentersToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.equalizeCentersToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.equalizeCentersToolStripMenuItem.Text = "Equalize Centers";
             this.equalizeCentersToolStripMenuItem.Click += new System.EventHandler(this.equalizeCentersToolStripMenuItem_Click);
             // 
@@ -527,63 +529,63 @@
             this.showSelectionToolStripMenuItem.CheckOnClick = true;
             this.showSelectionToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.showSelectionToolStripMenuItem.Name = "showSelectionToolStripMenuItem";
-            this.showSelectionToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.showSelectionToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.showSelectionToolStripMenuItem.Text = "Show Selection";
             this.showSelectionToolStripMenuItem.Click += new System.EventHandler(this.showSelectionToolStripMenuItem_Click);
             // 
             // addPatternToChoicesToolStripMenuItem
             // 
             this.addPatternToChoicesToolStripMenuItem.Name = "addPatternToChoicesToolStripMenuItem";
-            this.addPatternToChoicesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.addPatternToChoicesToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.addPatternToChoicesToolStripMenuItem.Text = "Add Pattern to Choices";
             this.addPatternToChoicesToolStripMenuItem.Click += new System.EventHandler(this.addPatternToChoicesToolStripMenuItem_Click);
             // 
             // addPatternGroupToChoicesToolStripMenuItem
             // 
             this.addPatternGroupToChoicesToolStripMenuItem.Name = "addPatternGroupToChoicesToolStripMenuItem";
-            this.addPatternGroupToChoicesToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.addPatternGroupToChoicesToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.addPatternGroupToChoicesToolStripMenuItem.Text = "Add Pattern Group to Choices";
             this.addPatternGroupToChoicesToolStripMenuItem.Click += new System.EventHandler(this.addPatternGroupToChoicesToolStripMenuItem_Click);
             // 
             // autosampleForRecursionToolStripMenuItem
             // 
             this.autosampleForRecursionToolStripMenuItem.Name = "autosampleForRecursionToolStripMenuItem";
-            this.autosampleForRecursionToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.autosampleForRecursionToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.autosampleForRecursionToolStripMenuItem.Text = "Autosample for Recursion";
             this.autosampleForRecursionToolStripMenuItem.Click += new System.EventHandler(this.autosampleForRecursionToolStripMenuItem_Click);
             // 
             // choosePatternToolStripMenuItem
             // 
             this.choosePatternToolStripMenuItem.Name = "choosePatternToolStripMenuItem";
-            this.choosePatternToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.choosePatternToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.choosePatternToolStripMenuItem.Text = "Choose Pattern";
             this.choosePatternToolStripMenuItem.Click += new System.EventHandler(this.choosePatternToolStripMenuItem_Click);
             // 
             // setPatternFromDefaultToolStripMenuItem
             // 
             this.setPatternFromDefaultToolStripMenuItem.Name = "setPatternFromDefaultToolStripMenuItem";
-            this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setPatternFromDefaultToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.setPatternFromDefaultToolStripMenuItem.Text = "Set Pattern From Default";
             this.setPatternFromDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternFromDefaultToolStripMenuItem_Click);
             // 
             // setPatternAsDefaultToolStripMenuItem
             // 
             this.setPatternAsDefaultToolStripMenuItem.Name = "setPatternAsDefaultToolStripMenuItem";
-            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.setPatternAsDefaultToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.setPatternAsDefaultToolStripMenuItem.Text = "Set Pattern As Default";
             this.setPatternAsDefaultToolStripMenuItem.Click += new System.EventHandler(this.setPatternAsDefaultToolStripMenuItem_Click);
             // 
             // sizeRectangleToImageToolStripMenuItem
             // 
             this.sizeRectangleToImageToolStripMenuItem.Name = "sizeRectangleToImageToolStripMenuItem";
-            this.sizeRectangleToImageToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.sizeRectangleToImageToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.sizeRectangleToImageToolStripMenuItem.Text = "Size Rectangle To Image";
             this.sizeRectangleToImageToolStripMenuItem.Click += new System.EventHandler(this.SizeRectangleToImageToolStripMenuItem_Click);
             // 
             // addPatternGroupToClipboardToolStripMenuItem
             // 
             this.addPatternGroupToClipboardToolStripMenuItem.Name = "addPatternGroupToClipboardToolStripMenuItem";
-            this.addPatternGroupToClipboardToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.addPatternGroupToClipboardToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.addPatternGroupToClipboardToolStripMenuItem.Text = "Add Pattern Group to Clipboard";
             this.addPatternGroupToClipboardToolStripMenuItem.Click += new System.EventHandler(this.addPatternGroupToClipboardToolStripMenuItem_Click);
             // 
@@ -1322,6 +1324,18 @@
             this.colTransformEnabled.HeaderText = "Enabled";
             this.colTransformEnabled.Name = "colTransformEnabled";
             this.colTransformEnabled.Width = 60;
+            // 
+            // transformNameDataGridViewTextBoxColumn
+            // 
+            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
+            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
+            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.transformNameDataGridViewTextBoxColumn.Width = 240;
+            // 
+            // patternTransformBindingSource
+            // 
+            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
             // 
             // tabRibbon
             // 
@@ -2930,18 +2944,6 @@
             this.cboDrawType.Size = new System.Drawing.Size(86, 21);
             this.cboDrawType.TabIndex = 63;
             // 
-            // transformNameDataGridViewTextBoxColumn
-            // 
-            this.transformNameDataGridViewTextBoxColumn.DataPropertyName = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.HeaderText = "TransformName";
-            this.transformNameDataGridViewTextBoxColumn.Name = "transformNameDataGridViewTextBoxColumn";
-            this.transformNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.transformNameDataGridViewTextBoxColumn.Width = 240;
-            // 
-            // patternTransformBindingSource
-            // 
-            this.patternTransformBindingSource.DataSource = typeof(Whorl.PatternTransform);
-            // 
             // txtStretchPercent
             // 
             this.txtStretchPercent.Location = new System.Drawing.Point(298, 363);
@@ -2975,6 +2977,13 @@
             this.label59.Size = new System.Drawing.Size(74, 13);
             this.label59.TabIndex = 66;
             this.label59.Text = "Stretch Angle:";
+            // 
+            // editTabParametersInMainFormToolStripMenuItem
+            // 
+            this.editTabParametersInMainFormToolStripMenuItem.Name = "editTabParametersInMainFormToolStripMenuItem";
+            this.editTabParametersInMainFormToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.editTabParametersInMainFormToolStripMenuItem.Text = "Edit Tab Parameters in Main Form";
+            this.editTabParametersInMainFormToolStripMenuItem.Click += new System.EventHandler(this.editTabParametersInMainFormToolStripMenuItem_Click);
             // 
             // PatternForm
             // 
@@ -3042,6 +3051,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvBasicOutlines)).EndInit();
             this.tabTransforms.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvTransforms)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.tabRibbon.ResumeLayout(false);
             this.tabRibbon.PerformLayout();
             this.tabRibbonFormula.ResumeLayout(false);
@@ -3065,7 +3075,6 @@
             this.pnlShrinkPattern.ResumeLayout(false);
             this.pnlShrinkPattern.PerformLayout();
             this.gradientContextMenu.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.patternTransformBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -3343,5 +3352,6 @@
         private System.Windows.Forms.Label label58;
         private System.Windows.Forms.TextBox txtStretchAngle;
         private System.Windows.Forms.Label label59;
+        private System.Windows.Forms.ToolStripMenuItem editTabParametersInMainFormToolStripMenuItem;
     }
 }

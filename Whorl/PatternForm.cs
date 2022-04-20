@@ -35,6 +35,16 @@ namespace Whorl
             return tabControl1.TabPages[tabKey.ToString()];
         }
 
+        private TabKeys GetCurrentTabKey()
+        {
+            string tabName = tabControl1.SelectedTab.Name;
+            if (!Enum.TryParse(tabName, out TabKeys key))
+            {
+                throw new Exception($"Didn't find tab key for tab {tabName}.");
+            }
+            return key;
+        }
+
         private void SetTabPageParametersPanel(TabKeys tabKey, Panel pnl)
         {
             TabPage tabPage = GetTabPage(tabKey);
@@ -253,6 +263,8 @@ namespace Whorl
             }
         }
         public PatternTransform EditedTransform { get; private set; }
+        private BasicOutline selectedBasicOutline { get; set; }
+        public BasicOutline EditedBasicOutline { get; private set; }
         private ParameterDisplaysContainer parameterDisplaysContainer { get; }
         private CSharpParameterDisplay renderingParamsDisplay { get; set; }
         private WhorlDesign design { get; set; }
@@ -563,6 +575,8 @@ namespace Whorl
                 pattern.NormalizeAmplitudeFactors();
             }
             EditedPatternIndex = 0;
+            EditedTransform = selectedTransform = null;
+            EditedBasicOutline = selectedBasicOutline = null;
             //dgvTransformParameters.DataSource = EmptyParametersDataTable;
             //dgvTransformFnParameters.DataSource = EmptyFnParametersDataTable;
             PopulateControls();
@@ -992,7 +1006,10 @@ namespace Whorl
                 BasicOutline outline = GetDataRowBasicOutline(dRow, (BasicOutlineTypes)outlineType);
                 FormulaSettings formulaSettings = outline.GetFormulaSettings();
                 if (formulaSettings != null)
+                {
+                    selectedBasicOutline = outline;
                     AddParameterControls(pnlOutlineParameters, formulaSettings);
+                }
                 //dgvCustomParameters.DataSource =
                 //    outline.customOutline.AmplitudeSettings.ParametersDataTable;
                 //dgvOutlineFnParameters.DataSource =
@@ -3625,9 +3642,33 @@ namespace Whorl
         {
             try
             {
-                if (selectedTransform == null)
-                    return;
-                EditedTransform = selectedTransform;
+                if (selectedTransform != null)
+                    EditedTransform = selectedTransform;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void editTabParametersInMainFormToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                switch (GetCurrentTabKey())
+                {
+                    case TabKeys.tabTransforms:
+                        if (selectedTransform != null)
+                            EditedTransform = selectedTransform;
+                        break;
+                    case TabKeys.tabOutlines:
+                        if (selectedBasicOutline != null)
+                            EditedBasicOutline = selectedBasicOutline;
+                        break;
+                    default:
+                        MessageBox.Show("The current tab is not supported.");
+                        break;
+                }
             }
             catch (Exception ex)
             {

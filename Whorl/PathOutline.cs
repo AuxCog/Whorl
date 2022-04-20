@@ -172,15 +172,15 @@ namespace Whorl
             ConfigureParser(VerticesSettings.Parser);
         }
 
-        public PathOutline(PathOutline source) : base(BasicOutlineTypes.Path)
+        public PathOutline(PathOutline source) : base(source)
         {
             GlobalInfo = new PathOutlineVars(this);
             DrawType = source.DrawType;
             VerticesSettings = source.VerticesSettings.GetCopy(ConfigureParser);
-            CopyProperties(source, excludedPropertyNames:
-                new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
-                               nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
-                               nameof(HasCurveVertices), nameof(HasLineVertices) });
+            //CopyProperties(source, excludedPropertyNames:
+            //    new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
+            //                   nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
+            //                   nameof(HasCurveVertices), nameof(HasLineVertices) });
             CurveCornerIndices.AddRange(source.CurveCornerIndices);
             if (source.pathPoints != null)
                 pathPoints = new List<PointF>(source.pathPoints);
@@ -188,6 +188,14 @@ namespace Whorl
                 SegmentVertices = new List<PointF>(source.SegmentVertices);
             if (source.LineVertices != null)
                 LineVertices = new List<PointF>(source.LineVertices);
+        }
+
+        protected override IEnumerable<string> GetExcludedCopyPropertyNames()
+        {
+            return base.GetExcludedCopyPropertyNames().Concat(
+                    new string[] { nameof(VerticesSettings),
+                                   nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
+                                   nameof(HasCurveVertices), nameof(HasLineVertices) });
         }
 
         static PathOutline()

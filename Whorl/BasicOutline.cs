@@ -27,7 +27,7 @@ namespace Whorl
         BroadFull
     }
 
-    public class BasicOutline: BaseObject, ICloneable, IXml
+    public class BasicOutline: GuidKey, ICloneable, IXml
     {
 
         public class CustomOutline: BaseObject, ICloneable
@@ -209,6 +209,20 @@ namespace Whorl
             this.Frequency = 2D;
             this.AddDenom = 0.5;
         }
+
+        public BasicOutline(BasicOutline source) : base(source)
+        {
+            BasicOutlineType = source.BasicOutlineType;
+            CopyProperties(source, GetExcludedCopyPropertyNames().ToArray());
+            if (customOutline != null)
+                customOutline.ParentOutline = this;
+        }
+
+        protected virtual IEnumerable<string> GetExcludedCopyPropertyNames()
+        {
+            return new string[] { nameof(BasicOutlineType), nameof(UnitFactor) };
+        }
+
 
         public virtual FormulaSettings GetFormulaSettings()
         {
@@ -633,12 +647,13 @@ namespace Whorl
 
         public BasicOutline GetCopy()
         {
-            BasicOutline copy = new BasicOutline(BasicOutlineType);
-            copy.CopyProperties(this, excludedPropertyNames:
-                                new string[] { nameof(BasicOutlineType), nameof(UnitFactor) });
-            if (copy.customOutline != null)
-                copy.customOutline.ParentOutline = copy;
-            return copy;
+            return new BasicOutline(this);
+            //BasicOutline copy = new BasicOutline(BasicOutlineType);
+            //copy.CopyProperties(this, excludedPropertyNames:
+            //                    new string[] { nameof(BasicOutlineType), nameof(UnitFactor) });
+            //if (copy.customOutline != null)
+            //    copy.customOutline.ParentOutline = copy;
+            //return copy;
         }
 
         public virtual object Clone()
