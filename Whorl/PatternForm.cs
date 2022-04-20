@@ -2513,7 +2513,7 @@ namespace Whorl
         private bool EditTransform(PatternTransform transform, bool forAdd = false)
         {
             //.Where(p => p is Parameter || p is VarFunctionParameter).ToList();
-            int transformCount = EditedPattern.Transforms.Count;
+            int transformCount = transform.ParentPattern.Transforms.Count;
             if (forAdd)
                 transformCount++;
             using (var frm = new OutlineFormulaForm())

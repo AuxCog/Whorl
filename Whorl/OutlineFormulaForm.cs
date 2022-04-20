@@ -290,6 +290,10 @@ namespace Whorl
             {
                 formulaSettings = ribbon.FormulaSettings;
             }
+            else if (pathOutlineTransform != null)
+            {
+                formulaSettings = pathOutlineTransform.VerticesSettings;
+            }
             if (formulaSettings == null)
                 throw new NullReferenceException("FormulaSettings were not found.");
             return formulaSettings;

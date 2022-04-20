@@ -18,6 +18,8 @@ namespace Whorl
 
         public PathOutlineTransform(PathOutline pathOutline)
         {
+            if (pathOutline == null)
+                throw new ArgumentNullException("pathOutline cannot be null.");
             PathOutline = pathOutline;
             GlobalInfo = new PathOutline.PathOutlineVars(PathOutline);
             VerticesSettings = new FormulaSettings(pathOutline.VerticesSettings);
@@ -34,8 +36,11 @@ namespace Whorl
 
         public void TransformPathPoints()
         {
-            PathOutline.InitializeFormula(GlobalInfo, VerticesSettings);
-            VerticesSettings.EvalFormula();
+            if (Enabled)
+            {
+                PathOutline.InitializeFormula(GlobalInfo, VerticesSettings);
+                VerticesSettings.EvalFormula();
+            }
         }
 
         public XmlNode ToXml(XmlNode parentNode, XmlTools xmlTools, string xmlNodeName = null)
