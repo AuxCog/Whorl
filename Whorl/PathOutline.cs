@@ -61,7 +61,6 @@ namespace Whorl
                 get => pathOutline.HasClosedPath;
                 set => pathOutline.HasClosedPath = value;
             }
-
             public PathOutlineVars(PathOutline pathOutline)
             {
                 this.pathOutline = pathOutline;
@@ -81,6 +80,11 @@ namespace Whorl
             {
                 pathOutline.SetPathPoints(points);
             }
+
+            public void ComputeInfluence(double x, double y)
+            {
+                pathOutline.ComputeInfluence(x, y);
+            }
         }
         public PathOutlineVars GlobalInfo { get; }
         //Multiple of 2 * pi:
@@ -99,6 +103,7 @@ namespace Whorl
         public bool UserDefinedVertices { get; set; }
         public bool HasClosedPath { get; set; } = true;
         public override bool SupportsInfluencePoints => VerticesSettings != null;
+        private bool computingInfluenceScale { get; set; }
 
         private DrawTypes _drawType = DrawTypes.Normal;
         public DrawTypes DrawType 
@@ -140,6 +145,10 @@ namespace Whorl
 
         //Only computed for Cartesian path:
         public double NormalizedPathLength { get; private set; }
+
+        public bool UsesInfluencePoints { get; set; }
+
+        public double InfluencePointsScale { get; protected set; } = 1.0;
 
         public FormulaSettings VerticesSettings { get; }
 
@@ -344,6 +353,19 @@ namespace Whorl
             return zVector;
         }
 
+        public void ComputeInfluence(double x, double y)
+        {
+            if (computingInfluenceScale || VerticesSettings == null)
+                return;
+            if (VerticesSettings.InfluenceLinkParentCollection == null)
+                return;
+            double scale = InfluencePointsScale * 
+                           VerticesSettings.InfluenceLinkParentCollection.ParentPattern.ZVector.GetModulus();
+            VerticesSettings.InfluenceLinkParentCollection.SetParameterValues(
+                             new DoublePoint(scale * x, scale * y), forRendering: false);
+        }
+
+
         //public void SetCurvePathPoints()
         //{
         //    SetCurvePathPoints(SegmentVertices);
@@ -388,34 +410,52 @@ namespace Whorl
         /// <returns></returns>
         protected Complex NormalizePathVertices()
         {
-            if (HasLineVertices)
+            try
             {
-                if (SegmentVertices != null)
-                    return new Complex(GetPolygonMaxModulus(SegmentVerticesCenter), 0.0);
-                else
-                    return Complex.DefaultZVector;
-            }
-            PointF center = SegmentVerticesCenter;
-            pathPoints = pathPoints.Select(
-                p => new PointF(p.X - center.X, p.Y - center.Y)).ToList();
-            MaxPathFactor = GetMaxPathFactor();
-            float factor = 1F / MaxPathFactor;
-            pathPoints = pathPoints.Select(
-                p => new PointF(factor * p.X, factor * p.Y)).ToList();
-            if (pathPoints.Count >= 2 && !HasCurveVertices && DrawType != DrawTypes.Custom)
-            {
-                Complex zOrig = new Complex(pathPoints[0].X,
-                                            pathPoints[0].Y);
-                if (zOrig != Complex.Zero)
+                if (computingInfluenceScale)
+                    InfluencePointsScale = 1.0;
+                if (HasLineVertices)
                 {
-                    Complex zVec1 = new Complex(pathPoints[1].X - pathPoints[0].X,
-                                                pathPoints[1].Y - pathPoints[0].Y);
-                    Complex zProjected = zVec1 / zOrig;
-                    if (zProjected.Im < 0)
-                        pathPoints.Reverse();
+                    if (SegmentVertices != null)
+                    {
+                        double modulus = GetPolygonMaxModulus(SegmentVerticesCenter);
+                        if (computingInfluenceScale)
+                            InfluencePointsScale = 1.0 / modulus;
+                        return new Complex(modulus, 0.0);
+                    }
+                    else
+                        return Complex.DefaultZVector;
                 }
+                PointF center = SegmentVerticesCenter;
+                pathPoints = pathPoints.Select(
+                    p => new PointF(p.X - center.X, p.Y - center.Y)).ToList();
+                MaxPathFactor = GetMaxPathFactor();
+                float factor = 1F / MaxPathFactor;
+                if (computingInfluenceScale)
+                    InfluencePointsScale = factor;
+                pathPoints = pathPoints.Select(
+                    p => new PointF(factor * p.X, factor * p.Y)).ToList();
+                if (pathPoints.Count >= 2 && !HasCurveVertices && DrawType != DrawTypes.Custom)
+                {
+                    Complex zOrig = new Complex(pathPoints[0].X,
+                                                pathPoints[0].Y);
+                    if (zOrig != Complex.Zero)
+                    {
+                        Complex zVec1 = new Complex(pathPoints[1].X - pathPoints[0].X,
+                                                    pathPoints[1].Y - pathPoints[0].Y);
+                        Complex zProjected = zVec1 / zOrig;
+                        if (zProjected.Im < 0)
+                            pathPoints.Reverse();
+                    }
+                }
+                return new Complex(MaxPathFactor, 0.0);
             }
-            return new Complex(MaxPathFactor, 0.0);
+            catch
+            {
+                if (computingInfluenceScale)
+                    InfluencePointsScale = 1.0;
+                throw;
+            }
         }
 
         public override double GetRotationSpan()
@@ -431,31 +471,48 @@ namespace Whorl
                 pathPoints = null;
             else
             {
-                pathPoints = new List<PointF>();
-                GlobalInfo.AddDenom = AddDenom;
-                GlobalInfo.Petals = Petals;
-                GlobalInfo.AngleOffset = AngleOffset;
-                VerticesSettings.SetCSharpInfoInstance(GlobalInfo);
-                //addDenomIdent.SetCurrentValue(AddDenom);
-                //petalsIdent.SetCurrentValue(Petals);
-                //angleOffsetIdent.SetCurrentValue(AngleOffset);
-                VerticesSettings.InitializeGlobals();
-                if (VerticesSettings.EvalFormula())
+                if (UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null)
                 {
-                    if (PathOutlineType == PathOutlineTypes.Cartesian)
+                    try
                     {
-                        NormalizePathPoints();
-                        NormalizedPathLength = Tools.PathLength(pathPoints);
+                        computingInfluenceScale = true;
+                        _AddVertices();
                     }
-                    else if (HasLineVertices)
+                    finally
                     {
-                        SegmentVertices = new List<PointF>(pathPoints);
-                        FinishUserDefinedVertices(PointF.Empty);
+                        computingInfluenceScale = false;
                     }
-                    else if (HasCurveVertices)
-                    {
-                        NormalizePathVertices();
-                    }
+                }
+                _AddVertices();
+            }
+        }
+
+        private void _AddVertices()
+        {
+            pathPoints = new List<PointF>();
+            GlobalInfo.AddDenom = AddDenom;
+            GlobalInfo.Petals = Petals;
+            GlobalInfo.AngleOffset = AngleOffset;
+            VerticesSettings.SetCSharpInfoInstance(GlobalInfo);
+            //addDenomIdent.SetCurrentValue(AddDenom);
+            //petalsIdent.SetCurrentValue(Petals);
+            //angleOffsetIdent.SetCurrentValue(AngleOffset);
+            VerticesSettings.InitializeGlobals();
+            if (VerticesSettings.EvalFormula())
+            {
+                if (PathOutlineType == PathOutlineTypes.Cartesian)
+                {
+                    NormalizePathPoints();
+                    NormalizedPathLength = Tools.PathLength(pathPoints);
+                }
+                else if (HasLineVertices)
+                {
+                    SegmentVertices = new List<PointF>(pathPoints);
+                    FinishUserDefinedVertices(PointF.Empty);
+                }
+                if (HasCurveVertices || HasLineVertices)
+                {
+                    NormalizePathVertices();
                 }
             }
         }
