@@ -59,8 +59,8 @@ namespace Whorl
                 PointF perp = new PointF(p.Y - prevP.Y, prevP.X - p.X);
                 double tanh1 = GetTanh(i);
                 double tanh2 = GetTanh(points.Count - i);
-                float scale = Math.Max(0.5F, Thickness * (float)(tanh1 * tanh2))
-                              / (float)Math.Sqrt(perp.X * perp.X + perp.Y * perp.Y);
+                float scale = Thickness * (float)(tanh1 * tanh2
+                              / Math.Sqrt(perp.X * perp.X + perp.Y * perp.Y));
                 if (useScale)
                 {
                     scale *= Scales[Tools.GetIndexInRange(i, Scales.Length)];
