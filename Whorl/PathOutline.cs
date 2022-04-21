@@ -159,7 +159,9 @@ namespace Whorl
 
         public List<PathOutlineTransform> PathOutlineTransforms { get; } = new List<PathOutlineTransform>();
 
-        private int pathIndex;
+        private int pathIndex { get; set; }
+
+        private int prevTransformsCount { get; set; }
 
         private enum GlobalVarNames
         {
@@ -372,6 +374,7 @@ namespace Whorl
                 zVector = NormalizePathVertices();
             else
                 AddVertices();
+            prevTransformsCount = PathOutlineTransforms.Count;
             return zVector;
         }
 
@@ -402,14 +405,22 @@ namespace Whorl
                 fitCurve = false;
             else
                 fitCurve = HasCurveVertices && UserDefinedVertices;
+            List<PointF> segPoints = segmentPoints;
             if (HasClosedPath)
-                Tools.ClosePoints(segmentPoints);
+            {
+                segPoints = new List<PointF>(segmentPoints);
+                Tools.ClosePoints(segPoints);
+            }
             if (fitCurve)
             {
-                pathPoints = CubicSpline.FitParametric(segmentPoints, CurveCornerIndices, HasClosedPath);
+                pathPoints = CubicSpline.FitParametric(segPoints, CurveCornerIndices, HasClosedPath);
+                foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
+                {
+                    pathOutlineTransform.TransformPathPoints();
+                }
             }
             else
-                pathPoints = new List<PointF>(segmentPoints);
+                pathPoints = new List<PointF>(segPoints);
         }
 
         public float MaxPathFactor { get; private set; }
@@ -629,9 +640,10 @@ namespace Whorl
                 }
                 else
                 {
-                    if (DrawType == DrawTypes.Custom)
+                    bool recompute = PathOutlineTransforms.Count > 0 || prevTransformsCount > 0;
+                    if (DrawType == DrawTypes.Custom || recompute)
                     {
-                        if (pathPoints == null)
+                        if (pathPoints == null || recompute)
                             ComputePathPoints();
                     }
                     retVal = pathPoints != null && pathPoints.Count > 1;
