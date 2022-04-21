@@ -463,7 +463,11 @@ namespace Whorl
                 Ribbon ribbon;
                 PathPattern pathPattern = pattern as PathPattern;
                 if (pathPattern != null)
+                {
                     ribbon = pathPattern.PathRibbon;
+                    if (scalePenWidth)
+                        pathPattern.PenWidth = Math.Max(1F, scaleFactor * pathPattern.PenWidth);
+                }
                 else
                     ribbon = pattern as Ribbon;
                 if (ribbon != null)
