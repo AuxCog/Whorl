@@ -174,11 +174,7 @@ namespace Whorl
         public PathOutline() : base(BasicOutlineTypes.Path)
         {
             GlobalInfo = new PathOutlineVars(this);
-            VerticesSettings = new FormulaSettings(FormulaTypes.PathVertices); // parseOnChanges: true);
-            var memberNames = new List<string>(Enum.GetNames(typeof(GlobalVarNames)));
-            memberNames.Add(nameof(AddVertex));
-            VerticesSettings.TokensTransformInfo = new TokensTransformInfo(nameof(GlobalInfo), memberNames);
-            ConfigureParser(VerticesSettings.Parser);
+            VerticesSettings = GetVerticesSettings(FormulaTypes.PathVertices);
         }
 
         public PathOutline(PathOutline source) : base(source)
@@ -201,6 +197,16 @@ namespace Whorl
                 LineVertices = new List<PointF>(source.LineVertices);
         }
 
+        public FormulaSettings GetVerticesSettings(FormulaTypes formulaType)
+        {
+            var verticesSettings = new FormulaSettings(formulaType);
+            var memberNames = new List<string>(Enum.GetNames(typeof(GlobalVarNames)));
+            memberNames.Add(nameof(AddVertex));
+            verticesSettings.TokensTransformInfo = new TokensTransformInfo(nameof(GlobalInfo), memberNames);
+            ConfigureParser(verticesSettings.Parser);
+            return verticesSettings;
+        }
+
         protected override IEnumerable<string> GetExcludedCopyPropertyNames()
         {
             return base.GetExcludedCopyPropertyNames().Concat(
@@ -213,7 +219,7 @@ namespace Whorl
         {
             ExpressionParser.DeclareExternType(typeof(PathOutlineVars));
         }
-        private void ConfigureParser(ExpressionParser parser)
+        public void ConfigureParser(ExpressionParser parser)
         {
             parser.DeclareVariable(nameof(GlobalInfo), GlobalInfo.GetType(), GlobalInfo,
                                    isGlobal: true, isReadOnly: true);

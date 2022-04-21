@@ -22,14 +22,14 @@ namespace Whorl
                 throw new ArgumentNullException("pathOutline cannot be null.");
             PathOutline = pathOutline;
             GlobalInfo = new PathOutline.PathOutlineVars(PathOutline);
-            VerticesSettings = new FormulaSettings(pathOutline.VerticesSettings);
+            VerticesSettings = pathOutline.GetVerticesSettings(FormulaTypes.OutlineTransform);
         }
 
         public PathOutlineTransform(PathOutlineTransform source, PathOutline pathOutline): base(source)
         {
             PathOutline = pathOutline;
             GlobalInfo = new PathOutline.PathOutlineVars(PathOutline);
-            VerticesSettings = new FormulaSettings(source.VerticesSettings);
+            VerticesSettings = source.VerticesSettings.GetCopy(PathOutline.ConfigureParser);
             SequenceNumber = source.SequenceNumber;
             Enabled = source.Enabled;
         }

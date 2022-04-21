@@ -990,7 +990,7 @@ namespace Whorl
                 if (dgvCol != btnCustomSettings) // && dgvCol != btnIncrementOutlineProperty)
                     return;
                 basicOutlineDataRow = GetDataRow(dgvBasicOutlines, e.RowIndex);
-                outlineContextMenuStrip.Show(dgvBasicOutlines, new Point(150, 10));
+                outlineContextMenuStrip.Show(dgvBasicOutlines, new Point(dgvBasicOutlines.Width - 50, 10));
                 //BasicOutline outline = GetDataRowBasicOutline(dRow);
                 //if (dgvCol == btnIncrementOutlineProperty)
                 //{
@@ -2507,6 +2507,7 @@ namespace Whorl
         {
             pathOutlineTransformBindingSource.DataSource = null;
             pathOutlineTransformBindingSource.DataSource = transformsPathOutline.PathOutlineTransforms;
+            dgvOutlineTransforms.DataSource = null;
             dgvOutlineTransforms.DataSource = pathOutlineTransformBindingSource;
         }
 
