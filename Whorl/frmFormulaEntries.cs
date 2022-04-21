@@ -263,8 +263,12 @@ namespace Whorl
                         {
                             RebindDataGrid();
                         }
+                        else
+                        {
+                            txtFormulaName.Text = SelectedFormulaEntry.FormulaName;
+                        }
                     }
-                    e.Handled = true;
+                    //e.Handled = true;
                 }
             }
             catch (Exception ex)

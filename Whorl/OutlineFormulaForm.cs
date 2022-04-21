@@ -44,21 +44,6 @@ namespace Whorl
             }
         }
 
-        private void Init(FormulaTypes formulaType)
-        {
-            this.formulaType = formulaType;
-            pnlTransform.Visible = formulaType == FormulaTypes.Transform ||
-                                   formulaType == FormulaTypes.OutlineTransform;
-            basicOutline = null;
-            pathOutline = null;
-            ribbon = null;
-            renderingInfo = null;
-            editedTransform = null;
-            pathOutlineTransform = null;
-            UseVertices = false;
-            chkUseVertices.Enabled = false;
-        }
-
         public OutlineFormulaForm()
         {
             InitializeComponent();
@@ -69,6 +54,18 @@ namespace Whorl
                 txtFormula.Enter += txtFormula_Enter;
                 txtMaxAmplitudeFormula.Enter += txtFormula_Enter;
                 cboDrawType.DataSource = Enum.GetValues(typeof(PathOutline.DrawTypes));
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void OutlineFormulaForm_Activated(object sender, EventArgs e)
+        {
+            try
+            {
+                LayoutForm();
             }
             catch (Exception ex)
             {
@@ -126,6 +123,21 @@ namespace Whorl
                 currentFormulaSettings = basicOutline.customOutline.MaxAmplitudeSettings;
             }
         }
+        private void Init(FormulaTypes formulaType)
+        {
+            this.formulaType = formulaType;
+            pnlTransform.Visible = formulaType == FormulaTypes.Transform ||
+                                   formulaType == FormulaTypes.OutlineTransform;
+            basicOutline = null;
+            pathOutline = null;
+            ribbon = null;
+            renderingInfo = null;
+            editedTransform = null;
+            pathOutlineTransform = null;
+            UseVertices = false;
+            chkUseVertices.Enabled = false;
+            lblFormulaName.Text = "Formula Name:";
+        }
 
         public void Initialize(BasicOutline outline)
         {
@@ -163,6 +175,8 @@ namespace Whorl
                 else
                     UseVerticesChanged();
                 chkUseVertices.Enabled = pathOutline != null;
+                pnlPathSettings.Visible = pathOutline != null;
+                pnlMaxAmplitude.Visible = pathOutline == null;
                 //PopulateSavedFormulaNameComboBox();
                 cboFormulaUsage.SelectedItem = FormulaUsages.Normal;
                 SetOrigFormulaEntry();
@@ -177,8 +191,8 @@ namespace Whorl
         {
             //PopulateSavedFormulaNameComboBox();
             UseVertices = false;
-            txtFormula.Height = pnlPathSettings.Bottom - txtFormula.Top;
-            ShowMaxAmpFormula(false);
+            //txtFormula.Height = pnlPathSettings.Bottom - txtFormula.Top;
+            pnlMaxAmplitude.Visible = false;
             pnlPathSettings.Visible = false;
             lblFormula.Text = formulaLabel;
             chkIsCSharpFormula.Checked = formulaSettings.IsCSharpFormula;
@@ -252,7 +266,6 @@ namespace Whorl
                 pathOutlineTransform.SequenceNumber = Math.Max(0,
                     Math.Min(transformCount - 1, pathOutlineTransform.SequenceNumber));
                 this.cboSequenceNumber.SelectedItem = pathOutlineTransform.SequenceNumber;
-                lblFormulaName.Text = "Outline Transform Name:";
                 StandardInit(pathOutlineTransform.VerticesSettings, "Outline Transform Formula:");
             }
             catch (Exception ex)
@@ -387,21 +400,38 @@ namespace Whorl
             this.Hide();
         }
 
+        private void LayoutForm()
+        {
+            int top = pnlPathSettings.Top;
+            if (pnlPathSettings.Visible)
+                top += pnlPathSettings.Height + 5;
+            if (pnlMaxAmplitude.Visible)
+            {
+                pnlMaxAmplitude.Top = top;
+                top += pnlMaxAmplitude.Height + 5;
+            }
+            pnlFormulaInfo.Top = top;
+            top += pnlFormulaInfo.Height + 5;
+            txtFormula.Height = ClientSize.Height - top;
+        }
+
         private void ShowMaxAmpFormula(bool show)
         {
-            chkIsMaxAmpCSharp.Visible = lblMaxFormula.Visible = txtMaxAmplitudeFormula.Visible = show;
+            if (pnlMaxAmplitude.Visible == show)
+                return;
+            pnlMaxAmplitude.Visible = show;
         }
 
         private void UseVerticesChanged()
         {
             UseVertices = chkUseVertices.Checked;
             formulaType = UseVertices ? FormulaTypes.PathVertices : FormulaTypes.Outline;
-            if (UseVertices)
-            {
-                txtFormula.Height = txtMaxAmplitudeFormula.Bottom - txtFormula.Top;
-            }
-            else
-                txtFormula.Height = txtFormulaOrigSize.Height;
+            //if (UseVertices)
+            //{
+            //    txtFormula.Height = txtMaxAmplitudeFormula.Bottom - txtFormula.Top;
+            //}
+            //else
+            //    txtFormula.Height = txtFormulaOrigSize.Height;
             ShowMaxAmpFormula(!UseVertices);
             lblFormula.Text = UseVertices ? "Vertices Formula:" : "Amplitude Formula:";
             if (UseVertices)
@@ -425,6 +455,7 @@ namespace Whorl
             try
             {
                 UseVerticesChanged();
+                LayoutForm();
             }
             catch (Exception ex)
             {
@@ -956,10 +987,8 @@ namespace Whorl
             {
                 if (WindowState == FormWindowState.Minimized)
                     return;
-                if (pnlPathSettings.Visible || txtMaxAmplitudeFormula.Visible)
-                    return;
-                int margin = txtFormula.Left;
-                txtFormula.Size = new Size(ClientSize.Width - 2 * margin, ClientSize.Height - txtFormula.Top - margin);
+                LayoutForm();
+                //txtFormula.Size = new Size(ClientSize.Width - 2 * margin, ClientSize.Height - txtFormula.Top - margin);
             }
             catch (Exception ex)
             {
@@ -992,5 +1021,6 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
     }
 }

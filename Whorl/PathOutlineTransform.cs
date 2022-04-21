@@ -13,7 +13,7 @@ namespace Whorl
         public FormulaSettings VerticesSettings { get; }
         public PathOutline.PathOutlineVars GlobalInfo { get; }
         public int SequenceNumber { get; set; }
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = true;
         public string FormulaName => VerticesSettings.FormulaName;
 
         public PathOutlineTransform(PathOutline pathOutline)

@@ -31,11 +31,9 @@
             this.components = new System.ComponentModel.Container();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOK = new System.Windows.Forms.Button();
-            this.lblFormula = new System.Windows.Forms.Label();
             this.txtFormula = new System.Windows.Forms.TextBox();
-            this.lblMaxFormula = new System.Windows.Forms.Label();
-            this.txtMaxAmplitudeFormula = new System.Windows.Forms.TextBox();
             this.pnlPathSettings = new System.Windows.Forms.Panel();
+            this.chkUsesInfluencePoints = new System.Windows.Forms.CheckBox();
             this.txtMaxPathPoints = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.chkDrawClosed = new System.Windows.Forms.CheckBox();
@@ -65,8 +63,6 @@
             this.showPreprocessedCodeOnErrorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtFormulaName = new System.Windows.Forms.TextBox();
             this.lblFormulaName = new System.Windows.Forms.Label();
-            this.cboInsertTokens = new System.Windows.Forms.ComboBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.chkIsCSharpFormula = new System.Windows.Forms.CheckBox();
             this.lnkSavedFormulas = new System.Windows.Forms.LinkLabel();
             this.pnlTransform = new System.Windows.Forms.Panel();
@@ -76,18 +72,26 @@
             this.lnkShowErrors = new System.Windows.Forms.LinkLabel();
             this.lblParseStatus = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
             this.cboFormulaUsage = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.chkUsesInfluencePoints = new System.Windows.Forms.CheckBox();
+            this.pnlMaxAmplitude = new System.Windows.Forms.Panel();
+            this.chkIsMaxAmpCSharp = new System.Windows.Forms.CheckBox();
+            this.txtMaxAmplitudeFormula = new System.Windows.Forms.TextBox();
+            this.lblMaxFormula = new System.Windows.Forms.Label();
+            this.pnlFormulaInfo = new System.Windows.Forms.Panel();
+            this.cboInsertTokens = new System.Windows.Forms.ComboBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.lblFormula = new System.Windows.Forms.Label();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
+            this.pnlMaxAmplitude.SuspendLayout();
+            this.pnlFormulaInfo.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(639, 6);
+            this.btnCancel.Location = new System.Drawing.Point(656, 6);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(5);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(73, 29);
@@ -98,7 +102,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(537, 6);
+            this.btnOK.Location = new System.Drawing.Point(548, 6);
             this.btnOK.Margin = new System.Windows.Forms.Padding(5);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(72, 29);
@@ -107,44 +111,16 @@
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
-            // lblFormula
-            // 
-            this.lblFormula.AutoSize = true;
-            this.lblFormula.Location = new System.Drawing.Point(10, 95);
-            this.lblFormula.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblFormula.Name = "lblFormula";
-            this.lblFormula.Size = new System.Drawing.Size(129, 17);
-            this.lblFormula.TabIndex = 6;
-            this.lblFormula.Text = "Amplitude Formula:";
-            // 
             // txtFormula
             // 
-            this.txtFormula.Location = new System.Drawing.Point(11, 116);
+            this.txtFormula.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.txtFormula.Location = new System.Drawing.Point(0, 341);
             this.txtFormula.Margin = new System.Windows.Forms.Padding(4);
             this.txtFormula.Multiline = true;
             this.txtFormula.Name = "txtFormula";
             this.txtFormula.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtFormula.Size = new System.Drawing.Size(719, 240);
+            this.txtFormula.Size = new System.Drawing.Size(743, 318);
             this.txtFormula.TabIndex = 7;
-            // 
-            // lblMaxFormula
-            // 
-            this.lblMaxFormula.AutoSize = true;
-            this.lblMaxFormula.Location = new System.Drawing.Point(8, 360);
-            this.lblMaxFormula.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblMaxFormula.Name = "lblMaxFormula";
-            this.lblMaxFormula.Size = new System.Drawing.Size(158, 17);
-            this.lblMaxFormula.TabIndex = 8;
-            this.lblMaxFormula.Text = "Max Amplitude Formula:";
-            // 
-            // txtMaxAmplitudeFormula
-            // 
-            this.txtMaxAmplitudeFormula.Location = new System.Drawing.Point(12, 384);
-            this.txtMaxAmplitudeFormula.Multiline = true;
-            this.txtMaxAmplitudeFormula.Name = "txtMaxAmplitudeFormula";
-            this.txtMaxAmplitudeFormula.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtMaxAmplitudeFormula.Size = new System.Drawing.Size(719, 47);
-            this.txtMaxAmplitudeFormula.TabIndex = 9;
             // 
             // pnlPathSettings
             // 
@@ -158,10 +134,20 @@
             this.pnlPathSettings.Controls.Add(this.chkUseVertices);
             this.pnlPathSettings.Controls.Add(this.txtRotationSpan);
             this.pnlPathSettings.Controls.Add(this.label3);
-            this.pnlPathSettings.Location = new System.Drawing.Point(12, 437);
+            this.pnlPathSettings.Location = new System.Drawing.Point(14, 120);
             this.pnlPathSettings.Name = "pnlPathSettings";
             this.pnlPathSettings.Size = new System.Drawing.Size(719, 77);
             this.pnlPathSettings.TabIndex = 10;
+            // 
+            // chkUsesInfluencePoints
+            // 
+            this.chkUsesInfluencePoints.AutoSize = true;
+            this.chkUsesInfluencePoints.Location = new System.Drawing.Point(227, 38);
+            this.chkUsesInfluencePoints.Name = "chkUsesInfluencePoints";
+            this.chkUsesInfluencePoints.Size = new System.Drawing.Size(163, 21);
+            this.chkUsesInfluencePoints.TabIndex = 16;
+            this.chkUsesInfluencePoints.Text = "Uses Influence Points";
+            this.chkUsesInfluencePoints.UseVisualStyleBackColor = true;
             // 
             // txtMaxPathPoints
             // 
@@ -185,7 +171,7 @@
             // chkDrawClosed
             // 
             this.chkDrawClosed.AutoSize = true;
-            this.chkDrawClosed.Location = new System.Drawing.Point(561, 9);
+            this.chkDrawClosed.Location = new System.Drawing.Point(596, 9);
             this.chkDrawClosed.Name = "chkDrawClosed";
             this.chkDrawClosed.Size = new System.Drawing.Size(106, 21);
             this.chkDrawClosed.TabIndex = 13;
@@ -195,7 +181,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(373, 12);
+            this.label4.Location = new System.Drawing.Point(383, 12);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(80, 17);
             this.label4.TabIndex = 12;
@@ -205,9 +191,9 @@
             // 
             this.cboDrawType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboDrawType.FormattingEnabled = true;
-            this.cboDrawType.Location = new System.Drawing.Point(459, 9);
+            this.cboDrawType.Location = new System.Drawing.Point(461, 8);
             this.cboDrawType.Name = "cboDrawType";
-            this.cboDrawType.Size = new System.Drawing.Size(87, 25);
+            this.cboDrawType.Size = new System.Drawing.Size(111, 25);
             this.cboDrawType.TabIndex = 11;
             // 
             // chkUseVertices
@@ -396,7 +382,7 @@
             // 
             // txtFormulaName
             // 
-            this.txtFormulaName.Location = new System.Drawing.Point(127, 37);
+            this.txtFormulaName.Location = new System.Drawing.Point(129, 37);
             this.txtFormulaName.Name = "txtFormulaName";
             this.txtFormulaName.Size = new System.Drawing.Size(254, 23);
             this.txtFormulaName.TabIndex = 22;
@@ -404,37 +390,17 @@
             // lblFormulaName
             // 
             this.lblFormulaName.AutoSize = true;
-            this.lblFormulaName.Location = new System.Drawing.Point(16, 40);
+            this.lblFormulaName.Location = new System.Drawing.Point(11, 40);
             this.lblFormulaName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblFormulaName.Name = "lblFormulaName";
             this.lblFormulaName.Size = new System.Drawing.Size(104, 17);
             this.lblFormulaName.TabIndex = 21;
             this.lblFormulaName.Text = "Formula Name:";
             // 
-            // cboInsertTokens
-            // 
-            this.cboInsertTokens.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboInsertTokens.FormattingEnabled = true;
-            this.cboInsertTokens.Location = new System.Drawing.Point(530, 85);
-            this.cboInsertTokens.Margin = new System.Windows.Forms.Padding(2);
-            this.cboInsertTokens.Name = "cboInsertTokens";
-            this.cboInsertTokens.Size = new System.Drawing.Size(200, 25);
-            this.cboInsertTokens.TabIndex = 28;
-            this.cboInsertTokens.SelectedIndexChanged += new System.EventHandler(this.cboInsertTokens_SelectedIndexChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(478, 88);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(47, 17);
-            this.label5.TabIndex = 27;
-            this.label5.Text = "Insert:";
-            // 
             // chkIsCSharpFormula
             // 
             this.chkIsCSharpFormula.AutoSize = true;
-            this.chkIsCSharpFormula.Location = new System.Drawing.Point(13, 66);
+            this.chkIsCSharpFormula.Location = new System.Drawing.Point(548, 39);
             this.chkIsCSharpFormula.Name = "chkIsCSharpFormula";
             this.chkIsCSharpFormula.Size = new System.Drawing.Size(113, 21);
             this.chkIsCSharpFormula.TabIndex = 29;
@@ -445,7 +411,7 @@
             // lnkSavedFormulas
             // 
             this.lnkSavedFormulas.AutoSize = true;
-            this.lnkSavedFormulas.Location = new System.Drawing.Point(387, 40);
+            this.lnkSavedFormulas.Location = new System.Drawing.Point(399, 40);
             this.lnkSavedFormulas.Name = "lnkSavedFormulas";
             this.lnkSavedFormulas.Size = new System.Drawing.Size(122, 17);
             this.lnkSavedFormulas.TabIndex = 30;
@@ -457,9 +423,9 @@
             // 
             this.pnlTransform.Controls.Add(this.cboSequenceNumber);
             this.pnlTransform.Controls.Add(this.label1);
-            this.pnlTransform.Location = new System.Drawing.Point(520, 39);
+            this.pnlTransform.Location = new System.Drawing.Point(526, 67);
             this.pnlTransform.Name = "pnlTransform";
-            this.pnlTransform.Size = new System.Drawing.Size(210, 37);
+            this.pnlTransform.Size = new System.Drawing.Size(204, 37);
             this.pnlTransform.TabIndex = 34;
             // 
             // cboSequenceNumber
@@ -475,7 +441,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 4);
+            this.label1.Location = new System.Drawing.Point(3, 5);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(130, 17);
             this.label1.TabIndex = 34;
@@ -484,7 +450,7 @@
             // chkShowRawCSharp
             // 
             this.chkShowRawCSharp.AutoSize = true;
-            this.chkShowRawCSharp.Location = new System.Drawing.Point(364, 66);
+            this.chkShowRawCSharp.Location = new System.Drawing.Point(309, 66);
             this.chkShowRawCSharp.Name = "chkShowRawCSharp";
             this.chkShowRawCSharp.Size = new System.Drawing.Size(150, 21);
             this.chkShowRawCSharp.TabIndex = 35;
@@ -495,7 +461,7 @@
             // lnkShowErrors
             // 
             this.lnkShowErrors.AutoSize = true;
-            this.lnkShowErrors.Location = new System.Drawing.Point(356, 90);
+            this.lnkShowErrors.Location = new System.Drawing.Point(306, 90);
             this.lnkShowErrors.Name = "lnkShowErrors";
             this.lnkShowErrors.Size = new System.Drawing.Size(85, 17);
             this.lnkShowErrors.TabIndex = 36;
@@ -507,7 +473,7 @@
             // lblParseStatus
             // 
             this.lblParseStatus.AutoSize = true;
-            this.lblParseStatus.Location = new System.Drawing.Point(156, 93);
+            this.lblParseStatus.Location = new System.Drawing.Point(12, 90);
             this.lblParseStatus.Name = "lblParseStatus";
             this.lblParseStatus.Size = new System.Drawing.Size(48, 17);
             this.lblParseStatus.TabIndex = 37;
@@ -518,20 +484,10 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
-            // chkIsMaxAmpCSharp
-            // 
-            this.chkIsMaxAmpCSharp.AutoSize = true;
-            this.chkIsMaxAmpCSharp.Location = new System.Drawing.Point(173, 359);
-            this.chkIsMaxAmpCSharp.Name = "chkIsMaxAmpCSharp";
-            this.chkIsMaxAmpCSharp.Size = new System.Drawing.Size(113, 21);
-            this.chkIsMaxAmpCSharp.TabIndex = 38;
-            this.chkIsMaxAmpCSharp.Text = "Is C# Formula";
-            this.chkIsMaxAmpCSharp.UseVisualStyleBackColor = true;
-            // 
             // cboFormulaUsage
             // 
             this.cboFormulaUsage.FormattingEnabled = true;
-            this.cboFormulaUsage.Location = new System.Drawing.Point(205, 64);
+            this.cboFormulaUsage.Location = new System.Drawing.Point(129, 64);
             this.cboFormulaUsage.Name = "cboFormulaUsage";
             this.cboFormulaUsage.Size = new System.Drawing.Size(140, 25);
             this.cboFormulaUsage.TabIndex = 39;
@@ -539,45 +495,110 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(131, 67);
+            this.label2.Location = new System.Drawing.Point(55, 67);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(69, 17);
             this.label2.TabIndex = 40;
             this.label2.Text = "Category:";
             // 
-            // chkUsesInfluencePoints
+            // pnlMaxAmplitude
             // 
-            this.chkUsesInfluencePoints.AutoSize = true;
-            this.chkUsesInfluencePoints.Location = new System.Drawing.Point(227, 38);
-            this.chkUsesInfluencePoints.Name = "chkUsesInfluencePoints";
-            this.chkUsesInfluencePoints.Size = new System.Drawing.Size(163, 21);
-            this.chkUsesInfluencePoints.TabIndex = 16;
-            this.chkUsesInfluencePoints.Text = "Uses Influence Points";
-            this.chkUsesInfluencePoints.UseVisualStyleBackColor = true;
+            this.pnlMaxAmplitude.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlMaxAmplitude.Controls.Add(this.chkIsMaxAmpCSharp);
+            this.pnlMaxAmplitude.Controls.Add(this.txtMaxAmplitudeFormula);
+            this.pnlMaxAmplitude.Controls.Add(this.lblMaxFormula);
+            this.pnlMaxAmplitude.Location = new System.Drawing.Point(14, 203);
+            this.pnlMaxAmplitude.Name = "pnlMaxAmplitude";
+            this.pnlMaxAmplitude.Size = new System.Drawing.Size(719, 89);
+            this.pnlMaxAmplitude.TabIndex = 41;
+            // 
+            // chkIsMaxAmpCSharp
+            // 
+            this.chkIsMaxAmpCSharp.AutoSize = true;
+            this.chkIsMaxAmpCSharp.Location = new System.Drawing.Point(170, 5);
+            this.chkIsMaxAmpCSharp.Name = "chkIsMaxAmpCSharp";
+            this.chkIsMaxAmpCSharp.Size = new System.Drawing.Size(113, 21);
+            this.chkIsMaxAmpCSharp.TabIndex = 41;
+            this.chkIsMaxAmpCSharp.Text = "Is C# Formula";
+            this.chkIsMaxAmpCSharp.UseVisualStyleBackColor = true;
+            // 
+            // txtMaxAmplitudeFormula
+            // 
+            this.txtMaxAmplitudeFormula.Location = new System.Drawing.Point(8, 30);
+            this.txtMaxAmplitudeFormula.Multiline = true;
+            this.txtMaxAmplitudeFormula.Name = "txtMaxAmplitudeFormula";
+            this.txtMaxAmplitudeFormula.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtMaxAmplitudeFormula.Size = new System.Drawing.Size(704, 47);
+            this.txtMaxAmplitudeFormula.TabIndex = 40;
+            // 
+            // lblMaxFormula
+            // 
+            this.lblMaxFormula.AutoSize = true;
+            this.lblMaxFormula.Location = new System.Drawing.Point(5, 6);
+            this.lblMaxFormula.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblMaxFormula.Name = "lblMaxFormula";
+            this.lblMaxFormula.Size = new System.Drawing.Size(158, 17);
+            this.lblMaxFormula.TabIndex = 39;
+            this.lblMaxFormula.Text = "Max Amplitude Formula:";
+            // 
+            // pnlFormulaInfo
+            // 
+            this.pnlFormulaInfo.Controls.Add(this.cboInsertTokens);
+            this.pnlFormulaInfo.Controls.Add(this.label5);
+            this.pnlFormulaInfo.Controls.Add(this.lblFormula);
+            this.pnlFormulaInfo.Location = new System.Drawing.Point(0, 298);
+            this.pnlFormulaInfo.Name = "pnlFormulaInfo";
+            this.pnlFormulaInfo.Size = new System.Drawing.Size(743, 36);
+            this.pnlFormulaInfo.TabIndex = 42;
+            // 
+            // cboInsertTokens
+            // 
+            this.cboInsertTokens.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboInsertTokens.FormattingEnabled = true;
+            this.cboInsertTokens.Location = new System.Drawing.Point(533, 7);
+            this.cboInsertTokens.Margin = new System.Windows.Forms.Padding(2);
+            this.cboInsertTokens.Name = "cboInsertTokens";
+            this.cboInsertTokens.Size = new System.Drawing.Size(200, 25);
+            this.cboInsertTokens.TabIndex = 31;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(481, 10);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(47, 17);
+            this.label5.TabIndex = 30;
+            this.label5.Text = "Insert:";
+            // 
+            // lblFormula
+            // 
+            this.lblFormula.AutoSize = true;
+            this.lblFormula.Location = new System.Drawing.Point(11, 10);
+            this.lblFormula.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblFormula.Name = "lblFormula";
+            this.lblFormula.Size = new System.Drawing.Size(181, 17);
+            this.lblFormula.TabIndex = 29;
+            this.lblFormula.Text = "Outline Transform Formula:";
             // 
             // OutlineFormulaForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(743, 526);
+            this.ClientSize = new System.Drawing.Size(743, 659);
+            this.Controls.Add(this.pnlFormulaInfo);
+            this.Controls.Add(this.pnlMaxAmplitude);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cboFormulaUsage);
-            this.Controls.Add(this.chkIsMaxAmpCSharp);
             this.Controls.Add(this.lblParseStatus);
             this.Controls.Add(this.lnkShowErrors);
             this.Controls.Add(this.chkShowRawCSharp);
             this.Controls.Add(this.pnlTransform);
             this.Controls.Add(this.lnkSavedFormulas);
             this.Controls.Add(this.chkIsCSharpFormula);
-            this.Controls.Add(this.cboInsertTokens);
-            this.Controls.Add(this.label5);
             this.Controls.Add(this.txtFormulaName);
             this.Controls.Add(this.lblFormulaName);
             this.Controls.Add(this.pnlPathSettings);
-            this.Controls.Add(this.txtMaxAmplitudeFormula);
-            this.Controls.Add(this.lblMaxFormula);
             this.Controls.Add(this.txtFormula);
-            this.Controls.Add(this.lblFormula);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.menuStrip1);
@@ -586,7 +607,8 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MinimumSize = new System.Drawing.Size(759, 524);
             this.Name = "OutlineFormulaForm";
-            this.Text = "Show Errors";
+            this.Text = "Formula Editor";
+            this.Activated += new System.EventHandler(this.OutlineFormulaForm_Activated);
             this.Load += new System.EventHandler(this.OutlineFormulaForm_Load);
             this.Resize += new System.EventHandler(this.OutlineFormulaForm_Resize);
             this.pnlPathSettings.ResumeLayout(false);
@@ -595,6 +617,10 @@
             this.menuStrip1.PerformLayout();
             this.pnlTransform.ResumeLayout(false);
             this.pnlTransform.PerformLayout();
+            this.pnlMaxAmplitude.ResumeLayout(false);
+            this.pnlMaxAmplitude.PerformLayout();
+            this.pnlFormulaInfo.ResumeLayout(false);
+            this.pnlFormulaInfo.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -604,10 +630,7 @@
 
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOK;
-        private System.Windows.Forms.Label lblFormula;
         private System.Windows.Forms.TextBox txtFormula;
-        private System.Windows.Forms.Label lblMaxFormula;
-        private System.Windows.Forms.TextBox txtMaxAmplitudeFormula;
         private System.Windows.Forms.Panel pnlPathSettings;
         private System.Windows.Forms.TextBox txtRotationSpan;
         private System.Windows.Forms.Label label3;
@@ -618,8 +641,6 @@
         private System.Windows.Forms.ToolStripMenuItem resetToOriginalToolStripMenuItem;
         private System.Windows.Forms.TextBox txtFormulaName;
         private System.Windows.Forms.Label lblFormulaName;
-        private System.Windows.Forms.ComboBox cboInsertTokens;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ToolStripMenuItem parseToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem insertTextToolStripMenuItem;
         private System.Windows.Forms.CheckBox chkIsCSharpFormula;
@@ -639,7 +660,6 @@
         private System.Windows.Forms.LinkLabel lnkShowErrors;
         private System.Windows.Forms.Label lblParseStatus;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.CheckBox chkIsMaxAmpCSharp;
         private System.Windows.Forms.ToolStripMenuItem translateMaxAmplitudeToCToolStripMenuItem;
         private System.Windows.Forms.ComboBox cboFormulaUsage;
         private System.Windows.Forms.Label label2;
@@ -653,5 +673,13 @@
         private System.Windows.Forms.TextBox txtMaxPathPoints;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.CheckBox chkUsesInfluencePoints;
+        private System.Windows.Forms.Panel pnlMaxAmplitude;
+        private System.Windows.Forms.CheckBox chkIsMaxAmpCSharp;
+        private System.Windows.Forms.TextBox txtMaxAmplitudeFormula;
+        private System.Windows.Forms.Label lblMaxFormula;
+        private System.Windows.Forms.Panel pnlFormulaInfo;
+        private System.Windows.Forms.ComboBox cboInsertTokens;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label lblFormula;
     }
 }
