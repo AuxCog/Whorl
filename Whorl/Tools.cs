@@ -364,6 +364,47 @@ namespace Whorl
             return FindClosestIndex(p, points, out _, bufferSize);
         }
 
+        private static float GetSlope(PointF p1, PointF p2)
+        {
+            if (p1.X == p2.X)
+                return float.NaN;
+            return (p2.Y - p1.Y) / (p2.X - p1.X);
+        }
+
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            T temp = a;
+            a = b;
+            b = temp;
+        }
+
+        public static PointF? GetIntersection(PointF pA1, PointF pA2, PointF pB1, PointF pB2)
+        {
+            float a1 = GetSlope(pA1, pA2);
+            float a2 = GetSlope(pB1, pB2);
+            if (float.IsNaN(a1))
+            {
+                if (float.IsNaN(a2))
+                    return null;
+                Swap(ref a1, ref a2);
+                Swap(ref pA1, ref pB1);
+            }
+            float c1 = pA1.Y - a1 * pA1.X;
+            if (float.IsNaN(a2))
+            {
+                return new PointF(pB1.X, a1 * pB1.X + c1);
+            }
+            if (a1 == a2)
+                return null;
+            float c2 = pB1.Y - a2 * pB1.X;
+            a1 = -a1;
+            c1 = -c1;
+            a2 = -a2;
+            c2 = -c2;
+            float div = a1 - a2;
+            return new PointF((c2 - c1) / div, (a2 * c1 - a1 * c2) / div);
+        }
+
         public static bool IsPolygonOutline(BasicOutline basicOutline, bool allowCurve = false)
         {
             var pathOutline = basicOutline as PathOutline;

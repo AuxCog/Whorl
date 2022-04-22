@@ -16,6 +16,7 @@ namespace Whorl
         public float Thickness { get; set; } = 10F;
         public double MinCornerAngle { get; set; } = 5.0;
         public float[] Scales { get; set; }
+        public bool InterpolateCorners { get; set; } = false;
 
         private double tanhSlope { get; set; }
 
@@ -43,6 +44,7 @@ namespace Whorl
 
         public List<PointF> ClosePoints(List<PointF> points)
         {
+            MinCornerAngle = Math.Max(1.0, MinCornerAngle);
             double maxIm = Math.Sin(Tools.DegreesToRadians(MinCornerAngle));
             if (points.Count < MinPointsCount)
                 return points;
@@ -56,14 +58,17 @@ namespace Whorl
             tanhSlope = 0.01 * EndSlope;
             bool useScale = Scales != null && Scales.Length > 0;
             Complex zPrev = Complex.Zero;
+            float lenSum = 0;
+            var cornerIndices = new List<int>();
             for (int i = 1; i < points.Count; i++)
             {
-                PointF prevP = points[i - 1];
                 PointF p = points[i];
-                if (p == prevP)
+                PointF vector = GetVector(points, i);
+                float vecLen = (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+                if (vecLen == 0)
                     continue;
-                PointF vector = new PointF(p.X - prevP.X, p.Y - prevP.Y);
-                float unitScale = 1F / (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+                lenSum += vecLen;
+                float unitScale = 1F / vecLen;
                 //Make vector a unit vector:
                 vector = new PointF(unitScale * vector.X, unitScale * vector.Y);
                 Complex z = new Complex(vector.X, vector.Y);
@@ -72,6 +77,7 @@ namespace Whorl
                     Complex zAngle = z / zPrev;
                     if (Math.Abs(zAngle.Im) > maxIm)
                     {
+                        cornerIndices.Add(path.Count);
                         zPrev = z;
                         continue;  //Reached a corner.
                     }
@@ -89,10 +95,90 @@ namespace Whorl
                 path2.Add(new PointF(p.X - perp.X, p.Y - perp.Y));
                 zPrev = z;
             }
+            if (InterpolateCorners)
+            {
+                float avgLen = lenSum / points.Count;
+                path = HandleCorners(path, cornerIndices, avgLen);
+                path2 = HandleCorners(path2, cornerIndices, avgLen);
+            }
             path2.Reverse();
             path.AddRange(path2);
             return path;
         }
 
+        private PointF GetVector(List<PointF> points, int i)
+        {
+            PointF prevP = points[i - 1];
+            PointF p = points[i];
+            PointF vector = new PointF(p.X - prevP.X, p.Y - prevP.Y);
+            return vector;
+        }
+
+        private List<PointF> HandleCorners(List<PointF> points, List<int> cornerIndices, float avgLen)
+        {
+            List<PointF> result = new List<PointF>();
+            float maxLen = 3F * avgLen;
+            double maxIm = Math.Sin(Tools.DegreesToRadians(MinCornerAngle));
+            int prevInd = 0;
+            foreach (int ind in cornerIndices)
+            {
+                if (ind < 2)
+                    continue;
+                result.AddRange(points.Skip(prevInd).Take(ind - prevInd));
+                prevInd = ind;
+                int endInd = -1;
+                int maxI = Math.Min(points.Count, ind + 10);
+                bool foundMax = false;
+                for (int i = ind; i < maxI; i++)
+                {
+                    PointF vector = GetVector(points, i);
+                    float vecLen = (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+                    if (vecLen > maxLen)
+                        foundMax = true;
+                    else if (foundMax)
+                    {
+                        endInd = i;
+                        break;
+                    }
+                }
+                if (endInd >= ind + 1)
+                {
+                    PointF pA1 = points[ind - 2];
+                    PointF pA2 = points[ind - 1];
+                    PointF pB1 = points[endInd];
+                    PointF pB2 = points[endInd - 1];
+                    PointF? intersection = Tools.GetIntersection(pA1, pA2, pB1, pB2);
+                    if (intersection != null)
+                    {
+                        InterpolatePoints(result, intersection.Value, avgLen);
+                        InterpolatePoints(result, pB2, avgLen);
+                        //result.Add(intersection.Value);
+                        prevInd =  endInd;
+                    }
+                }
+            }
+            if (prevInd < points.Count)
+                result.AddRange(points.Skip(prevInd));
+            return result;
+        }
+
+        private void InterpolatePoints(List<PointF> points, PointF endPoint, float vectorLen)
+        {
+            if (points.Count == 0)
+                return;
+            PointF p = points.Last();
+            PointF vector = new PointF(endPoint.X - p.X, endPoint.Y - p.Y);
+            float vecLen = (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+            if (vecLen == 0)
+                return;
+            int steps = (int)Math.Ceiling((double)vecLen / vectorLen);
+            float scale = 1F / steps;
+            vector = new PointF(scale * vector.X, scale * vector.Y);
+            for (int i = 0; i < steps; i++)
+            {
+                p = new PointF(p.X + vector.X, p.Y + vector.Y);
+                points.Add(p);
+            }
+        }
     }
 }
