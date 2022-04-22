@@ -327,14 +327,18 @@ namespace Whorl
             {
                 if (!HasCurveVertices && SegmentVertices != null)
                 {
-                    PointF center = SegmentVerticesCenter;
-                    float scale = (float)(1.0 / GetPolygonMaxModulus(center));
-                    var scaledVertices = SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
-                    LineVertices = scaledVertices.ToList();
+                    LineVertices = GetScaledVertices().ToList();
                 }
                 zVector = ComputePathPoints();
             }
             return zVector;
+        }
+
+        public IEnumerable<PointF> GetScaledVertices()
+        {
+            PointF center = SegmentVerticesCenter;
+            float scale = (float)(1.0 / GetPolygonMaxModulus(center));
+            return SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
         }
 
         /// <summary>
@@ -342,7 +346,7 @@ namespace Whorl
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public PointF GetOrigSegmentVertex(PointF p)
+        public PointF GetUnscaledSegmentVertex(PointF p)
         {
             float scale = (float)GetPolygonMaxModulus(SegmentVerticesCenter);
             return new PointF(scale * p.X + SegmentVerticesCenter.X, scale * p.Y + SegmentVerticesCenter.Y);

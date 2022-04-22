@@ -1121,7 +1121,7 @@ namespace Whorl
             PointF center = editedPathPattern.Center;
             var zP = new Complex(p.X - center.X, p.Y - center.Y) / editedPathPattern.ZVector;
             p = new PointF((float)zP.Re, (float)zP.Im);
-            return editedPathOutline.GetOrigSegmentVertex(p);
+            return editedPathOutline.GetUnscaledSegmentVertex(p);
         }
 
 
@@ -8157,7 +8157,7 @@ namespace Whorl
             PointF center = editedPathPattern.Center;
             //PointF vertexCenter = editedPolygonPathOutline.SegmentVerticesCenter;
             polygonVertexInfos.Add(new DrawnPoint() { IdText = "C", Location = center });
-            List<PointF> vertices = editedPathOutline.LineVertices;
+            List<PointF> vertices = editedPathOutline.GetScaledVertices().ToList();
             PointF vertex1 = vertices[0];
             for (int i = 0; i < vertices.Count; i++)
             {
@@ -8187,7 +8187,7 @@ namespace Whorl
                 Pattern pattern = patternInfo?.Pattern;
                 if (pattern == null) return;
                 editedPathOutline = pattern.BasicOutlines.Find(otl => Tools.IsPolygonOutline(otl, allowCurve: true)) as PathOutline;
-                if (editedPathOutline?.LineVertices == null)
+                if (editedPathOutline?.SegmentVertices == null || editedPathOutline.SegmentVertices.Count == 0)
                 {
                     editedPathOutline = null;
                     editPolygonVerticesToolStripMenuItem.Checked = false;
