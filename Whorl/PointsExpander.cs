@@ -70,7 +70,7 @@ namespace Whorl
                 if (i > 1)
                 {
                     Complex zAngle = z / zPrev;
-                    if (zAngle.Im > maxIm)
+                    if (Math.Abs(zAngle.Im) > maxIm)
                     {
                         zPrev = z;
                         continue;  //Reached a corner.
