@@ -70,7 +70,7 @@ namespace Whorl
         }
 
         public override bool ComputeCurvePoints(Complex zVector,
-                                                bool computeRandom = true, bool forOutline = false)
+                                                bool computeRandom = true, bool forOutline = false, int seedPointsIndex = -1)
         {
             if (CartesianPathOutline != null)
                 return ComputeCartesianCurvePoints(zVector);

@@ -69,6 +69,15 @@ namespace Whorl
             return colorNodeList;
         }
 
+        //public virtual void CreateFillBrushList(int count)
+        //{
+        //}
+
+        //public virtual Brush GetFillBrush(int index)
+        //{
+        //    return FillBrush;
+        //}
+
         public virtual void ApplyTransforms(float scale = 1F)
         { }
 

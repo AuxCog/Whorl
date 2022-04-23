@@ -30,7 +30,15 @@ namespace Whorl
             }
         }
 
-        public PolarCoord[] SeedPoints { get; set; }
+        public Pattern.SeedPointsContainer SeedPointsContainer { get; private set; } = new Pattern.SeedPointsContainer();
+
+        public PolarCoord[] SeedPoints
+        {
+            get => SeedPointsContainer.SeedPoints;
+            set => SeedPointsContainer.SeedPoints = value;
+        }
+
+        //public PolarCoord[] SeedPoints { get; set; }
 
         //public PolarCoord[] SeedPoints
         //{
@@ -56,8 +64,10 @@ namespace Whorl
             float padding = shrink ? 0.5F * (1F - ModulusRatio) : 0;
             SeedPoints = Pattern.ApplyPatternShrink(
                          parent.SeedPoints, padding, parent.ShrinkClipFactor,
-                         parent.ShrinkClipCenterFactor, parent.LoopFactor, 
+                         parent.ShrinkClipCenterFactor, parent.LoopFactor,
+                         out List<PolarCoord[]> seedPointArrays,
                          parent.HandleShrinkCorners, cloneSeedPoints: true);
+            SeedPointsContainer.SeedPointArrays = seedPointArrays;
             //if (parent.LoopFactor > 0)
             //{
             //    Pattern.RemoveLoops(SeedPoints, PatternLayers.ParentPattern.LoopFactor);
@@ -121,6 +131,7 @@ namespace Whorl
             PatternLayer copy = new PatternLayer(patternLayerList);
             copy.SetModulusRatio(this.ModulusRatio);
             copy.FillInfo = fillInfo;
+            copy.SeedPointsContainer = new Pattern.SeedPointsContainer(SeedPointsContainer);
             return copy;
         }
 

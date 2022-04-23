@@ -10,19 +10,42 @@ namespace Whorl
 {
     public class OutlinePadding
     {
-        public static List<PolarCoord> GetPaddedPoints(PolarCoord[] seedPoints, float scale, double maxAngle, bool enhance = true)
+        public static List<PolarCoord> GetPaddedPoints(PolarCoord[] seedPoints, float scale, double maxAngle, 
+                                                       out List<PolarCoord[]> seedPointArrays, bool enhance = true)
         {
-            //const float factor = 100F;
-
             List<PointF> points = seedPoints.Select(sp => sp.ToRectangular()).ToList();
-            List<PointF> newPoints = GetPaddedPoints(points, scale, maxAngle, enhance);
-            //float invFac = 1F / factor;
-            return newPoints.Select(p => PolarCoord.ToPolar(p)).ToList();
+            List<PointF> newPoints = GetPaddedPoints(points, scale, maxAngle, out List<int> newPointIndices, enhance);
+            var newSeedPoints = newPoints.Select(p => PolarCoord.ToPolar(p)).ToList();
+            if (newPointIndices == null || newPointIndices.Count == 0)
+                seedPointArrays = null;
+            else
+            {
+                seedPointArrays = new List<PolarCoord[]>();
+                int iPrev = 0;
+                foreach (int ind in newPointIndices)
+                {
+                    if (ind > iPrev)
+                    {
+                        seedPointArrays.Add(newSeedPoints.Skip(iPrev).Take(ind - iPrev).ToArray());
+                        iPrev = ind;
+                    }
+                }
+                if (iPrev < seedPoints.Length)
+                {
+                    seedPointArrays.Add(newSeedPoints.Skip(iPrev).ToArray());
+                }
+                foreach (int ind in newPointIndices.OrderByDescending(i => i))
+                {
+                    newSeedPoints.Insert(ind, new PolarCoord(0, 0));
+                }
+            }
+            return newSeedPoints;
         }
 
         public static List<PointF> GetPaddedPoints(
-                      List<PointF> points, float scale, double maxAngle, bool enhance = true)
+                      List<PointF> points, float scale, double maxAngle, out List<int> newPointIndices, bool enhance = true)
         {
+            newPointIndices = null;
             var newPoints = new List<PointF>();
             scale = -scale;
             //points = points.Select(p => new PointF(p.X - center.X, p.Y - center.Y)).ToList();
@@ -75,7 +98,7 @@ namespace Whorl
             }
             if (enhance && cornerIndices.Count > 0)
             {
-                newPoints = EnhancePadding(points, newPoints, cornerIndices);
+                newPoints = EnhancePadding(points, newPoints, cornerIndices, out newPointIndices);
             }
             if (isClosed)
             {
@@ -86,9 +109,11 @@ namespace Whorl
             return newPoints;
         }
 
-        private static List<PointF> EnhancePadding(List<PointF> points, List<PointF> newPoints, List<int> cornerIndices)
+        private static List<PointF> EnhancePadding(List<PointF> points, List<PointF> newPoints, 
+                                                   List<int> cornerIndices, out List<int> newPointIndices)
         {
             //cornerIndices.Add(cornerIndices.First());
+            newPointIndices = new List<int>();
             var infos = new List<Tuple<int, int, bool>>();
             PointF lastVec = PointF.Empty;
             int lastInd = 0;
@@ -160,7 +185,7 @@ namespace Whorl
             if (infos.Count > 0)
             {
                 var points2 = new List<PointF>();
-                PointF newCenter = PointF.Empty;
+                //PointF newCenter = PointF.Empty;
                 var lastInfo = infos.Last();
                 int endInd = lastInfo.Item1 + lastInfo.Item2;
                 for (int i = 0; i < infos.Count; i++)
@@ -176,7 +201,10 @@ namespace Whorl
                         else
                             vec = Tools.GetVector(points2.Last(), section.First());
                         if (Tools.VectorLengthSquared(vec) > 0.0001F)
-                            points2.Add(newCenter);
+                        {
+                            newPointIndices.Add(points2.Count);
+                            //points2.Add(newCenter);
+                        }
                     }
                     points2.AddRange(section);
                 }

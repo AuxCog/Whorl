@@ -2185,6 +2185,80 @@ namespace Whorl
             }
 
         }
+        public class SeedPointsContainer
+        {
+            public PolarCoord[] SeedPoints { get; set; }
+            public PointF[] CurvePoints { get; set; }
+            public PointF[][] CurvePointArrays { get; private set; }
+
+            private List<PolarCoord[]> _seedPointArrays;
+            public List<PolarCoord[]> SeedPointArrays 
+            {
+                get => _seedPointArrays;
+                set
+                {
+                    _seedPointArrays = value;
+                    if (_seedPointArrays != null)
+                    {
+                        CurvePointArrays = new PointF[_seedPointArrays.Count][];
+                    }
+                }
+            }
+
+            public SeedPointsContainer()
+            {
+            }
+
+            public SeedPointsContainer(SeedPointsContainer source)
+            {
+                if (source.SeedPoints != null)
+                    SeedPoints = (PolarCoord[])source.SeedPoints.Clone();
+                if (source.CurvePoints != null)
+                    CurvePoints = (PointF[])source.CurvePoints.Clone();
+                if (source.SeedPointArrays != null)
+                    SeedPointArrays = source.SeedPointArrays.Select(a => (PolarCoord[])a?.Clone()).ToList();
+                if (source.CurvePointArrays != null)
+                    CurvePointArrays = source.CurvePointArrays.Select(a => (PointF[])a?.Clone()).ToArray();
+            }
+
+            public PolarCoord[] GetSeedPoints(int index)
+            {
+                if (index < 0 || SeedPointArrays == null)
+                    return SeedPoints;
+                else
+                    return SeedPointArrays[index];
+            }
+
+            public PointF[] GetCurvePoints(int index)
+            {
+                if (CurvePointArrays == null || index < 0)
+                    return CurvePoints;
+                else
+                    return CurvePointArrays[index];
+            }
+
+            public void SetCurvePoints(PointF[] points, int index = -1)
+            {
+                if (index < 0 || CurvePointArrays == null)
+                    CurvePoints = points;
+                else
+                    CurvePointArrays[index] = points;
+            }
+        }
+
+        private SeedPointsContainer seedPointsContainer { get; set; } = new SeedPointsContainer();
+
+        public PolarCoord[] SeedPoints
+        {
+            get => seedPointsContainer.SeedPoints;
+            protected set => seedPointsContainer.SeedPoints = value;
+        }
+        public PointF[] CurvePoints 
+        { 
+            get => seedPointsContainer.CurvePoints;
+            protected set => seedPointsContainer.CurvePoints = value;
+        }
+
 
         /*** Pattern class's properties: ***/
 
@@ -2210,7 +2284,6 @@ namespace Whorl
 
         public int InnerSectionIndex { get; private set; }
 
-        public PointF[] CurvePoints { get; protected set; }
         private PointF[] LayerCurvePoints { get; set; }
         public MergeOperations MergeOperation { get; set; }
              = MergeOperations.Sum;
@@ -2305,8 +2378,6 @@ namespace Whorl
         [PropertyAction]
         public List<BasicOutline> BasicOutlines { get; } =
            new List<BasicOutline>();
-
-        public PolarCoord[] SeedPoints { get; protected set; }
 
         /// <summary>
         /// Property for Precision setting of a pattern.
@@ -2930,7 +3001,8 @@ namespace Whorl
             if (FillInfo.FillType == FillInfo.FillTypes.Path)
                 FillInfo.SetFillBrushToNull();
             //if (ShrinkPattern)
-            SeedPoints = ApplyShrink(ShrinkPattern);
+            SeedPoints = ApplyShrink(out List<PolarCoord[]> seedPointArrays, ShrinkPattern);
+            seedPointsContainer.SeedPointArrays = seedPointArrays;
             //if (ShrinkPatternLayers)
             //{
             foreach (PatternLayer ptnLayer in PatternLayers.PatternLayers)
@@ -2967,16 +3039,19 @@ namespace Whorl
             }
         }
 
-        private PolarCoord[] ApplyShrink(bool shrink = true)
+        private PolarCoord[] ApplyShrink(out List<PolarCoord[]> seedPointArrays, bool shrink = true)
         {
             return ApplyPatternShrink(SeedPoints, shrink ? 0.005F * ShrinkPadding : 0F, 
-                                      ShrinkClipFactor, ShrinkClipCenterFactor, LoopFactor, 
+                                      ShrinkClipFactor, ShrinkClipCenterFactor, LoopFactor,
+                                      out seedPointArrays,
                                       useNewVersion: HandleShrinkCorners);
         }
 
         public static PolarCoord[] ApplyPatternShrink(PolarCoord[] seedPoints, float padding, float clipFactor, float clipShrinkCenterFactor,
-                                                      float loopFactor, bool useNewVersion = false, bool cloneSeedPoints = false)
+                                                      float loopFactor, out List<PolarCoord[]> seedPointArrays,
+                                                      bool useNewVersion = false, bool cloneSeedPoints = false)
         {
+            seedPointArrays = null;
             if (seedPoints == null)
                 return null;
             if ((padding == 0 && loopFactor == 0) || clipFactor < 0)
@@ -2984,7 +3059,7 @@ namespace Whorl
             if (useNewVersion)
             {
                 double maxAngle = 5;  //maxAngle in degrees.
-                return OutlinePadding.GetPaddedPoints(seedPoints, padding, maxAngle).ToArray();
+                return OutlinePadding.GetPaddedPoints(seedPoints, padding, maxAngle, out seedPointArrays).ToArray();
             }
             float clipPadding = clipFactor == 0 ? float.MaxValue : 1F - clipFactor * Math.Abs(padding);
             float clipCenterModulus = clipShrinkCenterFactor * padding;
@@ -3344,7 +3419,8 @@ namespace Whorl
             }
         }
 
-        public virtual bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false)
+        public virtual bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false,
+                                               int seedPointsIndex = -1)
         {
             if (SeedPoints == null)
                 ComputeSeedPoints();
@@ -3356,9 +3432,10 @@ namespace Whorl
                         rPattern.ComputeSeedPoints();
                 }
             }
-            PointF[] curvePoints = ComputeCurvePoints(SeedPoints, zVector, recomputeInnerSection, forOutline);
+            var seedPoints = seedPointsContainer.GetSeedPoints(seedPointsIndex);
+            PointF[] curvePoints = ComputeCurvePoints(seedPoints, zVector, recomputeInnerSection, forOutline);
             if (curvePoints != null)
-                CurvePoints = curvePoints;
+                seedPointsContainer.SetCurvePoints(curvePoints, seedPointsIndex);
             return curvePoints != null;
         }
 
@@ -3701,23 +3778,50 @@ namespace Whorl
         {
             if (!PatternIsEnabled || RenderMode == RenderModes.Stain)
                 return;
-            bool draw = true;
-            Complex drawnZVector = patternZVector ?? this.DrawnZVector;
             if (computeRandom && this.HasRandomElements)
                 ComputeSeedPoints(computeRandom);
-            if (!ComputeCurvePoints(drawnZVector))
+            if (seedPointsContainer.SeedPointArrays == null)
+            {
+                _DrawFilledHelper(g, caller, computeRandom, draftMode, recursiveDepth, textureScale, 
+                                  patternZVector, enableCache);
+            }
+            else
+            {
+                for (int i = 0; i < seedPointsContainer.SeedPointArrays.Count; i++)
+                {
+                    _DrawFilledHelper(g, caller, computeRandom, draftMode, recursiveDepth, textureScale, 
+                                      patternZVector, enableCache, seedPointsIndex: i);
+                }
+            }
+        }
+
+        private void _DrawFilledHelper(Graphics g,
+                                       IRenderCaller caller,
+                                       bool computeRandom = false,
+                                       bool draftMode = false,
+                                       int recursiveDepth = -1,
+                                       float textureScale = 1,
+                                       Complex? patternZVector = null,
+                                       bool enableCache = true,
+                                       int seedPointsIndex = -1)
+        {
+            if (!PatternIsEnabled || RenderMode == RenderModes.Stain)
+                return;
+            Complex drawnZVector = patternZVector ?? this.DrawnZVector;
+            bool draw = true;
+            if (!ComputeCurvePoints(drawnZVector, seedPointsIndex: seedPointsIndex))
                 return;
             bool drawRecursive = Recursion.IsRecursive && Recursion.DrawAsPatterns && recursiveDepth != NonRecursiveDepth;
             if (drawRecursive && Recursion.UnderlayDrawnPatterns)
             {
-                DrawRecursive(g, caller, recursiveDepth, drawnZVector, computeRandom, draftMode, 
-                              textureScale: textureScale, enableCache: enableCache);
+                DrawRecursive(g, caller, recursiveDepth, drawnZVector, computeRandom, draftMode,
+                              textureScale: textureScale, enableCache: enableCache, seedPointsIndex: seedPointsIndex);
             }
             if (!draftMode)
             {
                 PatternLayer minSurroundLayer = this.PatternLayers.PatternLayers.FindAll(
-                    pl => pl.FillInfo is PathFillInfo && 
-                        ((PathFillInfo)pl.FillInfo).ColorMode == 
+                    pl => pl.FillInfo is PathFillInfo &&
+                        ((PathFillInfo)pl.FillInfo).ColorMode ==
                         FillInfo.PathColorModes.Surround).LastOrDefault();
                 if (minSurroundLayer != null)
                 {
@@ -3727,24 +3831,34 @@ namespace Whorl
             }
             if (draw)
             {
-                DrawFilledWithPatternLayers(g, drawnZVector, true, caller, enableCache, draftMode, computeRandom);
+                DrawFilledWithPatternLayers(g, drawnZVector, true, caller, enableCache, draftMode, computeRandom, seedPointsIndex);
             }
             if (drawRecursive && !Recursion.UnderlayDrawnPatterns)
             {
                 DrawRecursive(g, caller, recursiveDepth, drawnZVector, computeRandom, draftMode,
-                              textureScale: textureScale, enableCache: enableCache);
+                              textureScale: textureScale, enableCache: enableCache, seedPointsIndex: seedPointsIndex);
             }
+
         }
 
         private void DrawFilledWithPatternLayers(Graphics g, Complex patternZVector, bool checkLinearGradient,
-                                                 IRenderCaller caller, bool enableCache, bool draftMode, bool computeRandom)
+                                                 IRenderCaller caller, bool enableCache, bool draftMode, bool computeRandom,
+                                                 int seedPointsIndex = -1)
         {
             int renderIndex;
             if (PixelRendering != null && PixelRendering.Enabled)
                 renderIndex = PixelRendering.PatternLayerIndex;
             else
                 renderIndex = -1;
-            DrawPatternLayer(g, patternZVector, FillInfo, checkLinearGradient, caller, enableCache, draftMode, computeRandom, CurvePoints, renderIndex == 0);
+            PointF[] curvePoints = seedPointsContainer.GetCurvePoints(seedPointsIndex);
+            if (curvePoints == null)
+            {
+                var seedPoints = seedPointsContainer.GetSeedPoints(seedPointsIndex);
+                curvePoints = ComputeCurvePoints(seedPoints, patternZVector);
+                seedPointsContainer.SetCurvePoints(curvePoints, seedPointsIndex);
+            }
+            DrawPatternLayer(g, patternZVector, FillInfo, checkLinearGradient, caller, enableCache, draftMode, 
+                             computeRandom, curvePoints, renderIndex == 0);
             //if (renderIndex == 0)
             //{
             //    PixelRendering.Render(g, CurvePoints, this, patternZVector, caller, enableCache, draftMode, computeRandom);
@@ -3756,9 +3870,21 @@ namespace Whorl
             for (int i = 1; i < this.PatternLayers.PatternLayers.Count; i++)
             {
                 PatternLayer layer = this.PatternLayers.PatternLayers[i];
-                ComputeLayerCurvePoints(layer, patternZVector);
-                DrawPatternLayer(g, layer.ModulusRatio * patternZVector, layer.FillInfo, checkLinearGradient, caller, enableCache, draftMode, computeRandom, 
-                                 LayerCurvePoints, i == renderIndex);
+                if (seedPointsIndex < 0 && layer.SeedPointsContainer.SeedPointArrays != null)
+                {
+                    for (int ind = 0; ind < layer.SeedPointsContainer.SeedPointArrays.Count; ind++)
+                    {
+                        ComputeLayerCurvePoints(layer, patternZVector, ind);
+                        DrawPatternLayer(g, layer.ModulusRatio * patternZVector, layer.FillInfo, checkLinearGradient, caller, enableCache,
+                                         draftMode, computeRandom, LayerCurvePoints, i == renderIndex);
+                    }
+                }
+                else
+                {
+                    ComputeLayerCurvePoints(layer, patternZVector);
+                    DrawPatternLayer(g, layer.ModulusRatio * patternZVector, layer.FillInfo, checkLinearGradient, caller, enableCache,
+                                     draftMode, computeRandom, LayerCurvePoints, i == renderIndex);
+                }
                 //if (i == renderIndex)
                 //{
                 //    PixelRendering.Render(g, LayerCurvePoints, this, layer.ModulusRatio * patternZVector, 
@@ -3861,7 +3987,7 @@ namespace Whorl
 
         private void DrawRecursive(Graphics g, IRenderCaller caller, int recursiveDepth, Complex patternZVector, 
                                    bool computeRandom = false, bool draftMode = false, Color? penColor = null, 
-                                   float textureScale = 1, bool enableCache = true)
+                                   float textureScale = 1, bool enableCache = true, int seedPointsIndex = -1)
         {
             bool drawOutline = penColor != null;
             if (recursiveDepth == -1)
@@ -3975,8 +4101,8 @@ namespace Whorl
                     copiedPattern.DrawOutlineRecursive(g, penColor, recursiveDepth);
                 else
                 {
-                    copiedPattern._DrawFilled(g, caller, computeRandom, draftMode, recursiveDepth,
-                                             textureScale: textureScale, enableCache: enableCache);
+                    copiedPattern._DrawFilledHelper(g, caller, computeRandom, draftMode, recursiveDepth,
+                                             textureScale: textureScale, enableCache: enableCache, seedPointsIndex: seedPointsIndex);
                     if (subpatternsInfo != null)
                     {
                         var subpatternInfo = new SubpatternInfo(sourcePattern, copiedPattern, levelIndex + 1);
@@ -4056,11 +4182,13 @@ namespace Whorl
             }
         }
 
-        private void ComputeLayerCurvePoints(PatternLayer layer, Complex patternZVector)
+        private void ComputeLayerCurvePoints(PatternLayer layer, Complex patternZVector,
+                                             int seedPointsIndex = -1)
         {
             if (ShrinkPatternLayers)
             {
-                LayerCurvePoints = ComputeCurvePoints(layer.SeedPoints ?? SeedPoints, patternZVector);
+                var seedPoints = layer.SeedPointsContainer.GetSeedPoints(seedPointsIndex);
+                LayerCurvePoints = ComputeCurvePoints(seedPoints ?? SeedPoints, patternZVector);
             }
             else
             {
@@ -4356,7 +4484,7 @@ namespace Whorl
             nameof(Transforms), nameof(Recursion), nameof(MaxPoint), nameof(Design),
             nameof(BasicOutlines), nameof(DesignLayer), //nameof(PrevCenter),
             nameof(RandomGenerator), nameof(PatternLayers), nameof(KeyGuid),
-            nameof(CenterOffsetVector), // nameof(CenterPathPattern),
+            nameof(CenterOffsetVector), nameof(seedPointsContainer),
             nameof(PatternImproviseConfig), "FormulaSettings", nameof(InfluencePointInfoList), "Patterns"
         };
 
@@ -4376,6 +4504,7 @@ namespace Whorl
             var exclProps = new HashSet<string>(excludedCopyProperties);
             exclProps.UnionWith(GetExtraExcludedCopyProperties());
             Tools.CopyProperties(this, sourcePattern, excludedPropertyNames: exclProps);
+            seedPointsContainer = new SeedPointsContainer(sourcePattern.seedPointsContainer);
             InfluencePointInfoList = new InfluencePointInfoList(sourcePattern.InfluencePointInfoList, this);
             if (copySharedPatternID)
                 SetKeyGuid(sourcePattern);
@@ -4421,7 +4550,7 @@ namespace Whorl
             }
             if (copySeedPoints)
             {
-                this.CopySeedPoints(sourcePattern);
+                //this.CopySeedPoints(sourcePattern);
                 this.HasRandomElements = sourcePattern.HasRandomElements;
             }
             InfluencePointInfoList.CopyKeyParams(sourcePattern.InfluencePointInfoList, this);

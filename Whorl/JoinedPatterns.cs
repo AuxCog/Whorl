@@ -356,7 +356,8 @@ namespace Whorl
             return true;
         }
 
-        public override bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false)
+        public override bool ComputeCurvePoints(Complex zVector, bool recomputeInnerSection = true, bool forOutline = false, 
+                                                int seedPointsIndex = -1)
         {
             bool success = seedCurvePoints != null && JoinInfos.Count > 0;
             if (success)
