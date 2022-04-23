@@ -49,17 +49,19 @@ namespace Whorl
 
         public void ApplyShrink(bool shrink = true)
         {
-            if (PatternLayers.ParentPattern.SeedPoints == null)
+            Pattern parent = PatternLayers.ParentPattern;
+            if (parent.SeedPoints == null)
                 return;
-            SeedPoints = (PolarCoord[])PatternLayers.ParentPattern.SeedPoints.Clone();
+            //SeedPoints = (PolarCoord[])parent.SeedPoints.Clone();
             float padding = shrink ? 0.5F * (1F - ModulusRatio) : 0;
-            Pattern.ApplyPatternShrink(SeedPoints, padding, PatternLayers.ParentPattern.ShrinkClipFactor, 
-                                       PatternLayers.ParentPattern.ShrinkClipCenterFactor,
-                                       PatternLayers.ParentPattern.LoopFactor);
-            if (PatternLayers.ParentPattern.LoopFactor > 0)
-            {
-                //Pattern.RemoveLoops(SeedPoints, PatternLayers.ParentPattern.LoopFactor);
-            }
+            SeedPoints = Pattern.ApplyPatternShrink(
+                         parent.SeedPoints, padding, parent.ShrinkClipFactor,
+                         parent.ShrinkClipCenterFactor, parent.LoopFactor, 
+                         parent.HandleShrinkCorners, cloneSeedPoints: true);
+            //if (parent.LoopFactor > 0)
+            //{
+            //    Pattern.RemoveLoops(SeedPoints, PatternLayers.ParentPattern.LoopFactor);
+            //}
         }
 
         private PointF[] curvePoints;

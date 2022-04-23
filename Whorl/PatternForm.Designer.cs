@@ -312,6 +312,7 @@
             this.patternTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.formulaNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pathOutlineTransformBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.chkHandleShrinkCorners = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picPreview)).BeginInit();
             this.colorModeContextMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -2690,6 +2691,7 @@
             // pnlShrinkPattern
             // 
             this.pnlShrinkPattern.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlShrinkPattern.Controls.Add(this.chkHandleShrinkCorners);
             this.pnlShrinkPattern.Controls.Add(this.txtShrinkClipCenterFactor);
             this.pnlShrinkPattern.Controls.Add(this.label34);
             this.pnlShrinkPattern.Controls.Add(this.chkShrinkPatternLayers);
@@ -2700,7 +2702,7 @@
             this.pnlShrinkPattern.Controls.Add(this.chkShrinkPattern);
             this.pnlShrinkPattern.Location = new System.Drawing.Point(7, 628);
             this.pnlShrinkPattern.Name = "pnlShrinkPattern";
-            this.pnlShrinkPattern.Size = new System.Drawing.Size(227, 108);
+            this.pnlShrinkPattern.Size = new System.Drawing.Size(332, 108);
             this.pnlShrinkPattern.TabIndex = 47;
             // 
             // txtShrinkClipCenterFactor
@@ -2724,7 +2726,7 @@
             // chkShrinkPatternLayers
             // 
             this.chkShrinkPatternLayers.AutoSize = true;
-            this.chkShrinkPatternLayers.Location = new System.Drawing.Point(95, 4);
+            this.chkShrinkPatternLayers.Location = new System.Drawing.Point(175, 33);
             this.chkShrinkPatternLayers.Name = "chkShrinkPatternLayers";
             this.chkShrinkPatternLayers.Size = new System.Drawing.Size(127, 17);
             this.chkShrinkPatternLayers.TabIndex = 45;
@@ -2770,7 +2772,7 @@
             // chkShrinkPattern
             // 
             this.chkShrinkPattern.AutoSize = true;
-            this.chkShrinkPattern.Location = new System.Drawing.Point(5, 4);
+            this.chkShrinkPattern.Location = new System.Drawing.Point(175, 10);
             this.chkShrinkPattern.Name = "chkShrinkPattern";
             this.chkShrinkPattern.Size = new System.Drawing.Size(93, 17);
             this.chkShrinkPattern.TabIndex = 0;
@@ -3101,6 +3103,16 @@
             // pathOutlineTransformBindingSource
             // 
             this.pathOutlineTransformBindingSource.DataSource = typeof(Whorl.PathOutlineTransform);
+            // 
+            // chkHandleShrinkCorners
+            // 
+            this.chkHandleShrinkCorners.AutoSize = true;
+            this.chkHandleShrinkCorners.Location = new System.Drawing.Point(175, 56);
+            this.chkHandleShrinkCorners.Name = "chkHandleShrinkCorners";
+            this.chkHandleShrinkCorners.Size = new System.Drawing.Size(132, 17);
+            this.chkHandleShrinkCorners.TabIndex = 48;
+            this.chkHandleShrinkCorners.Text = "Handle Shrink Corners";
+            this.chkHandleShrinkCorners.UseVisualStyleBackColor = true;
             // 
             // PatternForm
             // 
@@ -3485,5 +3497,6 @@
         private System.Windows.Forms.DataGridViewButtonColumn colDeleteOutlineTransform;
         private System.Windows.Forms.DataGridViewCheckBoxColumn dataGridViewCheckBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn formulaNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.CheckBox chkHandleShrinkCorners;
     }
 }

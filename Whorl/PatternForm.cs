@@ -752,6 +752,7 @@ namespace Whorl
                 this.txtLoopFactor.Text = pattern.LoopFactor.ToString();
                 this.chkShrinkPattern.Checked = pattern.ShrinkPattern;
                 this.chkShrinkPatternLayers.Checked = pattern.ShrinkPatternLayers;
+                chkHandleShrinkCorners.Checked = pattern.HandleShrinkCorners;
                 this.txtShrinkPadding.Text = pattern.ShrinkPadding.ToString();
                 this.txtShrinkClipFactor.Text = pattern.ShrinkClipFactor.ToString();
                 this.txtShrinkClipCenterFactor.Text = pattern.ShrinkClipCenterFactor.ToString();
@@ -1479,18 +1480,19 @@ namespace Whorl
                     pattern.LoopFactor = fVal;
             }
             pattern.ShrinkPattern = chkShrinkPattern.Checked;
-            if (pattern.ShrinkPatternLayers != chkShrinkPatternLayers.Checked)
-            {
-                pattern.ShrinkPatternLayers = chkShrinkPatternLayers.Checked;
-                if (pattern.ShrinkPatternLayers)
-                    pattern.ComputeSeedPoints();
-            }
+            pattern.HandleShrinkCorners = chkHandleShrinkCorners.Checked;
             if (float.TryParse(txtShrinkPadding.Text, out fVal))
                 pattern.ShrinkPadding = fVal;
             if (float.TryParse(txtShrinkClipFactor.Text, out fVal))
                 pattern.ShrinkClipFactor = fVal;
             if (float.TryParse(txtShrinkClipCenterFactor.Text, out fVal))
                 pattern.ShrinkClipCenterFactor = fVal;
+            if (pattern.ShrinkPatternLayers != chkShrinkPatternLayers.Checked)
+            {
+                pattern.ShrinkPatternLayers = chkShrinkPatternLayers.Checked;
+                if (pattern.ShrinkPatternLayers)
+                    pattern.ComputeSeedPoints();
+            }
             pattern.PatternTileInfo.TilePattern = chkTilePattern.Checked;
             if (int.TryParse(txtTilePatternsPerRow.Text, out iVal))
             {

@@ -101,7 +101,7 @@ namespace Whorl
         {
             //public PathOutline PathOutline { get; private set; }
             public PathPattern PathPattern { get; protected set; }
-            public bool Clockwise { get; set; }
+            public bool Clockwise { get; set; } = true;
             public Complex OrigZVector { get; protected set; }
             public PointF OrigCenter { get; protected set; }
             private List<PathDetail> pathDetails { get; } = new List<PathDetail>();

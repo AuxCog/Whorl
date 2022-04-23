@@ -189,6 +189,23 @@ namespace Whorl
             };
         }
 
+        public static PointF GetVector(PointF p1, PointF p2)
+        {
+            return new PointF(p2.X - p1.X, p2.Y - p1.Y);
+        }
+
+        public static double VectorLength(PointF vec)
+        {
+            return Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y);
+        }
+
+        public static RectangleF GetPointRectangle(PointF p, float size = 3F)
+        {
+            PointF location = new PointF(p.X - size, p.Y - size);
+            size = 2F * size + 1;
+            return new RectangleF(location, new SizeF(size, size));
+        }
+
         public static PointF ScalePoint(PointF p, float scaleFac, PointF center)
         {
             return new PointF(center.X + scaleFac * (p.X - center.X),

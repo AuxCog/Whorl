@@ -312,6 +312,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="OutlinePadding.cs" />
     <Compile Include="ParameterDisplay.cs" />
     <Compile Include="ParameterDisplaysContainer.cs" />
     <Compile Include="ParameterImproviseConfig.cs" />
