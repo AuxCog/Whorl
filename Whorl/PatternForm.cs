@@ -565,7 +565,8 @@ namespace Whorl
 
         public void Initialize(PatternList patternGroup, SelectPatternForm selPatternForm, 
                                WhorlDesign design = null, 
-                               bool forRecursionPattern = false, bool forPathRibbon = false)
+                               bool forRecursionPattern = false, bool forPathRibbon = false,
+                               bool forSetPattern = false)
         {
             initialized = false;
             handleControlEvents = false;
@@ -578,7 +579,17 @@ namespace Whorl
             //    pattern.OrigCenterPathPattern = pattern.CenterPathPattern;
             //}
             this.selectPatternForm = selPatternForm;
+            Pattern prevPattern = forSetPattern ? EditedPattern : null;
             this.EditedPatternGroup = patternGroup.GetCopy(keepRecursiveParents: true);
+            if (forSetPattern && prevPattern != null)
+            {
+                Pattern newPattern = EditedPatternGroup.Patterns.FirstOrDefault();
+                if (newPattern != null)
+                {
+                    newPattern.ZVector = prevPattern.ZVector;
+                    newPattern.Center  = prevPattern.Center;
+                }
+            }
             //INFMOD
             //lastEditedInfluenceLink = design.CopiedLastEditedInfluenceLink;
             foreach (Pattern pattern in EditedPatternGroup.Patterns)
@@ -3368,7 +3379,7 @@ namespace Whorl
                 selectPatternForm.Initialize();
                 if (selectPatternForm.ShowDialog() == DialogResult.OK)
                 {
-                    Initialize(selectPatternForm.SelectedPatternGroup, selectPatternForm, design);
+                    Initialize(selectPatternForm.SelectedPatternGroup, selectPatternForm, design, forSetPattern: true);
                 }
             }
             catch (Exception ex)
@@ -3386,7 +3397,7 @@ namespace Whorl
                 if (MessageBox.Show("Changes to the current pattern will be lost.", "Confirm", MessageBoxButtons.OKCancel)
                                     != DialogResult.OK)
                     return;
-                Initialize(design.DefaultPatternGroup, selectPatternForm, design);
+                Initialize(design.DefaultPatternGroup, selectPatternForm, design, forSetPattern: true);
             }
             catch (Exception ex)
             {
