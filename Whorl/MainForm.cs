@@ -8166,6 +8166,10 @@ namespace Whorl
                     break;
                 Complex vec = editedPathPattern.ZVector * new Complex(vertex.X, vertex.Y);
                 vertex = new PointF((float)vec.Re + center.X, (float)vec.Im + center.Y);
+                if (!picDesign.ClientRectangle.Contains((int)vertex.X, (int)vertex.Y))
+                {
+                    vertex = new PointF(10, 10);
+                }
                 polygonVertexInfos.Add(new DrawnPoint() { IdText = (i + 1).ToString(), Location = vertex });
             }
             picDesign.Refresh();
