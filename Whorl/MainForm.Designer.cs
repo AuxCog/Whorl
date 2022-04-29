@@ -244,6 +244,8 @@
             this.pathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fillPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setLogoPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.limitSelectionToCenterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteDefaultPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -278,9 +280,10 @@
             this.finishVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelDrawOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.splitPathOutlineListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changeToUserDefinedVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.linesUserDefinedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.curvesUserDefinedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -2061,7 +2064,8 @@
             this.fillPathToolStripMenuItem,
             this.showPathToolStripMenuItem,
             this.editPathOutlineListToolStripMenuItem,
-            this.splitPathOutlineListToolStripMenuItem});
+            this.splitPathOutlineListToolStripMenuItem,
+            this.changeToUserDefinedVerticesToolStripMenuItem});
             this.pathToolStripMenuItem.Name = "pathToolStripMenuItem";
             this.pathToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.pathToolStripMenuItem.Text = "Path";
@@ -2069,7 +2073,7 @@
             // fillPathToolStripMenuItem
             // 
             this.fillPathToolStripMenuItem.Name = "fillPathToolStripMenuItem";
-            this.fillPathToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.fillPathToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.fillPathToolStripMenuItem.Text = "Fill Path";
             this.fillPathToolStripMenuItem.Click += new System.EventHandler(this.fillPathToolStripMenuItem_Click);
             // 
@@ -2077,8 +2081,22 @@
             // 
             this.showPathToolStripMenuItem.CheckOnClick = true;
             this.showPathToolStripMenuItem.Name = "showPathToolStripMenuItem";
-            this.showPathToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.showPathToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
             this.showPathToolStripMenuItem.Text = "Show Path";
+            // 
+            // editPathOutlineListToolStripMenuItem
+            // 
+            this.editPathOutlineListToolStripMenuItem.Name = "editPathOutlineListToolStripMenuItem";
+            this.editPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.editPathOutlineListToolStripMenuItem.Text = "Edit PathOutlineList";
+            this.editPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.editPathOutlineListToolStripMenuItem_Click);
+            // 
+            // splitPathOutlineListToolStripMenuItem
+            // 
+            this.splitPathOutlineListToolStripMenuItem.Name = "splitPathOutlineListToolStripMenuItem";
+            this.splitPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.splitPathOutlineListToolStripMenuItem.Text = "Split PathOutlineList";
+            this.splitPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.splitPathOutlineListToolStripMenuItem_Click);
             // 
             // setLogoPatternToolStripMenuItem
             // 
@@ -2364,13 +2382,6 @@
             this.cancelDrawOutlineToolStripMenuItem.Text = "Cancel";
             this.cancelDrawOutlineToolStripMenuItem.Click += new System.EventHandler(this.cancelDrawOutlineToolStripMenuItem_Click);
             // 
-            // editPathOutlineListToolStripMenuItem
-            // 
-            this.editPathOutlineListToolStripMenuItem.Name = "editPathOutlineListToolStripMenuItem";
-            this.editPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.editPathOutlineListToolStripMenuItem.Text = "Edit PathOutlineList";
-            this.editPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.editPathOutlineListToolStripMenuItem_Click);
-            // 
             // picDesign
             // 
             this.picDesign.BackColor = System.Drawing.Color.Transparent;
@@ -2386,12 +2397,28 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // splitPathOutlineListToolStripMenuItem
+            // changeToUserDefinedVerticesToolStripMenuItem
             // 
-            this.splitPathOutlineListToolStripMenuItem.Name = "splitPathOutlineListToolStripMenuItem";
-            this.splitPathOutlineListToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.splitPathOutlineListToolStripMenuItem.Text = "Split PathOutlineList";
-            this.splitPathOutlineListToolStripMenuItem.Click += new System.EventHandler(this.splitPathOutlineListToolStripMenuItem_Click);
+            this.changeToUserDefinedVerticesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.linesUserDefinedToolStripMenuItem,
+            this.curvesUserDefinedToolStripMenuItem});
+            this.changeToUserDefinedVerticesToolStripMenuItem.Name = "changeToUserDefinedVerticesToolStripMenuItem";
+            this.changeToUserDefinedVerticesToolStripMenuItem.Size = new System.Drawing.Size(244, 22);
+            this.changeToUserDefinedVerticesToolStripMenuItem.Text = "Change to User-Defined Vertices";
+            // 
+            // linesUserDefinedToolStripMenuItem
+            // 
+            this.linesUserDefinedToolStripMenuItem.Name = "linesUserDefinedToolStripMenuItem";
+            this.linesUserDefinedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.linesUserDefinedToolStripMenuItem.Text = "Lines";
+            this.linesUserDefinedToolStripMenuItem.Click += new System.EventHandler(this.linesUserDefinedToolStripMenuItem_Click);
+            // 
+            // curvesUserDefinedToolStripMenuItem
+            // 
+            this.curvesUserDefinedToolStripMenuItem.Name = "curvesUserDefinedToolStripMenuItem";
+            this.curvesUserDefinedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.curvesUserDefinedToolStripMenuItem.Text = "Curves";
+            this.curvesUserDefinedToolStripMenuItem.Click += new System.EventHandler(this.curvesUserDefinedToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2679,6 +2706,9 @@
         private System.Windows.Forms.ToolStripMenuItem editSelectedPathOutlinesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editPathOutlineListToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem splitPathOutlineListToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem changeToUserDefinedVerticesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem linesUserDefinedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem curvesUserDefinedToolStripMenuItem;
     }
 }
 

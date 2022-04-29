@@ -164,6 +164,7 @@ namespace Whorl
                 {
                     cboDrawType.SelectedItem = pathOutline.DrawType;
                     chkDrawClosed.Checked = pathOutline.HasClosedPath;
+                    chkDrawAsCurve.Checked = pathOutline.VerticesAreForCurve;
                     txtMaxPathPoints.Text = pathOutline.MaxPathPoints.ToString();
                     chkUsesInfluencePoints.Checked = pathOutline.UsesInfluencePoints;
                 }
@@ -326,6 +327,7 @@ namespace Whorl
                     pathOutline.RotationSpan = rotationSpan;
                     pathOutline.UseVertices = UseVertices;
                     pathOutline.HasClosedPath = chkDrawClosed.Checked;
+                    pathOutline.VerticesAreForCurve = chkDrawAsCurve.Checked;
                     pathOutline.UsesInfluencePoints = chkUsesInfluencePoints.Checked;
                     if (UseVertices)
                     {

@@ -9329,5 +9329,41 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private void ChangeToUserDefinedVertices(PathOutline.DrawTypes drawType)
+        {
+            var pattern = GetNearestPattern<Pattern>(dragStart);
+            if (pattern == null) return;
+            PathOutline pathOutline = pattern.BasicOutlines.Select(o => o as PathOutline)
+                        .FirstOrDefault(p => p.SegmentVertices != null && !p.UserDefinedVertices);
+            if (pathOutline == null) return;
+            pathOutline.ChangeToUserDefinedVertices(pattern, drawType);
+            pattern.ComputeSeedPoints();
+            RedrawPatterns();
+        }
+
+        private void linesUserDefinedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ChangeToUserDefinedVertices(PathOutline.DrawTypes.Lines);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void curvesUserDefinedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ChangeToUserDefinedVertices(PathOutline.DrawTypes.Curve);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
     }
 }

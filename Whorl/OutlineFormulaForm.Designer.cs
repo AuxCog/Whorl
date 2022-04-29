@@ -82,6 +82,7 @@
             this.cboInsertTokens = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.lblFormula = new System.Windows.Forms.Label();
+            this.chkDrawAsCurve = new System.Windows.Forms.CheckBox();
             this.pnlPathSettings.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlTransform.SuspendLayout();
@@ -125,6 +126,7 @@
             // pnlPathSettings
             // 
             this.pnlPathSettings.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnlPathSettings.Controls.Add(this.chkDrawAsCurve);
             this.pnlPathSettings.Controls.Add(this.chkUsesInfluencePoints);
             this.pnlPathSettings.Controls.Add(this.txtMaxPathPoints);
             this.pnlPathSettings.Controls.Add(this.label6);
@@ -580,6 +582,16 @@
             this.lblFormula.TabIndex = 29;
             this.lblFormula.Text = "Outline Transform Formula:";
             // 
+            // chkDrawAsCurve
+            // 
+            this.chkDrawAsCurve.AutoSize = true;
+            this.chkDrawAsCurve.Location = new System.Drawing.Point(461, 39);
+            this.chkDrawAsCurve.Name = "chkDrawAsCurve";
+            this.chkDrawAsCurve.Size = new System.Drawing.Size(120, 21);
+            this.chkDrawAsCurve.TabIndex = 17;
+            this.chkDrawAsCurve.Text = "Draw As Curve";
+            this.chkDrawAsCurve.UseVisualStyleBackColor = true;
+            // 
             // OutlineFormulaForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
@@ -681,5 +693,6 @@
         private System.Windows.Forms.ComboBox cboInsertTokens;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label lblFormula;
+        private System.Windows.Forms.CheckBox chkDrawAsCurve;
     }
 }

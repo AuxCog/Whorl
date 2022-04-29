@@ -2832,7 +2832,7 @@ namespace Whorl
 
         private List<BasicOutline> seedOutlines;
         private List<PatternTransform> seedTransforms;
-        private BasicOutline.CustomOutline seedCustomOutline;
+        private BasicOutline.CustomOutline seedCustomOutline { get; set; }
         private PathOutline seedVerticesOutline { get; set; }
         private List<CustomParameter> randomRangeParams;
         private bool seedPatternIsPath;

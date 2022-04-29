@@ -106,6 +106,7 @@ namespace Whorl
         public PointF SegmentVerticesCenter { get; set; } = PointF.Empty;
         public bool UseVertices { get; set; }
         public bool UserDefinedVertices { get; set; }
+        public bool VerticesAreForCurve { get; set; }
         public bool HasClosedPath { get; set; } = true;
         public override bool SupportsInfluencePoints => VerticesSettings != null;
         private bool computingInfluenceScale { get; set; }
@@ -180,10 +181,6 @@ namespace Whorl
             GlobalInfo = new PathOutlineVars(this);
             DrawType = source.DrawType;
             VerticesSettings = source.VerticesSettings.GetCopy(ConfigureParser);
-            //CopyProperties(source, excludedPropertyNames:
-            //    new string[] { nameof(BasicOutlineType), nameof(UnitFactor), nameof(VerticesSettings),
-            //                   nameof(SegmentVertices), nameof(LineVertices), nameof(DrawType),
-            //                   nameof(HasCurveVertices), nameof(HasLineVertices) });
             CurveCornerIndices.AddRange(source.CurveCornerIndices);
             PathOutlineTransforms.AddRange(source.PathOutlineTransforms
                                  .Select(ot => new PathOutlineTransform(ot, this)));
@@ -265,6 +262,23 @@ namespace Whorl
             CurveCornerIndices.Clear();
         }
 
+        public void ChangeToUserDefinedVertices(Pattern pattern, DrawTypes drawType)
+        {
+            if (UserDefinedVertices)
+                return;
+            if (SegmentVertices == null)
+                throw new NullReferenceException("SegmentVertices cannot be null.");
+            UserDefinedVertices = UseVertices = true;
+            DrawType = drawType;
+            PointF center = pattern.Center;
+            SegmentVerticesCenter = center;
+            var unitVertices = GetScaledVertices(center: PointF.Empty);
+            float scale = (float)pattern.ZVector.GetModulus();
+            SegmentVertices = unitVertices.Select(v => 
+                              new PointF(scale * v.X + center.X, scale * v.Y + center.Y)).ToList();
+            ComputePathPoints();
+        }
+
         public Complex UpdateUserDefinedVertices(Complex zVector, DrawTypes drawType, bool hasClosedPath)
         {
             UserDefinedVertices = UseVertices = true;
@@ -321,11 +335,16 @@ namespace Whorl
         public Complex FinishUserDefinedVertices()
         {
             Complex zVector = Complex.DefaultZVector;
-            if (UserDefinedVertices || HasLineVertices)
+            if (UserDefinedVertices || HasLineVertices || VerticesAreForCurve)
             {
-                if (!HasCurveVertices && SegmentVertices != null)
+                if (VerticesAreForCurve && SegmentVertices == null)
+                    _AddVertices(callFinish: false);
+                else
                 {
-                    LineVertices = GetScaledVertices().ToList();
+                    if (!HasCurveVertices && !VerticesAreForCurve && SegmentVertices != null)
+                    {
+                        LineVertices = GetScaledVertices().ToList();
+                    }
                 }
                 zVector = ComputePathPoints();
             }
@@ -334,7 +353,11 @@ namespace Whorl
 
         public IEnumerable<PointF> GetScaledVertices()
         {
-            PointF center = SegmentVerticesCenter;
+            return GetScaledVertices(SegmentVerticesCenter);
+        }
+
+        private IEnumerable<PointF> GetScaledVertices(PointF center)
+        {
             float scale = (float)(1.0 / GetPolygonMaxModulus(center));
             return SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));
         }
@@ -374,11 +397,11 @@ namespace Whorl
             Complex zVector = Complex.DefaultZVector;
             if (!UseVertices)
                 return zVector;
-            if (HasLineVertices)
+            if (HasLineVertices && !VerticesAreForCurve)
                 ComputeLinePathPoints();
-            else if (UserDefinedVertices)
+            else if (UserDefinedVertices || (VerticesAreForCurve && SegmentVertices != null))
                 SetCurvePathPoints(SegmentVertices);
-            if (HasLineVertices || UserDefinedVertices)
+            if (HasLineVertices || UserDefinedVertices || VerticesAreForCurve)
                 zVector = NormalizePathVertices();
             else
                 AddVertices();
@@ -406,13 +429,13 @@ namespace Whorl
 
         public void SetCurvePathPoints(List<PointF> segmentPoints)
         {
-            if (HasLineVertices)
+            if (HasLineVertices && !VerticesAreForCurve)
                 return;
             bool fitCurve;
             if (segmentPoints.Count < 3)
                 fitCurve = false;
             else
-                fitCurve = HasCurveVertices && UserDefinedVertices;
+                fitCurve = (HasCurveVertices && UserDefinedVertices) || VerticesAreForCurve;
             List<PointF> segPoints = segmentPoints;
             if (HasClosedPath)
             {
@@ -422,6 +445,9 @@ namespace Whorl
             if (fitCurve)
             {
                 pathPoints = CubicSpline.FitParametric(segPoints, CurveCornerIndices, HasClosedPath);
+                pathPoints = pathPoints.FindAll(p => !(float.IsNaN(p.X) || float.IsNaN(p.Y)));
+                if (pathPoints.Count < 3)
+                    pathPoints = new List<PointF>(segPoints);
                 foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
                 {
                     pathOutlineTransform.TransformPathPoints();
@@ -455,7 +481,7 @@ namespace Whorl
             {
                 if (computingInfluenceScale)
                     InfluencePointsScale = 1.0;
-                if (HasLineVertices)
+                if (HasLineVertices && !VerticesAreForCurve)
                 {
                     if (SegmentVertices != null)
                     {
@@ -558,7 +584,7 @@ namespace Whorl
             verticesSettings.InitializeGlobals();
         }
 
-        private void _AddVertices()
+        private void _AddVertices(bool callFinish = true)
         {
             pathPoints = new List<PointF>();
             InitializeFormula(GlobalInfo, VerticesSettings);
@@ -569,14 +595,27 @@ namespace Whorl
                     NormalizePathPoints();
                     NormalizedPathLength = Tools.PathLength(pathPoints);
                 }
-                else if (HasLineVertices)
+                else if (HasLineVertices || VerticesAreForCurve)
                 {
-                    SegmentVertices = new List<PointF>(pathPoints);
-                    FinishUserDefinedVertices(PointF.Empty);
+                    SetSegmentVertices(pathPoints);
+                    if (callFinish)
+                        FinishUserDefinedVertices(PointF.Empty);
                 }
                 if (HasCurveVertices || HasLineVertices)
                 {
                     NormalizePathVertices();
+                }
+            }
+        }
+
+        private void SetSegmentVertices(List<PointF> points)
+        {
+            SegmentVertices = new List<PointF>();
+            foreach (PointF point in points)
+            {
+                if (SegmentVertices.Count == 0 || SegmentVertices.Last() != point)
+                {
+                    SegmentVertices.Add(point);
                 }
             }
         }
@@ -638,7 +677,7 @@ namespace Whorl
             bool retVal;
             if (UseSingleOutline)
             {
-                if (HasLineVertices)
+                if (HasLineVertices && !VerticesAreForCurve)
                 {
                     retVal = LineVertices != null && LineVertices.Count >= 3;
                     if (retVal)
@@ -749,7 +788,7 @@ namespace Whorl
             if (!(UseSingleOutline && HasLineVertices))
                 return false;
             pathPoints = new List<PointF>();
-            if (LineVertices == null || LineVertices.Count < 3)
+            if (LineVertices == null || LineVertices.Count < 2)
                 return false;
             InitComputePolygon();
             List<PointF> vertices = new List<PointF>(LineVertices);
@@ -758,12 +797,15 @@ namespace Whorl
                 Tools.ClosePoints(vertices);
             //var userVertexInfos = new UserVertexInfo[vertices.Count - 1];
             //int index = 0;
-            for (int i = 0; i < vertices.Count - 1; i++)
+            int i = 0;
+            while (true)
             {
-                PointF vertex = vertices[i];
-                PointF nextVertex = vertices[i + 1];
+                PointF vertex = vertices[i++];
                 PointF p = vertex;
                 pathPoints.Add(p);
+                if (i == vertices.Count)
+                    break;
+                PointF nextVertex = vertices[i];
                 int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
                 if (steps > 1)
                 {
@@ -952,8 +994,12 @@ namespace Whorl
             }
             if (node.Attributes[nameof(UseVertices)] == null)
                 UseVertices = VerticesSettings.IsValid;
-            FinishUserDefinedVertices();
-            ComputePathPoints();
+            if (UserDefinedVertices || HasLineVertices || VerticesAreForCurve)
+            {
+                FinishUserDefinedVertices();
+            }
+            else
+                ComputePathPoints();
             //if (UseVertices)
             //{
             //    if (UserDefinedVertices)
@@ -984,11 +1030,12 @@ namespace Whorl
                     break;
                 case "SegmentVertices":
                 case nameof(PathPoints):
-                    SegmentVertices = new List<PointF>();
+                    var points = new List<PointF>();
                     foreach (XmlNode vertexNode in node.ChildNodes)
                     {
-                        SegmentVertices.Add(Tools.GetPointFFromXml(vertexNode));
+                        points.Add(Tools.GetPointFFromXml(vertexNode));
                     }
+                    SetSegmentVertices(points);
                     break;
                 case "SegmentVerticesCenter":
                     SegmentVerticesCenter = Tools.GetPointFFromXml(node);
