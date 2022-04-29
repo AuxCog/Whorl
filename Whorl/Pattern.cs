@@ -3005,7 +3005,7 @@ namespace Whorl
             seedPointsContainer.SeedPointArrays = seedPointArrays;
             //if (ShrinkPatternLayers)
             //{
-            foreach (PatternLayer ptnLayer in PatternLayers.PatternLayers)
+            foreach (PatternLayer ptnLayer in PatternLayers.PatternLayers.Skip(1))
             {
                 ptnLayer.ApplyShrink(ShrinkPatternLayers);
             }
@@ -3054,8 +3054,10 @@ namespace Whorl
             seedPointArrays = null;
             if (seedPoints == null)
                 return null;
+            if (cloneSeedPoints)
+                seedPoints = (PolarCoord[])seedPoints.Clone();
             if ((padding == 0 && loopFactor == 0) || clipFactor < 0)
-                return cloneSeedPoints ? (PolarCoord[])seedPoints.Clone() : seedPoints;
+                return seedPoints;
             if (useNewVersion)
             {
                 double maxAngle = 5;  //maxAngle in degrees.
@@ -3161,7 +3163,7 @@ namespace Whorl
                     }
                 }
             }
-            return cloneSeedPoints ? (PolarCoord[])seedPoints.Clone() : seedPoints;
+            return seedPoints;
         }
 
         public void ScaleInfluencePoints(Complex prevZVector)
@@ -3859,14 +3861,6 @@ namespace Whorl
             }
             DrawPatternLayer(g, patternZVector, FillInfo, checkLinearGradient, caller, enableCache, draftMode, 
                              computeRandom, curvePoints, renderIndex == 0);
-            //if (renderIndex == 0)
-            //{
-            //    PixelRendering.Render(g, CurvePoints, this, patternZVector, caller, enableCache, draftMode, computeRandom);
-            //}
-            //else
-            //{
-            //    FillCurvePoints(g, CurvePoints, this.FillInfo, checkLinearGradient);
-            //}
             for (int i = 1; i < this.PatternLayers.PatternLayers.Count; i++)
             {
                 PatternLayer layer = this.PatternLayers.PatternLayers[i];
@@ -3885,15 +3879,6 @@ namespace Whorl
                     DrawPatternLayer(g, layer.ModulusRatio * patternZVector, layer.FillInfo, checkLinearGradient, caller, enableCache,
                                      draftMode, computeRandom, LayerCurvePoints, i == renderIndex);
                 }
-                //if (i == renderIndex)
-                //{
-                //    PixelRendering.Render(g, LayerCurvePoints, this, layer.ModulusRatio * patternZVector, 
-                //                          caller, enableCache, draftMode, computeRandom);
-                //}
-                //else
-                //{
-                //    FillCurvePoints(g, LayerCurvePoints, layer.FillInfo, checkLinearGradient);
-                //}
             }
         }
 

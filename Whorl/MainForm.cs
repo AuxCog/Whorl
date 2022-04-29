@@ -9334,11 +9334,13 @@ namespace Whorl
         {
             var pattern = GetNearestPattern<Pattern>(dragStart);
             if (pattern == null) return;
-            PathOutline pathOutline = pattern.BasicOutlines.Select(o => o as PathOutline)
+            Pattern ptnCopy = pattern.GetCopy();
+            PathOutline pathOutline = ptnCopy.BasicOutlines.Select(o => o as PathOutline)
                         .FirstOrDefault(p => p.SegmentVertices != null && !p.UserDefinedVertices);
             if (pathOutline == null) return;
-            pathOutline.ChangeToUserDefinedVertices(pattern, drawType);
-            pattern.ComputeSeedPoints();
+            pathOutline.ChangeToUserDefinedVertices(ptnCopy, drawType);
+            ptnCopy.ComputeSeedPoints();
+            Design.ReplacePattern(pattern, ptnCopy);
             RedrawPatterns();
         }
 
