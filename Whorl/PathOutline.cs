@@ -30,21 +30,21 @@ namespace Whorl
             Custom
         }
 
-        private class UserVertexInfo
-        {
-            public int Index { get; }
-            public PointF UserVertex { get; }
-            public int Steps { get; }
-            public PointF UnitVector { get; }
+        //private class UserVertexInfo
+        //{
+        //    public int Index { get; }
+        //    public PointF UserVertex { get; }
+        //    public int Steps { get; }
+        //    public PointF UnitVector { get; }
 
-            public UserVertexInfo(int index, PointF userVertex, int steps, PointF unitVector)
-            {
-                Index = index;
-                UserVertex = userVertex;
-                Steps = steps;
-                UnitVector = unitVector;
-            }
-        }
+        //    public UserVertexInfo(int index, PointF userVertex, int steps, PointF unitVector)
+        //    {
+        //        Index = index;
+        //        UserVertex = userVertex;
+        //        Steps = steps;
+        //        UnitVector = unitVector;
+        //    }
+        //}
         public class PathOutlineVars
         {
             private PathOutline pathOutline { get; }
@@ -116,8 +116,6 @@ namespace Whorl
             get => _drawType;
             set
             {
-                //if (UserDefinedVertices && value == DrawTypes.Normal)
-                //    throw new CustomException("DrawType cannot be Normal for UserDefinedVertices.");
                 _drawType = value;
                 HasCurveVertices = _drawType == DrawTypes.Curve;
                 HasLineVertices = _drawType == DrawTypes.Lines;
@@ -698,8 +696,8 @@ namespace Whorl
         /// </summary>
         private void InitComputePolygon()
         {
-            if (!HasLineVertices) return;
-            verticesIndex = 0;
+            if (HasLineVertices)
+                verticesIndex = 0;
         }
 
         //private void InitComputePolygon(int rotationSteps)
@@ -755,40 +753,51 @@ namespace Whorl
                 return false;
             InitComputePolygon();
             List<PointF> vertices = new List<PointF>(LineVertices);
-            //Add first vertex to end of list if not there:
             if (HasClosedPath)
+                //Add first vertex to end of list if not there:
                 Tools.ClosePoints(vertices);
-            var userVertexInfos = new UserVertexInfo[vertices.Count - 1];
-            int index = 0;
+            //var userVertexInfos = new UserVertexInfo[vertices.Count - 1];
+            //int index = 0;
             for (int i = 0; i < vertices.Count - 1; i++)
             {
                 PointF vertex = vertices[i];
                 PointF nextVertex = vertices[i + 1];
-                int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
-                PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
-                                               (nextVertex.Y - vertex.Y) / steps);
-                userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
-                index += steps;
-            }
-            PointF p = Point.Empty;
-            int maxInd = userVertexInfos.Select(v => v.Steps).Sum();
-            for (int ind = 0; ind < maxInd; ind++)
-            {
-                UserVertexInfo uvInfo = userVertexInfos[verticesIndex];
-                if (ind == uvInfo.Index + uvInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
-                {
-                    uvInfo = userVertexInfos[++verticesIndex];
-                }
-                if (ind == uvInfo.Index)
-                {
-                    p = uvInfo.UserVertex;
-                }
-                else
-                {
-                    p = new PointF(p.X + uvInfo.UnitVector.X, p.Y + uvInfo.UnitVector.Y);
-                }
+                PointF p = vertex;
                 pathPoints.Add(p);
+                int steps = Math.Max(1, (int)Math.Ceiling(MaxModulus * Tools.Distance(vertex, nextVertex)));
+                if (steps > 1)
+                {
+                    PointF unitVector = new PointF((nextVertex.X - vertex.X) / steps,
+                                                   (nextVertex.Y - vertex.Y) / steps);
+                    for (int step = 1; step < steps; step++)
+                    {
+                        p.X += unitVector.X;
+                        p.Y += unitVector.Y;
+                        pathPoints.Add(p);
+                    }
+                }
+                //userVertexInfos[i] = new UserVertexInfo(index, vertex, steps, unitVector);
+                //index += steps;
             }
+            //PointF p = Point.Empty;
+            //int maxInd = userVertexInfos.Select(v => v.Steps).Sum();
+            //for (int ind = 0; ind < maxInd; ind++)
+            //{
+            //    UserVertexInfo uvInfo = userVertexInfos[verticesIndex];
+            //    if (ind == uvInfo.Index + uvInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
+            //    {
+            //        uvInfo = userVertexInfos[++verticesIndex];
+            //    }
+            //    if (ind == uvInfo.Index)
+            //    {
+            //        p = uvInfo.UserVertex;
+            //    }
+            //    else
+            //    {
+            //        p = new PointF(p.X + uvInfo.UnitVector.X, p.Y + uvInfo.UnitVector.Y);
+            //    }
+            //    pathPoints.Add(p);
+            //}
             return true;
         }
 
