@@ -272,10 +272,10 @@ namespace Whorl
             DrawType = drawType;
             PointF center = pattern.Center;
             SegmentVerticesCenter = center;
-            var unitVertices = GetScaledVertices(center: PointF.Empty);
+            var unitVertices = GetScaledVertices(center: PointF.Empty).ToArray();
             float scale = (float)pattern.ZVector.GetModulus();
-            SegmentVertices = unitVertices.Select(v => 
-                              new PointF(scale * v.X + center.X, scale * v.Y + center.Y)).ToList();
+            SetSegmentVertices(unitVertices.Select(v => 
+                               new PointF(scale * v.X + center.X, scale * v.Y + center.Y)));
             ComputePathPoints();
         }
 
@@ -608,7 +608,7 @@ namespace Whorl
             }
         }
 
-        private void SetSegmentVertices(List<PointF> points)
+        private void SetSegmentVertices(IEnumerable<PointF> points)
         {
             SegmentVertices = new List<PointF>();
             foreach (PointF point in points)
