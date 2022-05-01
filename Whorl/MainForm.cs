@@ -8898,24 +8898,40 @@ namespace Whorl
                     MessageBox.Show("Please select some patterns.");
                     return;
                 }
-                Pattern pixelPattern = GetImageRectanglePattern();
-                BasicOutline basicOutline = pixelPattern.BasicOutlines.First();
-                Point imgCenter = GetPictureBoxCenter();
-                pixelPattern.Center = imgCenter;
-                double modulus = 1.02 * Math.Sqrt((double)imgCenter.X * imgCenter.X + (double)imgCenter.Y * imgCenter.Y);
-                pixelPattern.ZVector = new Complex(0, modulus);
-                string errMessage = pixelPattern.CheckCreatePixelRendering();
-                if (errMessage != null)
-                    throw new Exception(errMessage);
-                pixelPattern.PixelRendering.Enabled = true;
-                pixelPattern.PixelRendering.UseDistanceOutline = true;
+                Pattern pixelPattern = null;
+                if (Design.EditedPattern != null && Design.EditedPattern.HasPixelRendering)
+                {
+                    if (MessageBox.Show("Add patterns to current Pixel Rendering pattern?",
+                        "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        pixelPattern = Design.EditedPattern;
+                    }    
+                }
+                bool addPixelPattern = pixelPattern == null;
+                if (pixelPattern == null)
+                {
+                    pixelPattern = GetImageRectanglePattern();
+                    BasicOutline basicOutline = pixelPattern.BasicOutlines.First();
+                    Point imgCenter = GetPictureBoxCenter();
+                    pixelPattern.Center = imgCenter;
+                    double modulus = 1.02 * Math.Sqrt((double)imgCenter.X * imgCenter.X + (double)imgCenter.Y * imgCenter.Y);
+                    pixelPattern.ZVector = new Complex(0, modulus);
+                    string errMessage = pixelPattern.CheckCreatePixelRendering();
+                    if (errMessage != null)
+                        throw new Exception(errMessage);
+                    pixelPattern.PixelRendering.Enabled = true;
+                    pixelPattern.PixelRendering.UseDistanceOutline = true;
+                }
                 foreach (Pattern selPattern in selectedPatterns.ToArray())
                 {
                     pixelPattern.PixelRendering.AddDistancePattern(pixelPattern, selPattern);
                 }
                 Design.RemovePatterns(selectedPatterns.ToList());
-                int insertIndex = GetNextPatternIndex();
-                Design.AddPattern(pixelPattern, insertIndex);
+                if (addPixelPattern)
+                {
+                    int insertIndex = GetNextPatternIndex();
+                    Design.AddPattern(pixelPattern, insertIndex);
+                }
                 RedrawPatterns();
             }
             catch (Exception ex)
