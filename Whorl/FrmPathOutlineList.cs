@@ -493,8 +493,14 @@ namespace Whorl
                     if (ind >= 0)
                     {
                         intersectionInfo = infoArray[ind];
-                        lastSection.EndIndex = i;
-                        break;
+                        int ind2 = Tools.FindClosestIndex(intersectionInfo.Point, points);
+                        if (ind2 >= 0)
+                        {
+                            lastSection.EndIndex = ind2;
+                            break;
+                        }
+                        else
+                            intersectionInfo = null;
                     }
                 }
             }
