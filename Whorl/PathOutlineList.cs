@@ -70,7 +70,7 @@ namespace Whorl
                 if (EndIndex >= Parent.FullCurvePoints.Length)
                     throw new Exception("EndIndex is out of range.");
                 int ind = StartIndex;
-                int increment = Parent.Clockwise ? 1 : -1;
+                int increment = Parent.GetIncrement();
                 while (ind != EndIndex)
                 {
                     points.Add(Parent.FullCurvePoints[ind]);
@@ -174,6 +174,17 @@ namespace Whorl
             //            PathPattern.BasicOutlines[0] = pathOutline;
             //    }
             //}
+
+            public int GetIncrement()
+            {
+                return Clockwise ? 1 : -1;
+            }
+
+            public void ComputePointsIfNeeded()
+            {
+                if (!FullPointsAreUpToDate)
+                    ComputePoints();
+            }
 
             public void ComputePoints()
             {

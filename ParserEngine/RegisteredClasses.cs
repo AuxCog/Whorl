@@ -73,7 +73,7 @@ namespace ParserEngine
 
         public override string ToString()
         {
-            return $"({X:0.##}, {Y:0.##})";
+            return $"({X:0.####}, {Y:0.####})";
         }
     }
 

@@ -44,6 +44,7 @@
             this.setNextPointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectCurveSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteCurveSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeCurvePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetPanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -51,7 +52,6 @@
             this.computeResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectNextSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectPreviousSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.closeCurvePathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -198,6 +198,13 @@
             this.deleteCurveSectionToolStripMenuItem.Text = "Delete Last Curve Section";
             this.deleteCurveSectionToolStripMenuItem.Click += new System.EventHandler(this.deleteCurveSectionToolStripMenuItem_Click);
             // 
+            // closeCurvePathToolStripMenuItem
+            // 
+            this.closeCurvePathToolStripMenuItem.Name = "closeCurvePathToolStripMenuItem";
+            this.closeCurvePathToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
+            this.closeCurvePathToolStripMenuItem.Text = "Close Curve Path";
+            this.closeCurvePathToolStripMenuItem.Click += new System.EventHandler(this.closeCurvePathToolStripMenuItem_Click);
+            // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -257,13 +264,6 @@
             this.selectPreviousSectionToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
             this.selectPreviousSectionToolStripMenuItem.Text = "Display Previous Section";
             this.selectPreviousSectionToolStripMenuItem.Click += new System.EventHandler(this.selectPreviousSectionToolStripMenuItem_Click);
-            // 
-            // closeCurvePathToolStripMenuItem
-            // 
-            this.closeCurvePathToolStripMenuItem.Name = "closeCurvePathToolStripMenuItem";
-            this.closeCurvePathToolStripMenuItem.Size = new System.Drawing.Size(207, 22);
-            this.closeCurvePathToolStripMenuItem.Text = "Close Curve Path";
-            this.closeCurvePathToolStripMenuItem.Click += new System.EventHandler(this.closeCurvePathToolStripMenuItem_Click);
             // 
             // FrmPathOutlineList
             // 

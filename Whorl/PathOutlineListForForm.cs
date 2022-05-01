@@ -254,13 +254,20 @@ namespace Whorl
         //        return 1F + pathInfoForForms.Select(p => p.SortId).Max();
         //}
 
+        public string ValidatePattern(Pattern pattern)
+        {
+            if (pattern.SeedPoints == null)
+                pattern.ComputeSeedPoints();
+            if (pattern.SeedPoints.Length < 2)
+                return "Pattern has less than 2 seed points.";
+            else
+                return null;
+        }
+
         public void AddPathInfos(IEnumerable<Pattern> patterns)
         {
-            foreach (var pattern in patterns)
+            foreach (var pattern in patterns.Where(p => ValidatePattern(p) == null))
             {
-                //PathOutline pathOutline = GetPathOutlines(pattern).FirstOrDefault();
-                //if (pathOutline == null)
-                //    throw new ArgumentException("Didn't find valid PathOutline in pattern.");
                 var pathInfo = new PathInfoForForm(pattern, 0, Design);
                 pathInfoForForms.Add(pathInfo);
                 if (boundingRect == RectangleF.Empty)

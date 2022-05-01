@@ -79,6 +79,10 @@ namespace Whorl
         private int selectedPathInfoIndex { get; set; } = -1;
         private List<PathOutlineListForForm.PathDetailForForm> allSections { get; set; }
         private PathOutlineListForForm.PathDetailForForm displayedSection { get; set; }
+        private float squaresFactor { get; set; } = 1F;
+        private PointF squaresOffset { get; set; }
+        private Size squaresArraySize { get; set; }
+        private List<IntersectionInfo>[,] squaresArray { get; set; }
         private double zoomFactor { get; set; } = 1;
         private Point[] panXYs { get; } = new Point[3];
         private Point startPanXY { get; set; }
@@ -243,14 +247,16 @@ namespace Whorl
             {
                 PictureBox pic = (PictureBox)sender;
                 int newIndex = (int)pic.Tag;
-                if (newIndex == selectedPathInfoIndex)
+                if (!SelectPathPattern(newIndex))
                     return;
-                if (selectedPathInfoIndex >= 0)
-                {
-                    outlineInfos[selectedPathInfoIndex].PictureBox.BorderStyle = BorderStyle.None;
-                }
-                selectedPathInfoIndex = newIndex;
-                pic.BorderStyle = BorderStyle.Fixed3D;
+                //if (newIndex == selectedPathInfoIndex)
+                //    return;
+                //if (selectedPathInfoIndex >= 0)
+                //{
+                //    outlineInfos[selectedPathInfoIndex].PictureBox.BorderStyle = BorderStyle.None;
+                //}
+                //selectedPathInfoIndex = newIndex;
+                //pic.BorderStyle = BorderStyle.Fixed3D;
                 if (GetDisplayMode() != DisplayModes.Result)
                     picOutline.Refresh();
             }
@@ -258,6 +264,18 @@ namespace Whorl
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private bool SelectPathPattern(int index)
+        {
+            if (selectedPathInfoIndex == index) return false;
+            if (selectedPathInfoIndex >= 0)
+            {
+                outlineInfos[selectedPathInfoIndex].PictureBox.BorderStyle = BorderStyle.None;
+            }
+            selectedPathInfoIndex = index;
+            outlineInfos[selectedPathInfoIndex].PictureBox.BorderStyle = BorderStyle.Fixed3D;
+            return true;
         }
 
         private void ChkClockwise_CheckedChanged(object sender, EventArgs e)
@@ -268,6 +286,20 @@ namespace Whorl
                 int index = (int)chkBox.Tag;
                 pathInfos[index].Clockwise = chkBox.Checked;
                 picOutline.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void AddIntersectionLinkLabel_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var lnkLabel = (LinkLabel)sender;
+                int patternIndex = (int)lnkLabel.Tag;
+                AddIntersectingPoint(patternIndex);
             }
             catch (Exception ex)
             {
@@ -309,6 +341,7 @@ namespace Whorl
 
         private bool CreateResultOutline()
         {
+            UpdateInfos();
             for (int i = 0; i < allSections.Count; i++)
             {
                 allSections[i].SortId = i + 1;
@@ -323,8 +356,6 @@ namespace Whorl
                 MessageBox.Show(errMessage);
                 return false;
             }
-            //SortInfos();
-            UpdateInfos();
             pathOutlineListForForm.SetResultPathPattern();
             return true;
         }
@@ -339,6 +370,147 @@ namespace Whorl
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
+            }
+        }
+
+        private int GetSquaresXIndex(PointF p)
+        {
+            return (int)Math.Round(squaresFactor * (p.X - squaresOffset.X));
+        }
+
+        private int GetSquaresYIndex(PointF p)
+        {
+            return (int)Math.Round(squaresFactor * (p.Y - squaresOffset.Y));
+        }
+
+        private List<IntersectionInfo> GetSquaresIntersectionInfos(PointF p)
+        {
+            var intersectionInfos = new List<IntersectionInfo>();
+            int xi = GetSquaresXIndex(p);
+            int yi = GetSquaresYIndex(p);
+            int xiMin = Math.Max(0, xi - 1);
+            int yiMin = Math.Max(0, yi - 1);
+            int xiMax = Math.Min(squaresArraySize.Width - 1, xi + 1);
+            int yiMax = Math.Min(squaresArraySize.Height - 1, yi + 1);
+            for (int i = xiMin; i <= xiMax; i++)
+            {
+                for (int j = yiMin; j <= yiMax; j++)
+                {
+                    List<IntersectionInfo> infos = squaresArray[i, j];
+                    if (infos != null)
+                        intersectionInfos.AddRange(infos);
+                }
+            }
+            return intersectionInfos;
+        }
+
+        private void CreateSquaresArray(params PathOutlineListForForm.PathInfoForForm[] pathInfoArray)
+        {
+            List<PointF[]> pointsList = new List<PointF[]>();
+            var patternIndices = new List<int>();
+            foreach (var pathInfo in pathInfoArray)
+            {
+                pathInfo.ComputePointsIfNeeded();
+                if (pathInfo.FullCurvePoints.Length < 2)
+                    throw new Exception("FullCurvePoints length is < 2.");
+                pointsList.Add(pathInfo.FullCurvePoints);
+                patternIndices.Add(Array.IndexOf(pathInfos, pathInfo));
+            }
+            double maxSegLen = Math.Sqrt(pointsList.Select(ps => Tools.SegmentLengthsSquared(ps).Max()).Max());
+            squaresFactor = (float)(0.1 / maxSegLen);
+            RectangleF boundingRect = Tools.GetBoundingRectangleF(pointsList.SelectMany(ps => ps));
+            squaresOffset = boundingRect.Location;
+            int width = 1 + (int)Math.Ceiling(squaresFactor * boundingRect.Width);
+            int height = 1 + (int)Math.Ceiling(squaresFactor * boundingRect.Height);
+            squaresArraySize = new Size(width, height);
+            squaresArray = new List<IntersectionInfo>[width, height];
+            for (int ptnI = 0; ptnI < pointsList.Count; ptnI++)
+            {
+                PointF[] points = pointsList[ptnI];
+                for (int i = 0; i < points.Length; i++)
+                {
+                    PointF p = points[i];
+                    int xi = GetSquaresXIndex(p);
+                    int yi = GetSquaresYIndex(p);
+                    if (xi < 0 || yi < 0 || xi >= width || yi >= height)
+                    {
+                        throw new ArgumentOutOfRangeException("Index.");
+                    }
+                    List<IntersectionInfo> list = squaresArray[xi, yi];
+                    if (list == null)
+                    {
+                        list = new List<IntersectionInfo>();
+                        squaresArray[xi, yi] = list;
+                    }
+                    list.Add(new IntersectionInfo(p, i, patternIndices[ptnI]));
+                }
+            }
+        }
+
+        private void AddIntersectingPoint(int patternIndex)
+        {
+            var lastSection = allSections.LastOrDefault();
+            if (lastSection == null || lastSection.StartIndex < 0)
+            {
+                MessageBox.Show("Please set the first start point.");
+                return;
+            }
+            var pathInfo = pathInfos[patternIndex];
+            var lastPathInfo = (PathOutlineListForForm.PathInfoForForm)lastSection.Parent;
+            if (pathInfo == lastPathInfo)
+            {
+                MessageBox.Show("Please select a different path pattern.");
+                return;
+            }
+            CreateSquaresArray(lastPathInfo, pathInfo);
+            PointF[] points = lastPathInfo.FullCurvePoints;
+            int increment = lastPathInfo.GetIncrement();
+            int i = lastSection.StartIndex;
+            float firstDist = 0f;
+            PointF firstP = points[i];
+            IntersectionInfo intersectionInfo = null;
+            while (true)
+            {
+                i += increment;
+                if (i < 0)
+                    i = points.Length - 1;
+                else if (i >= points.Length)
+                    i = 0;
+                if (i == lastSection.StartIndex)
+                    break;
+                PointF p = points[i];
+                if (firstDist < 30F)
+                {
+                    firstDist = Math.Max(firstDist, Tools.DistanceSquared(firstP, p));
+                    if (firstDist < 30F)
+                        continue;
+                }
+                var infos = GetSquaresIntersectionInfos(p).Where(ii => ii.PatternIndex == patternIndex);
+                if (infos.Any())
+                {
+                    var infoArray = infos.ToArray();
+                    int ind = Tools.FindClosestIndex(p, infoArray.Select(ii => ii.Point).ToArray(), bufferSize: 5F);
+                    if (ind >= 0)
+                    {
+                        intersectionInfo = infoArray[ind];
+                        lastSection.EndIndex = i;
+                        break;
+                    }
+                }
+            }
+            squaresArray = null;
+            if (intersectionInfo != null)
+            {
+                var newSection = new PathOutlineListForForm.PathDetailForForm(pathInfo, 0);
+                newSection.StartIndex = intersectionInfo.PointIndex;
+                allSections.Add(newSection);
+                SelectPathPattern(patternIndex);
+                displayedSection = newSection;
+                picOutline.Refresh();
+            }
+            else
+            {
+                MessageBox.Show("Didn't find an intersecting point.");
             }
         }
 
@@ -399,16 +571,11 @@ namespace Whorl
             }
         }
 
-        private PathOutlineListForForm.PathDetailForForm GetClosestSection(PointF p, bool messageIfNull = true)
+        private PathOutlineListForForm.PathDetailForForm GetClosestSection(PointF p)
         {
             var pointsList = allSections.Select(d => d.GetCurveSection().AsEnumerable()).ToList();
             int index = Tools.FindClosestIndex(p, pointsList, out _);
-            PathOutlineListForForm.PathDetailForForm section = index < 0 ? null : allSections[index];
-            if (section == null && messageIfNull)
-            {
-                MessageBox.Show("Didn't find the closest Curve Section.");
-            }
-            return section;
+            return index < 0 ? null : allSections[index];
         }
 
         //private void SetAllStartEndPoints()
@@ -479,8 +646,12 @@ namespace Whorl
         {
             try
             {
-                var section = GetClosestSection(dragStart, messageIfNull: true);
-                if (section != null)
+                var section = GetClosestSection(dragStart);
+                if (section == null)
+                {
+                    MessageBox.Show("Didn't find the closest Curve Section.");
+                }
+                else
                 {
                     displayedSection = section;
                     picOutline.Refresh();
@@ -680,20 +851,25 @@ namespace Whorl
         {
             try
             {
+                var firstSection = allSections.First();
                 var section = allSections.Last();
-                bool notFirstPattern = section.GetParent() != pathInfos[0];
-                if (selectedPathInfoIndex != 0 && notFirstPattern)
+                bool isFirstPattern = section.GetParent() == pathInfos[0];
+                if (selectedPathInfoIndex != 0 && !isFirstPattern)
                 {
                     MessageBox.Show("Please select the first path pattern.");
                     return;
                 }
-                if (!AddNewSection())
-                    return;
-                section = allSections.Last();
-                notFirstPattern = section.GetParent() != pathInfos[0];
-                var firstSection = allSections.First();
+                if (!isFirstPattern)
+                {
+                    if (!AddNewSection())
+                        return;
+                    section = allSections.Last();
+                    isFirstPattern = section.GetParent() == pathInfos[0];
+                }
                 int index2 = firstSection.StartIndex;
-                if (notFirstPattern)
+                if (isFirstPattern)
+                    section.EndIndex = firstSection.StartIndex;
+                else
                 {
                     PointF pt = firstSection.GetParent().GetCurvePoint(index2);
                     section.EndIndex = section.GetParent().FindClosestIndex(pt, out _);
@@ -709,8 +885,6 @@ namespace Whorl
                         return;
                     }
                 }
-                else
-                    section.EndIndex = firstSection.StartIndex;
             }
             catch (Exception ex)
             {
@@ -960,7 +1134,7 @@ namespace Whorl
                 pnlOutlines.Controls.Add(pic1Outline);
                 left += pictureBoxSize.Width + 5;
 
-                //Point saveLoc = new Point(left, top);
+                Point saveLoc = new Point(left, top);
 
                 //Label lbl = new Label();
                 //lbl.AutoSize = true;
@@ -978,8 +1152,6 @@ namespace Whorl
                 //rowOutlineInfo.TxtSortId = txtSort;
                 //pnlOutlines.Controls.Add(txtSort);
 
-                //top += 20;
-                //left = saveLoc.X;
                 var chkClockwise = new CheckBox();
                 chkClockwise.Tag = index;
                 chkClockwise.Text = "Clockwise";
@@ -989,12 +1161,21 @@ namespace Whorl
                 rowOutlineInfo.ChkClockwise = chkClockwise;
                 pnlOutlines.Controls.Add(chkClockwise);
 
+                top += 20;
+                left = saveLoc.X;
+
+                var addIntersectionLinkLabel = new LinkLabel();
+                addIntersectionLinkLabel.Tag = index;
+                addIntersectionLinkLabel.Text = "Add Intersecting Point";
+                addIntersectionLinkLabel.Location = new Point(left, top);
+                addIntersectionLinkLabel.Click += AddIntersectionLinkLabel_Click;
+                pnlOutlines.Controls.Add(addIntersectionLinkLabel);
+
                 outlineInfos.Add(rowOutlineInfo);
 
-                top += pictureBoxSize.Height + 5;
+                top = saveLoc.Y + pictureBoxSize.Height + 5;
                 left = 5;
             }
         }
-
     }
 }
