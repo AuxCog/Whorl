@@ -466,9 +466,11 @@ namespace Whorl
             PointF[] points = lastPathInfo.FullCurvePoints;
             int increment = lastPathInfo.GetIncrement();
             int i = lastSection.StartIndex;
-            float firstDist = 0f;
+            float minDist = float.MaxValue;
             PointF firstP = points[i];
+            PointF firstDistP = PointF.Empty;
             IntersectionInfo intersectionInfo = null;
+            int endIndex = -1;
             while (true)
             {
                 i += increment;
@@ -479,34 +481,33 @@ namespace Whorl
                 if (i == lastSection.StartIndex)
                     break;
                 PointF p = points[i];
-                if (firstDist < 30F)
-                {
-                    firstDist = Math.Max(firstDist, Tools.DistanceSquared(firstP, p));
-                    if (firstDist < 30F)
-                        continue;
-                }
+                if (Tools.DistanceSquared(firstP, p) < 25F)
+                    continue;
                 var infos = GetSquaresIntersectionInfos(p).Where(ii => ii.PatternIndex == patternIndex);
                 if (infos.Any())
                 {
                     var infoArray = infos.ToArray();
-                    int ind = Tools.FindClosestIndex(p, infoArray.Select(ii => ii.Point).ToArray(), bufferSize: 5F);
+                    int ind = Tools.FindClosestIndex(p, infoArray.Select(ii => ii.Point).ToArray(),
+                              out float distSq, bufferSize: 5F);
                     if (ind >= 0)
                     {
-                        intersectionInfo = infoArray[ind];
-                        int ind2 = Tools.FindClosestIndex(intersectionInfo.Point, points);
-                        if (ind2 >= 0)
+                        if (distSq < minDist)
                         {
-                            lastSection.EndIndex = ind2;
-                            break;
+                            minDist = distSq;
+                            intersectionInfo = infoArray[ind];
+                            endIndex = i;
                         }
-                        else
-                            intersectionInfo = null;
+                        else if (distSq > minDist)
+                            break;
                     }
                 }
+                else if (intersectionInfo != null)
+                    break;
             }
             squaresArray = null;
             if (intersectionInfo != null)
             {
+                lastSection.EndIndex = endIndex;
                 var newSection = new PathOutlineListForForm.PathDetailForForm(pathInfo, 0);
                 newSection.StartIndex = intersectionInfo.PointIndex;
                 allSections.Add(newSection);
