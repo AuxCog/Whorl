@@ -52,6 +52,7 @@
             this.computeResultOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectNextSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectPreviousSectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.adjustEndPointsToIntersectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.picOutline)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -222,7 +223,8 @@
             this.overlayResultOutlineToolStripMenuItem,
             this.computeResultOutlineToolStripMenuItem,
             this.selectNextSectionToolStripMenuItem,
-            this.selectPreviousSectionToolStripMenuItem});
+            this.selectPreviousSectionToolStripMenuItem,
+            this.adjustEndPointsToIntersectionsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -230,7 +232,7 @@
             // resetPanToolStripMenuItem
             // 
             this.resetPanToolStripMenuItem.Name = "resetPanToolStripMenuItem";
-            this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.resetPanToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.resetPanToolStripMenuItem.Text = "Reset Pan";
             this.resetPanToolStripMenuItem.Click += new System.EventHandler(this.resetPanToolStripMenuItem_Click);
             // 
@@ -238,14 +240,14 @@
             // 
             this.overlayResultOutlineToolStripMenuItem.CheckOnClick = true;
             this.overlayResultOutlineToolStripMenuItem.Name = "overlayResultOutlineToolStripMenuItem";
-            this.overlayResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.overlayResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.overlayResultOutlineToolStripMenuItem.Text = "Overlay Result Outline";
             this.overlayResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.overlayResultOutlineToolStripMenuItem_Click);
             // 
             // computeResultOutlineToolStripMenuItem
             // 
             this.computeResultOutlineToolStripMenuItem.Name = "computeResultOutlineToolStripMenuItem";
-            this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.computeResultOutlineToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.computeResultOutlineToolStripMenuItem.Text = "Compute Result Outline";
             this.computeResultOutlineToolStripMenuItem.Click += new System.EventHandler(this.computeResultOutlineToolStripMenuItem_Click);
             // 
@@ -253,7 +255,7 @@
             // 
             this.selectNextSectionToolStripMenuItem.Name = "selectNextSectionToolStripMenuItem";
             this.selectNextSectionToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.selectNextSectionToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.selectNextSectionToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.selectNextSectionToolStripMenuItem.Text = "Display Next Section";
             this.selectNextSectionToolStripMenuItem.Click += new System.EventHandler(this.selectNextSectionToolStripMenuItem_Click);
             // 
@@ -261,9 +263,16 @@
             // 
             this.selectPreviousSectionToolStripMenuItem.Name = "selectPreviousSectionToolStripMenuItem";
             this.selectPreviousSectionToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-            this.selectPreviousSectionToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.selectPreviousSectionToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.selectPreviousSectionToolStripMenuItem.Text = "Display Previous Section";
             this.selectPreviousSectionToolStripMenuItem.Click += new System.EventHandler(this.selectPreviousSectionToolStripMenuItem_Click);
+            // 
+            // adjustEndPointsToIntersectionsToolStripMenuItem
+            // 
+            this.adjustEndPointsToIntersectionsToolStripMenuItem.CheckOnClick = true;
+            this.adjustEndPointsToIntersectionsToolStripMenuItem.Name = "adjustEndPointsToIntersectionsToolStripMenuItem";
+            this.adjustEndPointsToIntersectionsToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.adjustEndPointsToIntersectionsToolStripMenuItem.Text = "Adjust End Points to Intersections";
             // 
             // FrmPathOutlineList
             // 
@@ -319,5 +328,6 @@
         private System.Windows.Forms.ToolStripMenuItem selectNextSectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectPreviousSectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeCurvePathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem adjustEndPointsToIntersectionsToolStripMenuItem;
     }
 }

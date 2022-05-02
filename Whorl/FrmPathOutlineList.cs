@@ -449,6 +449,7 @@ namespace Whorl
 
         private void AddIntersectingPoint(int patternIndex)
         {
+            const float minFirstDist = 25F;
             var lastSection = allSections.LastOrDefault();
             if (lastSection == null || lastSection.StartIndex < 0)
             {
@@ -462,10 +463,17 @@ namespace Whorl
                 MessageBox.Show("Please select a different path pattern.");
                 return;
             }
+            bool adjust = adjustEndPointsToIntersectionsToolStripMenuItem.Checked;
+            if (adjust && lastSection.EndIndex < 0)
+            {
+                MessageBox.Show("Please set an end point to adjust.");
+                return;
+            }
             CreateSquaresArray(lastPathInfo, pathInfo);
             PointF[] points = lastPathInfo.FullCurvePoints;
             int increment = lastPathInfo.GetIncrement();
-            int i = lastSection.StartIndex;
+            int i = adjust ? lastSection.EndIndex : lastSection.StartIndex;
+            float firstDist = 0;
             float minDist = float.MaxValue;
             PointF firstP = points[i];
             PointF firstDistP = PointF.Empty;
@@ -481,8 +489,12 @@ namespace Whorl
                 if (i == lastSection.StartIndex)
                     break;
                 PointF p = points[i];
-                if (Tools.DistanceSquared(firstP, p) < 25F)
-                    continue;
+                if (firstDist < minFirstDist)
+                {
+                    firstDist = Math.Max(firstDist, Tools.DistanceSquared(firstP, p));
+                    if (firstDist < minFirstDist)
+                        continue;
+                }
                 var infos = GetSquaresIntersectionInfos(p).Where(ii => ii.PatternIndex == patternIndex);
                 if (infos.Any())
                 {
@@ -1168,12 +1180,12 @@ namespace Whorl
                 rowOutlineInfo.ChkClockwise = chkClockwise;
                 pnlOutlines.Controls.Add(chkClockwise);
 
-                top += 20;
+                top += 30;
                 left = saveLoc.X;
 
                 var addIntersectionLinkLabel = new LinkLabel();
                 addIntersectionLinkLabel.Tag = index;
-                addIntersectionLinkLabel.Text = "Add Intersecting Point";
+                addIntersectionLinkLabel.Text = "Add Intersection";
                 addIntersectionLinkLabel.Location = new Point(left, top);
                 addIntersectionLinkLabel.Click += AddIntersectionLinkLabel_Click;
                 pnlOutlines.Controls.Add(addIntersectionLinkLabel);
