@@ -48,6 +48,10 @@ namespace Whorl
         public bool ComputeExternal { get; set; }
         public int ExternalAverageCount { get; set; } = 2;
         public bool ComputeInfluence { get; set; }
+        public bool ComputeBySeedPoints { get; set; }
+        public PointF[] BySeedPointsPoints { get; protected set; }
+        public float[] BySeedPointsValues { get; protected set; }
+        public PolarPoint[] PolarPoints { get; protected set; }
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
