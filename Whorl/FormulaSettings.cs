@@ -553,6 +553,13 @@ namespace Whorl
             return parseStatus;
         }
 
+        public bool PreInitializeForEval()
+        {
+            if (IsCSharpFormula && EvalInstance != null)
+                return EvalInstance.PreInitializeForEval();
+            return true;
+        }
+
         public bool InitializeGlobals()
         {
             if (IsCSharpFormula)

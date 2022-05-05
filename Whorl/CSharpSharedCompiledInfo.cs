@@ -49,6 +49,7 @@ namespace Whorl
         public const string InfoPropertyName = "Info";
         public const string ParametersPropertyName = "Parms";
         public const string UpdateParametersMethodName = "Update";
+        public const string PreInitializeMethodName = "PreInitialize";
         public const string InitializeMethodName = "Initialize";
         public const string Initialize2MethodName = "Initialize2";
 
@@ -69,6 +70,7 @@ namespace Whorl
 
         //private System.CodeDom.Compiler.CodeDomProvider compiler { get; set; }
 
+        public MethodInfo PreInitMethodInfo { get; private set; }
         public MethodInfo InitMethodInfo { get; private set; }
         public MethodInfo Init2MethodInfo { get; private set; }
         public PropertyInfo ParametersPropertyInfo { get; private set; }
@@ -147,6 +149,7 @@ namespace Whorl
             EvalClassType = null;
             InfoPropertyInfo = null;
             InitMethodInfo = null;
+            PreInitMethodInfo = null;
             EvalMethodInfo = null;
             UpdateParametersMethodInfo = null;
             ParametersPropertyInfo = null;
@@ -167,6 +170,7 @@ namespace Whorl
                 UpdateParametersMethodInfo = GetActionMethod(UpdateParametersMethodName,
                                              parametersClassType);
             }
+            PreInitMethodInfo = GetActionMethod(PreInitializeMethodName, EvalClassType);
             InitMethodInfo = GetActionMethod(InitializeMethodName, EvalClassType);
             Init2MethodInfo = GetActionMethod(Initialize2MethodName, EvalClassType);
             EvalMethodInfo = GetActionMethod(EvalMethodName, EvalClassType,

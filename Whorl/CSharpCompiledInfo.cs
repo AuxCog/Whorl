@@ -53,6 +53,11 @@ namespace Whorl
                 return success;
             }
 
+            public bool PreInitializeForEval()
+            {
+                return CallMethod(CSharpSharedCompiledInfo.PreInitMethodInfo);
+            }
+
             public bool InitializeForEval()
             {
                 return CallMethod(CSharpSharedCompiledInfo.InitMethodInfo);

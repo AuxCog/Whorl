@@ -478,9 +478,23 @@ namespace Whorl
                     DistancesToPaths = new double[length];
                     DistancePatternCenters = new PointF[length];
                     NearestPoints = new PointF[length];
-                    BySeedPointsPoints = new PointF[length];
-                    BySeedPointsValues = new float[length];
-                    PolarPoints = new PolarPoint[length];
+                }
+
+                public void SetPatternInfo(int patternIndex, double modulus)
+                {
+                    PatternIndex = patternIndex;
+                    PatternZVectorModulus = modulus;
+                }
+
+                public void SetSeedPoint(PolarPoint seedPoint)
+                {
+                    SeedPolarPoint = seedPoint;
+                }
+
+                public void SetSeedPointInfo(PolarPoint polarPoint, double seedPointScale)
+                {
+                    PolarPoint = polarPoint;
+                    BySeedPointsScale = seedPointScale;
                 }
             }
 
@@ -788,11 +802,6 @@ namespace Whorl
                 ProvideFeedback
             }
             public const int RandomRangeCount = 1000;
-            private struct BySeedPointsInfo
-            {
-                public float ColorValue { get; set; }
-                public int Count { get; set; }
-            }
             public Pattern ParentPattern { get; }
             private Pattern parentPatternCopy { get; set; }
             public int DraftSize { get; private set; } = 3;
@@ -839,7 +848,6 @@ namespace Whorl
             private PointF transformedPanXY { get; set; }
             private PatternBoundsInfo patternBoundsInfo { get; set; }
             private PatternBoundsInfo[] distPatternsBoundsInfos { get; set; }
-            private BySeedPointsInfo[,] bySeedPointsArray { get; set; }
             private PointF patternCenter { get; set; }
             //private bool polarTraversal;
             private Complex drawnZVector { get; set; }
@@ -1132,7 +1140,7 @@ namespace Whorl
                 return position;
             }
 
-            private uint[] GetBoundsBitmap(PointF[] points, Size size, bool drawCurve, out int pixelCount)
+            private uint[] GetBoundsBitmap(PointF[] points, Size size, bool drawCurve, out int pixelCount, byte[,] boundsArray = null)
             {
                 using (Bitmap bmp = BitmapTools.CreateFormattedBitmap(size))
                 {
@@ -1143,6 +1151,18 @@ namespace Whorl
                     int[] boundsPixels = new int[bmp.Width * bmp.Height];
                     BitmapTools.CopyBitmapToColorArray(bmp, boundsPixels);
                     int blackArgb = Color.Black.ToArgb();
+                    if (boundsArray != null) 
+                    {
+                        int pixInd = 0;
+                        for (int y = 0; y < size.Height; y++)
+                        {
+                            for (int x = 0; x < size.Width; x++)
+                            {
+                                bool isPixel = boundsPixels[pixInd++] == blackArgb;
+                                boundsArray[x, y] = (byte)(isPixel ? 1 : 0);
+                            }
+                        }
+                    }
                     return Tools.GetBitmap(boundsPixels, pix => pix == blackArgb, out pixelCount);
                 }
             }
@@ -1167,8 +1187,15 @@ namespace Whorl
                     scaleFactor: 1.0 / maxPosition,
                     maxModulusStep: (int)Math.Ceiling(maxModulus / modulusFactor));
                 Size size = Info.GetXYBounds();
-                uint[] pixelBitmap = GetBoundsBitmap(points, size, pattern.DrawCurve, out int pixelCount);
-                patternBoundsInfo = new PatternBoundsInfo(size, pixelCount, pixelBitmap);
+                int pixelCount;
+                byte[,] boundsArray = null;
+                if (Info.ComputeBySeedPoints)
+                {
+                    boundsArray = new byte[size.Width, size.Height];
+                }
+                uint[] pixelBitmap = GetBoundsBitmap(points, size, pattern.DrawCurve, out pixelCount, boundsArray);
+                patternBoundsInfo = new PatternBoundsInfo(size, pixelCount, pixelBitmap, boundsArray);
+                patternBoundsInfo.BoundingRectangle = new Rectangle(Tools.RoundPointF(BoundsRect.Location), size);
                 return pixelCount;
             }
 
@@ -1674,52 +1701,27 @@ namespace Whorl
                 Info.InfluenceValue = 0;
             }
 
-            private void InitForSeedPoints()
-            {
-                for (int i = 0; i < Info.PolarPoints.Length; i++)
-                {
-                    PointF center = Info.DistancePatternCenters[i];
-                    PolarPoint polarPoint = Info.GetPolar(center);
-                    Info.PolarPoints[i] = polarPoint;
-                    double angle = Tools.NormalizeAngle(polarPoint.Angle);
-                    Pattern pattern;
-                    if (distancePatternInfos.Count == 0)
-                        pattern = ParentPattern;
-                    else
-                        pattern = distancePatternInfos[i].DistancePattern;
-                    if (pattern.SeedPoints == null)
-                        pattern.ComputeSeedPoints();
-                    int ind = (int)Math.Round(angle / (2.0 * Math.PI) * 
-                                              (pattern.SeedPoints.Length - 1));
-                    PolarCoord seedPoint = pattern.SeedPoints[ind];
-                    Info.BySeedPointsPoints[i] = ComputeCurvePoint(
-                        seedPoint.Angle, polarPoint.Modulus * seedPoint.Modulus, center);
-                }
-            }
-
             private PointF TransformPoint(float x, float y, bool subtractCenter = true, bool pan = true)
             {
-                float fX = x;
-                float fY = y;
                 if (pan)
                 {
-                    fX += transformedPanXY.X;
-                    fY += transformedPanXY.Y;
+                    x += transformedPanXY.X;
+                    y += transformedPanXY.Y;
                 }
                 PointF p;
                 if (Info.Normalize)
                 {
                     if (subtractCenter)
                     {
-                        fX -= origCenter.X;
-                        fY -= origCenter.Y;
+                        x -= origCenter.X;
+                        y -= origCenter.Y;
                     }
-                    p = new PointF(floatScaleFactor * fX, floatScaleFactor * fY);
+                    p = new PointF(floatScaleFactor * x, floatScaleFactor * y);
                     if (pointRotation != 0)
                         p = Tools.RotatePoint(p, rotationVector);
                 }
                 else
-                    p = new PointF(fX, fY);
+                    p = new PointF(x, y);
                 return p;
             }
 
@@ -1759,7 +1761,7 @@ namespace Whorl
                     if (!FormulaSettings.Initialize2ForEval())
                         return null;  //Exception thrown.
                 }
-                provideFeedback = !getCachedPositions && !Info.PolarTraversal &&
+                provideFeedback = !(getCachedPositions || Info.PolarTraversal || Info.ComputeBySeedPoints) &&
                                   GetBooleanOutputParamValue(BooleanOutputParamNames.ProvideFeedback) == true;
                 if (provideFeedback)
                     rowPositions = new float[boundsSize.Width];
@@ -1767,7 +1769,14 @@ namespace Whorl
                     rowPositions = null;
                 bool success;
                 Info.SetPassType(PixelRenderInfo.PassTypes.FirstPass);
-                if (Info.PolarTraversal)
+                if (Info.ComputeBySeedPoints)
+                {
+                    if (getCachedPositions)
+                        success = TraverseRectangular(caller, patternPixels);
+                    else
+                        success = TraverseBySeedPoints(caller, patternPixels);
+                }
+                else if (Info.PolarTraversal)
                     success = TraversePolar(caller, patternPixels);
                 else
                     success = TraverseRectangular(caller, patternPixels);
@@ -1982,10 +1991,6 @@ namespace Whorl
                     {
                         Info.SetIntXY(new Point(x, y));
                         Info.SetXY(TransformPoint(x, y));
-                        if (Info.ComputeBySeedPoints)
-                        {
-
-                        }
                         var patternPoint = new DoublePoint(Info.X, Info.Y);
                         Point panPoint = new Point(x + scaledPanXY.X, y + scaledPanXY.Y);
                         if (Info.ComputeInfluence)
@@ -2041,6 +2046,104 @@ namespace Whorl
                 return inBounds;
             }
 
+            private bool TraverseBySeedPoints(IRenderCaller caller, int[] patternPixels)
+            {
+                var patterns = new List<Pattern>();
+                if (distancePatternInfos.Count == 0)
+                    patterns.Add(ParentPattern.GetCopy());
+                else
+                    patterns.AddRange(distancePatternInfos.Take(254).Select(info => info.GetDistancePattern(ParentPattern)));
+                Point offset = patternBoundsInfo.BoundingRectangle.Location;
+                Rectangle rect = patternBoundsInfo.BoundingRectangle;
+                Size boundsSize = patternBoundsInfo.BoundsSize;
+                var cacheArray = new ushort[boundsSize.Width, boundsSize.Height];
+                float defaultPosition = Info.DefaultPosition;
+                int defaultColorValue = GetGradientColor(defaultPosition).ToArgb();
+                ushort defaultCacheValue = (ushort)(defaultPosition * ushort.MaxValue);
+                for (int i = 0; i < patterns.Count; i++)
+                {
+                    Pattern pattern = patterns[i];
+                    if (pattern.SeedPoints == null)
+                        pattern.ComputeSeedPoints();
+                    float modulus = (float)pattern.ZVector.GetModulus();
+                    float scaledModulus = modulus * floatScaleFactor;
+                    double patternAngle = pattern.ZVector.GetArgument();
+                    Info.SetPatternInfo(i, scaledModulus);
+                    byte setBoundPixelByte = (byte)(i + 2);
+                    PointF center = pattern.Center;
+                    int steps = (int)modulus;
+                    float fac = modulus / steps;
+                    float modulusInc = scaledModulus / steps;
+                    foreach (PolarCoord seedPoint in pattern.SeedPoints)
+                    {
+                        Info.SetSeedPoint(new PolarPoint(seedPoint.Angle, seedPoint.Modulus));
+                        PointF unitVec = Tools.GetRotationVector(seedPoint.Angle + patternAngle);
+                        PointF p = new PointF(center.X + modulus * unitVec.X, center.Y + modulus * unitVec.Y);
+                        unitVec = new PointF(fac * unitVec.X, fac * unitVec.Y);
+                        Point lastP = new Point(int.MinValue, int.MinValue);
+                        float currModulus = scaledModulus;
+                        for (int j = 0; j < steps; j++)
+                        {
+                            Point iP = Tools.RoundPointF(p);
+                            if (iP != lastP && rect.Contains(iP))
+                            {
+                                byte boundsByte = 0;
+                                Point indexP = new Point(iP.X - offset.X, iP.Y - offset.Y);
+                                boundsByte = patternBoundsInfo.BoundsArray[indexP.X, indexP.Y];
+                                if (boundsByte == 1)  //Pixel has not been set.
+                                {
+                                    Info.SetSeedPointInfo(new PolarPoint(seedPoint.Angle, currModulus * seedPoint.Modulus), currModulus);
+                                    Info.SetXY(TransformPoint(p.X, p.Y));
+                                    float position = ColorNodeList.NormalizePosition(GetPosition.Invoke());
+                                    int pixInd = indexP.Y * boundsSize.Width + indexP.X;
+                                    patternPixels[pixInd] = GetGradientColor(position).ToArgb();
+                                    if (setCachedPositions)
+                                    {
+                                        cacheArray[indexP.X, indexP.Y] = (ushort)(position * ushort.MaxValue);
+                                    }
+                                    patternBoundsInfo.BoundsArray[indexP.X, indexP.Y] = setBoundPixelByte;  //Pixel has been set.
+                                }
+                            }
+                            p.X -= unitVec.X;
+                            p.Y -= unitVec.Y;
+                            currModulus -= modulusInc;
+                            lastP = iP;
+                        }
+                    }
+                }
+                for (int yi = 0; yi < boundsSize.Height; yi++)
+                {
+                    for (int xi = 0; xi < boundsSize.Width; xi++)
+                    {
+                        if (patternBoundsInfo.BoundsArray[xi, yi] == 1)  //Pixel wasn't set.
+                        {
+                            int pixInd = yi * boundsSize.Width + xi;
+                            patternPixels[pixInd] = defaultColorValue;
+                            cacheArray[xi, yi] = defaultCacheValue;
+                        }
+                    }
+                }
+                if (setCachedPositions)
+                {
+                    cachedIndex = 0;
+                    for (int yi = 0; yi < boundsSize.Height; yi++)
+                    {
+                        for (int xi = 0; xi < boundsSize.Width; xi++)
+                        {
+                            if (patternBoundsInfo.BoundsArray[xi, yi] != 0)
+                            {
+                                if (cachedIndex < cachedPositions.Length)
+                                    cachedPositions[cachedIndex++] = cacheArray[xi, yi];
+                                else
+                                {
+                                }
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+
             private void Render(Graphics g, Bitmap bitmap, Pattern pattern)
             {
                 PointF centerDiff = Tools.SubtractPoint(pattern.Center, patternCenter);
@@ -2060,14 +2163,7 @@ namespace Whorl
                 {
                     patternCenter = pattern.Center;
                     drawnZVector = zVector;
-                    int cacheLength = InitRender(ref points, pattern);
-                    origCenter = Info.Center;
-                    Info.SetPatternAngle(zVector.GetArgument());
-                    transformedPanXY = Tools.RotatePoint(PanXY, Info.PatternAngle);
-                    float scaleFactor = (float)Info.MaxPosition / 1000F;
-                    transformedPanXY = new PointF(transformedPanXY.X * scaleFactor, transformedPanXY.Y * scaleFactor);
-                    Info.SetPointOffset(new DoublePoint(transformedPanXY.X, transformedPanXY.Y));
-                    Info.PolarTraversal = Info.Normalize = Info.NormalizeAngle = false;
+                    Info.PolarTraversal = Info.Normalize = Info.NormalizeAngle = Info.ComputeBySeedPoints = false;
                     Info.Rotation = 0;
                     Info.DistanceCount = 5;
                     Info.DistanceRows = 10;
@@ -2075,12 +2171,29 @@ namespace Whorl
                     Info.SetDistanceToPath(0D);
                     Info.RandomFunction = null;
                     Info.ComputeDistance = Info.ComputeAllDistances = false;
+                    Info.DefaultPosition = 0;
                     floatScaleFactor = invFloatScaleFactor = 1F;
+                    bool haveFormula = FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula;
+                    if (haveFormula)
+                    {
+                        //Call formula to set ComputeBySeedPoints flag.
+                        if (!FormulaSettings.PreInitializeForEval())
+                            return null; //Exception thrown.
+                    }
+                    int cacheLength = InitRender(ref points, pattern);
+                    origCenter = Info.Center;
+                    Info.SetPatternAngle(zVector.GetArgument());
+                    transformedPanXY = Tools.RotatePoint(PanXY, Info.PatternAngle);
+                    float scaleFactor = (float)Info.MaxPosition / 1000F;
+                    transformedPanXY = new PointF(transformedPanXY.X * scaleFactor, transformedPanXY.Y * scaleFactor);
+                    Info.SetPointOffset(new DoublePoint(transformedPanXY.X, transformedPanXY.Y));
                     scaledPanXY = new Point((int)PanXY.X, (int)PanXY.Y);
-                    if (FormulaSettings != null && FormulaEnabled && FormulaSettings.HaveParsedFormula)
+                    if (haveFormula)
                     {
                         if (!FormulaSettings.InitializeGlobals()) //Calls C# formula's Initialize() method, which can set properties of Info object.
                             return null; //Exception thrown.
+                        if (Info.ComputeBySeedPoints)
+                            Info.ComputeDistance = Info.ComputeAllDistances = false;
                         float maxSize = Math.Max(Info.BoundsSize.Width, Info.BoundsSize.Height);
                         if (Info.Normalize)
                         {
@@ -2109,7 +2222,7 @@ namespace Whorl
                             distanceFactor = 1D / maxSize;
                         }
                     }
-                    ParentPattern.RenderingScaleFactor = 1.0 / floatScaleFactor;
+                    ParentPattern.RenderingScaleFactor = invFloatScaleFactor;
                     if (enableCache)
                         cachedPositions = new ushort[cacheLength];
                     else

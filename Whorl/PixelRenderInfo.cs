@@ -35,6 +35,7 @@ namespace Whorl
         private List<Pattern.RenderingInfo.DistancePatternInfo> distancePatternsInfo { get; }
 
         public float Position { get; set; }
+        public float DefaultPosition { get; set; } = 0.5F;
         public double Rotation { get; set; }
         public bool PolarTraversal { get; set; }
         public bool Normalize { get; set; }
@@ -49,9 +50,12 @@ namespace Whorl
         public int ExternalAverageCount { get; set; } = 2;
         public bool ComputeInfluence { get; set; }
         public bool ComputeBySeedPoints { get; set; }
-        public PointF[] BySeedPointsPoints { get; protected set; }
-        public float[] BySeedPointsValues { get; protected set; }
-        public PolarPoint[] PolarPoints { get; protected set; }
+        public int PatternIndex { get; protected set; }
+        public PolarPoint PolarPoint { get; protected set; }
+        public PolarPoint SeedPolarPoint { get; protected set; }
+        public double PatternZVectorModulus { get; protected set; }
+        public double BySeedPointsScale { get; protected set; }
+
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
