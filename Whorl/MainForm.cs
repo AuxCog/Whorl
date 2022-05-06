@@ -9387,5 +9387,43 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        private FrmRotation frmRotation { get; set; }
+
+        private void rotateSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+                if (!selectedPatterns.Any())
+                {
+                    MessageBox.Show("Please select the patterns to rotate.");
+                    return;
+                }
+                if (frmRotation == null || frmRotation.IsDisposed)
+                    frmRotation = new FrmRotation();
+                if (frmRotation.ShowDialog() == DialogResult.OK)
+                {
+                    var patternCopies = selectedPatterns.Select(p => p.GetCopy()).ToList();
+                    PointF center = GetPictureBoxCenter();
+                    PointF rotationVector = Tools.GetRotationVector(frmRotation.RotationAngle);
+                    Complex zRotation = new Complex(rotationVector.X, rotationVector.Y);
+                    foreach (Pattern pattern in patternCopies)
+                    {
+                        PointF vec = new PointF(pattern.Center.X - center.X, pattern.Center.Y - center.Y);
+                        vec = Tools.RotatePoint(vec, rotationVector);
+                        pattern.Center = new PointF(center.X + vec.X, center.Y + vec.Y);
+                        pattern.ZVector *= zRotation;
+                    }
+                    Design.ReplacePatterns(selectedPatterns.ToList(), patternCopies);
+                    RedrawPatterns();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
+        }
     }
 }

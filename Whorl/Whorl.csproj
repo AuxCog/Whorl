@@ -232,6 +232,12 @@
     <Compile Include="FrmRandomValues.Designer.cs">
       <DependentUpon>FrmRandomValues.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmRotation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRotation.Designer.cs">
+      <DependentUpon>FrmRotation.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmTextEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -474,6 +480,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmRandomValues.resx">
       <DependentUpon>FrmRandomValues.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRotation.resx">
+      <DependentUpon>FrmRotation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmTextEditor.resx">
       <DependentUpon>frmTextEditor.cs</DependentUpon>
