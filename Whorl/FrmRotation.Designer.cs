@@ -56,7 +56,6 @@
             this.chkUseImageCenter.AutoSize = true;
             this.chkUseImageCenter.Checked = true;
             this.chkUseImageCenter.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkUseImageCenter.Enabled = false;
             this.chkUseImageCenter.Location = new System.Drawing.Point(16, 46);
             this.chkUseImageCenter.Name = "chkUseImageCenter";
             this.chkUseImageCenter.Size = new System.Drawing.Size(111, 17);

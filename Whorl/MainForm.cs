@@ -701,6 +701,13 @@ namespace Whorl
                         FinishDrawnPolygon(center);
                         return;
                     }
+                    else if (getPatternRotationCenter)
+                    {
+                        getPatternRotationCenter = false;
+                        PointF center = new PointF(e.X, e.Y);
+                        RotatePatterns(patternRotationAngle, center);
+                        return;
+                    }
                     else if (mergeStartMode != GetMergeStartModes.None)
                     {
                         var mode = mergeStartMode;
@@ -784,6 +791,7 @@ namespace Whorl
             else if (e.Button == MouseButtons.Right)
             {
                 continueRibbonToolStripMenuItem.Checked = false;
+                getPatternRotationCenter = false;
                 distanceParentPattern = null;
                 distancePatternInfo = null;
                 if (DrawUserVertices) // && polygonOutline != null)
@@ -9388,14 +9396,44 @@ namespace Whorl
             }
         }
 
+        private void RotatePatterns(double rotationAngle, PointF center)
+        {
+            var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
+            var patternCopies = selectedPatterns.Select(p => p.GetCopy()).ToList();
+            PointF rotationVector = Tools.GetRotationVector(rotationAngle);
+            Complex zRotation = new Complex(rotationVector.X, rotationVector.Y);
+            foreach (Pattern pattern in patternCopies)
+            {
+                pattern.Center = RotatePoint(pattern.Center, rotationVector, center);
+                pattern.ZVector *= zRotation;
+                var ribbon = pattern as Ribbon;
+                if (ribbon != null)
+                {
+                    for (int i = 0; i < ribbon.RibbonPath.Count; i++)
+                    {
+                        ribbon.RibbonPath[i] = RotatePoint(ribbon.RibbonPath[i], rotationVector, center);
+                    }
+                }
+            }
+            Design.ReplacePatterns(selectedPatterns.ToList(), patternCopies);
+            RedrawPatterns();
+        }
+
+        private PointF RotatePoint(PointF p, PointF rotationVector, PointF center)
+        {
+            p = Tools.RotatePoint(Tools.SubtractPoint(p, center), rotationVector);
+            return Tools.AddPoint(p, center);
+        }
+
         private FrmRotation frmRotation { get; set; }
+        private double patternRotationAngle { get; set; }
+        private bool getPatternRotationCenter { get; set; }
 
         private void rotateSelectedToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                var selectedPatterns = Design.EnabledPatterns.Where(p => p.Selected);
-                if (!selectedPatterns.Any())
+                if (!Design.EnabledPatterns.Any(p => p.Selected))
                 {
                     MessageBox.Show("Please select the patterns to rotate.");
                     return;
@@ -9404,19 +9442,16 @@ namespace Whorl
                     frmRotation = new FrmRotation();
                 if (frmRotation.ShowDialog() == DialogResult.OK)
                 {
-                    var patternCopies = selectedPatterns.Select(p => p.GetCopy()).ToList();
-                    PointF center = GetPictureBoxCenter();
-                    PointF rotationVector = Tools.GetRotationVector(frmRotation.RotationAngle);
-                    Complex zRotation = new Complex(rotationVector.X, rotationVector.Y);
-                    foreach (Pattern pattern in patternCopies)
+                    if (frmRotation.UseImageCenter)
                     {
-                        PointF vec = new PointF(pattern.Center.X - center.X, pattern.Center.Y - center.Y);
-                        vec = Tools.RotatePoint(vec, rotationVector);
-                        pattern.Center = new PointF(center.X + vec.X, center.Y + vec.Y);
-                        pattern.ZVector *= zRotation;
+                        RotatePatterns(frmRotation.RotationAngle, GetPictureBoxCenter());
                     }
-                    Design.ReplacePatterns(selectedPatterns.ToList(), patternCopies);
-                    RedrawPatterns();
+                    else
+                    {
+                        patternRotationAngle = frmRotation.RotationAngle;
+                        getPatternRotationCenter = true;
+                        WriteStatus("Click on the center for rotation.");
+                    }
                 }
             }
             catch (Exception ex)
