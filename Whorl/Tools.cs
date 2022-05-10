@@ -140,6 +140,11 @@ namespace Whorl
             return Enumerable.Range(0, Math.Max(0, points.Length - 1)).Select(i => DistanceSquared(points[i], points[i + 1]));
         }
 
+        public static IEnumerable<double> SegmentLengths(PointF[] points)
+        {
+            return SegmentLengthsSquared(points).Select(l => Math.Sqrt(l));
+        }
+
         public static PointF Centroid(IEnumerable<PointF> polygonPoints)
         {
             if (polygonPoints.Any())
