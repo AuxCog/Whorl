@@ -9460,5 +9460,22 @@ namespace Whorl
             }
 
         }
+
+        private void openPaddingTestFormToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var frm = new FrmTest())
+                {
+                    frm.Initialize(selectPatternForm);
+                    frm.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+
+        }
     }
 }

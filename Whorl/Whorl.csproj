@@ -238,6 +238,12 @@
     <Compile Include="FrmRotation.Designer.cs">
       <DependentUpon>FrmRotation.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmTest.Designer.cs">
+      <DependentUpon>FrmTest.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmTextEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -484,6 +490,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmRotation.resx">
       <DependentUpon>FrmRotation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmTest.resx">
+      <DependentUpon>FrmTest.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmTextEditor.resx">
       <DependentUpon>frmTextEditor.cs</DependentUpon>

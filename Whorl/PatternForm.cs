@@ -284,7 +284,7 @@ namespace Whorl
         private PatternList previewPatternGroup = null;
         private PathOutline CurrentCartesianPathOutline { get; set; }
         private ColorGradientFormComponent colorGradientFormComponent { get; set; }
-        private SelectPatternForm selectPatternForm = null;
+        private SelectPatternForm selectPatternForm { get; set; }
         private PatternTransform selectedTransform { get; set; }
         private PathOutlineTransform selectedOutlineTransform { get; set; }
 

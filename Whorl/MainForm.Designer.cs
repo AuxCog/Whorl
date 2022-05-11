@@ -136,6 +136,7 @@
             this.lockImageCenterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.renderDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rotateSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sizeImageToBackgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeBorderLinesOnSavingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.onlyDisplayPatternOutlinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -284,7 +285,7 @@
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelDrawOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.rotateSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openPaddingTestFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1184,6 +1185,13 @@
             this.zoomToolStripMenuItem.Text = "Zoom Selected";
             this.zoomToolStripMenuItem.Click += new System.EventHandler(this.zoomToolStripMenuItem_Click);
             // 
+            // rotateSelectedToolStripMenuItem
+            // 
+            this.rotateSelectedToolStripMenuItem.Name = "rotateSelectedToolStripMenuItem";
+            this.rotateSelectedToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.rotateSelectedToolStripMenuItem.Text = "Rotate Selected";
+            this.rotateSelectedToolStripMenuItem.Click += new System.EventHandler(this.rotateSelectedToolStripMenuItem_Click);
+            // 
             // sizeImageToBackgroundToolStripMenuItem
             // 
             this.sizeImageToBackgroundToolStripMenuItem.Name = "sizeImageToBackgroundToolStripMenuItem";
@@ -1444,7 +1452,8 @@
             this.viewDebugMessagesToolStripMenuItem,
             this.colorGradientFormToolStripMenuItem,
             this.blendImagesFormToolStripMenuItem,
-            this.viewImageModifierFormToolStripMenuItem});
+            this.viewImageModifierFormToolStripMenuItem,
+            this.openPaddingTestFormToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -2422,12 +2431,12 @@
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
             // 
-            // rotateSelectedToolStripMenuItem
+            // openPaddingTestFormToolStripMenuItem
             // 
-            this.rotateSelectedToolStripMenuItem.Name = "rotateSelectedToolStripMenuItem";
-            this.rotateSelectedToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.rotateSelectedToolStripMenuItem.Text = "Rotate Selected";
-            this.rotateSelectedToolStripMenuItem.Click += new System.EventHandler(this.rotateSelectedToolStripMenuItem_Click);
+            this.openPaddingTestFormToolStripMenuItem.Name = "openPaddingTestFormToolStripMenuItem";
+            this.openPaddingTestFormToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.openPaddingTestFormToolStripMenuItem.Text = "Padding Test Form";
+            this.openPaddingTestFormToolStripMenuItem.Click += new System.EventHandler(this.openPaddingTestFormToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -2719,6 +2728,7 @@
         private System.Windows.Forms.ToolStripMenuItem linesUserDefinedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem curvesUserDefinedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rotateSelectedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openPaddingTestFormToolStripMenuItem;
     }
 }
 

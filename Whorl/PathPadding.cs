@@ -27,25 +27,21 @@ namespace Whorl
         }
 
         public PointF[] Points { get; private set; }
-        public float Padding { get; private set; }
-        public bool IsClosedPath { get; private set; }
-        public double MinAngle { get; set; } = 0.01 * Math.PI;
+        public float Padding { get; set; }
+        public bool IsClosedPath { get; set; } = true;
+        public double MinAngle { get; set; } = Math.PI / 60.0;  //3 degrees.
         public double Sign { get; private set; }
+        private double avgSegLen { get; set; }
         private float avgSegLenSquared { get; set; } 
-        private List<AngleInfo> angleInfos { get; set; }
+        public List<AngleInfo> AngleInfos { get; private set; }
 
-        public List<PointF> ComputePath(PointF[] points, float padding, bool isClosed = true, double sign = 0)
+        public List<PointF> ComputePath(PointF[] points, double sign = 1)
         {
             Points = points;
-            Padding = padding;
-            IsClosedPath = isClosed;
-            if (sign == 0)
-                sign = 1;
-            sign *= Math.Sign(Padding);
-            Sign = sign;
-            if (points.Length < 2 || padding == 0)
+            Sign = sign * Math.Sign(Padding);
+            if (points.Length < 2 || Padding == 0)
                 return new List<PointF>(Points);
-            double avgSegLen = Tools.SegmentLengths(points).Average();
+            avgSegLen = Tools.SegmentLengths(points).Average();
             if (avgSegLen == 0)
                 return new List<PointF>(Points);
             avgSegLenSquared = (float)(avgSegLen * avgSegLen);
@@ -59,9 +55,9 @@ namespace Whorl
             int i = 0, j = 0;
             while (true)
             {
-                if (j <= angleInfos.Count)
+                if (j <= AngleInfos.Count && AngleInfos.Count > 0)
                 {
-                    AngleInfo angleInfo = angleInfos[j % angleInfos.Count];
+                    AngleInfo angleInfo = AngleInfos[j % AngleInfos.Count];
                     if (angleInfo.EndIndex >= 0)
                     {
                         if (i == angleInfo.StartIndex ||
@@ -102,7 +98,7 @@ namespace Whorl
                 if (i > Points.Length)
                     break;
             }
-            var pathInfos = angleInfos.FindAll(o => o.PathIndex >= -1 && o.PathIndex < path.Count - 1);
+            var pathInfos = AngleInfos.FindAll(o => o.PathIndex >= -1 && o.PathIndex < path.Count - 1);
             if (pathInfos.Count > 0 && path.Count >= 2)
             {
                 var path2 = new List<PointF>();
@@ -130,6 +126,7 @@ namespace Whorl
                 }
                 if (startI < path.Count)
                     path2.AddRange(path.Skip(startI));
+                path = path2;
             }
             return path;
         }
@@ -138,8 +135,8 @@ namespace Whorl
         {
             PointF p = path.Last();
             PointF vec = Tools.GetVector(p, pEnd);
-            float dist = (float)Tools.VectorLength(vec);
-            int n = (int)Math.Ceiling(dist / (float)Math.Sqrt(avgSegLenSquared));
+            double dist = Tools.VectorLength(vec);
+            int n = (int)Math.Ceiling(dist / avgSegLen);
             float scale = 1F / n;
             vec = new PointF(scale * vec.X, scale * vec.Y);
             for (int i = 1; i < n; i++)
@@ -152,45 +149,90 @@ namespace Whorl
 
         private void ComputeAngleInfos()
         {
-            angleInfos = new List<AngleInfo>();
+            AngleInfos = new List<AngleInfo>();
             Complex zPrev = Complex.Zero;
-            for (int i = 1; i <= Points.Length; i++)
+            double angle = 0;
+            int iStart = -1, iEnd = -1;
+            int i = 1;
+            PointF pPrev = Points[0];
+            while (true)
             {
                 int ind = i;
-                if (i == Points.Length)
+                if (i >= Points.Length)
                 {
                     if (IsClosedPath)
-                        ind = 0;
+                    {
+                        ind -= Points.Length;
+                        if (ind >= 10)
+                            iEnd = ind;
+                    }
                     else
-                        break;
+                        iEnd = Points.Length - 1;
                 }
-                PointF vec = Tools.GetVector(Points[i - 1], Points[ind]);
-                if (vec.X == 0 && vec.Y == 0)
-                    continue;
-                Complex zVec = new Complex(vec.X, vec.Y);
-                if (zPrev != Complex.Zero)
+                if (ind < Points.Length)
                 {
-                    Complex zAngle = zVec / zPrev;
-                    double angle = zAngle.GetArgument();
+                    PointF p = Points[ind];
+                    PointF vec = Tools.GetVector(pPrev, p);
+                    if (vec.X == 0 && vec.Y == 0)
+                    {
+                        i++;
+                        continue;
+                    }
+                    pPrev = p;
+                    Complex zVec = new Complex(vec.X, vec.Y);
+                    if (zPrev != Complex.Zero)
+                    {
+                        Complex zAngle = zVec / zPrev;
+                        double angle1 = zAngle.GetArgument();
+                        if (Math.Abs(angle1) > MinAngle)
+                        {
+                            if (iStart == -1)
+                                iStart = ind;
+                            angle += angle1;
+                        }
+                        else if (iStart != -1)
+                        {
+                            iEnd = ind;
+                        }
+                    }
+                    zPrev = zVec;
+                }
+                if (iStart != -1 && iEnd != -1)
+                {
                     if (Math.Abs(angle) > MinAngle)
                     {
+                        int i2 = iEnd;
+                        if (iEnd < iStart)
+                            i2 += Points.Length;
+                        int iMid = ((iStart + i2) / 2) % Points.Length;
                         var angleInfo = new AngleInfo((float)angle);
                         if (angle * Sign > 0)
                         {
                             float minLen = Math.Abs(Padding) * (float)Math.Cos(0.5 * angle);
                             minLen *= minLen;
-                            angleInfo.StartIndex = FindIndex(ind, minLen, -1);
-                            angleInfo.EndIndex = FindIndex(ind, minLen, 1);
+                            angleInfo.StartIndex = FindIndex(iMid, minLen, -1);
+                            angleInfo.EndIndex = FindIndex(iMid, minLen, 1);
                         }
                         else
                         {
-                            angleInfo.StartIndex = ind;
+                            angleInfo.StartIndex = iMid;
                             angleInfo.EndIndex = -1;
                         }
-                        angleInfos.Add(angleInfo);
+                        AngleInfos.Add(angleInfo);
                     }
+                    iStart = iEnd = -1;
+                    angle = 0;
                 }
-                zPrev = zVec;
+                if (IsClosedPath)
+                {
+                    if (i >= Points.Length + 10)
+                        break;
+                }
+                else if (i >= Points.Length)
+                {
+                    break;
+                }
+                i++;
             }
         }
 
