@@ -56,17 +56,17 @@ namespace Whorl
             try
             {
                 if (pattern == null) return;
-                if (!double.TryParse(txtMinAngle.Text, out double minAngle))
-                    minAngle = 3;
+                //if (!double.TryParse(txtMinAngle.Text, out double minAngle))
+                //    minAngle = 3;
                 if (!float.TryParse(txtPadding.Text, out float padding))
                     padding = 5F;
-                double sign = chkClockwise.Checked ? -1 : 1;
+                //double sign = chkClockwise.Checked ? -1 : 1;
                 if (pattern.CurvePoints == null)
                     pattern.ComputeCurvePoints(pattern.ZVector);
-                pathPadding.MinAngle = Tools.DegreesToRadians(minAngle);
+                //pathPadding.MinAngle = Tools.DegreesToRadians(minAngle);
                 pathPadding.Padding = padding;
                 pathPadding.TransformPath = chkTransformPath.Checked;
-                paddingPoints = pathPadding.ComputePath(pattern.CurvePoints, sign);
+                paddingPoints = pathPadding.ComputePath(pattern.CurvePoints);
                 //paddingPoints = path.ToArray();
                 picPattern.Refresh();
                 //txtMessages.Text = "Computed angles: " + String.Join(", ", 

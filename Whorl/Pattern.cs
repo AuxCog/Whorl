@@ -3207,10 +3207,11 @@ namespace Whorl
             return ApplyPatternShrink(SeedPoints, shrink ? 0.005F * ShrinkPadding : 0F, 
                                       ShrinkClipFactor, ShrinkClipCenterFactor, LoopFactor,
                                       out seedPointArrays,
-                                      useNewVersion: HandleShrinkCorners);
+                                      HandleShrinkCorners);
         }
 
-        public static PolarCoord[] ApplyPatternShrink(PolarCoord[] seedPoints, float padding, float clipFactor, float clipShrinkCenterFactor,
+        public static PolarCoord[] ApplyPatternShrink(PolarCoord[] seedPoints, float padding, float clipFactor, 
+                                                      float clipShrinkCenterFactor,
                                                       float loopFactor, out List<PolarCoord[]> seedPointArrays,
                                                       bool useNewVersion = false, bool cloneSeedPoints = false)
         {
@@ -3223,9 +3224,14 @@ namespace Whorl
                 return seedPoints;
             if (useNewVersion)
             {
-                double maxAngle = 5;  //maxAngle in degrees.
-                return OutlinePadding.GetPaddedPoints(seedPoints, padding, maxAngle, out seedPointArrays).ToArray();
+                var pathPadding = new PathPadding();
+                return pathPadding.ComputePath(seedPoints, -padding, out seedPointArrays);
             }
+            //if (useNewVersion)
+            //{
+            //    double maxAngle = 5;  //maxAngle in degrees.
+            //    return OutlinePadding.GetPaddedPoints(seedPoints, padding, maxAngle, out seedPointArrays).ToArray();
+            //}
             float clipPadding = clipFactor == 0 ? float.MaxValue : 1F - clipFactor * Math.Abs(padding);
             float clipCenterModulus = clipShrinkCenterFactor * padding;
             int loopCount = (int)Math.Round(0.001F * loopFactor * seedPoints.Length);

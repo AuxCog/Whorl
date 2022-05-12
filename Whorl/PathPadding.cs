@@ -10,39 +10,39 @@ namespace Whorl
 {
     public class PathPadding
     {
-        public struct AngleInfo
-        {
-            public float Angle { get; }
-            public int StartIndex { get; set; }
-            public int EndIndex { get; set; }
-            public int PathIndex { get; set; }
+        //public struct AngleInfo
+        //{
+        //    public float Angle { get; }
+        //    public int StartIndex { get; set; }
+        //    public int EndIndex { get; set; }
+        //    public int PathIndex { get; set; }
 
-            public AngleInfo(float angle)
-            {
-                Angle = angle;
-                StartIndex = -1;
-                EndIndex = -1;
-                PathIndex = int.MinValue;
-            }
-        }
+        //    public AngleInfo(float angle)
+        //    {
+        //        Angle = angle;
+        //        StartIndex = -1;
+        //        EndIndex = -1;
+        //        PathIndex = int.MinValue;
+        //    }
+        //}
 
         public bool TransformPath { get; set; } = true;
         public float Padding { get; set; }
         public bool IsClosedPath { get; set; } = true;
-        public double MinAngle { get; set; } = Math.PI / 60.0;  //3 degrees.
-        public double Sign { get; private set; }
+        //public double MinAngle { get; set; } = Math.PI / 60.0;  //3 degrees.
+        //public double Sign { get; private set; }
 
         public PointF[] points { get; private set; }
         public List<PointF> Corners { get; } = new List<PointF>();
         private double avgSegLen { get; set; }
         private float avgSegLenSquared { get; set; } 
-        public List<AngleInfo> AngleInfos { get; private set; }
+        //public List<AngleInfo> AngleInfos { get; private set; }
         public List<DistanceSquare> distanceSquares { get; private set; }
         private float paddingSquared { get; set; }
 
-        public List<List<PointF>> ComputePath(PointF[] points, double sign = 1)
+        public List<List<PointF>> ComputePath(PointF[] points)
         {
-            Sign = sign * Math.Sign(Padding);
+            //Sign = sign * Math.Sign(Padding);
             if (points.Length < 2 || Padding == 0)
                 return new List<List<PointF>>() { new List<PointF>(points) };
             avgSegLen = Tools.SegmentLengths(points).Average();
@@ -54,13 +54,37 @@ namespace Whorl
             paddingSquared = Padding * Padding;
             RectangleF boundingRect = Tools.GetBoundingRectangleF(this.points);
             distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 10, out _, offset: true);
-            AngleInfos = new List<AngleInfo>();
+            //AngleInfos = new List<AngleInfo>();
             Corners.Clear();
             //ComputeAngleInfos();
-            List<List<PointF>> path = ComputePath();
+            List<List<PointF>> paths = ComputePath();
+            if (IsClosedPath)
+            {
+                for (int i = 0; i < paths.Count; i++)
+                {
+                    Tools.ClosePoints(paths[i]);
+                }
+            }
             //distanceSquares = null;
             //this.points = null;
-            return path;
+            return paths;
+        }
+
+        public PolarCoord[] ComputePath(PolarCoord[] seedPoints, float padding, out List<PolarCoord[]> seedPointArrays)
+        {
+            Padding = padding;
+            PointF[] points = seedPoints.Select(sp => sp.ToRectangular()).ToArray();
+            var paths = ComputePath(points);
+            seedPointArrays = paths.Select(ps => ps.Select(p => PolarCoord.ToPolar(p)).ToArray()).ToList();
+            var polarPath = new List<PolarCoord>();
+            PolarCoord center = new PolarCoord(0, 0);
+            for (int i = 0; i < seedPointArrays.Count; i++)
+            {
+                polarPath.AddRange(seedPointArrays[i]);
+                if (i < paths.Count - 1)
+                    polarPath.Add(center);
+            }
+            return polarPath.ToArray();
         }
 
         private List<PointF> InterpolatePoints(PointF[] points)
@@ -87,6 +111,7 @@ namespace Whorl
             var path = new List<PointF>();
             var breakIndices = new HashSet<int>();
             bool addedPoint = false;
+            float minDeltaDist = 0.01F * (float)avgSegLen * paddingSquared;
             for (int i = 0; i < points.Length; i++)
             {
                 int i2 = i + 1;
@@ -106,7 +131,7 @@ namespace Whorl
                     float vecLenSq = Tools.VectorLengthSquared(vec);
                     PointF pathP = Tools.AddPoint(points[i], vec);
                     float distSq = DistanceSquare.FindMinDistanceSquared(pathP, distanceSquares, out PointF? nearestP);
-                    if (Math.Abs(paddingSquared - distSq) < 0.001F * paddingSquared)
+                    if (Math.Abs(paddingSquared - distSq) < minDeltaDist)
                     {
                         path.Add(pathP);
                         addedPoint = true;
