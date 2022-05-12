@@ -1542,7 +1542,8 @@ namespace Whorl
                 if (computeDist)
                 {
                     var distanceSquares = distanceSquaresArray[index];
-                    minDistSquared = DistanceSquare.FindMinDistanceSquared(p, distanceSquares, out PointF? nearestP, Info.DistanceCount);
+                    minDistSquared = DistanceSquare.FindMinDistanceSquared(p, distanceSquares, 
+                                                                           out PointF? nearestP, Info.DistanceCount);
                     if (nearestP != null)
                         nearestPoint = nearestP.Value;
                     //foreach (DistanceSquare distSquare in distanceSquares)

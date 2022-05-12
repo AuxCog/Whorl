@@ -27,46 +27,30 @@ namespace Whorl
         //}
 
         public bool TransformPath { get; set; } = true;
+        public bool InterpolateCorners { get; set; } = true;
         public float Padding { get; set; }
         public bool IsClosedPath { get; set; } = true;
+        public bool AllowMultiplePaths { get; set; } = true;
         //public double MinAngle { get; set; } = Math.PI / 60.0;  //3 degrees.
         //public double Sign { get; private set; }
-
-        public PointF[] points { get; private set; }
+        public Func<int, float> PaddingScaleFunc { get; set; }
+        public PointF[] SourcePoints { get; private set; }
         public List<PointF> Corners { get; } = new List<PointF>();
         private double avgSegLen { get; set; }
         private float avgSegLenSquared { get; set; } 
         //public List<AngleInfo> AngleInfos { get; private set; }
-        public List<DistanceSquare> distanceSquares { get; private set; }
+        private List<DistanceSquare> distanceSquares { get; set; }
+
+        private float currentPadding { get; set; }
+        private float minDeltaDist { get; set; }
         private float paddingSquared { get; set; }
 
         public List<List<PointF>> ComputePath(PointF[] points)
         {
-            //Sign = sign * Math.Sign(Padding);
-            if (points.Length < 2 || Padding == 0)
+            if (!Initialize(points))
                 return new List<List<PointF>>() { new List<PointF>(points) };
-            avgSegLen = Tools.SegmentLengths(points).Average();
-            if (avgSegLen == 0)
-                return new List<List<PointF>>() { new List<PointF>(points) };
-            avgSegLenSquared = (float)(avgSegLen * avgSegLen);
-            var pointsList = InterpolatePoints(points);
-            this.points = pointsList.ToArray();
-            paddingSquared = Padding * Padding;
-            RectangleF boundingRect = Tools.GetBoundingRectangleF(this.points);
-            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 10, out _, offset: true);
-            //AngleInfos = new List<AngleInfo>();
-            Corners.Clear();
-            //ComputeAngleInfos();
-            List<List<PointF>> paths = ComputePath();
-            if (IsClosedPath)
-            {
-                for (int i = 0; i < paths.Count; i++)
-                {
-                    Tools.ClosePoints(paths[i]);
-                }
-            }
-            //distanceSquares = null;
-            //this.points = null;
+            List<List<PointF>> paths = ComputePathHelper();
+            Cleanup();
             return paths;
         }
 
@@ -85,6 +69,36 @@ namespace Whorl
                     polarPath.Add(center);
             }
             return polarPath.ToArray();
+        }
+
+        public bool Initialize(PointF[] points)
+        {
+            if (points.Length < 2 || Padding == 0)
+                return false;
+            avgSegLen = Tools.SegmentLengths(points).Average();
+            if (avgSegLen == 0)
+                return false;
+            avgSegLenSquared = (float)(avgSegLen * avgSegLen);
+            var pointsList = InterpolatePoints(points);
+            SourcePoints = pointsList.ToArray();
+            RectangleF boundingRect = Tools.GetBoundingRectangleF(SourcePoints);
+            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 20, out _, offset: true);
+            //AngleInfos = new List<AngleInfo>();
+            Corners.Clear();
+            return true;
+        }
+
+        public void Cleanup()
+        {
+            distanceSquares = null;
+            SourcePoints = null;
+        }
+
+        private void SetCurrentPadding(float padding)
+        {
+            currentPadding = padding;
+            paddingSquared = padding * padding;
+            minDeltaDist = 0.001F * Math.Max(paddingSquared, 0.1F);
         }
 
         private List<PointF> InterpolatePoints(PointF[] points)
@@ -106,30 +120,34 @@ namespace Whorl
             return points2;
         }
 
-        private List<List<PointF>> ComputePath()
+        public List<List<PointF>> ComputePathHelper()
         {
             var path = new List<PointF>();
             var breakIndices = new HashSet<int>();
             bool addedPoint = false;
-            float minDeltaDist = 0.01F * (float)avgSegLen * paddingSquared;
-            for (int i = 0; i < points.Length; i++)
+            SetCurrentPadding(Padding);
+            for (int i = 0; i < SourcePoints.Length; i++)
             {
                 int i2 = i + 1;
-                if (i2 == points.Length)
+                if (i2 == SourcePoints.Length)
                 {
                     if (IsClosedPath)
                         i2 = 0;
                     else
                         break;
                 }
-                PointF vec = Tools.GetVector(points[i], points[i2]);
+                if (PaddingScaleFunc != null)
+                {
+                    SetCurrentPadding(PaddingScaleFunc(i) * Padding);
+                }
+                PointF vec = Tools.GetVector(SourcePoints[i], SourcePoints[i2]);
                 if (vec.X != 0 || vec.Y != 0)
                 {
-                    float scale = Padding / (float)Tools.VectorLength(vec);
+                    float scale = currentPadding / (float)Tools.VectorLength(vec);
                     //Get perpendicular vector of length = Padding:
                     vec = new PointF(scale * vec.Y, -scale * vec.X);
                     float vecLenSq = Tools.VectorLengthSquared(vec);
-                    PointF pathP = Tools.AddPoint(points[i], vec);
+                    PointF pathP = Tools.AddPoint(SourcePoints[i], vec);
                     float distSq = DistanceSquare.FindMinDistanceSquared(pathP, distanceSquares, out PointF? nearestP);
                     if (Math.Abs(paddingSquared - distSq) < minDeltaDist)
                     {
@@ -138,7 +156,8 @@ namespace Whorl
                     }
                     else if (addedPoint)
                     {
-                        breakIndices.Add(path.Count);
+                        if (AllowMultiplePaths)
+                            breakIndices.Add(path.Count);
                         addedPoint = false;
                     }
                 }
@@ -149,7 +168,7 @@ namespace Whorl
                 List<PointF> curPath = new List<PointF>();
                 curPath.Add(path[0]);
                 float lenSq = 0;
-                float minLenSq = 16F * avgSegLenSquared;
+                float minLenSq = 4F * avgSegLenSquared;
                 int iA1 = 0, iA2 = 0;
                 for (int i = 1; i < path.Count; i++)
                 {
@@ -164,7 +183,7 @@ namespace Whorl
                             curPath = new List<PointF>();
                             lenSq = 0;
                         }
-                        else
+                        else if (InterpolateCorners)
                         {
                             if (lenSq == 0)
                             {
@@ -192,7 +211,7 @@ namespace Whorl
                         }
                         lenSq = 0;
                     }
-                    if (lenSq == 0 && iB1 < 0)
+                    if (lenSq == 0 && iB1 == -1)
                         curPath.Add(path[i]);
                 }
                 if (curPath.Count > 0)
@@ -200,6 +219,13 @@ namespace Whorl
             }
             else
                 paths.Add(path);
+            if (IsClosedPath)
+            {
+                for (int i = 0; i < paths.Count; i++)
+                {
+                    Tools.ClosePoints(paths[i]);
+                }
+            }
             return paths;
         }
 

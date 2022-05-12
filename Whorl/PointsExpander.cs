@@ -16,9 +16,13 @@ namespace Whorl
         public float Thickness { get; set; } = 10F;
         public double MinCornerAngle { get; set; } = 5.0;
         public float[] Scales { get; set; }
-        public bool InterpolateCorners { get; set; } = false;
+        public bool InterpolateCorners { get; set; } = true;
+        public bool UseNewVersion { get; set; } = false;
+
+        private PathPadding pathPadding { get; } = new PathPadding();
 
         private double tanhSlope { get; set; }
+        private bool useScale { get; set; }
 
         private double GetTanh(double x)
         {
@@ -42,21 +46,52 @@ namespace Whorl
             return points.Select(p => new PointF(p.X - c.X, p.Y - c.Y)).ToList();
         }
 
+        private float GetWidthScale(int index)
+        {
+            double tanh1 = GetTanh(index);
+            double tanh2 = GetTanh(pathPadding.SourcePoints.Length - index);
+            float scale = (float)(tanh1 * tanh2);
+            if (useScale)
+            {
+                scale *= Scales[Tools.GetIndexInRange(index, Scales.Length)];
+            }
+            return scale;
+        }
+
         public List<PointF> ClosePoints(List<PointF> points)
         {
             MinCornerAngle = Math.Max(1.0, MinCornerAngle);
-            double maxIm = Math.Sin(Tools.DegreesToRadians(MinCornerAngle));
             if (points.Count < MinPointsCount)
                 return points;
             RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
             float maxExtent = Math.Max(boundingRect.Width, boundingRect.Height);
             float thickness = 0.001F * maxExtent * Thickness;
-            var path = new List<PointF>();
-            var path2 = new List<PointF>();
+            tanhSlope = 0.01 * EndSlope;
+            useScale = Scales != null && Scales.Length > 0;
+            List<PointF> path, path2;
+            if (UseNewVersion)
+            {
+                pathPadding.IsClosedPath = false;
+                pathPadding.AllowMultiplePaths = false;
+                pathPadding.PaddingScaleFunc = GetWidthScale;
+                pathPadding.InterpolateCorners = InterpolateCorners;
+                pathPadding.Padding = thickness;
+                if (!pathPadding.Initialize(points.ToArray()))
+                    return points;
+                var paths = pathPadding.ComputePathHelper();
+                path = paths.SelectMany(p => p).ToList();
+                pathPadding.Padding = -thickness;
+                paths = pathPadding.ComputePathHelper();
+                path2 = paths.SelectMany(p => p).ToList();
+                path2.Reverse();
+                path.AddRange(path2);
+                return path;
+            }
+            double maxIm = Math.Sin(Tools.DegreesToRadians(MinCornerAngle));
+            path = new List<PointF>();
+            path2 = new List<PointF>();
             path.Add(points[0]);
             path2.Add(points[0]);
-            tanhSlope = 0.01 * EndSlope;
-            bool useScale = Scales != null && Scales.Length > 0;
             Complex zPrev = Complex.Zero;
             float lenSum = 0;
             var cornerIndices = new List<int>();

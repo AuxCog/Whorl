@@ -144,14 +144,14 @@ namespace Whorl
 
         private void DisplayDistSquaresPoints(Graphics g, Color color)
         {
-            if (viewDistanceSquaresPointsToolStripMenuItem.Checked && pathPadding.distanceSquares != null)
+            if (viewDistanceSquaresPointsToolStripMenuItem.Checked)
             {
-                foreach (PointF p in pathPadding.distanceSquares.SelectMany(x => x.Points))
-                {
-                    Tools.DrawSquare(g, color, p, size: 1);
-                }
-                if (pathPadding.points != null && pathPadding.points.Length > 1)
-                    g.DrawLines(Pens.Orange, pathPadding.points);
+                //foreach (PointF p in pathPadding.distanceSquares.SelectMany(x => x.Points))
+                //{
+                //    Tools.DrawSquare(g, color, p, size: 1);
+                //}
+                //if (pathPadding.Points != null && pathPadding.Points.Length > 1)
+                //    g.DrawLines(Pens.Orange, pathPadding.Points);
             }
         }
 
