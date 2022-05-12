@@ -35,6 +35,7 @@ namespace Whorl
         //public double Sign { get; private set; }
         public Func<int, float> PaddingScaleFunc { get; set; }
         public PointF[] SourcePoints { get; private set; }
+        public float MinDeltaScale { get; set; } = 1F;
         public List<PointF> Corners { get; } = new List<PointF>();
         private double avgSegLen { get; set; }
         private float avgSegLenSquared { get; set; } 
@@ -98,7 +99,7 @@ namespace Whorl
         {
             currentPadding = padding;
             paddingSquared = padding * padding;
-            minDeltaDist = 0.001F * Math.Max(paddingSquared, 0.1F);
+            minDeltaDist = 0.001F * MinDeltaScale * Math.Max(paddingSquared, 0.1F);
         }
 
         private List<PointF> InterpolatePoints(PointF[] points)

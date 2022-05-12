@@ -2470,6 +2470,7 @@ namespace Whorl
         public float ShrinkClipCenterFactor { get; set; } = 0F;
         public float ShrinkPadding { get; set; } = 4F;
         public float ShrinkClipFactor { get; set; } = 4F;
+        public float PaddingSign { get; set; } = 1F;
         public bool HandleShrinkCorners { get; set; }
 
         public float LoopFactor { get; set; } = 0F;
@@ -3207,13 +3208,14 @@ namespace Whorl
         {
             return ApplyPatternShrink(SeedPoints, shrink ? 0.005F * ShrinkPadding : 0F, 
                                       ShrinkClipFactor, ShrinkClipCenterFactor, LoopFactor,
-                                      out seedPointArrays,
+                                      out seedPointArrays, PaddingSign,
                                       HandleShrinkCorners);
         }
 
         public static PolarCoord[] ApplyPatternShrink(PolarCoord[] seedPoints, float padding, float clipFactor, 
                                                       float clipShrinkCenterFactor,
                                                       float loopFactor, out List<PolarCoord[]> seedPointArrays,
+                                                      float paddingSign,
                                                       bool useNewVersion = false, bool cloneSeedPoints = false)
         {
             seedPointArrays = null;
@@ -3226,7 +3228,8 @@ namespace Whorl
             if (useNewVersion)
             {
                 var pathPadding = new PathPadding();
-                return pathPadding.ComputePath(seedPoints, -padding, out seedPointArrays);
+                pathPadding.MinDeltaScale = 0.25F * Math.Max(clipFactor, 0.01F);
+                return pathPadding.ComputePath(seedPoints, -paddingSign * padding, out seedPointArrays);
             }
             //if (useNewVersion)
             //{

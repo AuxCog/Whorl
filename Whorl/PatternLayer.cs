@@ -65,7 +65,7 @@ namespace Whorl
             SeedPoints = Pattern.ApplyPatternShrink(
                          parent.SeedPoints, padding, parent.ShrinkClipFactor,
                          parent.ShrinkClipCenterFactor, parent.LoopFactor,
-                         out List<PolarCoord[]> seedPointArrays,
+                         out List<PolarCoord[]> seedPointArrays, parent.PaddingSign,
                          parent.HandleShrinkCorners, cloneSeedPoints: true);
             SeedPointsContainer.SeedPointArrays = seedPointArrays;
             //if (parent.LoopFactor > 0)

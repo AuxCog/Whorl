@@ -764,6 +764,7 @@ namespace Whorl
                 this.chkShrinkPattern.Checked = pattern.ShrinkPattern;
                 this.chkShrinkPatternLayers.Checked = pattern.ShrinkPatternLayers;
                 chkHandleShrinkCorners.Checked = pattern.HandleShrinkCorners;
+                chkNegatePadding.Checked = pattern.PaddingSign < 0;
                 this.txtShrinkPadding.Text = pattern.ShrinkPadding.ToString();
                 this.txtShrinkClipFactor.Text = pattern.ShrinkClipFactor.ToString();
                 this.txtShrinkClipCenterFactor.Text = pattern.ShrinkClipCenterFactor.ToString();
@@ -1492,6 +1493,7 @@ namespace Whorl
             }
             pattern.ShrinkPattern = chkShrinkPattern.Checked;
             pattern.HandleShrinkCorners = chkHandleShrinkCorners.Checked;
+            pattern.PaddingSign = chkNegatePadding.Checked ? -1F : 1F;
             if (float.TryParse(txtShrinkPadding.Text, out fVal))
                 pattern.ShrinkPadding = fVal;
             if (float.TryParse(txtShrinkClipFactor.Text, out fVal))
