@@ -510,19 +510,6 @@ namespace Whorl
             //    }
             //}
 
-            private class DistanceSquare
-            {
-                public PointF Center { get; }
-                public PointF[] Points { get; }
-                public double Distance { get; set; }
-
-                public DistanceSquare(PointF topLeft, PointF[] points)
-                {
-                    Center = topLeft;
-                    Points = points;
-                }
-            }
-
             public class DistancePatternSettings : IXml
             {
                 public DistancePatternInfo Parent { get; }
@@ -1376,55 +1363,57 @@ namespace Whorl
                 {
                     AddSegmentPoints(segmentPoints, points, lenSq);
                 }
-                distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
-                                               (BoundsRect.Height + 1) / Info.DistanceRows);
-                var halfSquareSize = new SizeF(distanceSquareSize.Width / 2F, distanceSquareSize.Height / 2F);
-                var distanceSquares = new List<DistanceSquare>();
-                for (int row = 0; row < Info.DistanceRows; row++)
-                {
-                    for (int col = 0; col < Info.DistanceRows; col++)
-                    {
-                        var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
-                        var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
-                                                     topLeft.Y + distanceSquareSize.Height);
-                        var includedPoints = new List<PointF>();
-                        for (int i = 0; i < segmentPoints.Count; i++)
-                        {
-                            PointF p = segmentPoints[i];
-                            bool xInbounds = p.X >= topLeft.X && p.X < bottomRight.X;
-                            bool yInbounds = p.Y >= topLeft.Y && p.Y < bottomRight.Y;
-                            bool include = xInbounds && yInbounds;
-                            if (row == 0)
-                            {
-                                if (p.Y < topLeft.Y && xInbounds)
-                                    include = true;
-                            }
-                            else if (row == Info.DistanceRows - 1)
-                            {
-                                if (p.Y >= bottomRight.Y && xInbounds)
-                                    include = true;
-                            }
-                            if (col == 0)
-                            {
-                                if (p.X < topLeft.X && yInbounds)
-                                    include = true;
-                            }
-                            else if (col == Info.DistanceRows - 1)
-                            {
-                                if (p.X >= bottomRight.X && yInbounds)
-                                    include = true;
-                            }
-                            if (include)
-                                includedPoints.Add(p);
-                        }
-                        if (includedPoints.Any())
-                        {
-                            var center = new PointF(topLeft.X + halfSquareSize.Width,
-                                                    topLeft.Y + halfSquareSize.Height);
-                            distanceSquares.Add(new DistanceSquare(center, includedPoints.ToArray()));
-                        }
-                    }
-                }
+                var distanceSquares = DistanceSquare.GetSquares(segmentPoints, BoundsRect, Info.DistanceRows, out SizeF squareSize);
+                distanceSquareSize = squareSize;
+                //distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
+                //                               (BoundsRect.Height + 1) / Info.DistanceRows);
+                //var halfSquareSize = new SizeF(distanceSquareSize.Width / 2F, distanceSquareSize.Height / 2F);
+                //var distanceSquares = new List<DistanceSquare>();
+                //for (int row = 0; row < Info.DistanceRows; row++)
+                //{
+                //    for (int col = 0; col < Info.DistanceRows; col++)
+                //    {
+                //        var topLeft = new PointF(distanceSquareSize.Width * col, distanceSquareSize.Height * row);
+                //        var bottomRight = new PointF(topLeft.X + distanceSquareSize.Width,
+                //                                     topLeft.Y + distanceSquareSize.Height);
+                //        var includedPoints = new List<PointF>();
+                //        for (int i = 0; i < segmentPoints.Count; i++)
+                //        {
+                //            PointF p = segmentPoints[i];
+                //            bool xInbounds = p.X >= topLeft.X && p.X < bottomRight.X;
+                //            bool yInbounds = p.Y >= topLeft.Y && p.Y < bottomRight.Y;
+                //            bool include = xInbounds && yInbounds;
+                //            if (row == 0)
+                //            {
+                //                if (p.Y < topLeft.Y && xInbounds)
+                //                    include = true;
+                //            }
+                //            else if (row == Info.DistanceRows - 1)
+                //            {
+                //                if (p.Y >= bottomRight.Y && xInbounds)
+                //                    include = true;
+                //            }
+                //            if (col == 0)
+                //            {
+                //                if (p.X < topLeft.X && yInbounds)
+                //                    include = true;
+                //            }
+                //            else if (col == Info.DistanceRows - 1)
+                //            {
+                //                if (p.X >= bottomRight.X && yInbounds)
+                //                    include = true;
+                //            }
+                //            if (include)
+                //                includedPoints.Add(p);
+                //        }
+                //        if (includedPoints.Any())
+                //        {
+                //            var center = new PointF(topLeft.X + halfSquareSize.Width,
+                //                                    topLeft.Y + halfSquareSize.Height);
+                //            distanceSquares.Add(new DistanceSquare(center, includedPoints.ToArray()));
+                //        }
+                //    }
+                //}
                 distanceSquaresArray[index] = distanceSquares;
             }
 
@@ -1497,7 +1486,7 @@ namespace Whorl
             private double GetDistanceToPath(int index, int x, int y, out PointF nearestPoint)
             {
                 var p = new PointF(x, y);
-                double minDist = double.MaxValue;
+                double minDistSquared = double.MaxValue;
                 DistancePatternInfo distInfo = null;
                 DistancePatternSettings settings = null;
                 bool useFadeOut = false;
@@ -1545,7 +1534,7 @@ namespace Whorl
                         endFade = settings.FadeEndRatio * distInfo.MaxModulus;
                         if (modulus >= endFade && settings.EndDistanceValue != 0)
                         {
-                            minDist = settings.EndDistanceValue;
+                            minDistSquared = settings.EndDistanceValue;
                             computeDist = false;
                         }
                     }
@@ -1553,27 +1542,30 @@ namespace Whorl
                 if (computeDist)
                 {
                     var distanceSquares = distanceSquaresArray[index];
-                    foreach (DistanceSquare distSquare in distanceSquares)
-                    {
-                        distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
-                    }
-                    int minDistI = -1;
-                    foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
-                             .Take(Info.DistanceCount))
-                    {
-                        minDistI = -1;
-                        for (int i = 0; i < minSquare.Points.Length; i++)
-                        {
-                            double dist = Tools.DistanceSquared(minSquare.Points[i], p);
-                            if (dist < minDist)
-                            {
-                                minDist = dist;
-                                minDistI = i;
-                            }
-                        }
-                        if (minDistI != -1)
-                            nearestPoint = minSquare.Points[minDistI];
-                    }
+                    minDistSquared = DistanceSquare.FindMinDistanceSquared(p, distanceSquares, out PointF? nearestP, Info.DistanceCount);
+                    if (nearestP != null)
+                        nearestPoint = nearestP.Value;
+                    //foreach (DistanceSquare distSquare in distanceSquares)
+                    //{
+                    //    distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
+                    //}
+                    //int minDistI = -1;
+                    //foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
+                    //         .Take(Info.DistanceCount))
+                    //{
+                    //    minDistI = -1;
+                    //    for (int i = 0; i < minSquare.Points.Length; i++)
+                    //    {
+                    //        double dist = Tools.DistanceSquared(minSquare.Points[i], p);
+                    //        if (dist < minDist)
+                    //        {
+                    //            minDist = dist;
+                    //            minDistI = i;
+                    //        }
+                    //    }
+                    //    if (minDistI != -1)
+                    //        nearestPoint = minSquare.Points[minDistI];
+                    //}
                     if (useFadeOut)
                     {
                         double startFade = settings.FadeStartRatio * distInfo.MaxModulus;
@@ -1581,18 +1573,18 @@ namespace Whorl
                         {
                             if (settings.AutoEndValue)
                             {
-                                if (minDist > settings.EndDistanceValue)
-                                    settings.EndDistanceValue = minDist;
+                                if (minDistSquared > settings.EndDistanceValue)
+                                    settings.EndDistanceValue = minDistSquared;
                             }
                             double factor = (modulus - startFade) / (endFade - startFade);
-                            minDist += factor * (settings.EndDistanceValue - minDist);
+                            minDistSquared += factor * (settings.EndDistanceValue - minDistSquared);
                         }
                     }
                 }
                 //For testing center:
                 //if (useFadeOut && modulus < 50)
                 //    minDist *= 10;
-                return distanceFactor * distanceScale * Math.Sqrt(minDist);
+                return distanceFactor * distanceScale * Math.Sqrt(minDistSquared);
             }
 
             private bool ComputeAllDistances(IRenderCaller caller)

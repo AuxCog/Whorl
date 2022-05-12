@@ -21,7 +21,7 @@ namespace Whorl
         private SelectPatternForm selectPatternForm { get; set; }
         private Pattern pattern { get; set; }
         private PathPadding pathPadding { get; } = new PathPadding();
-        private PointF[] paddingPoints { get; set; }
+        private List<List<PointF>> paddingPoints { get; set; }
 
         public void Initialize(SelectPatternForm selPatternForm)
         {
@@ -60,15 +60,17 @@ namespace Whorl
                     minAngle = 3;
                 if (!float.TryParse(txtPadding.Text, out float padding))
                     padding = 5F;
-                double sign = chkClockwise.Checked ? 1 : -1;
+                double sign = chkClockwise.Checked ? -1 : 1;
                 if (pattern.CurvePoints == null)
                     pattern.ComputeCurvePoints(pattern.ZVector);
                 pathPadding.MinAngle = Tools.DegreesToRadians(minAngle);
                 pathPadding.Padding = padding;
-                var path = pathPadding.ComputePath(pattern.CurvePoints, sign);
-                paddingPoints = path.ToArray();
+                pathPadding.TransformPath = chkTransformPath.Checked;
+                paddingPoints = pathPadding.ComputePath(pattern.CurvePoints, sign);
+                //paddingPoints = path.ToArray();
                 picPattern.Refresh();
-                txtMessages.Text = $"Computed {pathPadding.AngleInfos.Count} angle infos.";
+                //txtMessages.Text = "Computed angles: " + String.Join(", ", 
+                //                    pathPadding.AngleInfos.Select(o => Tools.RadiansToDegrees(o.Angle).ToString("0.#")));
             }
             catch (Exception ex)
             {
@@ -78,7 +80,7 @@ namespace Whorl
 
         private void DrawLines(Graphics g,  PointF[] points, Color color)
         {
-            using (Pen pen = new Pen(color, 2F))
+            using (Pen pen = new Pen(color))
             {
                 g.DrawLines(pen, points);
             }
@@ -96,26 +98,61 @@ namespace Whorl
         {
             if (paddingPoints != null)
             {
-                DrawLines(g, paddingPoints, Color.Red);
-                for (int i = 0; i < pathPadding.AngleInfos.Count; i++)
+                foreach (List<PointF> points in paddingPoints)
                 {
-                    var angleInfo = pathPadding.AngleInfos[i];
-                    if (angleInfo.StartIndex >= 0)
+                    if (points.Count > 1)
                     {
-                        DisplayPoint(g, angleInfo.StartIndex, Color.Blue);
-                    }
-                    if (angleInfo.EndIndex >= 0)
-                    {
-                        DisplayPoint(g, angleInfo.EndIndex, Color.Yellow);
+                        DrawLines(g, points.ToArray(), Color.Red);
+                        //foreach (PointF point in points)
+                        //{
+                        //    Tools.DrawSquare(g, Color.Red, point, size: 1);
+                        //}
+                        if (paddingPoints.Count > 1)
+                        {
+                            Tools.DrawSquare(g, Color.Yellow, points.First(), size: 2);
+                        }
                     }
                 }
+                foreach (PointF p in pathPadding.Corners)
+                {
+                    Tools.DrawSquare(g, Color.Navy, p, size: 1);
+                }
+                //for (int i = 0; i < pathPadding.AngleInfos.Count; i++)
+                //{
+                //    var angleInfo = pathPadding.AngleInfos[i];
+                //    if (angleInfo.StartIndex >= 0)
+                //    {
+                //        DisplayPoint(g, angleInfo.StartIndex, Color.Blue, (i + 1).ToString());
+                //    }
+                //    if (angleInfo.EndIndex >= 0)
+                //    {
+                //        DisplayPoint(g, angleInfo.EndIndex, Color.Yellow);
+                //    }
+                //}
             }
         }
 
-        private void DisplayPoint(Graphics g, int index, Color color)
+        private void DisplayPoint(Graphics g, int index, Color color, string label = null)
         {
             PointF p = pattern.CurvePoints[index];
             Tools.DrawSquare(g, color, p, size: 2);
+            if (label != null)
+            {
+                g.DrawString(label, Font, Brushes.Black, new PointF(p.X + 10, p.Y));
+            }
+        }
+
+        private void DisplayDistSquaresPoints(Graphics g, Color color)
+        {
+            if (viewDistanceSquaresPointsToolStripMenuItem.Checked && pathPadding.distanceSquares != null)
+            {
+                foreach (PointF p in pathPadding.distanceSquares.SelectMany(x => x.Points))
+                {
+                    Tools.DrawSquare(g, color, p, size: 1);
+                }
+                if (pathPadding.points != null && pathPadding.points.Length > 1)
+                    g.DrawLines(Pens.Orange, pathPadding.points);
+            }
         }
 
         private void picPattern_Paint(object sender, PaintEventArgs e)
@@ -124,11 +161,17 @@ namespace Whorl
             {
                 DisplayPattern(e.Graphics);
                 DisplayPadding(e.Graphics);
+                DisplayDistSquaresPoints(e.Graphics, Color.LightBlue);
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
             }
+        }
+
+        private void viewDistanceSquaresPointsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            picPattern.Refresh();
         }
     }
 }

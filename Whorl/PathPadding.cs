@@ -26,109 +26,156 @@ namespace Whorl
             }
         }
 
-        public PointF[] Points { get; private set; }
+        public bool TransformPath { get; set; } = true;
         public float Padding { get; set; }
         public bool IsClosedPath { get; set; } = true;
         public double MinAngle { get; set; } = Math.PI / 60.0;  //3 degrees.
         public double Sign { get; private set; }
+
+        public PointF[] points { get; private set; }
+        public List<PointF> Corners { get; } = new List<PointF>();
         private double avgSegLen { get; set; }
         private float avgSegLenSquared { get; set; } 
         public List<AngleInfo> AngleInfos { get; private set; }
+        public List<DistanceSquare> distanceSquares { get; private set; }
+        private float paddingSquared { get; set; }
 
-        public List<PointF> ComputePath(PointF[] points, double sign = 1)
+        public List<List<PointF>> ComputePath(PointF[] points, double sign = 1)
         {
-            Points = points;
             Sign = sign * Math.Sign(Padding);
             if (points.Length < 2 || Padding == 0)
-                return new List<PointF>(Points);
+                return new List<List<PointF>>() { new List<PointF>(points) };
             avgSegLen = Tools.SegmentLengths(points).Average();
             if (avgSegLen == 0)
-                return new List<PointF>(Points);
+                return new List<List<PointF>>() { new List<PointF>(points) };
             avgSegLenSquared = (float)(avgSegLen * avgSegLen);
-            ComputeAngleInfos();
-            return ComputePath();
+            var pointsList = InterpolatePoints(points);
+            this.points = pointsList.ToArray();
+            paddingSquared = Padding * Padding;
+            RectangleF boundingRect = Tools.GetBoundingRectangleF(this.points);
+            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 10, out _, offset: true);
+            AngleInfos = new List<AngleInfo>();
+            Corners.Clear();
+            //ComputeAngleInfos();
+            List<List<PointF>> path = ComputePath();
+            //distanceSquares = null;
+            //this.points = null;
+            return path;
         }
 
-        private List<PointF> ComputePath()
+        private List<PointF> InterpolatePoints(PointF[] points)
+        {
+            var points2 = new List<PointF>();
+            points2.Add(points[0]);
+            float minLenSq = 4F * avgSegLenSquared;
+            for (int i = 1; i < points.Length; i++)
+            {
+                float distSq = Tools.DistanceSquared(points[i - 1], points[i]);
+                if (distSq > 0)
+                {
+                    if (distSq <= minLenSq)
+                        points2.Add(points[i]);
+                    else
+                        InterpolateTo(points2, points[i]);
+                }
+            }
+            return points2;
+        }
+
+        private List<List<PointF>> ComputePath()
         {
             var path = new List<PointF>();
-            int i = 0, j = 0;
-            while (true)
+            var breakIndices = new HashSet<int>();
+            bool addedPoint = false;
+            for (int i = 0; i < points.Length; i++)
             {
-                if (j <= AngleInfos.Count && AngleInfos.Count > 0)
+                int i2 = i + 1;
+                if (i2 == points.Length)
                 {
-                    AngleInfo angleInfo = AngleInfos[j % AngleInfos.Count];
-                    if (angleInfo.EndIndex >= 0)
+                    if (IsClosedPath)
+                        i2 = 0;
+                    else
+                        break;
+                }
+                PointF vec = Tools.GetVector(points[i], points[i2]);
+                if (vec.X != 0 || vec.Y != 0)
+                {
+                    float scale = Padding / (float)Tools.VectorLength(vec);
+                    //Get perpendicular vector of length = Padding:
+                    vec = new PointF(scale * vec.Y, -scale * vec.X);
+                    float vecLenSq = Tools.VectorLengthSquared(vec);
+                    PointF pathP = Tools.AddPoint(points[i], vec);
+                    float distSq = DistanceSquare.FindMinDistanceSquared(pathP, distanceSquares, out PointF? nearestP);
+                    if (Math.Abs(paddingSquared - distSq) < 0.001F * paddingSquared)
                     {
-                        if (i == angleInfo.StartIndex ||
-                           (j == 0 && angleInfo.StartIndex > angleInfo.EndIndex && i <= angleInfo.EndIndex))
-                        {
-                            if (angleInfo.EndIndex < angleInfo.StartIndex)
-                                break;
-                            i = angleInfo.EndIndex;
-                            j++;
-                        }
+                        path.Add(pathP);
+                        addedPoint = true;
                     }
-                    else if (i - 1 == angleInfo.StartIndex)
+                    else if (addedPoint)
                     {
-                        j++;
-                        angleInfo.PathIndex = path.Count - 1;
+                        breakIndices.Add(path.Count);
+                        addedPoint = false;
                     }
                 }
-                if (i < Points.Length)
+            }
+            var paths = new List<List<PointF>>();
+            if (TransformPath && path.Count > 0)
+            {
+                List<PointF> curPath = new List<PointF>();
+                curPath.Add(path[0]);
+                float lenSq = 0;
+                float minLenSq = 16F * avgSegLenSquared;
+                int iA1 = 0, iA2 = 0;
+                for (int i = 1; i < path.Count; i++)
                 {
-                    int i2 = i + 1;
-                    if (i2 >= Points.Length)
+                    int iB1 = -1, iB2 = -1;
+                    float segLenSq = Tools.DistanceSquared(path[i - 1], path[i]);
+                    if (segLenSq > minLenSq)
                     {
-                        if (IsClosedPath)
-                            i2 = 0;
+                        if (breakIndices.Contains(i))
+                        {
+                            if (curPath.Count > 0)
+                                paths.Add(curPath);
+                            curPath = new List<PointF>();
+                            lenSq = 0;
+                        }
                         else
-                            break;
-                    }
-                    PointF vec = Tools.GetVector(Points[i], Points[i2]);
-                    if (vec.X != 0 || vec.Y != 0)
-                    {
-                        float scale = Padding / (float)Tools.VectorLength(vec);
-                        //Get perpendicular vector of length = Padding:
-                        vec = new PointF(scale * vec.Y, -scale * vec.X);
-                        path.Add(Tools.AddPoint(Points[i], vec));
-                    }
-                }
-                i++;
-                if (i > Points.Length)
-                    break;
-            }
-            var pathInfos = AngleInfos.FindAll(o => o.PathIndex >= -1 && o.PathIndex < path.Count - 1);
-            if (pathInfos.Count > 0 && path.Count >= 2)
-            {
-                var path2 = new List<PointF>();
-                int startI = 0;
-                foreach (var pathInfo in pathInfos)
-                {
-                    int ind = Tools.GetIndexInRange(pathInfo.PathIndex, path.Count);
-                    PointF pStart = path[ind];
-                    int ind2 = pathInfo.PathIndex + 1;
-                    PointF pEnd = path[ind2];
-                    if (Tools.DistanceSquared(pStart, pEnd) >= 4F * avgSegLenSquared)
-                    {
-                        if (pathInfo.PathIndex > startI)
                         {
-                            path2.AddRange(path.Skip(startI).Take(pathInfo.PathIndex - startI - 1));
-                            startI = pathInfo.PathIndex + 1;
+                            if (lenSq == 0)
+                            {
+                                iA1 = Tools.GetIndexInRange(i - 3, path.Count);
+                                iA2 = Tools.GetIndexInRange(i - 2, path.Count);
+                            }
+                            lenSq += segLenSq;
                         }
-                        path2.Add(pStart);
-                        PointF midVec = Tools.GetRotationVector(Math.PI + 0.5 * pathInfo.Angle);
-                        PointF p = Points[pathInfo.StartIndex];
-                        PointF pMid = new PointF(p.X + Padding * midVec.X, p.Y + Padding * midVec.Y);
-                        InterpolateTo(path2, pMid);
-                        InterpolateTo(path2, pEnd);
                     }
+                    if (segLenSq <= minLenSq || i == path.Count - 1)
+                    {
+                        if (lenSq > minLenSq)
+                        {
+                            iB1 = Tools.GetIndexInRange(i + 2, path.Count);
+                            iB2 = Tools.GetIndexInRange(i + 1, path.Count);
+                            PointF? intersection = Tools.GetIntersection(path[iA1], path[iA2], path[iB1], path[iB2]);
+                            if (intersection.HasValue)
+                            {
+                                Corners.Add(intersection.Value);
+                                InterpolateTo(curPath, intersection.Value);
+                                InterpolateTo(curPath, path[i]);
+                            }
+                            else
+                                curPath.Add(path[i]);
+                        }
+                        lenSq = 0;
+                    }
+                    if (lenSq == 0 && iB1 < 0)
+                        curPath.Add(path[i]);
                 }
-                if (startI < path.Count)
-                    path2.AddRange(path.Skip(startI));
-                path = path2;
+                if (curPath.Count > 0)
+                    paths.Add(curPath);
             }
-            return path;
+            else
+                paths.Add(path);
+            return paths;
         }
 
         private void InterpolateTo(List<PointF> path, PointF pEnd)
@@ -147,123 +194,129 @@ namespace Whorl
             path.Add(pEnd);
         }
 
-        private void ComputeAngleInfos()
-        {
-            AngleInfos = new List<AngleInfo>();
-            Complex zPrev = Complex.Zero;
-            double angle = 0;
-            int iStart = -1, iEnd = -1;
-            int i = 1;
-            PointF pPrev = Points[0];
-            while (true)
-            {
-                int ind = i;
-                if (i >= Points.Length)
-                {
-                    if (IsClosedPath)
-                    {
-                        ind -= Points.Length;
-                        if (ind >= 10)
-                            iEnd = ind;
-                    }
-                    else
-                        iEnd = Points.Length - 1;
-                }
-                if (ind < Points.Length)
-                {
-                    PointF p = Points[ind];
-                    PointF vec = Tools.GetVector(pPrev, p);
-                    if (vec.X == 0 && vec.Y == 0)
-                    {
-                        i++;
-                        continue;
-                    }
-                    pPrev = p;
-                    Complex zVec = new Complex(vec.X, vec.Y);
-                    if (zPrev != Complex.Zero)
-                    {
-                        Complex zAngle = zVec / zPrev;
-                        double angle1 = zAngle.GetArgument();
-                        if (Math.Abs(angle1) > MinAngle)
-                        {
-                            if (iStart == -1)
-                                iStart = ind;
-                            angle += angle1;
-                        }
-                        else if (iStart != -1)
-                        {
-                            iEnd = ind;
-                        }
-                    }
-                    zPrev = zVec;
-                }
-                if (iStart != -1 && iEnd != -1)
-                {
-                    if (Math.Abs(angle) > MinAngle)
-                    {
-                        int i2 = iEnd;
-                        if (iEnd < iStart)
-                            i2 += Points.Length;
-                        int iMid = ((iStart + i2) / 2) % Points.Length;
-                        var angleInfo = new AngleInfo((float)angle);
-                        if (angle * Sign > 0)
-                        {
-                            float minLen = Math.Abs(Padding) * (float)Math.Cos(0.5 * angle);
-                            minLen *= minLen;
-                            angleInfo.StartIndex = FindIndex(iMid, minLen, -1);
-                            angleInfo.EndIndex = FindIndex(iMid, minLen, 1);
-                        }
-                        else
-                        {
-                            angleInfo.StartIndex = iMid;
-                            angleInfo.EndIndex = -1;
-                        }
-                        AngleInfos.Add(angleInfo);
-                    }
-                    iStart = iEnd = -1;
-                    angle = 0;
-                }
-                if (IsClosedPath)
-                {
-                    if (i >= Points.Length + 10)
-                        break;
-                }
-                else if (i >= Points.Length)
-                {
-                    break;
-                }
-                i++;
-            }
-        }
+        //private void ComputeAngleInfos()
+        //{
+        //    AngleInfos = new List<AngleInfo>();
+        //    Complex zPrev = Complex.Zero;
+        //    double angle = 0;
+        //    int iStart = -1, iEnd = -1;
+        //    int i = 1;
+        //    PointF pPrev = points[0];
+        //    while (true)
+        //    {
+        //        int ind = i;
+        //        if (i >= points.Length)
+        //        {
+        //            if (IsClosedPath)
+        //            {
+        //                ind -= points.Length;
+        //                if (ind >= 10)
+        //                    iEnd = ind;
+        //            }
+        //            else
+        //                iEnd = points.Length - 1;
+        //        }
+        //        if (ind < points.Length)
+        //        {
+        //            PointF p = points[ind];
+        //            PointF vec = Tools.GetVector(pPrev, p);
+        //            if (vec.X == 0 && vec.Y == 0)
+        //            {
+        //                i++;
+        //                continue;
+        //            }
+        //            pPrev = p;
+        //            Complex zVec = new Complex(vec.X, vec.Y);
+        //            if (zPrev != Complex.Zero)
+        //            {
+        //                Complex zAngle = zVec / zPrev;
+        //                double a = zAngle.GetArgument();
+        //                if (Math.Abs(a) > MinAngle)
+        //                {
+        //                    if (iStart == -1)
+        //                        iStart = ind;
+        //                    angle += a;
+        //                }
+        //                else if (iStart != -1)
+        //                {
+        //                    iEnd = ind;
+        //                }
+        //            }
+        //            zPrev = zVec;
+        //        }
+        //        if (iStart != -1 && iEnd != -1)
+        //        {
+        //            if (Math.Abs(angle) > MinAngle)
+        //            {
+        //                int i2 = iEnd;
+        //                if (iEnd < iStart)
+        //                    i2 += points.Length;
+        //                int iMid = ((iStart + i2) / 2) % points.Length;
+        //                int sign = Math.Sign(angle);
+        //                double angle1 = Math.Abs(angle);
+        //                angle1 = sign * Math.Min(angle1, Math.PI - angle1);
+        //                if (Math.Abs(angle1) > MinAngle)
+        //                {
+        //                    var angleInfo = new AngleInfo((float)angle1);
+        //                    if (angle1 * Sign > 0)
+        //                    {
+        //                        float minLen = Math.Abs(Padding / (float)Math.Tan(0.5 * angle1));
+        //                        minLen *= minLen;
+        //                        angleInfo.StartIndex = FindIndex(iMid, minLen, -1);
+        //                        angleInfo.EndIndex = FindIndex(iMid, minLen, 1);
+        //                    }
+        //                    else
+        //                    {
+        //                        angleInfo.StartIndex = iMid;
+        //                        angleInfo.EndIndex = -1;
+        //                    }
+        //                    AngleInfos.Add(angleInfo);
+        //                }
+        //            }
+        //            iStart = iEnd = -1;
+        //            angle = 0;
+        //        }
+        //        if (IsClosedPath)
+        //        {
+        //            if (i >= points.Length + 10)
+        //                break;
+        //        }
+        //        else if (i >= points.Length)
+        //        {
+        //            break;
+        //        }
+        //        i++;
+        //    }
+        //}
 
-        private int FindIndex(int i, float minLenSquared, int increment)
-        {
-            PointF p = Points[i];
-            int j = i + increment;
-            while (true)
-            {
-                if (j >= Points.Length)
-                {
-                    if (IsClosedPath)
-                        j = 0;
-                    else
-                        break;
-                }
-                else if (j < 0)
-                {
-                    if (IsClosedPath)
-                        j = Points.Length - 1;
-                    else
-                        break;
-                }
-                if (j == i)
-                    break;
-                if (Tools.DistanceSquared(p, Points[j]) >= minLenSquared)
-                    break;
-                j += increment;
-            }
-            return j;
-        }
+        //private int FindIndex(int i, float minLenSquared, int increment)
+        //{
+        //    PointF p = points[i];
+        //    int j = i + increment;
+        //    while (true)
+        //    {
+        //        if (j >= points.Length)
+        //        {
+        //            if (IsClosedPath)
+        //                j = 0;
+        //            else
+        //                break;
+        //        }
+        //        else if (j < 0)
+        //        {
+        //            if (IsClosedPath)
+        //                j = points.Length - 1;
+        //            else
+        //                break;
+        //        }
+        //        if (j == i)
+        //            break;
+        //        if (Tools.DistanceSquared(p, points[j]) >= minLenSquared)
+        //            break;
+        //        j += increment;
+        //    }
+        //    return j;
+        //}
         
     }
 }
