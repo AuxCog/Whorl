@@ -55,7 +55,7 @@ namespace Whorl
             return paths;
         }
 
-        public PolarCoord[] ComputePath(PolarCoord[] seedPoints, float padding, out List<PolarCoord[]> seedPointArrays)
+        public PolarCoord[] ComputePolarPath(PolarCoord[] seedPoints, float padding, out List<PolarCoord[]> seedPointArrays)
         {
             Padding = padding;
             PointF[] points = seedPoints.Select(sp => sp.ToRectangular()).ToArray();

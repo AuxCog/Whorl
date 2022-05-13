@@ -3236,7 +3236,7 @@ namespace Whorl
             {
                 var pathPadding = new PathPadding();
                 pathPadding.MinDeltaScale = 0.25F * Math.Max(clipFactor, 0.01F);
-                return pathPadding.ComputePath(seedPoints, -paddingSign * padding, out seedPointArrays);
+                return pathPadding.ComputePolarPath(seedPoints, -paddingSign * padding, out seedPointArrays);
             }
             //if (useNewVersion)
             //{
