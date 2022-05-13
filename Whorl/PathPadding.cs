@@ -65,9 +65,9 @@ namespace Whorl
             PolarCoord center = new PolarCoord(0, 0);
             for (int i = 0; i < seedPointArrays.Count; i++)
             {
-                polarPath.AddRange(seedPointArrays[i]);
-                if (i < paths.Count - 1)
+                if (i > 0)
                     polarPath.Add(center);
+                polarPath.AddRange(seedPointArrays[i]);
             }
             return polarPath.ToArray();
         }
