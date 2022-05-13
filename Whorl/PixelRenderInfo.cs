@@ -59,12 +59,14 @@ namespace Whorl
         public double InfluenceValue { get; set; }
         public int DistanceCount { get; set; } = 5;
         public int DistanceRows { get; set; } = 10;
+        public bool ComputePathLength { get; set; }
         public double SegmentLength { get; set; } = 0;
         public Func1Parameter<double> RandomFunction { get; set; }
 
         protected PassTypes PassType { get; set; }
         public double DistanceToPath { get; protected set; }
         public double[] DistancesToPaths { get; protected set; }
+        public float[] PathLengths { get; protected set; }
         public PointF[] NearestPoints { get; protected set; }
         public PointF[] DistancePatternCenters { get; protected set; }
         public float X { get; protected set; }

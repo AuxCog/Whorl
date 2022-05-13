@@ -83,7 +83,8 @@ namespace Whorl
             var pointsList = InterpolatePoints(points);
             SourcePoints = pointsList.ToArray();
             RectangleF boundingRect = Tools.GetBoundingRectangleF(SourcePoints);
-            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 20, out _, offset: true);
+            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 20, out _, 
+                                                        computePathLength: false, offset: true);
             //AngleInfos = new List<AngleInfo>();
             Corners.Clear();
             return true;
@@ -149,7 +150,7 @@ namespace Whorl
                     vec = new PointF(scale * vec.Y, -scale * vec.X);
                     float vecLenSq = Tools.VectorLengthSquared(vec);
                     PointF pathP = Tools.AddPoint(SourcePoints[i], vec);
-                    float distSq = DistanceSquare.FindMinDistanceSquared(pathP, distanceSquares, out PointF? nearestP);
+                    float distSq = DistanceSquare.FindMinDistanceSquared(pathP, distanceSquares, out _);
                     if (Math.Abs(paddingSquared - distSq) < minDeltaDist)
                     {
                         path.Add(pathP);

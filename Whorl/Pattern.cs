@@ -478,6 +478,7 @@ namespace Whorl
                     DistancesToPaths = new double[length];
                     DistancePatternCenters = new PointF[length];
                     NearestPoints = new PointF[length];
+                    PathLengths = new float[length];
                 }
 
                 public void SetPatternInfo(int patternIndex, double modulus)
@@ -1363,7 +1364,8 @@ namespace Whorl
                 {
                     AddSegmentPoints(segmentPoints, points, lenSq);
                 }
-                var distanceSquares = DistanceSquare.GetSquares(segmentPoints, BoundsRect, Info.DistanceRows, out SizeF squareSize);
+                var distanceSquares = DistanceSquare.GetSquares(segmentPoints, BoundsRect, Info.DistanceRows, 
+                                      out SizeF squareSize, Info.ComputePathLength);
                 distanceSquareSize = squareSize;
                 //distanceSquareSize = new SizeF((BoundsRect.Width + 1) / Info.DistanceRows,
                 //                               (BoundsRect.Height + 1) / Info.DistanceRows);
@@ -1474,16 +1476,17 @@ namespace Whorl
                 {
                     if (distanceSquaresArray[index] != null)
                     {
-                        double distance = GetDistanceToPath(index, x, y, out PointF nearestPoint);
+                        double distance = GetDistanceToPath(index, x, y, out PathPointInfo nearestPointInfo);
                         Info.DistancesToPaths[index] = distance;
-                        Info.NearestPoints[index] = nearestPoint;
+                        Info.NearestPoints[index] = nearestPointInfo.Point;
+                        Info.PathLengths[index] = nearestPointInfo.PathLength;
                     }
                 }
                 if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
                     Info.SetDistanceToPath(Info.DistancesToPaths.Average());
             }
 
-            private double GetDistanceToPath(int index, int x, int y, out PointF nearestPoint)
+            private double GetDistanceToPath(int index, int x, int y, out PathPointInfo nearestPointInfo)
             {
                 var p = new PointF(x, y);
                 double minDistSquared = double.MaxValue;
@@ -1497,7 +1500,7 @@ namespace Whorl
                 double distanceScale = 1.0;
                 PointF center = PointF.Empty;
 
-                nearestPoint = PointF.Empty;
+                nearestPointInfo = new PathPointInfo(PointF.Empty, 0);
                 if (Info.ComputeExternal)
                 {
                     PatternBoundsInfo ptnInfo = distPatternsBoundsInfos[index];
@@ -1543,9 +1546,9 @@ namespace Whorl
                 {
                     var distanceSquares = distanceSquaresArray[index];
                     minDistSquared = DistanceSquare.FindMinDistanceSquared(p, distanceSquares, 
-                                                                           out PointF? nearestP, Info.DistanceCount);
+                                                   out PathPointInfo? nearestP, Info.DistanceCount);
                     if (nearestP != null)
-                        nearestPoint = nearestP.Value;
+                        nearestPointInfo = nearestP.Value;
                     //foreach (DistanceSquare distSquare in distanceSquares)
                     //{
                     //    distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);

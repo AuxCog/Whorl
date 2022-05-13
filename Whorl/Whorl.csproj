@@ -341,6 +341,7 @@
     <Compile Include="PathOutlineTransform.cs" />
     <Compile Include="PathPadding.cs" />
     <Compile Include="PathPattern.cs" />
+    <Compile Include="PathPointInfo.cs" />
     <Compile Include="PatternBoundsInfo.cs" />
     <Compile Include="PatternGroupList.cs" />
     <Compile Include="PatternImprovConfigForm.cs">
