@@ -83,7 +83,7 @@ namespace Whorl
             var pointsList = InterpolatePoints(points);
             SourcePoints = pointsList.ToArray();
             RectangleF boundingRect = Tools.GetBoundingRectangleF(SourcePoints);
-            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, 20, out _, 
+            distanceSquares = DistanceSquare.GetSquares(pointsList, boundingRect, distanceRows: 10, out _, 
                                                         computePathLength: false, offset: true);
             //AngleInfos = new List<AngleInfo>();
             Corners.Clear();

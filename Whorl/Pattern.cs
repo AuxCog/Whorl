@@ -1472,6 +1472,8 @@ namespace Whorl
 
             private void SetDistancesToPaths(int x, int y)
             {
+                double totalDist = 0;
+                int count = 0;
                 for (int index = 0; index < distanceSquaresArray.Length; index++)
                 {
                     if (distanceSquaresArray[index] != null)
@@ -1480,10 +1482,12 @@ namespace Whorl
                         Info.DistancesToPaths[index] = distance;
                         Info.NearestPoints[index] = nearestPointInfo.Point;
                         Info.PathLengths[index] = nearestPointInfo.PathLength;
+                        totalDist += distance;
+                        count++;
                     }
                 }
-                if (Info.DistancesToPaths.Length != 0)  //Set scalar property as well as array.
-                    Info.SetDistanceToPath(Info.DistancesToPaths.Average());
+                if (count != 0)  //Set scalar property as well as array.
+                    Info.SetDistanceToPath(totalDist / count);
             }
 
             private double GetDistanceToPath(int index, int x, int y, out PathPointInfo nearestPointInfo)
