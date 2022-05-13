@@ -1481,7 +1481,7 @@ namespace Whorl
                         double distance = GetDistanceToPath(index, x, y, out PathPointInfo nearestPointInfo);
                         Info.DistancesToPaths[index] = distance;
                         Info.NearestPoints[index] = nearestPointInfo.Point;
-                        Info.PathLengths[index] = nearestPointInfo.PathLength;
+                        Info.PathLengths[index] = floatScaleFactor * nearestPointInfo.PathLength;
                         totalDist += distance;
                         count++;
                     }
