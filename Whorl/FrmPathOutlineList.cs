@@ -1078,9 +1078,9 @@ namespace Whorl
                         var pathInfo = pathInfos[i];
                         Color color = pathInfo.PathPattern.BoundaryColor;
                         if (i == selectedPathInfoIndex)
-                            pathInfo.PathPattern.BoundaryColor = Color.Red;
+                            pathInfo.PathPattern.BoundaryColor = pathInfo.PathPattern.CenterColor = Color.Red;
                         else
-                            pathInfo.PathPattern.BoundaryColor = Color.Black;
+                            pathInfo.PathPattern.BoundaryColor = pathInfo.PathPattern.CenterColor = Color.Black;
                         pathInfo.PathPattern.DrawFilled(e.Graphics, null);
                         pathInfo.PathPattern.BoundaryColor = color;
                     }
