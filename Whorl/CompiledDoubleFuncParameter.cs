@@ -54,6 +54,7 @@ using Whorl;
         {
             while (true)
             {
+                NewFormula = formula;
                 string errorList = CompileFormulaHelper(formula);
                 if (errorList == null)
                 {
@@ -68,9 +69,13 @@ using Whorl;
             return true;
         }
 
+        public string GetCSharpCode()
+        {
+            return GetClassCode(Formula, isStatic: ParamsClassCodeFileName == null);
+        }
+
         private string CompileFormulaHelper(string formula)
         {
-            NewFormula = formula;
             if (formula == Formula)
                 return null;
             if (string.IsNullOrWhiteSpace(formula))
@@ -130,7 +135,7 @@ using Whorl;
                 docF.AppendLine(sb, $"public {ParamsClassName} Parms {{ get; }} = new {ParamsClassName}();");
             }
 
-            docF.AppendLine(sb, $"public {staticText}double{FunctionName}(double x)");
+            docF.AppendLine(sb, $"public {staticText}double {FunctionName}(double x)");
             docF.OpenBrace(sb);
             docF.AppendLine(sb, formula);
             docF.CloseBrace(sb);
@@ -140,11 +145,6 @@ using Whorl;
             return sb.ToString();
         }
 
-        public string GetCSharpCode()
-        {
-            return GetClassCode(Formula, isStatic: ParamsClassCodeFileName == null);
-        }
-
         private string EditFormulaHelper(string errorList = null, string formTitle = null)
         {
             using (var frm = new frmTextEditor())
@@ -152,9 +152,13 @@ using Whorl;
                 if (formTitle != null)
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
-                frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");
                 if (errorList != null)
+                {
+                    frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");
+                    if (Formula != null)
+                        frm.AddRelatedText(Formula, "Previous Formula");
                     frm.AddRelatedText(errorList, "Error List");
+                }
                 if (frm.ShowDialog() != DialogResult.OK)
                     return null;
                 else
