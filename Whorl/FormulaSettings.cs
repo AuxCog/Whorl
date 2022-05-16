@@ -1307,7 +1307,16 @@ namespace Whorl
                 infoAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
             }
             var iOptionsParam = oParam as IOptionsParameter;
-            string sVal = (string)Tools.GetXmlAttribute("Value", typeof(string), subNode, required: !isNestedParams);
+            string sVal;
+            if (propInfo.PropertyType == typeof(string))
+                sVal = subNode.InnerText;
+            else
+            {
+                var valueAttr = subNode.Attributes["Value"];
+                sVal = valueAttr?.Value;
+            }
+            if (!isNestedParams && sVal == null)
+                throw new Exception($"No value found for Xml Parameter {propInfo.Name}.");
             //var iFnParam = oParam as IFuncParameter;
             if (iOptionsParam != null)
             {
@@ -1394,30 +1403,12 @@ namespace Whorl
                 {
                     AppendCSharpParameterToXml(childNode, oVal, propInfo, xmlTools);
                 }
-                //string sValue;
-                ////var iFnParam = oVal as IFuncParameter;
-                ////if (iFnParam != null)
-                ////    sValue = iFnParam.FunctionName;
-                //var iOptionsParam = oVal as IOptionsParameter;
-                //if (iOptionsParam != null)
-                //{
-                //    object selOption = iOptionsParam.SelectedOptionObject;
-                //    if (selOption == null)
-                //        continue;
-                //    sValue = selOption.ToString();
-                //}
-                //else
-                //    sValue = oVal.ToString();
-                //subNode = xmlTools.CreateXmlNode("Parameter");
-                //xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
-                //xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
-                //xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
-                //childNode.AppendChild(subNode);
             }
             node.AppendChild(childNode);
         }
 
-        private static void AppendCSharpParameterToXml(XmlNode childNode, object paramValue, PropertyInfo propInfo, XmlTools xmlTools, int index = -1)
+        private static void AppendCSharpParameterToXml(XmlNode childNode, object paramValue, PropertyInfo propInfo, 
+                                                       XmlTools xmlTools, int index = -1)
         {
             if (paramValue == null || paramValue is RandomParameter)
                 return;
@@ -1449,7 +1440,12 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
             xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
             if (sValue != null)
-                xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
+            {
+                if (propInfo.PropertyType == typeof(string))
+                    XmlTools.SetNodeValue(subNode, sValue);
+                else
+                    xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
+            }
             if  (index != -1)
                 xmlTools.AppendXmlAttribute(subNode, "Index", index);
             if (isNestedParams)

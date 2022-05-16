@@ -36,11 +36,11 @@
             // txtText
             // 
             this.txtText.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.txtText.Location = new System.Drawing.Point(0, 47);
+            this.txtText.Location = new System.Drawing.Point(0, 48);
             this.txtText.Multiline = true;
             this.txtText.Name = "txtText";
             this.txtText.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtText.Size = new System.Drawing.Size(1004, 680);
+            this.txtText.Size = new System.Drawing.Size(1004, 674);
             this.txtText.TabIndex = 0;
             // 
             // btnOK
@@ -67,12 +67,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1004, 727);
+            this.ClientSize = new System.Drawing.Size(1004, 722);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.txtText);
             this.Name = "frmTextEditor";
             this.Text = "Text Viewer";
+            this.Resize += new System.EventHandler(this.frmTextEditor_Resize);
             this.ResumeLayout(false);
             this.PerformLayout();
 

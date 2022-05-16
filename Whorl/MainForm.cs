@@ -7404,16 +7404,17 @@ namespace Whorl
             SetAllAllowRandom(false);
         }
 
-        private static frmMessage frmMessage;
+        private static frmTextEditor frmMessage;
 
         public static void ViewDebugMessages()
         {
             if (frmMessage == null || frmMessage.IsDisposed)
             {
-                frmMessage = new frmMessage();
+                frmMessage = new frmTextEditor();
             }
             Tools.DisplayForm(frmMessage);
-            frmMessage.DisplayMessages();
+            string text = DebugMessages.GetMessages();
+            frmMessage.DisplayText(text, readOnly: true, autoSize: true);
         }
 
         private void viewDebugMessagesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -7530,7 +7531,7 @@ namespace Whorl
                 }
                 using (var frm = new frmTextEditor())
                 {
-                    frm.DisplayText(cSharpCode);
+                    frm.DisplayText(cSharpCode, showOK: false);
                     frm.ShowDialog(this);
                 }
             }

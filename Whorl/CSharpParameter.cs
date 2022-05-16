@@ -354,8 +354,8 @@ namespace Whorl
 
         protected override void SelectedOptionChanged()
         {
-            base.SelectedOptionChanged();
             if (SelectedOption == null) return;
+            bool isSet = false;
             if (funcLibrary != null)
             {
                 if (!Instances.SelectMany(o => GetValidMethods(o.GetType(), forInstance: true))
@@ -363,8 +363,11 @@ namespace Whorl
                 {
                     funcLibrary.SetBaseFunction(SelectedOption.Value);
                     Function = funcLibrary.DefaultFunction;
+                    isSet = true;
                 }
             }
+            if (!isSet)
+                base.SelectedOptionChanged();
         }
     }
 

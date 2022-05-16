@@ -17,15 +17,49 @@ namespace Whorl
             InitializeComponent();
         }
 
+        private void frmTextEditor_Resize(object sender, EventArgs e)
+        {
+            try
+            {
+                int textTop = btnOK.Bottom + 10;
+                int textHeight = ClientSize.Height - textTop;
+                if (textHeight > 10)
+                {
+                    txtText.Height = textHeight;
+                }
+            }            
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
         public string EditedText
         {
             get { return txtText.Text; }
         }
 
-        public void DisplayText(string text, bool readOnly = false)
+        public void SizeToTextHeight()
+        {
+            string text = txtText.Text;
+            if (string.IsNullOrEmpty(text))
+                text = " ";
+            int height = Math.Min(800, 20 + TextRenderer.MeasureText(text, txtText.Font).Height);
+            ClientSize = new Size(ClientSize.Width, btnOK.Bottom + height);
+        }
+
+        public void DisplayText(string text, bool readOnly = false, bool? showOK = null,
+                                bool autoSize = false)
         {
             txtText.Text = text;
             txtText.ReadOnly = readOnly;
+            if (showOK == null)
+                showOK = !readOnly;
+            btnOK.Visible = showOK.Value;
+            if (!showOK.Value)
+                btnCancel.Text = "Close";
+            if (autoSize)
+                SizeToTextHeight();
         }
 
         private void BtnOK_Click(object sender, EventArgs e)
@@ -39,5 +73,6 @@ namespace Whorl
             DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
     }
 }
