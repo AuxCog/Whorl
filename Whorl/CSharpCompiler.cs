@@ -83,6 +83,14 @@ namespace Whorl
             return results;
         }
 
+        public CSharpSharedCompiledInfo CompileFunctionFormula(string code)
+        {
+            CompilerResults results = CompileCode(code);
+            var sharedCompiledInfo = new CSharpSharedCompiledInfo();
+            sharedCompiledInfo.SetCompilerResults(results, forFormula: false);
+            return sharedCompiledInfo;
+        }
+
         public CSharpSharedCompiledInfo CompileFormula(string code)
         {
             if (!compiledSharedDict.TryGetValue(code, out CSharpSharedCompiledInfo sharedCompiledInfo))

@@ -15,23 +15,26 @@ namespace Whorl
         {
             public CSharpSharedCompiledInfo CSharpSharedCompiledInfo { get; }
             public object ClassInstance { get; }
-            public object ParamsObj { get; }
+            public object ParamsObj { get; private set; }
             public Action EvalFormula { get; }
 
-            public EvalInstance(CSharpSharedCompiledInfo cSharpCompiledInfo)
+            public EvalInstance(CSharpSharedCompiledInfo cSharpCompiledInfo, bool forFormula = true)
             {
                 CSharpSharedCompiledInfo = cSharpCompiledInfo;
                 ClassInstance = Activator.CreateInstance(CSharpSharedCompiledInfo.EvalClassType);
-                if (CSharpSharedCompiledInfo.ParametersPropertyInfo != null)
-                    ParamsObj = CSharpSharedCompiledInfo.ParametersPropertyInfo.GetValue(ClassInstance);
-                try
+                if (forFormula)
                 {
-                    EvalFormula = (Action)Delegate.CreateDelegate(typeof(Action), ClassInstance,
-                                          CSharpSharedCompiledInfo.EvalMethodInfo);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error creating delegate: " + ex.Message);
+                    if (CSharpSharedCompiledInfo.ParametersPropertyInfo != null)
+                        ParamsObj = CSharpSharedCompiledInfo.ParametersPropertyInfo.GetValue(ClassInstance);
+                    try
+                    {
+                        EvalFormula = (Action)Delegate.CreateDelegate(typeof(Action), ClassInstance,
+                                              CSharpSharedCompiledInfo.EvalMethodInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Error creating delegate: " + ex.Message);
+                    }
                 }
             }
 
@@ -71,6 +74,12 @@ namespace Whorl
             public void SetInfoObject(object info)
             {
                 CSharpSharedCompiledInfo.InfoPropertyInfo.SetValue(ClassInstance, info);
+            }
+
+            public void SetParametersObject()
+            {
+                if (ClassInstance != null && CSharpSharedCompiledInfo.ParametersPropertyInfo != null)
+                    ParamsObj = CSharpSharedCompiledInfo.ParametersPropertyInfo.GetValue(ClassInstance);
             }
 
             public bool UpdateParameters()
@@ -121,11 +130,11 @@ namespace Whorl
             CSharpSharedCompiledInfo = cSharpSharedCompiledInfo;
         }
 
-        public EvalInstance CreateEvalInstance()
+        public EvalInstance CreateEvalInstance(bool forFormula = true)
         {
             if (CSharpSharedCompiledInfo.ErrorCount != 0)
                 return null;
-            return new EvalInstance(CSharpSharedCompiledInfo);
+            return new EvalInstance(CSharpSharedCompiledInfo, forFormula);
         }
 
     }

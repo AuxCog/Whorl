@@ -34,10 +34,7 @@ namespace Whorl
             }
         }
 
-        public string EditedText
-        {
-            get { return txtText.Text; }
-        }
+        public string EditedText => txtText.Text;
 
         public void SizeToTextHeight()
         {
@@ -60,6 +57,35 @@ namespace Whorl
                 btnCancel.Text = "Close";
             if (autoSize)
                 SizeToTextHeight();
+        }
+
+        public void AddRelatedText(string text, string menuItemText)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            viewToolStripMenuItem.Visible = true;
+            var viewRelatedTextToolStripMenuItem = new ToolStripMenuItem(menuItemText);
+            viewRelatedTextToolStripMenuItem.Click += viewRelatedTextToolStripMenuItem_Click;
+            viewRelatedTextToolStripMenuItem.Tag = text;
+            viewToolStripMenuItem.DropDownItems.Add(viewRelatedTextToolStripMenuItem);
+        }
+
+        private void viewRelatedTextToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var menuItem = (ToolStripMenuItem)sender;
+                string relatedText = menuItem.Tag as string;
+                if (string.IsNullOrWhiteSpace(relatedText)) return;
+                using (var frm = new frmTextEditor())
+                {
+                    frm.DisplayText(relatedText, readOnly: true);
+                    frm.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
         }
 
         private void BtnOK_Click(object sender, EventArgs e)

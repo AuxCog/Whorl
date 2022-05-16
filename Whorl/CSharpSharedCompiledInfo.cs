@@ -155,12 +155,15 @@ namespace Whorl
             ParametersPropertyInfo = null;
         }
 
-        private void SetCompiledProperties()
+        private void SetCompiledProperties(bool forFormula)
         {
-            InfoPropertyInfo = EvalClassType.GetProperty(InfoPropertyName);
-            if (InfoPropertyInfo == null)
+            if (forFormula)
             {
-                AddError($"Couldn't find property {InfoPropertyName}.");
+                InfoPropertyInfo = EvalClassType.GetProperty(InfoPropertyName);
+                if (InfoPropertyInfo == null)
+                {
+                    AddError($"Couldn't find property {InfoPropertyName}.");
+                }
             }
             ParametersPropertyInfo = EvalClassType.GetProperty(ParametersPropertyName);
             if (ParametersPropertyInfo != null)
@@ -170,11 +173,14 @@ namespace Whorl
                 UpdateParametersMethodInfo = GetActionMethod(UpdateParametersMethodName,
                                              parametersClassType);
             }
-            PreInitMethodInfo = GetActionMethod(PreInitializeMethodName, EvalClassType);
-            InitMethodInfo = GetActionMethod(InitializeMethodName, EvalClassType);
-            Init2MethodInfo = GetActionMethod(Initialize2MethodName, EvalClassType);
-            EvalMethodInfo = GetActionMethod(EvalMethodName, EvalClassType,
-                                             required: true, returnType: typeof(void));
+            if (forFormula)
+            {
+                PreInitMethodInfo = GetActionMethod(PreInitializeMethodName, EvalClassType);
+                InitMethodInfo = GetActionMethod(InitializeMethodName, EvalClassType);
+                Init2MethodInfo = GetActionMethod(Initialize2MethodName, EvalClassType);
+                EvalMethodInfo = GetActionMethod(EvalMethodName, EvalClassType,
+                                                 required: true, returnType: typeof(void));
+            }
         }
 
         private MethodInfo GetActionMethod(string methodName, Type declaringType,
@@ -202,10 +208,10 @@ namespace Whorl
             //SourceCode = string.Empty;
             InitCompile();
             EvalClassType = evalClassType;
-            SetCompiledProperties();
+            SetCompiledProperties(forFormula: true);
         }
 
-        public void SetCompilerResults(CompilerResults compilerResults)
+        public void SetCompilerResults(CompilerResults compilerResults, bool forFormula = true)
         {
             InitCompile();
             Errors.AddRange(from CompilerError err in compilerResults.Errors
@@ -216,7 +222,7 @@ namespace Whorl
                 {
                     EvalClassType = compilerResults.CompiledAssembly.GetType($"{WhorlEvalNamespace}.{WhorlEvalClassName}",
                                     throwOnError: true);
-                    SetCompiledProperties();
+                    SetCompiledProperties(forFormula);
                 }
                 catch (Exception ex)
                 {

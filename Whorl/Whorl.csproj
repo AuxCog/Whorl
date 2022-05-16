@@ -105,6 +105,7 @@
     <Compile Include="ColorTransparencyForm.Designer.cs">
       <DependentUpon>ColorTransparencyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="CompiledDoubleFuncParameter.cs" />
     <Compile Include="CopyPasteInfo.cs" />
     <Compile Include="CSharpCompiledInfo.cs" />
     <Compile Include="CSharpPreprocessor.cs" />
