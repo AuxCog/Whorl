@@ -379,6 +379,7 @@
     <Compile Include="RenderDesignForm.Designer.cs">
       <DependentUpon>RenderDesignForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="RenderingValues.cs" />
     <Compile Include="Ribbon.cs" />
     <Compile Include="CSharpCompiler.cs" />
     <Compile Include="CSharpParameter.cs" />

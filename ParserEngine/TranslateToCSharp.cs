@@ -394,7 +394,7 @@ namespace WhorlEval");
                 return string.Empty;
         }
 
-        private string GetCSharpString(string s)
+        public static string GetCSharpString(string s)
         {
             return "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
         }

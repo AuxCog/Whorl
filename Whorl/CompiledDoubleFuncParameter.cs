@@ -22,33 +22,40 @@ using Whorl;
         public Func<double, double> Function { get; private set; }
         public object ParamsObject { get; private set; }
         public string ParamsClassCodeFilePath { get; }
-        public string ParamsClassName { get; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
+        private PropertyInfo renderingValuesPropertyInfo { get; set; }
+        private object classInstance { get; set; }
 
-        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFilePath = null)
+        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName = null)
         {
             tokenizer = new Tokenizer(forCSharp: true, addOperators: true);
             FunctionName = functionName;
-            if (paramsClassCodeFilePath != null)
+            if (paramsClassCodeFileName != null)
             {
-                ParamsClassCodeFilePath = paramsClassCodeFilePath;
-                if (!File.Exists(paramsClassCodeFilePath))
-                    throw new Exception($"The file {paramsClassCodeFilePath} was not found.");
-                ParamsClassName = Path.GetFileNameWithoutExtension(paramsClassCodeFilePath);
+                ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
+                if (!File.Exists(ParamsClassCodeFilePath))
+                    throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
             }
             Function = DefaultFunction;
         }
 
-        public static string GetParamFilePath(string paramsClassCodeFileName)
+        public static string GetParamsFilePath(string fileName)
         {
-            return Path.Combine(WhorlSettings.Instance.FilesFolder,
-                                WhorlSettings.IncludeFilesFolder, paramsClassCodeFileName);
+            return Path.Combine(WhorlSettings.Instance.FilesFolder, WhorlSettings.IncludeFilesFolder, fileName);
         }
 
         private double DefaultFunction(double x)
         {
             return x;
+        }
+
+        public void SetRenderingValues(RenderingValues renderingValues)
+        {
+            if (renderingValuesPropertyInfo != null)
+            {
+                renderingValuesPropertyInfo.SetValue(classInstance, renderingValues);
+            }
         }
 
         public bool EditFormula()
@@ -108,8 +115,9 @@ using Whorl;
             {
                 return sharedCompiledInfo.ErrorsText;
             }
-            object classInstance = null;
-            if (!isStatic)
+            if (isStatic)
+                classInstance = null;
+            else
             {
                 var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
                 var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
@@ -123,6 +131,7 @@ using Whorl;
                 {
                     FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
                 }
+                renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
             }
             var bindingFlags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
             var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, bindingFlags);
@@ -147,8 +156,10 @@ using Whorl;
             if (!isStatic && ParamsClassCodeFilePath != null)
             {
                 string paramsClassCode = GetParamsClassCode();
+                string paramsClassName = Path.GetFileNameWithoutExtension(ParamsClassCodeFilePath);
                 docF.AppendLine(sb, paramsClassCode);
-                docF.AppendLine(sb, $"public {ParamsClassName} Parms {{ get; }} = new {ParamsClassName}();");
+                docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
+                docF.AppendLine(sb, "public RenderingValues Info { get; set; }");
             }
 
             docF.AppendLine(sb, $"public {staticText}double {FunctionName}(double x)");

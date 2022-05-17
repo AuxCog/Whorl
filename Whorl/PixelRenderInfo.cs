@@ -200,6 +200,21 @@ namespace Whorl
                 paramsObj = null;
             return paramsObj;
         }
+
+        public void SetRenderingValues(RenderingValues renderingValues, object paramsObj)
+        {
+            foreach (var propInfo in paramsObj.GetType().GetProperties())
+            {
+                if (propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+                {
+                    var func = propInfo.GetValue(paramsObj) as CompiledDoubleFuncParameter;
+                    if (func != null)
+                    {
+                        func.SetRenderingValues(renderingValues);
+                    }
+                }
+            }
+        }
     }
 
 }

@@ -28,6 +28,8 @@ namespace Whorl
         {
             None,
             Function,
+            CustomFunction,
+            ParametersFile,
             Enum,
             Params,
             Instance,
@@ -80,7 +82,8 @@ namespace Whorl
         private enum FunctionTypes
         {
             Normal,
-            Derivative
+            Derivative,
+            Custom
         }
         private const string ParametersPropertyName = "Parms";
         private const string ParmsPropertyAttributeName = "ParmsProperty";
@@ -253,6 +256,29 @@ namespace Whorl
                 }
                 string allArgs = string.Join(", ", args.Take(lastI + 1).Select(s => s ?? "null"));
                 Initializer = $"new {DecTypeName}({allArgs})";
+            }
+        }
+
+        private class CustomFunctionParamInfo: ParamInfo
+        {
+            public string ParamsCodeFileName { get; set; }
+
+            public CustomFunctionParamInfo(string name, int startCharIndex): 
+                    base(name, "double", startCharIndex, null, null, ParamCategories.Function)
+            {
+                DecTypeName = nameof(CompiledDoubleFuncParameter);
+            }
+
+            public override void Complete()
+            {
+                var args = new List<string>();
+                args.Add(TranslateToCSharp.GetCSharpString(ParameterName));
+                HasNestedParameters = !string.IsNullOrEmpty(ParamsCodeFileName);
+                if (HasNestedParameters)
+                {
+                    args.Add(TranslateToCSharp.GetCSharpString(ParamsCodeFileName));
+                }   
+                Initializer = $"new {DecTypeName}({string.Join(", ", args)})";
             }
         }
 
@@ -1590,6 +1616,7 @@ $@"public void {methodName}()
                 ReservedWords.ArrayLength,
                 ReservedWords.Previous,
                 ReservedWords.Enum,
+                ReservedWords.CustomFunction,
                 ReservedWords.Function,
                 ReservedWords.Influence,
                 ReservedWords.Random,
@@ -1730,6 +1757,9 @@ $@"public void {methodName}()
                                 previousStartNumber = 0;
                                 tokenIndex++;
                             }
+                            break;
+                        case ReservedWords.CustomFunction:
+                            paramInfo = ParseCustomFunctionParam(nameTok, ref tokenIndex, directiveToken);
                             break;
                         case ReservedWords.Enum:
                         case ReservedWords.Function:
@@ -2067,6 +2097,38 @@ $@"public void {methodName}()
                 tokens.Add(tok);
             }
             return isType;
+        }
+
+        private CustomFunctionParamInfo ParseCustomFunctionParam(Token nameTok, ref int tokenIndex, Token directiveToken)
+        {
+            string paramsFileName = null;
+            Token token = GetToken(tokenIndex);
+            if (ParseReservedWord(token.Text, ReservedWords.ParametersFile))
+            {
+                token = GetToken(++tokenIndex);
+                if (token.Text != "=")
+                {
+                    AddError(token, "Expecting '=' after ParametersFile.");
+                    return null;
+                }
+                token = GetToken(++tokenIndex);
+                if (token.TokenType != Token.TokenTypes.String)
+                {
+                    AddError(token, "Expecting quoted file name after ParametersFile = .");
+                    return null;
+                }
+                tokenIndex++;
+                paramsFileName = ((StringToken)token).Value;
+                string filePath = CompiledDoubleFuncParameter.GetParamsFilePath(paramsFileName);
+                if (!System.IO.File.Exists(filePath))
+                {
+                    AddError(token, $"Parameters File not found: {filePath}.");
+                    return null;
+                }
+            }
+            var paramInfo = new CustomFunctionParamInfo(nameTok.Text, directiveToken.CharIndex);
+            paramInfo.ParamsCodeFileName = paramsFileName;
+            return paramInfo;
         }
 
         private FunctionParamInfo ParseFunctionParam(Token nameTok, ref int tokenIndex, string typeName,
