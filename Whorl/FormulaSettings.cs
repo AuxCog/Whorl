@@ -788,7 +788,13 @@ namespace Whorl
 
         public void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj)
         {
-            CopyCSharpParameters(sourceParamsObj, targetParamsObj, new HashSet<string>());
+            CopyCSharpParameters(sourceParamsObj, targetParamsObj, ParentPattern);
+        }
+
+        public static void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj,
+                                                Pattern parentPattern)
+        {
+            CopyCSharpParameters(sourceParamsObj, targetParamsObj, new HashSet<string>(), parentPattern);
         }
 
         private void CopyCSharpParams(object sourceParamsObj, CSharpCompiledInfo.EvalInstance evalInstance = null)
@@ -802,7 +808,8 @@ namespace Whorl
             CopyCSharpParameters(sourceParamsObj, targetParamsObj, handledPropertyNames);
         }
 
-        private void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj, HashSet<string> handledPropertyNames) 
+        private static void CopyCSharpParameters(object sourceParamsObj, object targetParamsObj, HashSet<string> handledPropertyNames, 
+                                          Pattern parentPattern = null) 
         { 
             Type sourceType = sourceParamsObj.GetType();
             Type targetType = targetParamsObj.GetType();
@@ -828,7 +835,8 @@ namespace Whorl
                             if (sourcePropInfo != null && Tools.TypesMatch(sourcePropInfo.PropertyType, elemType))
                             {
                                 object sourceElemParam = sourcePropInfo.GetValue(sourceParamsObj);
-                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, sourcePropInfo, targetParamsObj, targetArray, i);
+                                CopyCSharpParameter(sourceElemParam, targetElemParam, null, sourcePropInfo, 
+                                                    targetParamsObj, targetArray, i, parentPattern);
                                 handledPropertyNames.Add(sourcePropInfo.Name);
                             }
                         }
@@ -854,19 +862,22 @@ namespace Whorl
                         {
                             object sourceElemParam = sourceArray.GetValue(i);
                             object targetElemParam = targetArray.GetValue(i);
-                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, propInfo, targetParamsObj, targetArray, i);
+                            CopyCSharpParameter(sourceElemParam, targetElemParam, null, propInfo, targetParamsObj, 
+                                                targetArray, i, parentPattern);
                         }
                     }
                     else
                     {
-                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, propInfo, targetParamsObj);
+                        CopyCSharpParameter(sourceParam, targetParam, targetPropInfo, propInfo, targetParamsObj, 
+                                            parentPattern: parentPattern);
                     }
                 }
             }
         }
 
-        private void CopyCSharpParameter(object sourceParam, object targetParam, PropertyInfo targetPropInfo, PropertyInfo propertyInfo,
-                                         object targetParamsObj, Array paramArray = null, int index = 0)
+        private static void CopyCSharpParameter(object sourceParam, object targetParam, PropertyInfo targetPropInfo, 
+                                         PropertyInfo propertyInfo, object targetParamsObj, 
+                                         Array paramArray = null, int index = 0, Pattern parentPattern = null)
         {
             bool hasNestedParams = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             object sourceNestedParamsObj = null, targetNestedParamsObj = null;
@@ -877,7 +888,7 @@ namespace Whorl
                 if (iTargetOptionsParam != null)
                 {
                     iTargetOptionsParam.SelectedText = iOptionsParam.SelectedText;
-                    if (!ConfigureCSharpInfluenceParameter(targetParam))
+                    if (!ConfigureCSharpInfluenceParameter(targetParam, parentPattern))
                     {
                         object selOption = iTargetOptionsParam.GetOptionByText(iOptionsParam.SelectedText);
                         if (selOption != null)
@@ -902,29 +913,43 @@ namespace Whorl
             }
             else
             {
-                var rndParam = sourceParam as RandomParameter;
-                if (rndParam != null)
+                var compiledFuncParam = sourceParam as CompiledDoubleFuncParameter;
+                if (compiledFuncParam != null)
                 {
-                    var targetRndParam = targetParam as RandomParameter;
-                    if (targetRndParam != null)
+                    var targetFuncParam = targetParam as CompiledDoubleFuncParameter;
+                    if (targetFuncParam != null)
                     {
-                        foreach (PropertyInfo prpInfo in RandomRange.ParameterProperties)
-                        {
-                            prpInfo.SetValue(targetRndParam.RandomRange, prpInfo.GetValue(rndParam.RandomRange));
-                        }
+                        targetFuncParam.CompileFormula(compiledFuncParam.Formula, editOnError: false);
+                        sourceNestedParamsObj = compiledFuncParam.ParamsObject;
+                        targetNestedParamsObj = targetFuncParam.ParamsObject;
                     }
                 }
                 else
                 {
-                    if (paramArray != null)
-                        paramArray.SetValue(sourceParam, index);
-                    else if (targetPropInfo.CanWrite)
-                        targetPropInfo.SetValue(targetParamsObj, sourceParam);
+                    var rndParam = sourceParam as RandomParameter;
+                    if (rndParam != null)
+                    {
+                        var targetRndParam = targetParam as RandomParameter;
+                        if (targetRndParam != null)
+                        {
+                            foreach (PropertyInfo prpInfo in RandomRange.ParameterProperties)
+                            {
+                                prpInfo.SetValue(targetRndParam.RandomRange, prpInfo.GetValue(rndParam.RandomRange));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (paramArray != null)
+                            paramArray.SetValue(sourceParam, index);
+                        else if (targetPropInfo.CanWrite)
+                            targetPropInfo.SetValue(targetParamsObj, sourceParam);
+                    }
                 }
             }
             if (sourceNestedParamsObj != null && targetNestedParamsObj != null)
             {
-                CopyCSharpParameters(sourceNestedParamsObj, targetNestedParamsObj);
+                CopyCSharpParameters(sourceNestedParamsObj, targetNestedParamsObj, parentPattern);
             }
         }
 
@@ -1105,13 +1130,18 @@ namespace Whorl
 
         public bool ConfigureCSharpInfluenceParameter(object csharpParameter, bool setValue = true)
         {
+            return ConfigureCSharpInfluenceParameter(csharpParameter, ParentPattern, setValue);
+        }
+
+        public static bool ConfigureCSharpInfluenceParameter(object csharpParameter, Pattern parentPattern, bool setValue = true)
+        {
             var influenceParam = csharpParameter as OptionsParameter<InfluencePointInfo>;
             if (influenceParam != null)
             {
                 var items = new List<InfluencePointInfo>() { null };
-                if (ParentPattern != null)
+                if (parentPattern != null)
                 {
-                    items.AddRange(ParentPattern.InfluencePointInfoList.InfluencePointInfos);
+                    items.AddRange(parentPattern.InfluencePointInfoList.InfluencePointInfos);
                 }
                 influenceParam.SetOptions(items, setSelected: false);
                 if (setValue && influenceParam.SelectedText != null)
@@ -1308,8 +1338,14 @@ namespace Whorl
             }
             var iOptionsParam = oParam as IOptionsParameter;
             string sVal;
-            if (propInfo.PropertyType == typeof(string))
-                sVal = subNode.InnerText;
+            if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+            {
+                XmlNode valNode = subNode.ChildNodes.Cast<XmlNode>().FirstOrDefault(n => n.Name == "ValueString");
+                if (valNode != null)
+                    sVal = valNode.InnerText ?? string.Empty;
+                else
+                    throw new Exception("Didn't find ValueString XmlNode.");
+            }
             else
             {
                 var valueAttr = subNode.Attributes["Value"];
@@ -1329,12 +1365,20 @@ namespace Whorl
                         {
                             object prevVal = iOptionsParam.SelectedOptionObject;
                             iOptionsParam.SelectedOptionObject = iOptionsParam.GetOptionByText(sVal);
-                            if (infoAttr != null && infoAttr.UpdateParametersOnChange && !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
+                            if (infoAttr != null && infoAttr.UpdateParametersOnChange && 
+                                !object.Equals(iOptionsParam.SelectedOptionObject, prevVal))
+                            {
                                 updateParams = true;
+                            }
                         }
                     }
                     catch { }
                 }
+            }
+            else if (oParam is CompiledDoubleFuncParameter compiledFuncParam)
+            {
+                if (!string.IsNullOrEmpty(sVal))
+                    compiledFuncParam.CompileFormula(sVal, editOnError: false);
             }
             else if (!isNestedParams && !(oParam is RandomParameter))
             {
@@ -1357,19 +1401,18 @@ namespace Whorl
             {
                 if (oParam != null)
                 {
-                    if (subNode.FirstChild?.Name != "Parameters")
+                    XmlNode paramsNode = subNode.ChildNodes.Cast<XmlNode>().FirstOrDefault(n => n.Name == "Parameters");
+                    if (paramsNode == null)
                         throw new Exception("Expecting XmlNode named Parameters.");
-                    object nestedParamsObj = oParam;
-                    var fnParam = oParam as Func1Parameter<double>;
-                    if (fnParam != null)
-                    {
-                        if (fnParam.Instances != null)
-                            nestedParamsObj = fnParam.Instances.FirstOrDefault();
-                        else
-                            nestedParamsObj = null;
-                    }
+                    object nestedParamsObj;
+                    if (oParam is Func1Parameter<double> fnParam)
+                        nestedParamsObj = fnParam.Instances?.FirstOrDefault();
+                    else if (oParam is CompiledDoubleFuncParameter compiledFuncParam)
+                        nestedParamsObj = compiledFuncParam.ParamsObject;
+                    else
+                        nestedParamsObj = oParam;
                     if (nestedParamsObj != null)
-                        ParseCSharpParamsXml(subNode.FirstChild, paramsObj: nestedParamsObj);
+                        ParseCSharpParamsXml(paramsNode, paramsObj: nestedParamsObj);
                 }
             }
         }
@@ -1427,6 +1470,13 @@ namespace Whorl
                         nestedParamsObj = fnParam.Instances.FirstOrDefault();
                 }
             }
+            else if (paramValue is CompiledDoubleFuncParameter compiledFuncParam)
+            {
+                sValue = compiledFuncParam.Formula;
+                isNestedParams = compiledFuncParam.ParamsObject != null;
+                if (isNestedParams)
+                    nestedParamsObj = compiledFuncParam.ParamsObject;
+            }
             else if (isNestedParams)
             {
                 nestedParamsObj = paramValue;
@@ -1441,14 +1491,14 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
             if (sValue != null)
             {
-                if (propInfo.PropertyType == typeof(string))
-                    XmlTools.SetNodeValue(subNode, sValue);
+                if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+                    xmlTools.AppendChildNode(subNode, "ValueString", sValue);
                 else
                     xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
             }
             if  (index != -1)
                 xmlTools.AppendXmlAttribute(subNode, "Index", index);
-            if (isNestedParams)
+            if (isNestedParams && nestedParamsObj != null)
             {
                 xmlTools.AppendXmlAttribute(subNode, "NestedParameters", true);
                 AppendCSharpParametersToXml(subNode, xmlTools, paramsObject: nestedParamsObj);

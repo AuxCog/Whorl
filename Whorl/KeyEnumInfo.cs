@@ -66,7 +66,7 @@ namespace Whorl
             if (source.ParametersObject != null)
             {
                 ParametersObject = Parent.CreateParametersObject();
-                Parent.FormulaSettings.CopyCSharpParameters(source.ParametersObject, ParametersObject);
+                formulaSettings.CopyCSharpParameters(source.ParametersObject, ParametersObject);
             }
         }
 
@@ -80,7 +80,7 @@ namespace Whorl
                     if (keyParams.ParametersObject != null)
                     {
                         //Copy parameters from keyParams.
-                        Parent.FormulaSettings.CopyCSharpParameters(keyParams.ParametersObject, ParametersObject);
+                       Parent.FormulaSettings.CopyCSharpParameters(keyParams.ParametersObject, ParametersObject);
                     }
                 }
             }

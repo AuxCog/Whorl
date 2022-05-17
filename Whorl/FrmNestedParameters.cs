@@ -45,12 +45,20 @@ namespace Whorl
                         label += $"[{index + 1}]";
                     }
                     var fnParam = propertyVal as Func1Parameter<double>;
-                    if (fnParam == null)
-                        paramsObj = propertyVal;
-                    else if (fnParam.Instances != null)
-                        paramsObj = fnParam.Instances.FirstOrDefault();
+                    if (fnParam != null)
+                    {
+                        paramsObj = fnParam.Instances?.FirstOrDefault();
+                    }
                     else
-                        paramsObj = null;
+                    {
+                        var compiledFnParam = propertyVal as CompiledDoubleFuncParameter;
+                        if (compiledFnParam != null)
+                        {
+                            paramsObj = compiledFnParam.ParamsObject;
+                        }
+                        else
+                            paramsObj = propertyVal;
+                    }
                 }
                 if (paramsObj == null)
                     throw new Exception("Target parameters object cannot be null.");

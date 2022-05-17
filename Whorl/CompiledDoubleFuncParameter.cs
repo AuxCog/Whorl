@@ -59,7 +59,7 @@ using Whorl;
             return CompileFormula(newFormula);
         }
 
-        public bool CompileFormula(string formula)
+        public bool CompileFormula(string formula, bool editOnError = true)
         {
             while (true)
             {
@@ -70,6 +70,8 @@ using Whorl;
                     Formula = formula;
                     break;  //Successful compile.
                 }
+                if (!editOnError)
+                    return false;
                 string newFormula = EditFormulaHelper(errorList, $"Errors for function {FunctionName}");
                 if (newFormula == null)
                     return false; //User canceled.
@@ -111,11 +113,16 @@ using Whorl;
             {
                 var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
                 var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
-                evalInstance.SetParametersObject();
+                classInstance = evalInstance.ClassInstance;
+                object sourceParams = ParamsObject;
+                evalInstance.GetParametersObject();
                 if (evalInstance.ParamsObj == null)
                     throw new Exception("Didn't find parameters object.");
-                classInstance = evalInstance.ClassInstance;
                 ParamsObject = evalInstance.ParamsObj;
+                if (sourceParams != null)
+                {
+                    FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
+                }
             }
             var bindingFlags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
             var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, bindingFlags);
@@ -178,7 +185,7 @@ using Whorl;
                 if (frm.ShowDialog() != DialogResult.OK)
                     return null;
                 else
-                    return frm.Text;
+                    return frm.EditedText;
             }
         }
     }

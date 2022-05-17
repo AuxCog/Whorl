@@ -76,11 +76,20 @@ namespace Whorl
                 CSharpSharedCompiledInfo.InfoPropertyInfo.SetValue(ClassInstance, info);
             }
 
-            public void SetParametersObject()
+            public void GetParametersObject()
             {
                 if (ClassInstance != null && CSharpSharedCompiledInfo.ParametersPropertyInfo != null)
                     ParamsObj = CSharpSharedCompiledInfo.ParametersPropertyInfo.GetValue(ClassInstance);
             }
+
+            //public void SetParametersObject(object oParams)
+            //{
+            //    if (ClassInstance != null && CSharpSharedCompiledInfo.ParametersPropertyInfo != null)
+            //    {
+            //        CSharpSharedCompiledInfo.ParametersPropertyInfo.SetValue(ClassInstance, oParams);
+            //        ParamsObj = oParams;
+            //    }
+            //}
 
             public bool UpdateParameters()
             {
