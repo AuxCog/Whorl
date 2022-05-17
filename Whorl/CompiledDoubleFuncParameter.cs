@@ -89,7 +89,7 @@ using Whorl;
 
         public string GetCSharpCode()
         {
-            return GetClassCode(Formula, isStatic: ParamsClassCodeFilePath == null);
+            return GetClassCode(Formula);
         }
 
         private string CompileFormulaHelper(string formula)
@@ -108,61 +108,54 @@ using Whorl;
             {
                 formula += ";";
             }
-            bool isStatic = ParamsClassCodeFilePath == null;
-            string code = GetClassCode(formula, isStatic);
+            string code = GetClassCode(formula);
             var sharedCompiledInfo = CSharpCompiler.Instance.CompileFunctionFormula(code);
             if (sharedCompiledInfo.Errors.Count != 0)
             {
                 return sharedCompiledInfo.ErrorsText;
             }
-            if (isStatic)
-                classInstance = null;
-            else
+            var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
+            var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
+            classInstance = evalInstance.ClassInstance;
+            object sourceParams = ParamsObject;
+            evalInstance.GetParametersObject();
+            if (evalInstance.ParamsObj == null)
+                throw new Exception("Didn't find parameters object.");
+            ParamsObject = evalInstance.ParamsObj;
+            if (sourceParams != null)
             {
-                var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
-                var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
-                classInstance = evalInstance.ClassInstance;
-                object sourceParams = ParamsObject;
-                evalInstance.GetParametersObject();
-                if (evalInstance.ParamsObj == null)
-                    throw new Exception("Didn't find parameters object.");
-                ParamsObject = evalInstance.ParamsObj;
-                if (sourceParams != null)
-                {
-                    FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
-                }
-                renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
+                FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
             }
-            var bindingFlags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
-            var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, bindingFlags);
+            renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
+            var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, BindingFlags.Public | BindingFlags.Instance);
             if (methodInfo == null)
                 throw new Exception($"Couldn't retrieve method for function {FunctionName}.");
             Function = (Func<double, double>)Delegate.CreateDelegate(typeof(Func<double, double>), classInstance, methodInfo);
             return null;
         }
 
-        private string GetClassCode(string formula, bool isStatic)
+        private string GetClassCode(string formula)
         {
             var docF = new DocumentFormatter();
             var sb = new StringBuilder();
-            string staticText = isStatic ? "static " : string.Empty;
 
             docF.AppendLine(sb, usingStatements);
             docF.AppendLine(sb, $"namespace {CSharpSharedCompiledInfo.WhorlEvalNamespace}");
             docF.OpenBrace(sb);
-            docF.AppendLine(sb, $"public {staticText}class {CSharpSharedCompiledInfo.WhorlEvalClassName}");
+            docF.AppendLine(sb, $"public class {CSharpSharedCompiledInfo.WhorlEvalClassName}");
             docF.OpenBrace(sb);
 
-            if (!isStatic && ParamsClassCodeFilePath != null)
+            if (ParamsClassCodeFilePath != null)
             {
                 string paramsClassCode = GetParamsClassCode();
                 string paramsClassName = Path.GetFileNameWithoutExtension(ParamsClassCodeFilePath);
                 docF.AppendLine(sb, paramsClassCode);
                 docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
-                docF.AppendLine(sb, "public RenderingValues Info { get; set; }");
             }
 
-            docF.AppendLine(sb, $"public {staticText}double {FunctionName}(double x)");
+            docF.AppendLine(sb, "public RenderingValues Info { get; set; }");
+
+            docF.AppendLine(sb, $"public double {FunctionName}(double x)");
             docF.OpenBrace(sb);
             docF.AppendLine(sb, formula);
             docF.CloseBrace(sb);

@@ -894,16 +894,25 @@ namespace Whorl
                         if (selOption != null)
                             iTargetOptionsParam.SelectedOptionObject = selOption;
                     }
-                }
-                if (hasNestedParams)
-                {
-                    var sourceInstances = iOptionsParam.GetInstances();
-                    var targetInstances = iTargetOptionsParam.GetInstances();
-                    if (sourceInstances != null && targetInstances != null)
+                    if (hasNestedParams)
                     {
-                        sourceNestedParamsObj = sourceInstances.FirstOrDefault();
-                        targetNestedParamsObj = targetInstances.FirstOrDefault();
+                        var sourceInstances = iOptionsParam.GetInstances();
+                        var targetInstances = iTargetOptionsParam.GetInstances();
+                        if (sourceInstances != null && targetInstances != null)
+                        {
+                            sourceNestedParamsObj = sourceInstances.FirstOrDefault();
+                            targetNestedParamsObj = targetInstances.FirstOrDefault();
+                        }
                     }
+                }
+            }
+            else if (sourceParam is CompiledDoubleFuncParameter compiledFuncParam)
+            {
+                if (targetParam is CompiledDoubleFuncParameter targetFuncParam)
+                {
+                    targetFuncParam.CompileFormula(compiledFuncParam.Formula, editOnError: false);
+                    sourceNestedParamsObj = compiledFuncParam.ParamsObject;
+                    targetNestedParamsObj = targetFuncParam.ParamsObject;
                 }
             }
             else if (hasNestedParams)
@@ -913,38 +922,24 @@ namespace Whorl
             }
             else
             {
-                var compiledFuncParam = sourceParam as CompiledDoubleFuncParameter;
-                if (compiledFuncParam != null)
+                var rndParam = sourceParam as RandomParameter;
+                if (rndParam != null)
                 {
-                    var targetFuncParam = targetParam as CompiledDoubleFuncParameter;
-                    if (targetFuncParam != null)
+                    var targetRndParam = targetParam as RandomParameter;
+                    if (targetRndParam != null)
                     {
-                        targetFuncParam.CompileFormula(compiledFuncParam.Formula, editOnError: false);
-                        sourceNestedParamsObj = compiledFuncParam.ParamsObject;
-                        targetNestedParamsObj = targetFuncParam.ParamsObject;
+                        foreach (PropertyInfo prpInfo in RandomRange.ParameterProperties)
+                        {
+                            prpInfo.SetValue(targetRndParam.RandomRange, prpInfo.GetValue(rndParam.RandomRange));
+                        }
                     }
                 }
                 else
                 {
-                    var rndParam = sourceParam as RandomParameter;
-                    if (rndParam != null)
-                    {
-                        var targetRndParam = targetParam as RandomParameter;
-                        if (targetRndParam != null)
-                        {
-                            foreach (PropertyInfo prpInfo in RandomRange.ParameterProperties)
-                            {
-                                prpInfo.SetValue(targetRndParam.RandomRange, prpInfo.GetValue(rndParam.RandomRange));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (paramArray != null)
-                            paramArray.SetValue(sourceParam, index);
-                        else if (targetPropInfo.CanWrite)
-                            targetPropInfo.SetValue(targetParamsObj, sourceParam);
-                    }
+                    if (paramArray != null)
+                        paramArray.SetValue(sourceParam, index);
+                    else if (targetPropInfo.CanWrite)
+                        targetPropInfo.SetValue(targetParamsObj, sourceParam);
                 }
             }
             if (sourceNestedParamsObj != null && targetNestedParamsObj != null)
