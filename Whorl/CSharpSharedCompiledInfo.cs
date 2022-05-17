@@ -87,12 +87,20 @@ namespace Whorl
             Errors.Add(new ErrorInfo(message, errorType: ErrorType.Warning));
         }
 
-        public static bool ParamPropInfoIsValid(PropertyInfo propInfo, bool allowAllParams = true)
+        public static bool ParamPropInfoIsValid(PropertyInfo propInfo, bool allowAllParams = true, 
+                                                bool isDisplayed = true)
         {
-            return propInfo.CanRead &&
+            bool isValid = propInfo.CanRead &&
                    ((ParamTypeIsScalar(propInfo.PropertyType) && propInfo.CanWrite) ||
                      ParamTypeIsNonScalar(propInfo.PropertyType) ||
                      (allowAllParams && ParamPropIsNestedParams(propInfo)));
+            if (isValid && isDisplayed)
+            {
+                var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                if (attr != null && !attr.IsDisplayed)
+                    isValid = false;
+            }
+            return isValid;
         }
 
         public static bool ParamPropIsNestedParams(PropertyInfo propInfo)
@@ -115,8 +123,9 @@ namespace Whorl
         {
             if (paramType.IsArray)
                 paramType = paramType.GetElementType();
-            return typeof(IOptionsParameter).IsAssignableFrom(paramType) ||
-                   paramType == typeof(RandomParameter);
+            return typeof(BaseCSharpParameter).IsAssignableFrom(paramType);
+            //return typeof(IOptionsParameter).IsAssignableFrom(paramType) ||
+            //       paramType == typeof(RandomParameter);
         }
 
         private void ValidateParameters(Type paramsObjType)
@@ -129,7 +138,7 @@ namespace Whorl
                     if (!propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string))
                         AddWarning($"Parameter {propertyInfo.Name} must be read/write.");
                 }
-                if (!ParamPropInfoIsValid(propertyInfo))
+                if (!ParamPropInfoIsValid(propertyInfo, isDisplayed: false))
                     AddWarning($"Parameter {propertyInfo.Name} is of invalid type or is read-only.");
                 var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
                 if (attr != null && attr.UpdateParametersOnChange)

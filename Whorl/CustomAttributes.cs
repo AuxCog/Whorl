@@ -48,6 +48,7 @@ namespace Whorl
         }
         public bool UpdateParametersOnChange { get; set; }
         public bool Enabled { get; set; } = true;
+        public bool IsDisplayed { get; set; } = true;
     }
 
     public class NestedParametersAttribute : Attribute

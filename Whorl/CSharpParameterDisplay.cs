@@ -177,7 +177,8 @@ namespace Whorl
                     return;
                 int parameterIndex = 0;
                 AddActionComboBox(ref parameterIndex);
-                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties(
+                                                      BindingFlags.Public | BindingFlags.Instance)
                          .Where(pi => CSharpSharedCompiledInfo.ParamPropInfoIsValid(pi)))
                 {
                     object oParam = propertyInfo.GetValue(ParametersObject);
@@ -281,6 +282,7 @@ namespace Whorl
             Control ctl;
             ComboBox cbo = null;
             LinkLabel lnkInfluence = null;
+            LinkLabel lnkEditFunctionFormula = null;
             LinkLabel lnkEditFunctionParams = null;
             bool useLabel = true;
             //TextBox customTextBox = null;
@@ -292,22 +294,39 @@ namespace Whorl
             object origTag = controlTag;
             bool isNestedParamsParam = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             string selectedItem = null;
-            var iOptionsParam = oParam as IOptionsParameter;
-            if (iOptionsParam != null)
+            if (oParam is BaseCSharpParameter)
             {
-                if (arrayInfo == null)
-                    controlTag = new OptionsParamInfo(iOptionsParam, propertyInfo);
-                cbo = new ComboBox();
-                cbo.DropDownStyle = ComboBoxStyle.DropDownList;
-                cbo.DataSource = iOptionsParam.OptionTexts;
-                cbo.Width = comboboxWidth;
-                selectedItem = iOptionsParam.SelectedText;
-                ctl = cbo;
-                var fnParam = oParam as Func1Parameter<double>;
-                if (fnParam?.Instances != null && fnParam.Instances.Length > 0)
+                var iOptionsParam = oParam as IOptionsParameter;
+                if (iOptionsParam != null)
                 {
-                    lnkEditFunctionParams = CreateLinkLabel("Edit...", origTag);
-                    lnkEditFunctionParams.Click += LnkEditNestedParams_Click;
+                    if (arrayInfo == null)
+                        controlTag = new OptionsParamInfo(iOptionsParam, propertyInfo);
+                    cbo = new ComboBox();
+                    cbo.DropDownStyle = ComboBoxStyle.DropDownList;
+                    cbo.DataSource = iOptionsParam.OptionTexts;
+                    cbo.Width = comboboxWidth;
+                    selectedItem = iOptionsParam.SelectedText;
+                    ctl = cbo;
+                    var fnParam = oParam as Func1Parameter<double>;
+                    if (fnParam?.Instances != null && fnParam.Instances.Length > 0)
+                    {
+                        lnkEditFunctionParams = CreateLinkLabel("Edit...", origTag);
+                        lnkEditFunctionParams.Click += LnkEditNestedParams_Click;
+                    }
+                }
+                else
+                {
+                    var compiledFuncParam = oParam as CompiledDoubleFuncParameter;
+                    if (compiledFuncParam != null)
+                    {
+                        lnkEditFunctionFormula = CreateLinkLabel("Formula...", compiledFuncParam);
+                        lnkEditFunctionFormula.Click += LnkEditFunctionFormula_Click;
+                        ctl = lnkEditFunctionFormula;
+                        lnkEditFunctionParams = CreateLinkLabel("Edit...", origTag);
+                        lnkEditFunctionParams.Click += LnkEditNestedParams_Click;
+                    }
+                    else
+                        return;
                 }
             }
             else if (oParam is bool)
@@ -392,28 +411,53 @@ namespace Whorl
             lnk.Width = TextRenderer.MeasureText(text, lnk.Font).Width;
             return lnk;
         }
-
         private FrmNestedParameters frmNestedParameters { get; set; }
+
+        private PropertyInfo GetLinkLabelInfo(object sender, out int index)
+        {
+            var linkLabel = (LinkLabel)sender;
+            var propertyInfo = linkLabel.Tag as PropertyInfo;
+            if (propertyInfo == null)
+            {
+                var arrayInfo = linkLabel.Tag as ArrayInfo;
+                if (arrayInfo == null)
+                    throw new Exception("Invalid nested params link tag.");
+                propertyInfo = arrayInfo.PropertyInfo;
+                index = arrayInfo.Index;
+            }
+            else
+                index = -1;
+            return propertyInfo;
+        }
 
         private void LnkEditNestedParams_Click(object sender, EventArgs e)
         {
             try
             {
-                var linkLabel = (LinkLabel)sender;
-                var propertyInfo = linkLabel.Tag as PropertyInfo;
-                int index = -1;
-                if (propertyInfo == null)
-                {
-                    var arrayInfo = linkLabel.Tag as ArrayInfo;
-                    if (arrayInfo == null)
-                        throw new Exception("Invalid nested params link tag.");
-                    propertyInfo = arrayInfo.PropertyInfo;
-                    index = arrayInfo.Index;
-                }
+                var propertyInfo = GetLinkLabelInfo(sender, out int index);
                 if (frmNestedParameters == null || frmNestedParameters.IsDisposed)
                     frmNestedParameters = new FrmNestedParameters();
                 frmNestedParameters.Initialize(propertyInfo, FormulaSettings, ParamChangedFn, index);
                 Tools.DisplayForm(frmNestedParameters);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void LnkEditFunctionFormula_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var linkLabel = (LinkLabel)sender;
+                var compiledFuncParam = linkLabel.Tag as CompiledDoubleFuncParameter;
+                if (compiledFuncParam == null)
+                    throw new Exception("Invalid tag for link label.");
+                if (compiledFuncParam.EditFormula())
+                {
+                    OnParameterChanged(compiledFuncParam, propertyInfo: null);
+                }
             }
             catch (Exception ex)
             {
@@ -473,7 +517,7 @@ namespace Whorl
         {
             if (handleEvents)
             {
-                var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                var attr = propertyInfo?.GetCustomAttribute<ParameterInfoAttribute>();
                 bool updateParams = attr != null && attr.UpdateParametersOnChange;
                 if (updateParams)
                 {

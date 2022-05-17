@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Whorl
 {
-    public class CompiledDoubleFuncParameter
+    public class CompiledDoubleFuncParameter: BaseCSharpParameter
     {
         private const string usingStatements =
 @"using ParserEngine;
@@ -21,25 +21,34 @@ using Whorl;
         public string NewFormula { get; private set; }
         public Func<double, double> Function { get; private set; }
         public object ParamsObject { get; private set; }
-        public string ParamsClassCodeFileName { get; }
+        public string ParamsClassCodeFilePath { get; }
         public string ParamsClassName { get; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
 
-        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName = null, 
-                                           string formula = "return x;")
+        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFilePath = null)
         {
             tokenizer = new Tokenizer(forCSharp: true, addOperators: true);
             FunctionName = functionName;
-            ParamsClassCodeFileName = paramsClassCodeFileName;
-            if (paramsClassCodeFileName != null)
+            if (paramsClassCodeFilePath != null)
             {
-                if (!File.Exists(paramsClassCodeFileName))
-                    throw new Exception($"The file {paramsClassCodeFileName} was not found.");
-                ParamsClassName = Path.GetFileNameWithoutExtension(paramsClassCodeFileName);
+                ParamsClassCodeFilePath = paramsClassCodeFilePath;
+                if (!File.Exists(paramsClassCodeFilePath))
+                    throw new Exception($"The file {paramsClassCodeFilePath} was not found.");
+                ParamsClassName = Path.GetFileNameWithoutExtension(paramsClassCodeFilePath);
             }
-            if (formula != null)
-                CompileFormula(formula);
+            Function = DefaultFunction;
+        }
+
+        public static string GetParamFilePath(string paramsClassCodeFileName)
+        {
+            return Path.Combine(WhorlSettings.Instance.FilesFolder,
+                                WhorlSettings.IncludeFilesFolder, paramsClassCodeFileName);
+        }
+
+        private double DefaultFunction(double x)
+        {
+            return x;
         }
 
         public bool EditFormula()
@@ -71,7 +80,7 @@ using Whorl;
 
         public string GetCSharpCode()
         {
-            return GetClassCode(Formula, isStatic: ParamsClassCodeFileName == null);
+            return GetClassCode(Formula, isStatic: ParamsClassCodeFilePath == null);
         }
 
         private string CompileFormulaHelper(string formula)
@@ -90,7 +99,7 @@ using Whorl;
             {
                 formula += ";";
             }
-            bool isStatic = ParamsClassCodeFileName == null;
+            bool isStatic = ParamsClassCodeFilePath == null;
             string code = GetClassCode(formula, isStatic);
             var sharedCompiledInfo = CSharpCompiler.Instance.CompileFunctionFormula(code);
             if (sharedCompiledInfo.Errors.Count != 0)
@@ -128,9 +137,9 @@ using Whorl;
             docF.AppendLine(sb, $"public {staticText}class {CSharpSharedCompiledInfo.WhorlEvalClassName}");
             docF.OpenBrace(sb);
 
-            if (!isStatic && ParamsClassCodeFileName != null)
+            if (!isStatic && ParamsClassCodeFilePath != null)
             {
-                string paramsClassCode = File.ReadAllText(ParamsClassCodeFileName);
+                string paramsClassCode = GetParamsClassCode();
                 docF.AppendLine(sb, paramsClassCode);
                 docF.AppendLine(sb, $"public {ParamsClassName} Parms {{ get; }} = new {ParamsClassName}();");
             }
@@ -145,6 +154,11 @@ using Whorl;
             return sb.ToString();
         }
 
+        public string GetParamsClassCode()
+        {
+            return File.ReadAllText(ParamsClassCodeFilePath);
+        }
+
         private string EditFormulaHelper(string errorList = null, string formTitle = null)
         {
             using (var frm = new frmTextEditor())
@@ -152,6 +166,8 @@ using Whorl;
                 if (formTitle != null)
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
+                if (ParamsClassCodeFilePath != null)
+                    frm.AddRelatedText(GetParamsClassCode(), "Parameters Class C# Code");
                 if (errorList != null)
                 {
                     frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");

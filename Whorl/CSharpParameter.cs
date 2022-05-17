@@ -8,25 +8,9 @@ using System.Threading.Tasks;
 
 namespace Whorl
 {
-    //public class ScalarParameter<T> where T: struct
-    //{
-    //    public T Value { get; set; }
-
-    //    public ScalarParameter()
-    //    {
-    //    }
-
-    //    public ScalarParameter(T defaultValue)
-    //    {
-    //        Value = defaultValue;
-    //    }
-    //}
-
-    //public class DoubleParameter: ScalarParameter<double>
-    //{
-    //    public DoubleParameter(double defaultValue = 0): base(defaultValue)
-    //    { }
-    //}
+    public abstract class BaseCSharpParameter
+    {
+    }
 
     public interface IOptionsParameter
     {
@@ -54,7 +38,7 @@ namespace Whorl
         }
     }
 
-    public abstract class BaseOptionsParameter<TValue>: IOptionsParameter
+    public abstract class BaseOptionsParameter<TValue>: BaseCSharpParameter, IOptionsParameter
     {
         public List<ParamOption<TValue>> Options { get; protected set; }
 
@@ -439,7 +423,7 @@ namespace Whorl
 
     }
 
-    public class RandomParameter
+    public class RandomParameter: BaseCSharpParameter
     {
         public double Value { get; set; }
         public RandomRange RandomRange { get; } = new RandomRange();

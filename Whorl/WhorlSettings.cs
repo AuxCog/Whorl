@@ -13,6 +13,8 @@ namespace Whorl
     {
         public const string TexturesFolder = "Textures";
         public const string AllTexturesFolder = "AllTextures";
+        public const string IncludeFilesFolder = "IncludeFiles";
+
         public static WhorlSettings Instance { get; } = new WhorlSettings();
 
         private WhorlSettings()
