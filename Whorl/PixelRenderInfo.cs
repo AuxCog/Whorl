@@ -220,6 +220,14 @@ namespace Whorl
                         func.SetRenderingValues(renderingValues);
                     }
                 }
+                else if (propInfo.PropertyType == typeof(DoubleFuncParameter))
+                {
+                    var func = propInfo.GetValue(paramsObj) as DoubleFuncParameter;
+                    if (func?.FuncLibrary != null)
+                    {
+                        func.FuncLibrary.Info = renderingValues;
+                    }
+                }
             }
         }
     }

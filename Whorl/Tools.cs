@@ -493,9 +493,9 @@ namespace Whorl
             return (color.R + color.G + color.B > 300);
         }
 
-        public static double SCurveFactor(double x, double limit, double slope = 1.0, bool isMaxLimit = false)
+        public static double SCurveFactor(double x, double limit, double slope = 1.0, bool isMax = false)
         {
-            if (isMaxLimit)
+            if (isMax)
                 slope = -slope;
             return 0.5 * (1.0 + Math.Tanh(slope * (x - limit)));
         }

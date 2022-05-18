@@ -288,6 +288,7 @@
     <Compile Include="InitialSetup.cs" />
     <Compile Include="IntColor.cs" />
     <Compile Include="IRenderCaller.cs" />
+    <Compile Include="IRenderingValues.cs" />
     <Compile Include="JoinedPatterns.cs" />
     <Compile Include="KeyEnumInfo.cs" />
     <Compile Include="MemberItemInfo.cs" />

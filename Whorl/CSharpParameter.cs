@@ -326,27 +326,27 @@ namespace Whorl
 
     public class DoubleFuncParameter: Func1Parameter<double>
     {
-        private DoubleFuncLibrary funcLibrary { get; }
+        public DoubleFuncLibrary FuncLibrary { get; }
 
         public DoubleFuncParameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
                                    bool addDefaultMethodTypes = true)
                                    : base(defaultFunctionName, methodType, mathFunctionType, instances, addDefaultMethodTypes)
         {
             if (instances != null)
-                funcLibrary = instances.Select(o => o as DoubleFuncLibrary).FirstOrDefault(o => o != null);
+                FuncLibrary = instances.Select(o => o as DoubleFuncLibrary).FirstOrDefault(o => o != null);
         }
 
         protected override void SelectedOptionChanged()
         {
             if (SelectedOption == null) return;
             bool isSet = false;
-            if (funcLibrary != null)
+            if (FuncLibrary != null)
             {
                 if (!Instances.SelectMany(o => GetValidMethods(o.GetType(), forInstance: true))
                                          .Any(m => m.Name == SelectedText))
                 {
-                    funcLibrary.SetBaseFunction(SelectedOption.Value);
-                    Function = funcLibrary.DefaultFunction;
+                    FuncLibrary.SetBaseFunction(SelectedOption.Value);
+                    Function = FuncLibrary.DefaultFunction;
                     isSet = true;
                 }
             }

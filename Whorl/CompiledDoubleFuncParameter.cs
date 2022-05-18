@@ -24,7 +24,7 @@ using Whorl;
         public string ParamsClassCodeFilePath { get; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
-        private PropertyInfo renderingValuesPropertyInfo { get; set; }
+        //private PropertyInfo renderingValuesPropertyInfo { get; set; }
         private object classInstance { get; set; }
 
         public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName = null)
@@ -52,10 +52,14 @@ using Whorl;
 
         public void SetRenderingValues(RenderingValues renderingValues)
         {
-            if (renderingValuesPropertyInfo != null)
+            if (classInstance == null) return;
+            var iRendering = classInstance as IRenderingValues;
+            if (iRendering != null)
             {
-                renderingValuesPropertyInfo.SetValue(classInstance, renderingValues);
+                iRendering.Info = renderingValues;
             }
+            else
+                throw new Exception("Class instance doesn't implement IRenderingValues.");
         }
 
         public bool EditFormula()
@@ -126,7 +130,7 @@ using Whorl;
             {
                 FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
             }
-            renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
+            //renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
             var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, BindingFlags.Public | BindingFlags.Instance);
             if (methodInfo == null)
                 throw new Exception($"Couldn't retrieve method for function {FunctionName}.");
@@ -142,7 +146,7 @@ using Whorl;
             docF.AppendLine(sb, usingStatements);
             docF.AppendLine(sb, $"namespace {CSharpSharedCompiledInfo.WhorlEvalNamespace}");
             docF.OpenBrace(sb);
-            docF.AppendLine(sb, $"public class {CSharpSharedCompiledInfo.WhorlEvalClassName}");
+            docF.AppendLine(sb, $"public class {CSharpSharedCompiledInfo.WhorlEvalClassName}: IRenderingValues");
             docF.OpenBrace(sb);
 
             if (ParamsClassCodeFilePath != null)

@@ -99,13 +99,13 @@ namespace Whorl
                 return true;
             }
 
-            public IEnumerable<PropertyInfo> GetParameterPropertyInfos(bool allowAllParams = true)
+            public IEnumerable<PropertyInfo> GetDisplayedParameters(bool allowAllParams = true)
             {
                 if (ParamsObj == null)
                     return null;
                 else
                     return ParamsObj.GetType().GetProperties()
-                                    .Where(pi => CSharpSharedCompiledInfo.ParamPropInfoIsValid(pi, allowAllParams));
+                                    .Where(pi => CSharpSharedCompiledInfo.ParameterIsDisplayed(pi, allowAllParams));
             }
 
             public List<ParamInfo> GetParamInfos()
@@ -113,7 +113,7 @@ namespace Whorl
                 var keys = new List<ParamInfo>();
                 if (ParamsObj != null)
                 {
-                    foreach (var propertyInfo in GetParameterPropertyInfos(allowAllParams: false))
+                    foreach (var propertyInfo in GetDisplayedParameters(allowAllParams: false))
                     {
                         if (propertyInfo.PropertyType.IsArray)
                         {

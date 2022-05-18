@@ -87,20 +87,28 @@ namespace Whorl
             Errors.Add(new ErrorInfo(message, errorType: ErrorType.Warning));
         }
 
-        public static bool ParamPropInfoIsValid(PropertyInfo propInfo, bool allowAllParams = true, 
-                                                bool isDisplayed = true)
+        public static bool PropertyIsParameter(PropertyInfo propInfo)
         {
-            bool isValid = propInfo.CanRead &&
-                   ((ParamTypeIsScalar(propInfo.PropertyType) && propInfo.CanWrite) ||
-                     ParamTypeIsNonScalar(propInfo.PropertyType) ||
-                     (allowAllParams && ParamPropIsNestedParams(propInfo)));
-            if (isValid && isDisplayed)
-            {
-                var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
-                if (attr != null && !attr.IsDisplayed)
-                    isValid = false;
-            }
-            return isValid;
+            var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+            return attr == null || attr.IsParameter;
+        }
+
+        public static bool ParameterIsDisplayed(PropertyInfo propInfo, bool allowAllParams = true)
+        {
+            if (!ParamPropInfoIsValid(propInfo))
+                return false;
+            if (!allowAllParams && ParamPropIsNestedParams(propInfo))
+                return false;
+            var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+            return attr == null || (attr.IsDisplayed && attr.IsParameter);
+        }
+
+        public static bool ParamPropInfoIsValid(PropertyInfo propInfo)
+        {
+            return propInfo.CanRead &&
+                   (ParamTypeIsNonScalar(propInfo.PropertyType) ||
+                   (ParamTypeIsScalar(propInfo.PropertyType) && propInfo.CanWrite) ||
+                    ParamPropIsNestedParams(propInfo));
         }
 
         public static bool ParamPropIsNestedParams(PropertyInfo propInfo)
@@ -133,14 +141,16 @@ namespace Whorl
             bool requiresUpdateMethod = false;
             foreach (PropertyInfo propertyInfo in paramsObjType.GetProperties())
             {
-                if (!(propertyInfo.CanWrite && propertyInfo.CanRead))
-                {
-                    if (!propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string))
-                        AddWarning($"Parameter {propertyInfo.Name} must be read/write.");
-                }
-                if (!ParamPropInfoIsValid(propertyInfo, isDisplayed: false))
-                    AddWarning($"Parameter {propertyInfo.Name} is of invalid type or is read-only.");
                 var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                if (attr != null && !attr.IsParameter)
+                    continue;
+                if (!(propertyInfo.CanWrite && propertyInfo.CanRead) && 
+                     (!propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string)))
+                {
+                    AddWarning($"Parameter {propertyInfo.Name} must be read/write.");
+                }
+                else if (!ParamPropInfoIsValid(propertyInfo))
+                    AddWarning($"Parameter {propertyInfo.Name} is of invalid type or is read-only.");
                 if (attr != null && attr.UpdateParametersOnChange)
                     requiresUpdateMethod = true;
             }

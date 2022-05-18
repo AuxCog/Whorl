@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Whorl
 {
-    public class DoubleFuncLibrary
+    public class DoubleFuncLibrary: IRenderingValues
     {
         public double XWeight { get; protected set; } = 1.0;
         public double XOffset { get; protected set; }
@@ -14,6 +14,9 @@ namespace Whorl
         public double YWeight { get; protected set; } = 1.0;
         public double XtoInvOff { get; protected set; } = 0.001;
         public bool TakeAbsX { get; protected set; }
+        
+        [ParameterInfo(IsParameter = false)]
+        public RenderingValues Info { get; set; }
 
         private Func<double, double> baseFunction { get; set; }
 
