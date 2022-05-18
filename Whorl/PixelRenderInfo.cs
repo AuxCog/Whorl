@@ -163,6 +163,13 @@ namespace Whorl
                 return parent.SeedPattern.ComputeSeedPoint(angle);
         }
 
+        public InfluencePointInfo[] GetInfluencePoints()
+        {
+            if (parent.ParentPattern.InfluencePointInfoList == null)
+                return new InfluencePointInfo[] { };
+            return parent.ParentPattern.InfluencePointInfoList.InfluencePointInfos.ToArray();
+        }
+
         public InfluencePointInfo[] GetInfluencePoints(object enumVal)
         {
             if (parent.ParentPattern.InfluencePointInfoList == null)
