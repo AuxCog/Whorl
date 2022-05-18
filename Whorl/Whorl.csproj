@@ -130,6 +130,7 @@
       <DependentUpon>DesignLayersForm.cs</DependentUpon>
     </Compile>
     <Compile Include="DistanceSquare.cs" />
+    <Compile Include="DoubleFuncLibraryExt.cs" />
     <Compile Include="DrawDesign.cs" />
     <Compile Include="DrawnPoint.cs" />
     <Compile Include="FillInfo.cs" />

@@ -49,5 +49,6 @@ namespace Whorl
             x = AdjustX(x);
             return YWeight * Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x))) + YOffset;
         }
+
     }
 }
