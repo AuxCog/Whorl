@@ -493,6 +493,13 @@ namespace Whorl
             return (color.R + color.G + color.B > 300);
         }
 
+        public static double SCurveFactor(double x, double limit, double slope = 1.0, bool isMaxLimit = false)
+        {
+            if (isMaxLimit)
+                slope = -slope;
+            return 0.5 * (1.0 + Math.Tanh(slope * (x - limit)));
+        }
+        
         public static float Interpolate(float n1, float n2, float factor)
         {
             return n1 + factor * (n2 - n1);
