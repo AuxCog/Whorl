@@ -2051,12 +2051,8 @@ $@"public void {methodName}()
             while (true)
             {
                 Token tok = GetToken(tokInd);
-                if (tok.TokenType != Token.TokenTypes.Identifier)
-                {
-                    isType = false;
-                    break;
-                }
-                else if (tok.Text == "enum" || tok.Text == "new")
+                if (tok.TokenType != Token.TokenTypes.Identifier ||
+                    tok.Text == "enum" || tok.Text == "new")
                 {
                     isType = false;
                     break;
@@ -2117,9 +2113,10 @@ $@"public void {methodName}()
                     AddError(token, $"Expecting '=' after {reservedWord}.");
                     return null;
                 }
-                token = GetToken(++tokenIndex);
+                tokenIndex++;
                 if (reservedWord == ReservedWords.ParametersFile)
                 {
+                    token = GetToken(tokenIndex);
                     if (token.TokenType != Token.TokenTypes.String)
                     {
                         AddError(token, "Expecting quoted file name after ParametersFile = .");
@@ -2132,17 +2129,17 @@ $@"public void {methodName}()
                         AddError(token, $"Parameters File not found: {filePath}.");
                         return null;
                     }
+                    tokenIndex++;
                 }
                 else //if (reservedWord == ReservedWords.ParametersClass)
                 {
-                    if (token.TokenType != Token.TokenTypes.Identifier)
-                    {
+                    if (TryParseType(ref tokenIndex, out List<Token> typeTokens) == false)
+                    { 
                         AddError(token, "Expecting name of parameters class after ParametersClass = .");
                         return null;
                     }
-                    paramsClassName = token.Text;
+                    paramsClassName = string.Concat(typeTokens.Select(t => t.Text));
                 }
-                tokenIndex++;
             }
             var paramInfo = new CustomFunctionParamInfo(nameTok.Text, directiveToken.CharIndex);
             paramInfo.ParamsCodeFileName = paramsFileName;
