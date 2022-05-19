@@ -22,22 +22,29 @@ using Whorl;
         public Func<double, double> Function { get; private set; }
         public object ParamsObject { get; private set; }
         public string ParamsClassCodeFilePath { get; }
+        public Type ParamsClassType { get; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
         //private PropertyInfo renderingValuesPropertyInfo { get; set; }
         private object classInstance { get; set; }
 
-        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName = null)
+        public CompiledDoubleFuncParameter(string functionName)
         {
             tokenizer = new Tokenizer(forCSharp: true, addOperators: true);
             FunctionName = functionName;
-            if (paramsClassCodeFileName != null)
-            {
-                ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
-                if (!File.Exists(ParamsClassCodeFilePath))
-                    throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
-            }
             Function = DefaultFunction;
+        }
+
+        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName): this(functionName)
+        {
+            ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
+            if (!File.Exists(ParamsClassCodeFilePath))
+                throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
+        }
+
+        public CompiledDoubleFuncParameter(string functionName, Type paramsClassType): this(functionName)
+        {
+            ParamsClassType = paramsClassType;
         }
 
         public static string GetParamsFilePath(string fileName)
@@ -151,12 +158,16 @@ using Whorl;
 
             if (ParamsClassCodeFilePath != null)
             {
-                string paramsClassCode = GetParamsClassCode();
+                string paramsClassCode = ReadParamsClassCode();
                 string paramsClassName = Path.GetFileNameWithoutExtension(ParamsClassCodeFilePath);
                 docF.AppendLine(sb, paramsClassCode);
                 docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
             }
-
+            else if (ParamsClassType != null)
+            {
+                string paramsClassName = ParamsClassType.Name;
+                docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
+            }
             docF.AppendLine(sb, "public RenderingValues Info { get; set; }");
 
             docF.AppendLine(sb, $"public double {FunctionName}(double x)");
@@ -169,7 +180,7 @@ using Whorl;
             return sb.ToString();
         }
 
-        public string GetParamsClassCode()
+        public string ReadParamsClassCode()
         {
             return File.ReadAllText(ParamsClassCodeFilePath);
         }
@@ -182,7 +193,7 @@ using Whorl;
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
                 if (ParamsClassCodeFilePath != null)
-                    frm.AddRelatedText(GetParamsClassCode(), "Parameters Class C# Code");
+                    frm.AddRelatedText(ReadParamsClassCode(), "Parameters Class C# Code");
                 if (errorList != null)
                 {
                     frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");

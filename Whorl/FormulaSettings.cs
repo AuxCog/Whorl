@@ -1333,20 +1333,22 @@ namespace Whorl
             }
             var iOptionsParam = oParam as IOptionsParameter;
             string sVal;
-            if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+            bool valueIsString = propInfo.PropertyType == typeof(string) || 
+                                 propInfo.PropertyType == typeof(CompiledDoubleFuncParameter);
+            if (valueIsString)
             {
                 XmlNode valNode = subNode.ChildNodes.Cast<XmlNode>().FirstOrDefault(n => n.Name == "ValueString");
                 if (valNode != null)
                     sVal = valNode.InnerText ?? string.Empty;
                 else
-                    throw new Exception("Didn't find ValueString XmlNode.");
+                    sVal = null;
             }
             else
             {
                 var valueAttr = subNode.Attributes["Value"];
                 sVal = valueAttr?.Value;
             }
-            if (!isNestedParams && sVal == null)
+            if (!isNestedParams && !valueIsString && sVal == null)
                 throw new Exception($"No value found for Xml Parameter {propInfo.Name}.");
             //var iFnParam = oParam as IFuncParameter;
             if (iOptionsParam != null)

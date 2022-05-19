@@ -25,7 +25,7 @@ namespace Whorl
             return YWeight * y + YOffset;
         }
 
-        public double Sine(double angle)
+        public double SineOutline(double angle)
         {
             return AdjustY(OutlineMethods.Sine(AdjustX(angle), addDenom));
         }

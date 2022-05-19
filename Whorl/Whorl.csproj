@@ -260,6 +260,7 @@
       <DependentUpon>frmVaryProperties.cs</DependentUpon>
     </Compile>
     <Compile Include="DoubleFuncLibrary.cs" />
+    <Compile Include="GeneralLibrary.cs" />
     <Compile Include="GetValueForm.cs">
       <SubType>Form</SubType>
     </Compile>

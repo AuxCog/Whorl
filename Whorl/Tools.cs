@@ -718,6 +718,11 @@ namespace Whorl
         public static object GetCSharpParameterValue(string text, Type paramType, out bool isValid)
         {
             object val;
+            if (paramType == typeof(string))
+            {
+                isValid = true;
+                return text;
+            }
             MethodInfo tryParseMethod = paramType.GetTryParseMethod();
             if (tryParseMethod != null)
             {
