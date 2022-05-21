@@ -20,12 +20,12 @@ namespace Whorl
 
         private Func<double, double> baseFunction { get; set; }
 
-        public virtual double AdjustX(double x)
+        protected double AdjustX(double x)
         {
             return AdjustX(x, XOffset);
         }
 
-        public double AdjustX(double x, double xOff)
+        protected double AdjustX(double x, double xOff)
         {
             x = XWeight * x + xOff;
             if (TakeAbsX)
@@ -36,7 +36,7 @@ namespace Whorl
         [ParserEngine.ExcludeMethod]
         public double DefaultFunction(double x)
         {
-            return YWeight * baseFunction(AdjustX(x)) + YOffset;
+            return baseFunction == null ? 0 : YWeight * baseFunction(AdjustX(x)) + YOffset;
         }
 
         public void SetBaseFunction(Func<double, double> func)
