@@ -19,10 +19,17 @@ namespace Whorl
                 addDenom = 1.0 / pointiness;
             }
         }
+        public bool AdjustOutlineX { get; protected set; } = true;
+        public bool AdjustOutlineY { get; protected set; } = true;
+
+        public override double AdjustX(double x)
+        {
+            return AdjustOutlineX ? base.AdjustX(x) : x;
+        }
 
         protected double AdjustY(double y)
         {
-            return YWeight * y + YOffset;
+            return AdjustOutlineY ? YWeight * y + YOffset : y;
         }
 
         public double SineOutline(double angle)

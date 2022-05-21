@@ -20,7 +20,7 @@ namespace Whorl
 
         private Func<double, double> baseFunction { get; set; }
 
-        public double AdjustX(double x)
+        public virtual double AdjustX(double x)
         {
             return AdjustX(x, XOffset);
         }
