@@ -101,11 +101,7 @@ namespace Whorl
 
             public IEnumerable<PropertyInfo> GetDisplayedParameters(bool allowAllParams = true)
             {
-                if (ParamsObj == null)
-                    return null;
-                else
-                    return ParamsObj.GetType().GetProperties()
-                                    .Where(pi => CSharpSharedCompiledInfo.ParameterIsDisplayed(pi, allowAllParams));
+                return CSharpSharedCompiledInfo.GetDisplayedParameters(ParamsObj, allowAllParams);
             }
 
             public List<ParamInfo> GetParamInfos()

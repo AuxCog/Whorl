@@ -128,8 +128,8 @@ namespace Whorl
             ParameterSourceInfo.SetInitial(true);
             try
             {
-                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties()
-                         .Where(pi => CSharpSharedCompiledInfo.ParameterIsDisplayed(pi, allowAllParams: false)))
+                foreach (PropertyInfo propertyInfo in 
+                         CSharpSharedCompiledInfo.GetDisplayedParameters(ParametersObject, allowAllParams: false))
                 {
                     var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
                     if (attr == null || attr.ParameterSource == ParameterSources.None)
@@ -177,9 +177,8 @@ namespace Whorl
                     return;
                 int parameterIndex = 0;
                 AddActionComboBox(ref parameterIndex);
-                foreach (PropertyInfo propertyInfo in ParametersObject.GetType().GetProperties(
-                                                      BindingFlags.Public | BindingFlags.Instance)
-                         .Where(pi => CSharpSharedCompiledInfo.ParameterIsDisplayed(pi)))
+                foreach (PropertyInfo propertyInfo in
+                         CSharpSharedCompiledInfo.GetDisplayedParameters(ParametersObject))
                 {
                     object oParam = propertyInfo.GetValue(ParametersObject);
                     if (oParam == null)

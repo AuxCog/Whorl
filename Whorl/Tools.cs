@@ -1300,5 +1300,58 @@ namespace Whorl
             return obj;
         }
 
+        public static string GetFriendlyNameWithNesting(this Type type, bool useFriendly = true)
+        {
+            string name = GetFriendlyName(type, useFriendly);
+            if (type.DeclaringType != null)
+            {
+                var typeNames = new List<string>() { name };
+                for (Type declaringType = type.DeclaringType;
+                     declaringType != null;
+                     declaringType = declaringType.DeclaringType)
+                {
+                    typeNames.Add(declaringType.Name);
+                }
+                typeNames.Reverse();
+                name = string.Join(".", typeNames);
+            }
+            return name;
+        }
+
+        public static string GetFriendlyName(this Type type, bool useFriendly = true)
+        {
+            if (type == null)
+                return "null";
+            if (useFriendly)
+            {
+                if (type == typeof(int))
+                    return "int";
+                else if (type == typeof(string))
+                    return "string";
+                else if (type == typeof(bool))
+                    return "bool";
+                else if (type == typeof(double))
+                    return "double";
+                else if (type == typeof(short))
+                    return "short";
+                else if (type == typeof(byte))
+                    return "byte";
+                else if (type == typeof(long))
+                    return "long";
+                else if (type == typeof(float))
+                    return "float";
+                else if (type == typeof(decimal))
+                    return "decimal";
+                else if (type == typeof(void))
+                    return "void";
+            }
+            if (IsNullableType(type))
+                return GetFriendlyName(Nullable.GetUnderlyingType(type), useFriendly) + "?";
+            else if (type.IsGenericType)
+                return type.Name.Split('`')[0] + "<" + string.Join(", ", type.GetGenericArguments()
+                           .Select(x => GetFriendlyName(x, useFriendly))) + ">";
+            else
+                return type.Name;
+        }
     }
 }

@@ -185,6 +185,34 @@ using Whorl;
             return File.ReadAllText(ParamsClassCodeFilePath);
         }
 
+        private string GetPropertiesAndMethods()
+        {
+            if (ParamsObject == null)
+                return null;
+            var sb = new StringBuilder();
+            sb.AppendLine("//=== Properties:");
+            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParameters(ParamsObject)
+                     .OrderBy(pi => pi.Name))
+            {
+                sb.AppendLine($"{propInfo.PropertyType.GetFriendlyName()} {propInfo.Name}" + " { get; set; }");
+            }
+            sb.AppendLine("//=== Methods:");
+            foreach (var methodInfo in ParamsObject.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                     .OrderBy(mi => mi.Name))
+            {
+                if (methodInfo.DeclaringType == typeof(object) ||
+                    methodInfo.Name.StartsWith("get_") || methodInfo.Name.StartsWith("set_"))
+                {
+                    continue;
+                }
+                sb.AppendLine($"{methodInfo.ReturnType.GetFriendlyName()} {methodInfo.Name}(" +
+                              string.Join(", ", 
+                              methodInfo.GetParameters().Select(p => $"{p.ParameterType.GetFriendlyName()} {p.Name}")) 
+                              + ")");
+            }
+            return sb.ToString();
+        }
+
         private string EditFormulaHelper(string errorList = null, string formTitle = null)
         {
             using (var frm = new frmTextEditor())
@@ -192,8 +220,8 @@ using Whorl;
                 if (formTitle != null)
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
-                if (ParamsClassCodeFilePath != null)
-                    frm.AddRelatedText(ReadParamsClassCode(), "Parameters Class C# Code");
+                if (ParamsObject != null)
+                    frm.AddRelatedText(GetPropertiesAndMethods(), "Parameters Class Properties and Methods");
                 if (errorList != null)
                 {
                     frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");
