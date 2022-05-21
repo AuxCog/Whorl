@@ -22,11 +22,12 @@ using Whorl;
         public Func<double, double> Function { get; private set; }
         public object ParamsObject { get; private set; }
         public string ParamsClassCodeFilePath { get; }
-        public Type ParamsClassType { get; }
+        public Type ParamsClassType { get; private set; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
         //private PropertyInfo renderingValuesPropertyInfo { get; set; }
         private object classInstance { get; set; }
+        private Type parametersClassType { get; set; }
 
         public CompiledDoubleFuncParameter(string functionName)
         {
@@ -37,14 +38,18 @@ using Whorl;
 
         public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName): this(functionName)
         {
-            ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
-            if (!File.Exists(ParamsClassCodeFilePath))
-                throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
+            if (paramsClassCodeFileName != null)
+            {
+                ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
+                if (!File.Exists(ParamsClassCodeFilePath))
+                    throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
+                CompileFormula("return x;", editOnError: false);  //Create Parameters object.
+            }
         }
 
         public CompiledDoubleFuncParameter(string functionName, Type paramsClassType): this(functionName)
         {
-            ParamsClassType = paramsClassType;
+            ParamsClassType = parametersClassType = paramsClassType;
         }
 
         public static string GetParamsFilePath(string fileName)
@@ -128,14 +133,18 @@ using Whorl;
             var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
             var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
             classInstance = evalInstance.ClassInstance;
-            object sourceParams = ParamsObject;
-            evalInstance.GetParametersObject();
-            if (evalInstance.ParamsObj == null)
-                throw new Exception("Didn't find parameters object.");
-            ParamsObject = evalInstance.ParamsObj;
-            if (sourceParams != null)
+            if (ParamsClassType != null || ParamsClassCodeFilePath != null)
             {
-                FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
+                object sourceParams = ParamsObject;
+                evalInstance.GetParametersObject();
+                if (evalInstance.ParamsObj == null)
+                    throw new Exception("Didn't find parameters object.");
+                ParamsObject = evalInstance.ParamsObj;
+                parametersClassType = ParamsObject.GetType();
+                if (sourceParams != null)
+                {
+                    FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
+                }
             }
             //renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
             var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, BindingFlags.Public | BindingFlags.Instance);
@@ -185,19 +194,17 @@ using Whorl;
             return File.ReadAllText(ParamsClassCodeFilePath);
         }
 
-        private string GetPropertiesAndMethods()
+        private string GetPropertiesAndMethods(Type paramsObjType)
         {
-            if (ParamsObject == null)
-                return null;
             var sb = new StringBuilder();
             sb.AppendLine("//=== Properties:");
-            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParameters(ParamsObject)
+            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParametersForType(paramsObjType)
                      .OrderBy(pi => pi.Name))
             {
                 sb.AppendLine($"{propInfo.PropertyType.GetFriendlyName()} {propInfo.Name}" + " { get; set; }");
             }
             sb.AppendLine("//=== Methods:");
-            foreach (var methodInfo in ParamsObject.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            foreach (var methodInfo in paramsObjType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                      .OrderBy(mi => mi.Name))
             {
                 if (methodInfo.DeclaringType == typeof(object) ||
@@ -220,8 +227,11 @@ using Whorl;
                 if (formTitle != null)
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
-                if (ParamsObject != null)
-                    frm.AddRelatedText(GetPropertiesAndMethods(), "Parameters Class Properties and Methods");
+                if (parametersClassType != null)
+                {
+                    frm.AddRelatedText(GetPropertiesAndMethods(parametersClassType),
+                                       "Parameters Class Properties and Methods");
+                }
                 if (errorList != null)
                 {
                     frm.AddRelatedText(GetCSharpCode(), "Complete C# Code");

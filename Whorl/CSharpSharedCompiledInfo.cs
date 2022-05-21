@@ -103,13 +103,18 @@ namespace Whorl
             return attr == null || (attr.IsDisplayed && attr.IsParameter);
         }
 
+        public static IEnumerable<PropertyInfo> GetDisplayedParametersForType(Type paramsObjType, bool allowAllParams = true)
+        {
+            return paramsObjType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                            .Where(pi => ParameterIsDisplayed(pi, allowAllParams));
+        }
+
         public static IEnumerable<PropertyInfo> GetDisplayedParameters(object paramsObj, bool allowAllParams = true)
         {
             if (paramsObj == null)
                 return null;
             else
-                return paramsObj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                .Where(pi => ParameterIsDisplayed(pi, allowAllParams));
+                return GetDisplayedParametersForType(paramsObj.GetType(), allowAllParams);
         }
 
 
