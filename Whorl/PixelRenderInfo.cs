@@ -212,20 +212,34 @@ namespace Whorl
         {
             foreach (var propInfo in paramsObj.GetType().GetProperties())
             {
-                if (propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+                Type paramType;
+                var values = new List<object>();
+                if (propInfo.PropertyType.IsArray)
                 {
-                    var func = propInfo.GetValue(paramsObj) as CompiledDoubleFuncParameter;
-                    if (func != null)
-                    {
-                        func.SetRenderingValues(renderingValues);
-                    }
+                    paramType = propInfo.PropertyType.GetElementType();
+                    var array = propInfo.GetValue(paramsObj) as Array;
+                    if (array != null)
+                        values.Add(array);
                 }
-                else if (propInfo.PropertyType == typeof(DoubleFuncParameter))
+                else
                 {
-                    var func = propInfo.GetValue(paramsObj) as DoubleFuncParameter;
-                    if (func?.FuncLibrary != null)
+                    paramType = propInfo.PropertyType;
+                    object value = propInfo.GetValue(paramsObj);
+                    if (value != null)
+                        values.Add(value);
+                }
+                foreach (object value in values)
+                {
+                    if (value is CompiledDoubleFuncParameter cfunc)
                     {
-                        func.FuncLibrary.Info = renderingValues;
+                        cfunc.SetRenderingValues(renderingValues);
+                    }
+                    else if (value is DoubleFuncParameter dfunc)
+                    {
+                        if (dfunc.FuncLibrary != null)
+                        {
+                            dfunc.FuncLibrary.Info = renderingValues;
+                        }
                     }
                 }
             }
