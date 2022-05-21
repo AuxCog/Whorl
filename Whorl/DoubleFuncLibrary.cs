@@ -16,7 +16,7 @@ namespace Whorl
         public bool TakeAbsX { get; protected set; }
         
         [ParameterInfo(IsParameter = false)]
-        public RenderingValues Info { get; set; }
+        public RenderingValues RenderingValues { get; set; }
 
         private Func<double, double> baseFunction { get; set; }
 

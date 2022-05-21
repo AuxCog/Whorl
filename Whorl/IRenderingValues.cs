@@ -8,6 +8,6 @@ namespace Whorl
 {
     public interface IRenderingValues
     {
-        RenderingValues Info { get; set; }
+        RenderingValues RenderingValues { get; set; }
     }
 }

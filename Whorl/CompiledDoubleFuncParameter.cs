@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Whorl
 {
-    public class CompiledDoubleFuncParameter: BaseCSharpParameter
+    public class CompiledDoubleFuncParameter: BaseCSharpParameter, IRenderingValues
     {
         private const string usingStatements =
 @"using ParserEngine;
@@ -28,6 +28,26 @@ using Whorl;
         //private PropertyInfo renderingValuesPropertyInfo { get; set; }
         private object classInstance { get; set; }
         private Type parametersClassType { get; set; }
+
+        private RenderingValues _renderingValues;
+        public RenderingValues RenderingValues
+        {
+            get => _renderingValues;
+            set
+            {
+                _renderingValues = null;
+                if (classInstance != null)
+                {
+                    var iRendering = classInstance as IRenderingValues;
+                    if (iRendering != null)
+                    {
+                        _renderingValues = iRendering.RenderingValues = value;
+                    }
+                    else
+                        throw new Exception("Class instance doesn't implement IRenderingValues.");
+                }
+            }
+        }
 
         public CompiledDoubleFuncParameter(string functionName, string formula = null)
         {
@@ -70,18 +90,6 @@ using Whorl;
         private double DefaultFunction(double x)
         {
             return x;
-        }
-
-        public void SetRenderingValues(RenderingValues renderingValues)
-        {
-            if (classInstance == null) return;
-            var iRendering = classInstance as IRenderingValues;
-            if (iRendering != null)
-            {
-                iRendering.Info = renderingValues;
-            }
-            else
-                throw new Exception("Class instance doesn't implement IRenderingValues.");
         }
 
         public bool EditFormula()
@@ -187,7 +195,8 @@ using Whorl;
                 string paramsClassName = ParamsClassType.Name;
                 docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
             }
-            docF.AppendLine(sb, "public RenderingValues Info { get; set; }");
+            docF.AppendLine(sb, "public RenderingValues RenderingValues { get; set; }");
+            docF.AppendLine(sb, "public RenderingValues Info => RenderingValues;");
 
             docF.AppendLine(sb, $"public double {FunctionName}(double x)");
             docF.OpenBrace(sb);

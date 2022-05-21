@@ -212,34 +212,31 @@ namespace Whorl
         {
             foreach (var propInfo in paramsObj.GetType().GetProperties())
             {
-                Type paramType;
-                var values = new List<object>();
                 if (propInfo.PropertyType.IsArray)
                 {
-                    paramType = propInfo.PropertyType.GetElementType();
-                    var array = propInfo.GetValue(paramsObj) as Array;
-                    if (array != null)
-                        values.Add(array);
+                    Type paramType = propInfo.PropertyType.GetElementType();
+                    if (typeof(IRenderingValues).IsAssignableFrom(paramType))
+                    {
+                        var array = propInfo.GetValue(paramsObj) as Array;
+                        if (array != null)
+                        {
+                            foreach (object value in array)
+                            {
+                                if (value is IRenderingValues iRender)
+                                {
+                                    iRender.RenderingValues = renderingValues;
+                                }
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    paramType = propInfo.PropertyType;
-                    object value = propInfo.GetValue(paramsObj);
-                    if (value != null)
-                        values.Add(value);
-                }
-                foreach (object value in values)
-                {
-                    if (value is CompiledDoubleFuncParameter cfunc)
+                    if (typeof(IRenderingValues).IsAssignableFrom(propInfo.PropertyType))
                     {
-                        cfunc.SetRenderingValues(renderingValues);
-                    }
-                    else if (value is DoubleFuncParameter dfunc)
-                    {
-                        if (dfunc.FuncLibrary != null)
-                        {
-                            dfunc.FuncLibrary.Info = renderingValues;
-                        }
+                        var iRender = propInfo.GetValue(paramsObj) as IRenderingValues;
+                        if (iRender != null)
+                            iRender.RenderingValues = renderingValues;
                     }
                 }
             }

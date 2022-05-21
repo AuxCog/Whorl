@@ -324,9 +324,18 @@ namespace Whorl
         }
     }
 
-    public class DoubleFuncParameter: Func1Parameter<double>
+    public class DoubleFuncParameter: Func1Parameter<double>, IRenderingValues
     {
         public DoubleFuncLibrary FuncLibrary { get; }
+        public RenderingValues RenderingValues
+        {
+            get => FuncLibrary?.RenderingValues;
+            set
+            {
+                if (FuncLibrary != null)
+                    FuncLibrary.RenderingValues = value;
+            }
+        }
 
         public DoubleFuncParameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
                                    bool addDefaultMethodTypes = true)
