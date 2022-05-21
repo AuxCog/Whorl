@@ -264,8 +264,8 @@ namespace Whorl
             public string ParamsCodeFileName { get; set; }
             public string ParamsClassName { get; set; }
 
-            public CustomFunctionParamInfo(string name, int startCharIndex): 
-                    base(name, "double", startCharIndex, null, null, ParamCategories.Function)
+            public CustomFunctionParamInfo(string name, int startCharIndex, string defaultValue): 
+                    base(name, "double", startCharIndex, null, defaultValue, ParamCategories.Function)
             {
                 DecTypeName = nameof(CompiledDoubleFuncParameter);
             }
@@ -282,7 +282,9 @@ namespace Whorl
                         args.Add(TranslateToCSharp.GetCSharpString(ParamsCodeFileName));
                     else
                         args.Add($"typeof({ParamsClassName})");
-                }   
+                }
+                if (DefaultValue != null)
+                    args.Add(DefaultValue);
                 Initializer = $"new {DecTypeName}({string.Join(", ", args)})";
             }
         }
@@ -2102,7 +2104,7 @@ $@"public void {methodName}()
 
         private CustomFunctionParamInfo ParseCustomFunctionParam(Token nameTok, ref int tokenIndex, Token directiveToken)
         {
-            string paramsFileName = null, paramsClassName = null;
+            string paramsFileName = null, paramsClassName = null, defaultValue = null;
             Token token = GetToken(tokenIndex);
             if (ParseReservedWord(token.Text, out ReservedWords reservedWord, 
                                   ReservedWords.ParametersFile, ReservedWords.ParametersClass))
@@ -2141,7 +2143,19 @@ $@"public void {methodName}()
                     paramsClassName = string.Concat(typeTokens.Select(t => t.Text));
                 }
             }
-            var paramInfo = new CustomFunctionParamInfo(nameTok.Text, directiveToken.CharIndex);
+            token = GetToken(tokenIndex);
+            if (token.Text == "=")
+            {
+                tokenIndex++;
+                token = GetToken(tokenIndex++);
+                if (token.TokenType != Token.TokenTypes.String)
+                {
+                    AddError(token, "Expecting quoted formula following =");
+                    return null;
+                }
+                defaultValue = TranslateToCSharp.GetCSharpString(((StringToken)token).Value);
+            }
+            var paramInfo = new CustomFunctionParamInfo(nameTok.Text, directiveToken.CharIndex, defaultValue);
             paramInfo.ParamsCodeFileName = paramsFileName;
             paramInfo.ParamsClassName = paramsClassName;
             return paramInfo;

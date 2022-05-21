@@ -29,27 +29,37 @@ using Whorl;
         private object classInstance { get; set; }
         private Type parametersClassType { get; set; }
 
-        public CompiledDoubleFuncParameter(string functionName)
+        public CompiledDoubleFuncParameter(string functionName, string formula = null)
         {
             tokenizer = new Tokenizer(forCSharp: true, addOperators: true);
             FunctionName = functionName;
             Function = DefaultFunction;
+            if (formula != null)
+                InitFormula(formula);
         }
 
-        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName): this(functionName)
+        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName, string formula = null)
+               : this(functionName)
         {
             if (paramsClassCodeFileName != null)
             {
                 ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
                 if (!File.Exists(ParamsClassCodeFilePath))
                     throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
-                CompileFormula("return x;", editOnError: false);  //Create Parameters object.
             }
+            InitFormula(formula);
         }
 
-        public CompiledDoubleFuncParameter(string functionName, Type paramsClassType): this(functionName)
+        public CompiledDoubleFuncParameter(string functionName, Type paramsClassType, string formula = null) 
+               : this(functionName)
         {
             ParamsClassType = parametersClassType = paramsClassType;
+            InitFormula(formula);
+        }
+
+        private void InitFormula(string formula)
+        {
+            CompileFormula(formula ?? "return x;", editOnError: false);
         }
 
         public static string GetParamsFilePath(string fileName)
