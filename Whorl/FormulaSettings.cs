@@ -1333,8 +1333,8 @@ namespace Whorl
             }
             var iOptionsParam = oParam as IOptionsParameter;
             string sVal;
-            bool valueIsString = propInfo.PropertyType == typeof(string) || 
-                                 propInfo.PropertyType == typeof(CompiledDoubleFuncParameter);
+            bool valueIsString = paramType == typeof(string) ||
+                                 paramType == typeof(CompiledDoubleFuncParameter);
             if (valueIsString)
             {
                 XmlNode valNode = subNode.ChildNodes.Cast<XmlNode>().FirstOrDefault(n => n.Name == "ValueString");
@@ -1488,7 +1488,7 @@ namespace Whorl
             xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
             if (sValue != null)
             {
-                if (propInfo.PropertyType == typeof(string) || propInfo.PropertyType == typeof(CompiledDoubleFuncParameter))
+                if (paramValue is string || paramValue is CompiledDoubleFuncParameter)
                     xmlTools.AppendChildNode(subNode, "ValueString", sValue);
                 else
                     xmlTools.AppendXmlAttribute(subNode, "Value", sValue);
