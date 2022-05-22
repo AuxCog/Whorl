@@ -13,7 +13,9 @@ namespace Whorl
         public double AtanY { get; protected set; } = 1.0;
         public double Power { get; protected set; } = 1.0;
 
-        private double sinePhaseRadians { get; set; }
+        [ParameterInfo(IsParameter = false)]
+        public double SinePhaseRadians { get; private set; }
+
         private double _sinePhase;
         public double SinePhase
         {
@@ -21,7 +23,7 @@ namespace Whorl
             protected set
             {
                 _sinePhase = value;
-                sinePhaseRadians = Math.PI * _sinePhase / 180.0;
+                SinePhaseRadians = Math.PI * _sinePhase / 180.0;
             }
         }
 
@@ -35,12 +37,12 @@ namespace Whorl
 
         public double Sine(double x)
         {
-            return YWeight * Math.Sin(AdjustX(x, sinePhaseRadians)) + YOffset;
+            return YWeight * Math.Sin(AdjustX(x, SinePhaseRadians)) + YOffset;
         }
 
         public double Cosine(double x)
         {
-            return YWeight * Math.Cos(AdjustX(x, sinePhaseRadians)) + YOffset;
+            return YWeight * Math.Cos(AdjustX(x, SinePhaseRadians)) + YOffset;
         }
 
         public double Pow(double x)
