@@ -27,74 +27,74 @@ namespace Whorl
             return AdjustOutlineX ? AdjustX(x) : x;
         }
 
-        private double AdjustY(double y)
+        private double AdjustY1(double y)
         {
-            return AdjustOutlineY ? YWeight * y + YOffset : y;
+            return AdjustOutlineY ? AdjustY(y) : y;
         }
 
         public double SineOutline(double angle)
         {
-            return AdjustY(OutlineMethods.Sine(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Sine(AdjustX1(angle), addDenom));
         }
 
         public double Round(double angle)
         {
-            return AdjustY(OutlineMethods.Round(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Round(AdjustX1(angle), addDenom));
         }
 
         public double Pointed(double angle)
         {
-            return AdjustY(OutlineMethods.Pointed(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Pointed(AdjustX1(angle), addDenom));
         }
 
         public double Pointed2(double angle)
         {
-            return AdjustY(OutlineMethods.Pointed2(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Pointed2(AdjustX1(angle), addDenom));
         }
 
         public double Pointed3(double angle)
         {
-            return AdjustY(OutlineMethods.Pointed3(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Pointed3(AdjustX1(angle), addDenom));
         }
 
         public double Pointed4(double angle)
         {
-            return AdjustY(OutlineMethods.Pointed4(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Pointed4(AdjustX1(angle), addDenom));
         }
 
         public double Pointed5(double angle)
         {
-            return AdjustY(OutlineMethods.Pointed5(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Pointed5(AdjustX1(angle), addDenom));
         }
 
         public double PointedRound(double angle)
         {
-            return AdjustY(OutlineMethods.PointedRound(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.PointedRound(AdjustX1(angle), addDenom));
         }
 
         public double Lobed(double angle)
         {
-            return AdjustY(OutlineMethods.Lobed(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Lobed(AdjustX1(angle), addDenom));
         }
 
         public double Ellipse(double angle)
         {
-            return AdjustY(OutlineMethods.Ellipse(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Ellipse(AdjustX1(angle), addDenom));
         }
 
         public double Broad(double angle)
         {
-            return AdjustY(OutlineMethods.Broad(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Broad(AdjustX1(angle), addDenom));
         }
 
         public double BroadFull(double angle)
         {
-            return AdjustY(OutlineMethods.BroadFull(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.BroadFull(AdjustX1(angle), addDenom));
         }
 
         public double Rectangle(double angle)
         {
-            return AdjustY(OutlineMethods.Rectangle(AdjustX1(angle), addDenom));
+            return AdjustY1(OutlineMethods.Rectangle(AdjustX1(angle), addDenom));
         }
 
     }

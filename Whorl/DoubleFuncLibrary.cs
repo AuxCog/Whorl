@@ -25,6 +25,11 @@ namespace Whorl
             return AdjustX(x, XOffset);
         }
 
+        protected double AdjustY(double y)
+        {
+            return YWeight * y + YOffset;
+        }
+
         protected double AdjustX(double x, double xOff)
         {
             x = XWeight * x + xOff;
@@ -36,7 +41,7 @@ namespace Whorl
         [ParserEngine.ExcludeMethod]
         public double DefaultFunction(double x)
         {
-            return baseFunction == null ? 0 : YWeight * baseFunction(AdjustX(x)) + YOffset;
+            return baseFunction == null ? 0 : AdjustY(baseFunction(AdjustX(x)));
         }
 
         public void SetBaseFunction(Func<double, double> func)
@@ -44,10 +49,15 @@ namespace Whorl
             baseFunction = func;
         }
 
+        public double XtoX(double x)
+        {
+            return AdjustY(ParserEngine.EvalMethods.XtoX(AdjustX(x)));
+        }
+
         public double XtoInvX(double x)
         {
             x = AdjustX(x);
-            return YWeight * Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x))) + YOffset;
+            return AdjustY(Math.Pow(Math.Abs(x), 1.0 / (x + XtoInvOff * ParserEngine.EvalMethods.Sign2(x))));
         }
 
     }
