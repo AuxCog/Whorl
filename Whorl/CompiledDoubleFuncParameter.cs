@@ -1,11 +1,9 @@
 ﻿using ParserEngine;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Whorl
@@ -213,15 +211,22 @@ using Whorl;
             return File.ReadAllText(ParamsClassCodeFilePath);
         }
 
-        private string GetPropertiesAndMethods(Type paramsObjType)
+        private void ListProperties(Type objType, StringBuilder sb)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("//=== Properties:");
-            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParametersForType(paramsObjType)
+            foreach (var propInfo in objType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                      .OrderBy(pi => pi.Name))
             {
                 sb.AppendLine($"{propInfo.PropertyType.GetFriendlyName()} {propInfo.Name}" + " { get; set; }");
             }
+        }
+
+        private string ListPropertiesAndMethods(Type paramsObjType)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("//=== Parameter Properties:");
+            ListProperties(paramsObjType, sb);
+            sb.AppendLine("//=== Info Properties:");
+            ListProperties(typeof(RenderingValues), sb);
             sb.AppendLine("//=== Methods:");
             foreach (var methodInfo in paramsObjType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
                      .OrderBy(mi => mi.Name))
@@ -248,8 +253,8 @@ using Whorl;
                 frm.DisplayText(NewFormula, autoSize: true);
                 if (parametersClassType != null)
                 {
-                    frm.AddRelatedText(GetPropertiesAndMethods(parametersClassType),
-                                       "Parameters Class Properties and Methods");
+                    frm.AddRelatedText(ListPropertiesAndMethods(parametersClassType),
+                                       "Available Properties and Methods");
                 }
                 if (errorList != null)
                 {
