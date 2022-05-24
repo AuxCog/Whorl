@@ -4821,13 +4821,13 @@ namespace Whorl
                 MessageBox.Show("Please choose a default pattern.");
                 return;
             }
-            if (sourcePattern is PathPattern)
+            if (sourcePattern is PathPattern pathPattern)
             {
-                Ribbon pathRibbon = ((PathPattern)sourcePattern).PathRibbon;
+                Ribbon pathRibbon = pathPattern.PathRibbon;
                 if (pathRibbon != null)
                     sourcePattern = pathRibbon;
-                else
-                    return;
+                //else
+                //    return;
             }
             IEnumerable<Pattern> targetPatterns;
             if (toAllSelectedPatterns)
@@ -4841,18 +4841,18 @@ namespace Whorl
                     return;
                 targetPatterns = patterns.PatternsList;
             }
-            targetPatterns = targetPatterns.Where(ptn => !(ptn is PathPattern) || ((PathPattern)ptn).PathRibbon != null);
+            //targetPatterns = targetPatterns.Where(ptn => !(ptn is PathPattern) || ((PathPattern)ptn).PathRibbon != null);
             if (!targetPatterns.Any())
                 return;
             var newPatterns = new List<Pattern>();
             foreach (Pattern pattern in targetPatterns)
             {
                 Pattern ptnCopy = pattern.GetCopy();
-                PathPattern pathPattern = ptnCopy as PathPattern;
+                PathPattern pathPatternCopy = ptnCopy as PathPattern;
                 Pattern targetPattern = ptnCopy;
-                if (pathPattern != null)
+                if (pathPatternCopy?.PathRibbon != null)
                 {
-                    targetPattern = pathPattern.PathRibbon;
+                    targetPattern = pathPatternCopy.PathRibbon;
                 }
                 targetPattern.CopyFillInfo(sourcePattern);
                 //targetPattern.FillInfo = sourcePattern.FillInfo.GetCopy(targetPattern);

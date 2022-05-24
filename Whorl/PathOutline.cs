@@ -104,6 +104,8 @@ namespace Whorl
         public List<PointF> SegmentVertices { get; private set; }
         public List<PointF> LineVertices { get; private set; }
         public PointF SegmentVerticesCenter { get; set; } = PointF.Empty;
+        public PointF? PathCenter { get; set; }
+        public PointF? NormalizedPathCenter { get; private set; }
         public bool UseVertices { get; set; }
         public bool UserDefinedVertices { get; set; }
         public bool VerticesAreForCurve { get; set; }
@@ -214,35 +216,16 @@ namespace Whorl
         {
             ExpressionParser.DeclareExternType(typeof(PathOutlineVars));
         }
+
         public void ConfigureParser(ExpressionParser parser)
         {
             parser.DeclareVariable(nameof(GlobalInfo), GlobalInfo.GetType(), GlobalInfo,
                                    isGlobal: true, isReadOnly: true);
-            //MethodInfo fnMethod = typeof(PathOutline).GetMethod(nameof(AddVertex),
-            //                      BindingFlags.NonPublic | BindingFlags.Instance);
-            //parser.DeclareInstanceFunction(this, fnMethod);
-            //foreach (GlobalVarNames varName in Enum.GetValues(typeof(GlobalVarNames)))
-            //{
-            //    parser.DeclareVariable(varName.ToString(), typeof(double), 0.0, isGlobal: true);
-            //}
-            //addDenomIdent = parser.GetVariableIdentifier(GlobalVarNames.addDenom.ToString());
-            //petalsIdent = parser.GetVariableIdentifier(GlobalVarNames.petals.ToString());
-            //angleOffsetIdent = parser.GetVariableIdentifier(GlobalVarNames.angleOffset.ToString());
         }
 
         public override object Clone()
         {
             return new PathOutline(this);
-            //PathOutline copy = new PathOutline();
-            //copy.CopyProperties(this, excludedPropertyNames:
-            //    new string[] { nameof(VerticesSettings), nameof(BasicOutlineType),
-            //                   nameof(UnitFactor) });
-            //copy.VerticesSettings.CopyProperties(this.VerticesSettings);
-            ////copy.VerticesSettings.Formula = this.VerticesSettings.Formula;
-            ////copy.VerticesSettings.ParseOnChanges = true;
-            //if (this.pathVertices != null)
-            //    copy.pathVertices = new List<PointF>(this.pathVertices);
-            //return copy;
         }
 
         public override FormulaSettings GetFormulaSettings()
@@ -471,6 +454,13 @@ namespace Whorl
             return xyMax == 0 ? 1F : xyMax;
         }
 
+        private void SetNormalizedPathCenter(PointF center, float scale)
+        {
+            if (PathCenter == null) return;
+            PointF p = new PointF(PathCenter.Value.X - center.X, PathCenter.Value.Y - center.Y);
+            NormalizedPathCenter = new PointF(scale * p.X + center.X, scale * p.Y + center.Y);
+        }
+
         /// <summary>
         /// Translate vertices so center is at (0, 0), and scale to have max modulus of 1.
         /// </summary>
@@ -481,6 +471,7 @@ namespace Whorl
             {
                 if (computingInfluenceScale)
                     InfluencePointsScale = 1.0;
+                NormalizedPathCenter = null;
                 if (HasLineVertices && !VerticesAreForCurve)
                 {
                     if (SegmentVertices != null)
@@ -488,6 +479,7 @@ namespace Whorl
                         double modulus = GetPolygonMaxModulus(SegmentVerticesCenter);
                         if (computingInfluenceScale)
                             InfluencePointsScale = 1.0 / modulus;
+                        SetNormalizedPathCenter(SegmentVerticesCenter, 1F / (float)modulus);
                         return new Complex(modulus, 0.0);
                     }
                     else
@@ -498,6 +490,7 @@ namespace Whorl
                     p => new PointF(p.X - center.X, p.Y - center.Y)).ToList();
                 MaxPathFactor = GetMaxPathFactor();
                 float factor = 1F / MaxPathFactor;
+                SetNormalizedPathCenter(SegmentVerticesCenter, factor);
                 if (computingInfluenceScale)
                     InfluencePointsScale = factor;
                 pathPoints = pathPoints.Select(
@@ -535,38 +528,38 @@ namespace Whorl
             if (UserDefinedVertices || DrawType == DrawTypes.Custom)
                 return;
             if (!UseVertices || !VerticesSettings.IsValid)
-                pathPoints = null;
-            else
             {
-                bool useInfluence = UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null;
-                if (useInfluence)
-                {
-                    try
-                    {
-                        computingInfluenceScale = true;
-                        //Since computingInfluenceScale is true, ComputeInfluence() does nothing.
-                        _AddVertices();
-                    }
-                    finally
-                    {
-                        computingInfluenceScale = false;
-                    }
-                }
-                if (useInfluence)
-                    VerticesSettings.InfluenceLinkParentCollection.Initialize();
+                pathPoints = null;
+                return;
+            }
+            bool useInfluence = UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null;
+            if (useInfluence)
+            {
                 try
                 {
+                    computingInfluenceScale = true;
+                    //Since computingInfluenceScale is true, ComputeInfluence() does nothing.
                     _AddVertices();
                 }
                 finally
                 {
-                    if (useInfluence)
-                        VerticesSettings.InfluenceLinkParentCollection.FinalizeSettings();
+                    computingInfluenceScale = false;
                 }
-                foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
-                {
-                    pathOutlineTransform.TransformPathPoints();
-                }
+            }
+            if (useInfluence)
+                VerticesSettings.InfluenceLinkParentCollection.Initialize();
+            try
+            {
+                _AddVertices();
+            }
+            finally
+            {
+                if (useInfluence)
+                    VerticesSettings.InfluenceLinkParentCollection.FinalizeSettings();
+            }
+            foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
+            {
+                pathOutlineTransform.TransformPathPoints();
             }
         }
 
@@ -845,43 +838,20 @@ namespace Whorl
 
         public double ComputeVerticesPoint(int ind, out double angle)
         {
-            PointF p = pathPoints[ind];
+            PointF p;
+            try
+            {
+                p = pathPoints[ind];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new IndexOutOfRangeException($"pathPoints index out of range: {ind}.");
+            }
             angle = Math.Atan2(p.Y, p.X);
             double modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
             return modulus;
-            //double modulus;
-            //if (HasCurveVertices)
-            //{
-            //    PointF p = pathPoints[ind];
-            //    angle = Math.Atan2(p.Y, p.X);
-            //    modulus = Math.Sqrt(p.X * p.X + p.Y * p.Y);
-            //}
-            //else
-            //{
-            //    UserVertexInfo pInfo = userVertexInfos[verticesIndex];
-            //    if (ind == pInfo.Index + pInfo.Steps && verticesIndex < userVertexInfos.Length - 1)
-            //    {
-            //        pInfo = userVertexInfos[++verticesIndex];
-            //    }
-            //    if (ind == pInfo.Index)
-            //    {
-            //        currPolygonPoint = pInfo.UserVertex;
-            //    }
-            //    else
-            //    {
-            //        currPolygonPoint = new PointF(
-            //            currPolygonPoint.X + pInfo.UnitVector.X,
-            //            currPolygonPoint.Y + pInfo.UnitVector.Y);
-            //    }
-            //    var pVec = currPolygonPoint;
-            //    modulus = Math.Sqrt(pVec.X * pVec.X + pVec.Y * pVec.Y);
-            //    angle = Math.Atan2(pVec.Y, pVec.X);
-            //}
-            //return modulus;
         }
 
-        //private PointF currPolygonPoint { get; set; }
-        //private UserVertexInfo[] userVertexInfos { get; set; }
         private int verticesIndex = 0;
         private int prevVerticesIndex = -1;
         private Complex zP0;
@@ -969,6 +939,8 @@ namespace Whorl
                     xmlTools.AppendAttributeChildNode(parentNode, nameof(CurveCornerIndices), sList);
                 }
             }
+            if (PathCenter != null)
+                parentNode.AppendChild(xmlTools.CreateXmlNode("PathCenter", PathCenter.Value));
             foreach (PathOutlineTransform pathOutlineTransform in PathOutlineTransforms)
             {
                 pathOutlineTransform.ToXml(parentNode, xmlTools);
@@ -1039,6 +1011,9 @@ namespace Whorl
                     break;
                 case "SegmentVerticesCenter":
                     SegmentVerticesCenter = Tools.GetPointFFromXml(node);
+                    break;
+                case "PathCenter":
+                    PathCenter = Tools.GetPointFFromXml(node);
                     break;
                 case "VerticesFormula":
                     VerticesSettings.Parse(Tools.GetXmlNodeValue(node));

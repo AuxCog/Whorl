@@ -181,14 +181,12 @@ namespace Whorl
 
         public delegate double ComputeAmplitudeDelegate(double angle);
 
-        protected ComputeAmplitudeDelegate computeAmplitude = null;
+        protected ComputeAmplitudeDelegate computeAmplitude { get; set; } = null;
         //private ComputeAmplitudeDelegate computeSoundAmplitude = null;
-        private BasicOutlineTypes basicOutlineType;
-        private double frequency;
-        //private double usedFrequency;
-        //private double unitFactor = 1D;
-        private double addDenom;
-        private double angleOffset = 0D;
+        private BasicOutlineTypes basicOutlineType { get; set; }
+        private double frequency { get; set; }
+        private double addDenom { get; set; }
+        private double angleOffset { get; set; } = 0D;
         public CustomOutline customOutline { get; private set; }
         public virtual bool SupportsInfluencePoints => false;
 
