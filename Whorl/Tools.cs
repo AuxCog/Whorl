@@ -204,6 +204,13 @@ namespace Whorl
             return new PointF(p2.X - p1.X, p2.Y - p1.Y);
         }
 
+        public static PointF GetVectorOfLength(PointF vec, float length)
+        {
+            double vecLen = VectorLength(vec);
+            float scale = vecLen == 0 ? 1F : length / (float)VectorLength(vec);
+            return new PointF(scale * vec.X, scale * vec.Y);
+        }
+
         public static double VectorLength(PointF vec)
         {
             return Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y);

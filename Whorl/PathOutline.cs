@@ -523,6 +523,14 @@ namespace Whorl
             return RotationSpan;
         }
 
+        private bool refreshPathPoints { get; set; } = true;
+
+        public void RefreshVertices()
+        {
+            refreshPathPoints = true;
+            AddVertices();
+        }
+
         public void AddVertices()
         {
             if (UserDefinedVertices || DrawType == DrawTypes.Custom)
@@ -532,6 +540,9 @@ namespace Whorl
                 pathPoints = null;
                 return;
             }
+            if (!refreshPathPoints && pathPoints != null)
+                return;
+            refreshPathPoints = false;
             bool useInfluence = UsesInfluencePoints && VerticesSettings.InfluenceLinkParentCollection != null;
             if (useInfluence)
             {
@@ -970,8 +981,8 @@ namespace Whorl
             {
                 FinishUserDefinedVertices();
             }
-            else
-                ComputePathPoints();
+            //else
+            //    ComputePathPoints();
             //if (UseVertices)
             //{
             //    if (UserDefinedVertices)

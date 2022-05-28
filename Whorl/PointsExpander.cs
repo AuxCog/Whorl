@@ -93,19 +93,26 @@ namespace Whorl
                 repetitions = sectors;
             closeStart = false;
             SetThickness(points);
+            double angle = 2.0 * Math.PI / sectors;
             if (!GetPaths(points, out var path, out var path2))
                 return points;
             path2.Reverse();
             path.AddRange(path2);
             var fullPath = new List<PointF>(path);
-            double angle = 2.0 * Math.PI / sectors;
+            var centerPoints = new List<PointF>();
+            centerPoints.Add(path[0]);
             for (int i = 1; i < repetitions; i++)
             {
                 PointF rotationVec = Tools.GetRotationVector(i * angle);
                 var newPath = path.Select(p => Tools.RotatePoint(p, rotationVec)).ToList();
-                PointF delta = Tools.SubtractPoint(fullPath.Last(), newPath.First());
+                PointF p0 = fullPath.Last();
+                PointF delta = Tools.SubtractPoint(p0, newPath.First());
+                centerPoints.Add(p0);
                 fullPath.AddRange(newPath.Select(p => Tools.AddPoint(p, delta)));
             }
+            PointF center = new PointF(centerPoints.Select(p => p.X).Average(), 
+                                       centerPoints.Select(p => p.Y).Average());
+            fullPath = fullPath.Select(p => Tools.SubtractPoint(p, center)).ToList();
             return fullPath;
         }
 
