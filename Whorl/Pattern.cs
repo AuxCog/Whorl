@@ -3053,10 +3053,10 @@ namespace Whorl
                 foreach (var outline in seedOutlines)
                 {
                     var pathOutline = outline as PathOutline;
-                    if (pathOutline != null)
-                    {
-                        pathOutline.AddVertices();
-                    }
+                    //if (pathOutline != null)
+                    //{
+                    //    pathOutline.AddVertices();
+                    //}
                     if (outline.InitComputeAmplitude(RotationSteps))
                     {
                         seedCustomOutline = null;  //SeedPoints computed from path vertices.

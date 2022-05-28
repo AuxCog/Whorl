@@ -19,7 +19,9 @@ namespace Whorl
         public bool InterpolateCorners { get; set; } = true;
         public bool UseNewVersion { get; set; } = false;
 
+        private bool closeStart { get; set; }
         private PathPadding pathPadding { get; } = new PathPadding();
+        private float thickness { get; set; }
 
         private double tanhSlope { get; set; }
         private bool useScale { get; set; }
@@ -46,10 +48,15 @@ namespace Whorl
             return points.Select(p => new PointF(p.X - c.X, p.Y - c.Y)).ToList();
         }
 
-        private float GetWidthScale(int index)
+        private float GetPaddingWidthScale(int index)
         {
-            double tanh1 = GetTanh(index);
-            double tanh2 = GetTanh(pathPadding.SourcePoints.Length - index);
+            return GetWidthScale(pathPadding.SourcePoints.Length, index);
+        }
+
+        private float GetWidthScale(int pointsCount, int index)
+        {
+            double tanh1 = closeStart ? GetTanh(index) : 1.0;
+            double tanh2 = GetTanh(pointsCount - index);
             float scale = (float)(tanh1 * tanh2);
             if (useScale)
             {
@@ -58,34 +65,82 @@ namespace Whorl
             return scale;
         }
 
+        private float GetScaledThickness(List<PointF> points, int i)
+        {
+            return thickness * GetWidthScale(points.Count, i);
+        }
+
         public List<PointF> ClosePoints(List<PointF> points)
         {
-            MinCornerAngle = Math.Max(1.0, MinCornerAngle);
+            closeStart = true;
+            SetThickness(points);
+            if (!GetPaths(points, out var path, out var path2))
+                return points;
+            path2.Reverse();
+            path.AddRange(path2);
+            return path;
+        }
+
+        public List<PointF> RepeatPath(List<PointF> points, int sectors, int repetitions = 0, bool reversePoints = false)
+        {
             if (points.Count < MinPointsCount)
                 return points;
+            if (reversePoints)
+                points.Reverse();
+            if (sectors <= 1)
+                return ClosePoints(points);
+            if (repetitions <= 0)
+                repetitions = sectors;
+            closeStart = false;
+            SetThickness(points);
+            if (!GetPaths(points, out var path, out var path2))
+                return points;
+            path2.Reverse();
+            path.AddRange(path2);
+            var fullPath = new List<PointF>(path);
+            double angle = 2.0 * Math.PI / sectors;
+            for (int i = 1; i < repetitions; i++)
+            {
+                PointF rotationVec = Tools.GetRotationVector(i * angle);
+                var newPath = path.Select(p => Tools.RotatePoint(p, rotationVec)).ToList();
+                PointF delta = Tools.SubtractPoint(fullPath.Last(), newPath.First());
+                fullPath.AddRange(newPath.Select(p => Tools.AddPoint(p, delta)));
+            }
+            return fullPath;
+        }
+
+        private void SetThickness(List<PointF> points)
+        {
+            useScale = Scales != null && Scales.Length > 0;
+            if (points.Count <= 1)
+                return;
             RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
             float maxExtent = Math.Max(boundingRect.Width, boundingRect.Height);
-            float thickness = 0.001F * maxExtent * Thickness;
+            thickness = 0.001F * maxExtent * Thickness;
+        }
+
+        private bool GetPaths(List<PointF> points, out List<PointF> path, out List<PointF> path2)
+        {
+            path = path2 = null;
+            MinCornerAngle = Math.Max(1.0, MinCornerAngle);
+            if (points.Count < MinPointsCount)
+                return false;
             tanhSlope = 0.01 * EndSlope;
-            useScale = Scales != null && Scales.Length > 0;
-            List<PointF> path, path2;
             if (UseNewVersion)
             {
                 pathPadding.IsClosedPath = false;
                 pathPadding.AllowMultiplePaths = false;
-                pathPadding.PaddingScaleFunc = GetWidthScale;
+                pathPadding.PaddingScaleFunc = GetPaddingWidthScale;
                 pathPadding.InterpolateCorners = InterpolateCorners;
                 pathPadding.Padding = thickness;
                 if (!pathPadding.Initialize(points.ToArray()))
-                    return points;
+                    return false;
                 var paths = pathPadding.ComputePathHelper();
                 path = paths.SelectMany(p => p).ToList();
                 pathPadding.Padding = -thickness;
                 paths = pathPadding.ComputePathHelper();
                 path2 = paths.SelectMany(p => p).ToList();
-                path2.Reverse();
-                path.AddRange(path2);
-                return path;
+                return true;
             }
             double maxIm = Math.Sin(Tools.DegreesToRadians(MinCornerAngle));
             path = new List<PointF>();
@@ -117,13 +172,7 @@ namespace Whorl
                         continue;  //Reached a corner.
                     }
                 }
-                double tanh1 = GetTanh(i);
-                double tanh2 = GetTanh(points.Count - i);
-                float scale = thickness * (float)(tanh1 * tanh2);
-                if (useScale)
-                {
-                    scale *= Scales[Tools.GetIndexInRange(i, Scales.Length)];
-                }
+                float scale = GetScaledThickness(points, i);
                 //Get perpendicular vector:
                 PointF perp = new PointF(scale * vector.Y, -scale * vector.X);
                 path.Add(new PointF(p.X + perp.X, p.Y + perp.Y));
@@ -136,9 +185,7 @@ namespace Whorl
                 path = HandleCorners(path, cornerIndices, avgLen);
                 path2 = HandleCorners(path2, cornerIndices, avgLen);
             }
-            path2.Reverse();
-            path.AddRange(path2);
-            return path;
+            return true;
         }
 
         private PointF GetVector(List<PointF> points, int i)
