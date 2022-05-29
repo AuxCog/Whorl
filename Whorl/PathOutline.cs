@@ -528,7 +528,14 @@ namespace Whorl
         public void RefreshVertices()
         {
             refreshPathPoints = true;
-            AddVertices();
+            if (UserDefinedVertices || DrawType == DrawTypes.Custom)
+            {
+                ComputePathPoints();
+            }
+            else
+            {
+                AddVertices();
+            }
         }
 
         public void AddVertices()
