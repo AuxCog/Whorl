@@ -1316,7 +1316,9 @@ namespace Whorl
             bool isNestedParams = Tools.GetXmlAttribute(subNode, defaultValue: false, "NestedParameters");
             int index = -1;
             Type paramType;
-            ParameterInfoAttribute infoAttr;
+            ParameterInfoAttribute infoAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+            if (infoAttr != null && !infoAttr.IsParameter)
+                return;
             if (paramArray != null)
             {
                 index = Tools.GetXmlAttribute<int>(subNode, -1, "Index");
@@ -1324,12 +1326,10 @@ namespace Whorl
                     return;
                 oParam = paramArray.GetValue(index);
                 paramType = paramArray.GetType().GetElementType();
-                infoAttr = null;
             }
             else
             {
                 paramType = propInfo.PropertyType;
-                infoAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
             }
             var iOptionsParam = oParam as IOptionsParameter;
             string sVal;
@@ -1426,14 +1426,14 @@ namespace Whorl
             if (paramsObject == null)
                 return;
             XmlNode childNode = xmlTools.CreateXmlNode("Parameters");
-            foreach (var propInfo in paramsObject.GetType().GetProperties())
+            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParameters(paramsObject))
             {
                 object oVal = propInfo.GetValue(paramsObject);
                 if (oVal == null)
                     continue;
-                if (oVal.GetType().IsArray)
+                if (oVal is Array paramArray)
                 {
-                    var paramArray = (Array)oVal;
+                    //var paramArray = (Array)oVal;
                     for (int index = 0; index < paramArray.Length; index++)
                     {
                         AppendCSharpParameterToXml(childNode, paramArray.GetValue(index), propInfo, xmlTools, index);
