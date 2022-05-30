@@ -337,6 +337,18 @@ namespace Whorl
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            ignoreEvents = true;
+            try
+            {
+                if (CSharpSharedCompiledInfo.CompileCustomParameterClasses())
+                {
+                    WriteStatus("Compiled Custom Parameter Classes.");
+                }
+            }
+            catch (Exception ex1)
+            {
+                Tools.HandleException(ex1);
+            }
             try
             {
                 cboDraftSize.SelectedItem = WhorlSettings.Instance.DraftSize;
@@ -422,7 +434,7 @@ namespace Whorl
                                     "Required Action");
                     EditSettings();
                 }
-                WriteStatus("Files Folder: " + WhorlSettings.Instance.FilesFolder);
+                //WriteStatus("Files Folder: " + WhorlSettings.Instance.FilesFolder);
             }
             catch (Exception ex)
             {
@@ -1478,6 +1490,7 @@ namespace Whorl
         {
             try
             {
+                if (ignoreEvents) return;
                 if (graphPoints != null)
                 {
                     e.Graphics.DrawCurve(Pens.Red, graphPoints);

@@ -18,14 +18,15 @@ using Whorl;
         public string Formula { get; private set; }
         public string NewFormula { get; private set; }
         public Func<double, double> Function { get; private set; }
-        public object ParamsObject { get; private set; }
-        public string ParamsClassCodeFilePath { get; }
-        public Type ParamsClassType { get; private set; }
+        public object ParamsObject { get; }
+        //public string ParamsClassCodeFilePath { get; }
+        public Type ParamsClassType { get; }
+        public string ParamsClassName { get; }
         public string FunctionName { get; }
         private Tokenizer tokenizer { get; }
         //private PropertyInfo renderingValuesPropertyInfo { get; set; }
         private object classInstance { get; set; }
-        private Type parametersClassType { get; set; }
+        //private Type parametersClassType { get; set; }
 
         private RenderingValues _renderingValues;
         public RenderingValues RenderingValues
@@ -56,22 +57,24 @@ using Whorl;
                 InitFormula(formula);
         }
 
-        public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName, string formula = null)
-               : this(functionName)
-        {
-            if (paramsClassCodeFileName != null)
-            {
-                ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
-                if (!File.Exists(ParamsClassCodeFilePath))
-                    throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
-            }
-            InitFormula(formula);
-        }
+        //public CompiledDoubleFuncParameter(string functionName, string paramsClassCodeFileName, string formula = null)
+        //       : this(functionName)
+        //{
+        //    if (paramsClassCodeFileName != null)
+        //    {
+        //        ParamsClassCodeFilePath = GetParamsFilePath(paramsClassCodeFileName);
+        //        if (!File.Exists(ParamsClassCodeFilePath))
+        //            throw new Exception($"The file {ParamsClassCodeFilePath} was not found.");
+        //    }
+        //    InitFormula(formula);
+        //}
 
-        public CompiledDoubleFuncParameter(string functionName, Type paramsClassType, string formula = null) 
+        public CompiledDoubleFuncParameter(string functionName, object oParams, string paramsClassName, string formula = null) 
                : this(functionName)
         {
-            ParamsClassType = parametersClassType = paramsClassType;
+            ParamsClassType = oParams.GetType();
+            ParamsClassName = paramsClassName;
+            ParamsObject = oParams;
             InitFormula(formula);
         }
 
@@ -149,18 +152,18 @@ using Whorl;
             var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
             var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
             classInstance = evalInstance.ClassInstance;
-            if (ParamsClassType != null || ParamsClassCodeFilePath != null)
+            if (ParamsObject != null) // || ParamsClassCodeFilePath != null)
             {
-                object sourceParams = ParamsObject;
-                evalInstance.GetParametersObject();
-                if (evalInstance.ParamsObj == null)
-                    throw new Exception("Didn't find parameters object.");
-                ParamsObject = evalInstance.ParamsObj;
-                parametersClassType = ParamsObject.GetType();
-                if (sourceParams != null)
-                {
-                    FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
-                }
+                //object sourceParams = ParamsObject;
+                if (sharedCompiledInfo.ParametersPropertyInfo == null)
+                    throw new Exception("Didn't find parameters property.");
+                evalInstance.SetParametersObject(ParamsObject);
+                //ParamsObject = evalInstance.ParamsObj;
+                //parametersClassType = ParamsObject.GetType();
+                //if (sourceParams != null)
+                //{
+                //    FormulaSettings.CopyCSharpParameters(sourceParams, ParamsObject, parentPattern: null);
+                //}
             }
             //renderingValuesPropertyInfo = classInstance.GetType().GetProperty("Info");
             var methodInfo = sharedCompiledInfo.EvalClassType.GetMethod(FunctionName, BindingFlags.Public | BindingFlags.Instance);
@@ -181,17 +184,18 @@ using Whorl;
             docF.AppendLine(sb, $"public class {CSharpSharedCompiledInfo.WhorlEvalClassName}: IRenderingValues");
             docF.OpenBrace(sb);
 
-            if (ParamsClassCodeFilePath != null)
+            //if (ParamsClassCodeFilePath != null)
+            //{
+            //    string paramsClassCode = ReadParamsClassCode();
+            //    string paramsClassName = Path.GetFileNameWithoutExtension(ParamsClassCodeFilePath);
+            //    docF.AppendLine(sb, paramsClassCode);
+            //    docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
+            //}
+            //else
+            if (ParamsClassType != null)
             {
-                string paramsClassCode = ReadParamsClassCode();
-                string paramsClassName = Path.GetFileNameWithoutExtension(ParamsClassCodeFilePath);
-                docF.AppendLine(sb, paramsClassCode);
-                docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
-            }
-            else if (ParamsClassType != null)
-            {
-                string paramsClassName = ParamsClassType.Name;
-                docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
+                docF.AppendLine(sb, $"public {ParamsClassName} Parms {{ get; set; }}");
+                //docF.AppendLine(sb, $"public {paramsClassName} Parms {{ get; }} = new {paramsClassName}();");
             }
             docF.AppendLine(sb, "public RenderingValues RenderingValues { get; set; }");
             docF.AppendLine(sb, "public RenderingValues Info => RenderingValues;");
@@ -206,10 +210,10 @@ using Whorl;
             return sb.ToString();
         }
 
-        public string ReadParamsClassCode()
-        {
-            return File.ReadAllText(ParamsClassCodeFilePath);
-        }
+        //public string ReadParamsClassCode()
+        //{
+        //    return File.ReadAllText(ParamsClassCodeFilePath);
+        //}
 
         private void ListProperties(Type objType, StringBuilder sb)
         {
@@ -251,9 +255,9 @@ using Whorl;
                 if (formTitle != null)
                     frm.Text = formTitle;
                 frm.DisplayText(NewFormula, autoSize: true);
-                if (parametersClassType != null)
+                if (ParamsClassType != null)
                 {
-                    frm.AddRelatedText(ListPropertiesAndMethods(parametersClassType),
+                    frm.AddRelatedText(ListPropertiesAndMethods(ParamsClassType),
                                        "Available Properties and Methods");
                 }
                 if (errorList != null)

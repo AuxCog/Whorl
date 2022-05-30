@@ -35,6 +35,7 @@ namespace Whorl
             Params,
             Instance,
             ParametersClass,
+            ParamsNamespace,
             SetProperty,
             Inherit,
             Influence,
@@ -263,7 +264,7 @@ namespace Whorl
 
         private class CustomFunctionParamInfo: ParamInfo
         {
-            public string ParamsCodeFileName { get; set; }
+            //public string ParamsCodeFileName { get; set; }
             public string ParamsClassName { get; set; }
 
             public CustomFunctionParamInfo(string name, int startCharIndex, string defaultValue): 
@@ -276,14 +277,11 @@ namespace Whorl
             {
                 var args = new List<string>();
                 args.Add(TranslateToCSharp.GetCSharpString(ParameterName));
-                HasNestedParameters = !string.IsNullOrEmpty(ParamsCodeFileName) ||
-                                      !string.IsNullOrEmpty(ParamsClassName);
+                HasNestedParameters = !string.IsNullOrEmpty(ParamsClassName);
                 if (HasNestedParameters)
                 {
-                    if (!string.IsNullOrEmpty(ParamsCodeFileName))
-                        args.Add(TranslateToCSharp.GetCSharpString(ParamsCodeFileName));
-                    else
-                        args.Add($"typeof({ParamsClassName})");
+                    args.Add($"new {ParamsClassName}()");
+                    args.Add(TranslateToCSharp.GetCSharpString(ParamsClassName));
                 }
                 if (DefaultValue != null)
                     args.Add(DefaultValue);
@@ -2051,14 +2049,13 @@ $@"public void {methodName}()
         {
             tokens = new List<Token>();
             int tokInd = tokenIndex;
-            bool? isType = TryParseType(tokens, ref tokInd, forGeneric: false);
+            bool? isType = TryParseType(tokens, ref tokInd);
             if (isType != false)
                 tokenIndex = tokInd;
             return isType;
         }
 
-        private bool? TryParseType(List<Token> tokens, ref int tokInd,
-                                   bool forGeneric)
+        private bool? TryParseType(List<Token> tokens, ref int tokInd)
         {
             bool? isType = null;
             while (true)
@@ -2084,7 +2081,7 @@ $@"public void {methodName}()
                     tokInd++;
                     while (true)
                     {
-                        if (TryParseType(tokens, ref tokInd, forGeneric: true) == false)
+                        if (TryParseType(tokens, ref tokInd) == false)
                         {
                             isType = false;
                             break;
@@ -2115,44 +2112,44 @@ $@"public void {methodName}()
 
         private CustomFunctionParamInfo ParseCustomFunctionParam(Token nameTok, ref int tokenIndex, Token directiveToken)
         {
-            string paramsFileName = null, paramsClassName = null, defaultValue = null;
+            string paramsClassName = null, defaultValue = null;
             Token token = GetToken(tokenIndex);
-            if (ParseReservedWord(token.Text, out ReservedWords reservedWord, 
-                                  ReservedWords.ParametersFile, ReservedWords.ParametersClass))
+            if (ParseReservedWord(token.Text, ReservedWords.ParametersClass))
             {
                 token = GetToken(++tokenIndex);
                 if (token.Text != "=")
                 {
-                    AddError(token, $"Expecting '=' after {reservedWord}.");
+                    AddError(token, $"Expecting '=' after ParametersClass.");
                     return null;
                 }
                 tokenIndex++;
-                if (reservedWord == ReservedWords.ParametersFile)
+                if (TryParseType(ref tokenIndex, out List<Token> typeTokens) == false)
                 {
-                    token = GetToken(tokenIndex);
-                    if (token.TokenType != Token.TokenTypes.String)
-                    {
-                        AddError(token, "Expecting quoted file name after ParametersFile = .");
-                        return null;
-                    }
-                    paramsFileName = ((StringToken)token).Value;
-                    string filePath = CompiledDoubleFuncParameter.GetParamsFilePath(paramsFileName);
-                    if (!System.IO.File.Exists(filePath))
-                    {
-                        AddError(token, $"Parameters File not found: {filePath}.");
-                        return null;
-                    }
-                    tokenIndex++;
+                    AddError(token, "Expecting name of parameters class after ParametersClass = .");
+                    return null;
                 }
-                else //if (reservedWord == ReservedWords.ParametersClass)
-                {
-                    if (TryParseType(ref tokenIndex, out List<Token> typeTokens) == false)
-                    { 
-                        AddError(token, "Expecting name of parameters class after ParametersClass = .");
-                        return null;
-                    }
-                    paramsClassName = string.Concat(typeTokens.Select(t => t.Text));
-                }
+                paramsClassName = string.Concat(typeTokens.Select(t => t.Text));
+
+                //if (reservedWord == ReservedWords.ParametersFile)
+                //{
+                //    token = GetToken(tokenIndex);
+                //    if (token.TokenType != Token.TokenTypes.String)
+                //    {
+                //        AddError(token, "Expecting quoted file name after ParametersFile = .");
+                //        return null;
+                //    }
+                //    paramsFileName = ((StringToken)token).Value;
+                //    string filePath = CompiledDoubleFuncParameter.GetParamsFilePath(paramsFileName);
+                //    if (!System.IO.File.Exists(filePath))
+                //    {
+                //        AddError(token, $"Parameters File not found: {filePath}.");
+                //        return null;
+                //    }
+                //    tokenIndex++;
+                //}
+                //else //if (reservedWord == ReservedWords.ParametersClass)
+                //{
+                //}
             }
             token = GetToken(tokenIndex);
             if (token.Text == "=")
@@ -2167,7 +2164,7 @@ $@"public void {methodName}()
                 defaultValue = TranslateToCSharp.GetCSharpString(((StringToken)token).Value);
             }
             var paramInfo = new CustomFunctionParamInfo(nameTok.Text, directiveToken.CharIndex, defaultValue);
-            paramInfo.ParamsCodeFileName = paramsFileName;
+            //paramInfo.ParamsCodeFileName = paramsFileName;
             paramInfo.ParamsClassName = paramsClassName;
             return paramInfo;
         }

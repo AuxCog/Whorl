@@ -245,6 +245,42 @@ namespace Whorl
             SetCompiledProperties(forFormula: true);
         }
 
+        public static bool CompileCustomParameterClasses()
+        {
+            CompilerResults results = CSharpCompiler.Instance.CompileCustomParameterClasses(
+                                      out string code, out Assembly assembly);
+            if (assembly != null)
+            {
+                CSharpCompiler.Instance.AddReferencedAssembly(assembly);
+                return results != null;
+            }
+            else if (results != null)
+            {
+                string errorList = GetErrorList(results);
+                if (errorList != null)
+                {
+                    var frm = new frmTextEditor();
+                    frm.Text = "Compiler errors for custom parameter classes.";
+                    frm.DisplayText(errorList, readOnly: true);
+                    frm.AddRelatedText(code, "Parameter Classes Code");
+                    frm.ShowDialog();
+                }
+            }
+            return false;
+        }
+
+        public static IEnumerable<ErrorInfo> GetErrors(CompilerResults compilerResults)
+        {
+            return from CompilerError err in compilerResults.Errors
+                   select new ErrorInfo(err.ErrorText, err.Line, err.Column, ErrorType.Error);
+        }
+
+        public static string GetErrorList(CompilerResults compilerResults)
+        {
+            var errors = GetErrors(compilerResults);
+            return errors.Any() ? string.Join(Environment.NewLine, errors) : null;
+        }
+
         public void SetCompilerResults(CompilerResults compilerResults, bool forFormula = true)
         {
             InitCompile();

@@ -48,6 +48,8 @@ namespace Whorl
         private CSharpCodeProvider csProvider { get; }
         private CompilerParameters compilerParameters { get; }
 
+        private string outputAssembliesFolder { get; }
+
         private Dictionary<string, CompilerResults> compiledDict { get; } =
             new Dictionary<string, CompilerResults>();
 
@@ -56,21 +58,64 @@ namespace Whorl
 
         private CSharpCompiler()
         {
-            //csProvider = new CSharpCodeProvider(new CompilerSettings());
-            //compiler = new Microsoft.CodeDom.Providers.DotNetCompilerPlatform.CSharpCodeProvider();
-            //compiler = Microsoft.CodeDom.Providers.DotNetCompilerPlatform.CSharpCodeProvider.CreateProvider("cs", 
-            //           new Dictionary<string, string> { { "CompilerDirectoryPath", Path.Combine(Environment.CurrentDirectory, "roslyn") }});
-            csProvider = new CSharpCodeProvider(new CompilerSettings());
+            const string folderName = "CustomParameterClasses";
 
-            string options = "-langversion:8.0";
-            compilerParameters = new CompilerParameters() 
-                { GenerateExecutable = false, GenerateInMemory = true, CompilerOptions = options };
-            compilerParameters.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
-            compilerParameters.ReferencedAssemblies.Add("System.Core.dll");
-            compilerParameters.ReferencedAssemblies.Add(typeof(System.Windows.Forms.Control).Assembly.Location);
-            compilerParameters.ReferencedAssemblies.Add(typeof(System.Drawing.Size).Assembly.Location);
-            compilerParameters.ReferencedAssemblies.Add(typeof(PixelRenderInfo).Assembly.Location);
-            compilerParameters.ReferencedAssemblies.Add(typeof(ParserEngine.OutlineMethods).Assembly.Location);
+            csProvider = new CSharpCodeProvider(new CompilerSettings());
+            compilerParameters = GetCompilerParameters(inMemory: true);
+            outputAssembliesFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, folderName);
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+        }
+
+        private CompilerParameters GetCompilerParameters(bool inMemory)
+        {
+            const string options = "-langversion:8.0";
+
+            var compilerParams = new CompilerParameters()
+            { GenerateExecutable = false, GenerateInMemory = inMemory, CompilerOptions = options };
+            compilerParams.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
+            compilerParams.ReferencedAssemblies.Add("System.Core.dll");
+            compilerParams.ReferencedAssemblies.Add(typeof(System.Windows.Forms.Control).Assembly.Location);
+            compilerParams.ReferencedAssemblies.Add(typeof(System.Drawing.Size).Assembly.Location);
+            compilerParams.ReferencedAssemblies.Add(typeof(PixelRenderInfo).Assembly.Location);
+            compilerParams.ReferencedAssemblies.Add(typeof(ParserEngine.OutlineMethods).Assembly.Location);
+            return compilerParams;
+        }
+
+        public void AddReferencedAssembly(Assembly assembly)
+        {
+            compilerParameters.ReferencedAssemblies.Add(assembly.Location);
+        }
+
+        public CompilerResults CompileCustomParameterClasses(out string code, out Assembly assembly)
+        {
+            const string folderName = "CustomParameterClasses";
+            string folder = outputAssembliesFolder;
+            code = null;
+            assembly = null;
+            if (Directory.Exists(folder))
+            {
+                string filePath = Path.Combine(folder, $"{folderName}.cs");
+                if (File.Exists(filePath))
+                {
+                    string assemblyPath = Path.Combine(folder, $"{folderName}.dll");
+                    if (File.Exists(assemblyPath))
+                    {
+                        if (File.GetLastWriteTime(filePath) <= File.GetLastWriteTime(assemblyPath))
+                        {
+                            assembly = Assembly.LoadFrom(assemblyPath);
+                            return null;
+                        }
+                    }
+                    code = File.ReadAllText(filePath);
+                    var compileParams = GetCompilerParameters(inMemory: false);
+                    compileParams.OutputAssembly = assemblyPath;
+                    var results = csProvider.CompileAssemblyFromSource(compileParams, code);
+                    if (results.Errors.Count == 0)
+                        assembly = results.CompiledAssembly;
+                    return results;
+                }
+            }
+            return null;
         }
 
         public CompilerResults CompileCode(string code)
@@ -103,20 +148,26 @@ namespace Whorl
             return sharedCompiledInfo;
         }
 
-        //public CSharpCompiledInfo CompileCode(string code)
-        //{
-        //    string options = "-langversion:8.0";
-        //    var compilerParameters = new CompilerParameters() { GenerateExecutable = false, GenerateInMemory = true, CompilerOptions = options };
-        //    compilerParameters.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
-        //    compilerParameters.ReferencedAssemblies.Add("System.Core.dll");
-        //    compilerParameters.ReferencedAssemblies.Add(typeof(System.Windows.Forms.Control).Assembly.Location);
-        //    compilerParameters.ReferencedAssemblies.Add(typeof(System.Drawing.Size).Assembly.Location);
-        //    compilerParameters.ReferencedAssemblies.Add(typeof(PixelRenderInfo).Assembly.Location);
-        //    compilerParameters.ReferencedAssemblies.Add(typeof(ParserEngine.OutlineMethods).Assembly.Location);
-
-        //    var info = new CSharpCompiledInfo();
-        //    info.CompileCode(code, csProvider, compilerParameters);
-        //    return info;
-        //}
+        // Handle dependencies and assemblies we're not able to load
+        private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+        {
+            if (string.IsNullOrEmpty(args.Name))
+            {
+                return null;
+            }
+            var assemblyName = new AssemblyName(args.Name);
+            string path = Path.Combine(outputAssembliesFolder, assemblyName.Name + ".dll");
+            if (File.Exists(path))
+            {
+                try
+                {
+                    return Assembly.LoadFrom(path);
+                }
+                catch
+                {
+                }
+            }
+            return null;
+        }
     }
 }
