@@ -100,7 +100,7 @@ namespace Whorl
             if (!allowAllParams && ParamPropIsNestedParams(propInfo))
                 return false;
             var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
-            return attr == null || (attr.IsDisplayed && attr.IsParameter);
+            return attr == null || attr.IsParameter;
         }
 
         public static IEnumerable<PropertyInfo> GetDisplayedParametersForType(Type paramsObjType, bool allowAllParams = true)
