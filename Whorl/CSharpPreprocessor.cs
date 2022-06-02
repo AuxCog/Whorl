@@ -2117,9 +2117,9 @@ $@"public void {methodName}()
             if (ParseReservedWord(token.Text, ReservedWords.ParametersClass))
             {
                 token = GetToken(++tokenIndex);
-                if (token.Text != "=")
+                if (token.Text != ":" && token.Text != "=")
                 {
-                    AddError(token, $"Expecting '=' after ParametersClass.");
+                    AddError(token, $"Expecting ':' or '=' after ParametersClass.");
                     return null;
                 }
                 tokenIndex++;

@@ -31,19 +31,29 @@ namespace Whorl
             return 0.5 * (1.0 + Math.Tanh(tanhSlope * (x - EndOffset)));
         }
 
-        public static PointF GetCenter(List<PointF> points)
+        public static PointF GetCenter(List<PointF> points, bool average = false)
         {
             if (points.Count == 0)
                 return PointF.Empty;
-            RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
-            PointF center = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
-                                       boundingRect.Y + 0.5F * boundingRect.Height);
-            return points.OrderBy(p => Tools.DistanceSquared(p, center)).First();
+            PointF center;
+            if (average)
+            {
+                center = new PointF(points.Select(p => p.X).Average(),
+                                    points.Select(p => p.Y).Average());
+            }
+            else
+            {
+                RectangleF boundingRect = Tools.GetBoundingRectangleF(points);
+                center = new PointF(boundingRect.X + 0.5F * boundingRect.Width,
+                                           boundingRect.Y + 0.5F * boundingRect.Height);
+            }
+            return center;
+            //return points.OrderBy(p => Tools.DistanceSquared(p, center)).First();
         }
 
-        public static List<PointF> SetCenter(List<PointF> points, out PointF center)
+        public static List<PointF> SetCenter(List<PointF> points, out PointF center, bool average = false)
         {
-            center = GetCenter(points);
+            center = GetCenter(points, average);
             PointF c = center;
             return points.Select(p => new PointF(p.X - c.X, p.Y - c.Y)).ToList();
         }
