@@ -111,13 +111,21 @@ namespace Whorl
         }
 
         public static List<PointF> RepeatJoinedPoints(List<PointF> points, double sectors, int repetitions = 0, 
-                                                      bool setCenter = true)
+                                                      bool setCenter = true, bool sectorsIsAngle = false)
         {
-            if (repetitions == 0)
-                repetitions = (int)sectors;
-            if (points.Count < MinPointsCount || sectors <= 1 || repetitions <= 1)
+            double angle;
+            if (sectorsIsAngle)
+            {
+                angle = sectors;
+            }
+            else
+            {
+                if (repetitions == 0)
+                    repetitions = (int)Math.Abs(sectors);
+                angle = sectors == 0 ? 0.0 : 2.0 * Math.PI / sectors;
+            }
+            if (points.Count < MinPointsCount || angle == 0 || repetitions <= 1)
                 return points;
-            double angle = 2.0 * Math.PI / sectors;
             var centerPoints = setCenter ? new List<PointF>() : null;
             if (setCenter)
                 centerPoints.Add(points[0]);
