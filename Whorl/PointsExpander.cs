@@ -97,32 +97,47 @@ namespace Whorl
                 return points;
             if (reversePoints)
                 points.Reverse();
-            if (sectors <= 1)
-                return ClosePoints(points);
-            if (repetitions <= 0)
+            if (repetitions == 0)
                 repetitions = sectors;
+            if (sectors <= 1 || repetitions <= 1)
+                return ClosePoints(points);
             closeStart = false;
             SetThickness(points);
-            double angle = 2.0 * Math.PI / sectors;
             if (!GetPaths(points, out var path, out var path2))
                 return points;
             path2.Reverse();
             path.AddRange(path2);
-            var fullPath = new List<PointF>(path);
-            var centerPoints = new List<PointF>();
-            centerPoints.Add(path[0]);
+            return RepeatJoinedPoints(path, sectors, repetitions, setCenter: true);
+        }
+
+        public static List<PointF> RepeatJoinedPoints(List<PointF> points, double sectors, int repetitions = 0, 
+                                                      bool setCenter = true)
+        {
+            if (repetitions == 0)
+                repetitions = (int)sectors;
+            if (points.Count < MinPointsCount || sectors <= 1 || repetitions <= 1)
+                return points;
+            double angle = 2.0 * Math.PI / sectors;
+            var centerPoints = setCenter ? new List<PointF>() : null;
+            if (setCenter)
+                centerPoints.Add(points[0]);
+            var fullPath = new List<PointF>(points);
             for (int i = 1; i < repetitions; i++)
             {
                 PointF rotationVec = Tools.GetRotationVector(i * angle);
-                var newPath = path.Select(p => Tools.RotatePoint(p, rotationVec)).ToList();
+                var newPath = points.Select(p => Tools.RotatePoint(p, rotationVec)).ToList();
                 PointF p0 = fullPath.Last();
+                if (setCenter)
+                    centerPoints.Add(p0);
                 PointF delta = Tools.SubtractPoint(p0, newPath.First());
-                centerPoints.Add(p0);
                 fullPath.AddRange(newPath.Select(p => Tools.AddPoint(p, delta)));
             }
-            PointF center = new PointF(centerPoints.Select(p => p.X).Average(), 
-                                       centerPoints.Select(p => p.Y).Average());
-            fullPath = fullPath.Select(p => Tools.SubtractPoint(p, center)).ToList();
+            if (setCenter && centerPoints.Any())
+            {
+                PointF center = new PointF(centerPoints.Select(p => p.X).Average(),
+                                           centerPoints.Select(p => p.Y).Average());
+                fullPath = fullPath.Select(p => Tools.SubtractPoint(p, center)).ToList();
+            }
             return fullPath;
         }
 
