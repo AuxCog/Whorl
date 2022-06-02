@@ -111,7 +111,8 @@ namespace Whorl
         }
 
         public static List<PointF> RepeatJoinedPoints(List<PointF> points, double sectors, int repetitions = 0, 
-                                                      bool setCenter = true, bool sectorsIsAngle = false)
+                                                      bool setCenter = true, bool sectorsIsAngle = false, 
+                                                      bool? adjustCenterReversed = null)
         {
             double angle;
             if (sectorsIsAngle)
@@ -126,6 +127,24 @@ namespace Whorl
             }
             if (points.Count < MinPointsCount || angle == 0 || repetitions <= 1)
                 return points;
+            if (adjustCenterReversed.HasValue)
+            {
+                PointF p0 = points[0], p1 = points.Last();
+                double tangent = Math.Tan(0.5 * angle);
+                if (p0 != p1 && tangent != 0.0)
+                {
+                    PointF vector = Tools.GetVector(p0, p1);
+                    double width = Tools.VectorLength(vector);
+                    PointF pMid = new PointF(p0.X + 0.5F * vector.X, p0.Y + 0.5F * vector.Y);
+                    float sign = adjustCenterReversed.Value ? -1F : 1F;
+                    PointF perpVec = new PointF(sign * vector.Y, -sign * vector.X);
+                    double length = 0.5 * width / tangent;
+                    float fac = (float)(length / width);
+                    PointF pCenter = new PointF(pMid.X + fac * perpVec.X, pMid.Y + fac * perpVec.Y);
+                    PointF delta = Tools.SubtractPoint(pCenter, p0);
+                    points = points.Select(p => Tools.AddPoint(p, delta)).ToList();
+                }
+            }
             var centerPoints = setCenter ? new List<PointF>() : null;
             if (setCenter)
                 centerPoints.Add(points[0]);
