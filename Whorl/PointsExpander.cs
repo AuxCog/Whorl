@@ -112,7 +112,7 @@ namespace Whorl
 
         public static List<PointF> RepeatJoinedPoints(List<PointF> points, double sectors, int repetitions = 0, 
                                                       bool setCenter = true, bool sectorsIsAngle = false, 
-                                                      bool? adjustCenterReversed = null)
+                                                      bool adjustCenter = false)
         {
             double angle;
             if (sectorsIsAngle)
@@ -127,42 +127,45 @@ namespace Whorl
             }
             if (points.Count < MinPointsCount || angle == 0 || repetitions <= 1)
                 return points;
-            if (adjustCenterReversed.HasValue)
+            PointF center = PointF.Empty;
+            angle = -angle;
+            if (setCenter || adjustCenter)
             {
-                PointF p0 = points[0], p1 = points.Last();
-                double tangent = Math.Tan(0.5 * angle);
-                if (p0 != p1 && tangent != 0.0)
+                var centerPoints = new List<PointF>();
+                PointF p0 = points.First();
+                PointF p1 = points.Last();
+                centerPoints.Add(p1);
+                PointF vector = Tools.GetVector(p0, p1);
+                PointF rotationVec = Tools.GetRotationVector(angle);
+                for (int i = 1; i < repetitions; i++)
                 {
-                    PointF vector = Tools.GetVector(p0, p1);
-                    double width = Tools.VectorLength(vector);
-                    PointF pMid = new PointF(p0.X + 0.5F * vector.X, p0.Y + 0.5F * vector.Y);
-                    float sign = adjustCenterReversed.Value ? -1F : 1F;
-                    PointF perpVec = new PointF(sign * vector.Y, -sign * vector.X);
-                    double length = 0.5 * width / tangent;
-                    float fac = (float)(length / width);
-                    PointF pCenter = new PointF(pMid.X + fac * perpVec.X, pMid.Y + fac * perpVec.Y);
-                    PointF delta = Tools.SubtractPoint(pCenter, p0);
-                    points = points.Select(p => Tools.AddPoint(p, delta)).ToList();
+                    vector = Tools.RotatePoint(vector, rotationVec);
+                    p1 = Tools.AddPoint(p1, vector);
+                    centerPoints.Add(p1);
+                }
+                center = new PointF(centerPoints.Select(p => p.X).Average(),
+                                    centerPoints.Select(p => p.Y).Average());
+                if (adjustCenter)
+                {
+                    points = points.Select(p => Tools.SubtractPoint(p, center)).ToList();
                 }
             }
-            var centerPoints = setCenter ? new List<PointF>() : null;
-            if (setCenter)
-                centerPoints.Add(points[0]);
             var fullPath = new List<PointF>(points);
             for (int i = 1; i < repetitions; i++)
             {
                 PointF rotationVec = Tools.GetRotationVector(i * angle);
                 var newPath = points.Select(p => Tools.RotatePoint(p, rotationVec)).ToList();
-                PointF p0 = fullPath.Last();
-                if (setCenter)
-                    centerPoints.Add(p0);
-                PointF delta = Tools.SubtractPoint(p0, newPath.First());
-                fullPath.AddRange(newPath.Select(p => Tools.AddPoint(p, delta)));
+                if (adjustCenter)
+                    fullPath.AddRange(newPath);
+                else
+                {
+                    PointF p0 = fullPath.Last();
+                    PointF delta = Tools.SubtractPoint(p0, newPath.First());
+                    fullPath.AddRange(newPath.Select(p => Tools.AddPoint(p, delta)));
+                }
             }
-            if (setCenter && centerPoints.Any())
+            if (setCenter && !adjustCenter)
             {
-                PointF center = new PointF(centerPoints.Select(p => p.X).Average(),
-                                           centerPoints.Select(p => p.Y).Average());
                 fullPath = fullPath.Select(p => Tools.SubtractPoint(p, center)).ToList();
             }
             return fullPath;
