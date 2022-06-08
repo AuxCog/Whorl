@@ -1470,6 +1470,7 @@ namespace Whorl
                 XmlNode settingsNode = xmlTools.CreateXmlNode("Settings");
                 xmlTools.AppendAllXmlAttributes(settingsNode, paramValue);
                 subNode.AppendChild(settingsNode);
+                childNode.AppendChild(subNode);
                 return;
             }
             string sValue;
