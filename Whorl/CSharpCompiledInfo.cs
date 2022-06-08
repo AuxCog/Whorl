@@ -110,7 +110,7 @@ namespace Whorl
 
             public IEnumerable<PropertyInfo> GetDisplayedParameters(bool allowAllParams = true)
             {
-                return CSharpSharedCompiledInfo.GetDisplayedParameters(ParamsObj, allowAllParams);
+                return CSharpSharedCompiledInfo.GetIncludedParameters(ParamsObj, allowAllParams);
             }
 
             public List<ParamInfo> GetParamInfos()

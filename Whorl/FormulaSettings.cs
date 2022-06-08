@@ -1301,11 +1301,11 @@ namespace Whorl
                     }
                 }
                 object oParam = propInfo.GetValue(paramsObj);
-                Array paramArray = null;
+                Array paramArray;
                 if (forArrayParams)
-                {
                     paramArray = oParam as Array;
-                }
+                else
+                    paramArray = null;
                 ParseCSharpParamXml(subNode, oParam, propInfo, paramArray, ref updateParams, paramsObj);
             }
         }
@@ -1318,7 +1318,15 @@ namespace Whorl
             Type paramType;
             ParameterInfoAttribute infoAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
             if (infoAttr != null && !infoAttr.IsParameter)
+            {
+                if (infoAttr.IsSettings)
+                {
+                    if (subNode.FirstChild == null || subNode.FirstChild.Name != "Settings")
+                        throw new NullReferenceException("Expecting XML child node named Settings.");
+                    Tools.GetAllXmlAttributes(oParam, subNode.FirstChild);
+                }
                 return;
+            }
             if (paramArray != null)
             {
                 index = Tools.GetXmlAttribute<int>(subNode, -1, "Index");
@@ -1426,7 +1434,7 @@ namespace Whorl
             if (paramsObject == null)
                 return;
             XmlNode childNode = xmlTools.CreateXmlNode("Parameters");
-            foreach (var propInfo in CSharpSharedCompiledInfo.GetDisplayedParameters(paramsObject))
+            foreach (var propInfo in CSharpSharedCompiledInfo.GetIncludedParameters(paramsObject, allowSettingsParams: true))
             {
                 object oVal = propInfo.GetValue(paramsObject);
                 if (oVal == null)
@@ -1453,7 +1461,17 @@ namespace Whorl
             if (paramValue == null || paramValue is RandomParameter)
                 return;
             bool isNestedParams = propInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
-            XmlNode subNode;
+            var paramAttr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+            XmlNode subNode = xmlTools.CreateXmlNode("Parameter");
+            xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
+            xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
+            if (paramAttr != null && paramAttr.IsSettings)
+            {
+                XmlNode settingsNode = xmlTools.CreateXmlNode("Settings");
+                xmlTools.AppendAllXmlAttributes(settingsNode, paramValue);
+                subNode.AppendChild(settingsNode);
+                return;
+            }
             string sValue;
             object nestedParamsObj = null;
             var iOptionsParam = paramValue as IOptionsParameter;
@@ -1483,9 +1501,6 @@ namespace Whorl
             {
                 sValue = paramValue.ToString();
             }
-            subNode = xmlTools.CreateXmlNode("Parameter");
-            xmlTools.AppendXmlAttribute(subNode, "Name", propInfo.Name);
-            xmlTools.AppendXmlAttribute(subNode, "TypeName", propInfo.PropertyType.Name);
             if (sValue != null)
             {
                 if (paramValue is string || paramValue is CompiledDoubleFuncParameter)

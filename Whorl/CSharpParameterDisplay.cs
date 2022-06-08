@@ -129,7 +129,7 @@ namespace Whorl
             try
             {
                 foreach (PropertyInfo propertyInfo in 
-                         CSharpSharedCompiledInfo.GetDisplayedParameters(ParametersObject, allowAllParams: false))
+                         CSharpSharedCompiledInfo.GetIncludedParameters(ParametersObject, allowAllParams: false))
                 {
                     var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
                     if (attr == null || attr.ParameterSource == ParameterSources.None)
@@ -178,7 +178,7 @@ namespace Whorl
                 int parameterIndex = 0;
                 AddActionComboBox(ref parameterIndex);
                 foreach (PropertyInfo propertyInfo in
-                         CSharpSharedCompiledInfo.GetDisplayedParameters(ParametersObject))
+                         CSharpSharedCompiledInfo.GetIncludedParameters(ParametersObject))
                 {
                     object oParam = propertyInfo.GetValue(ParametersObject);
                     if (oParam == null)

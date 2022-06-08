@@ -93,37 +93,47 @@ namespace Whorl
             return attr == null || attr.IsParameter;
         }
 
-        public static bool ParameterIsDisplayed(PropertyInfo propInfo, bool allowAllParams = true)
+        public static bool IncludeParameter(PropertyInfo propInfo, bool allowAllParams = true,
+                                                bool allowSettingsParams = false)
         {
             if (!ParamPropInfoIsValid(propInfo))
                 return false;
             if (!allowAllParams && ParamPropIsNestedParams(propInfo))
                 return false;
             var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
-            return attr == null || attr.IsParameter;
+            return attr == null || attr.IsParameter || (allowSettingsParams && attr.IsSettings);
         }
 
-        public static IEnumerable<PropertyInfo> GetDisplayedParametersForType(Type paramsObjType, bool allowAllParams = true)
+        public static IEnumerable<PropertyInfo> GetIncludedParametersForType(Type paramsObjType, bool allowAllParams = true,
+                                                bool allowSettingsParams = false)
         {
             return paramsObjType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                            .Where(pi => ParameterIsDisplayed(pi, allowAllParams));
+                            .Where(pi => IncludeParameter(pi, allowAllParams, allowSettingsParams));
         }
 
-        public static IEnumerable<PropertyInfo> GetDisplayedParameters(object paramsObj, bool allowAllParams = true)
+        public static IEnumerable<PropertyInfo> GetIncludedParameters(object paramsObj, bool allowAllParams = true,
+                                                bool allowSettingsParams = false)
         {
             if (paramsObj == null)
                 return null;
             else
-                return GetDisplayedParametersForType(paramsObj.GetType(), allowAllParams);
+                return GetIncludedParametersForType(paramsObj.GetType(), allowAllParams, allowSettingsParams);
         }
 
 
         public static bool ParamPropInfoIsValid(PropertyInfo propInfo)
         {
-            return propInfo.CanRead &&
+            bool isValid = propInfo.CanRead &&
                    (ParamTypeIsNonScalar(propInfo.PropertyType) ||
                    (ParamTypeIsScalar(propInfo.PropertyType) && propInfo.CanWrite) ||
                     ParamPropIsNestedParams(propInfo));
+            if (!isValid && propInfo.PropertyType.IsClass)
+            {
+                var attr = propInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                if (attr != null && attr.IsSettings)
+                    isValid = true;
+            }
+            return isValid;
         }
 
         public static bool ParamPropIsNestedParams(PropertyInfo propInfo)

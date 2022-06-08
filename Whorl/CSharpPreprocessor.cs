@@ -36,6 +36,7 @@ namespace Whorl
             Instance,
             ParametersClass,
             ParamsNamespace,
+            SettingsParameter,
             SetProperty,
             Inherit,
             Influence,
@@ -100,7 +101,6 @@ namespace Whorl
             public string Initializer { get; protected set; }
             public string DecTypeName { get; protected set; }
             public string Label { get; set; }
-            public bool IsNonParameter { get; set; }
 
             public BaseParamInfo(string name, string typeName, int startCharIndex, string initializer, 
                                  ParamCategories category)
@@ -125,6 +125,8 @@ namespace Whorl
             public string PreviousName { get; set; }
             public int PreviousStartNumber { get; set; }
             public bool HasNestedParameters { get; protected set; }
+            public bool IsNonParameter { get; set; }
+            public bool IsSettingsParameter { get; set; }
 
             public string GetDecType()
             {
@@ -167,6 +169,10 @@ namespace Whorl
                     case ParamCategories.Scalar:
                     case ParamCategories.ArrayLength:
                         DecTypeName = TypeName;
+                        if (IsSettingsParameter)
+                        {
+                            Initializer = $"new {DecTypeName}()";
+                        }
                         break;
                     case ParamCategories.Enumerated:
                         DecTypeName = $"EnumValuesParameter<{TypeName}>";
@@ -1614,7 +1620,7 @@ $@"public void {methodName}()
             ParameterSources parameterSource = ParameterSources.None;
             bool isValid;
             bool isNestedParamsParam = false;
-            bool isNonParameter = false;
+            bool isNonParameter = false, isSettings = false;
             int previousStartNumber = 1;
             bool allowMinMax = true;
             bool allowArrayParam = parametersDict == ParamsDict;
@@ -1639,6 +1645,11 @@ $@"public void {methodName}()
             if (ParseReservedWord(nameTok.Text, ReservedWords.NonParameter))
             {
                 isNonParameter = true;
+            }
+            else if (ParseReservedWord(nameTok.Text, ReservedWords.SettingsParameter))
+            {
+                isSettings = isNonParameter = true;
+                allowArrayParam = false;
                 nameTok = GetToken(tokenIndex++);
             }
             else if (nameTok.Text == "@")
@@ -1681,7 +1692,12 @@ $@"public void {methodName}()
                 if (tok.TokenType == Token.TokenTypes.LeftBracket)
                 {
                     if (!allowArrayParam)
-                        AddError(tok, "Nested parameters classes cannot have array parameters.");
+                    {
+                        if (isSettings)
+                            AddError(tok, "Settings parameter cannot have array index.");
+                        else
+                            AddError(tok, "Nested parameters classes cannot have array parameters.");
+                    }
                     allowMinMax = false;
                     tokenIndex++;
                     arrayIsValid = false;
@@ -1738,6 +1754,11 @@ $@"public void {methodName}()
                     if (typeName == null)
                         return false;
                     tok = GetToken(tokenIndex);
+                }
+                else if (isSettings)
+                {
+                    AddError(tok, "Expecting ': <SettingsClassName>'.");
+                    return false;
                 }
                 isValid = true;
                 if (!isNonParameter)
@@ -1897,6 +1918,10 @@ $@"public void {methodName}()
                     {
                         AddError(tok, "Properties with SetProperty specified cannot have initializers.");
                     }
+                    else if (isSettings)
+                    {
+                        AddError(tok, "Settings properties cannot have initializers.");
+                    }
                     else
                     {
                         tokenIndex++;
@@ -1961,6 +1986,7 @@ $@"public void {methodName}()
                     paramInfo = new ParamInfo(parameterName, typeName, startCharIndex,
                                               initializer, defaultValue, paramCategory);
                 paramInfo.IsNonParameter = isNonParameter;
+                paramInfo.IsSettingsParameter = isSettings;
                 paramInfo.ArrayLength = arrayLength;
                 paramInfo.ArrayLengthParamName = arrayLengthParamName;
                 paramInfo.ParameterSource = parameterSource;
@@ -2344,6 +2370,8 @@ $@"public void {methodName}()
             }
             if (paramInfo.IsNonParameter)
                 paramInfoParams.Add("IsParameter = false");
+            if (paramInfo.IsSettingsParameter)
+                paramInfoParams.Add("IsSettings = true");
             if (paramInfo.HasNestedParameters)
                 sb.Append("[NestedParameters] ");
             if (paramInfo.Label != null)
@@ -2353,9 +2381,10 @@ $@"public void {methodName}()
             if (paramInfo.PreviousName != null)
                 sb.Append($"[ArrayBaseName(\"{paramInfo.PreviousName}\", {paramInfo.PreviousStartNumber})] ");
             sb.Append($"public {paramInfo.GetDecType()} {paramInfo.ParameterName} ");
-            bool hasSet = paramInfo.Category == ParamCategories.Scalar || 
-                          paramInfo.IsArray || 
-                          paramInfo.Category == ParamCategories.ArrayLength;
+            bool hasSet = (paramInfo.Category == ParamCategories.Scalar || 
+                           paramInfo.IsArray || 
+                           paramInfo.Category == ParamCategories.ArrayLength)
+                           && !paramInfo.IsSettingsParameter;
             if (hasSet)
             {
                 if (paramInfo.SetProperty == null)
