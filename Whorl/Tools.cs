@@ -863,25 +863,25 @@ namespace Whorl
 
         public static object ConvertXmlAttribute(XmlAttribute attr, Type targetType)
         {
-            try
+            object oVal;
+            if (targetType == typeof(string))
+                oVal = attr.Value;
+            else
             {
-                object oVal;
-                if (targetType == typeof(string))
-                    oVal = attr.Value;
-                else
+                targetType = GetTypeOrUnderlyingType(targetType);
+                try
                 {
-                    targetType = GetTypeOrUnderlyingType(targetType);
                     if (targetType.IsEnum)
                         oVal = Enum.Parse(targetType, attr.Value);
                     else
                         oVal = Convert.ChangeType(attr.Value, targetType);
                 }
-                return oVal;
+                catch (Exception ex)
+                {
+                    throw new Exception($"Error converting XML attribute {attr.Name}.", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error converting XML attribute " + attr.Name, ex);
-            }
+            return oVal;
         }
 
         public static float GetXmlVersion(XmlNode node, float defaultValue = 0F)

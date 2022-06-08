@@ -879,6 +879,16 @@ namespace Whorl
                                          PropertyInfo propertyInfo, object targetParamsObj, 
                                          Array paramArray = null, int index = 0, Pattern parentPattern = null)
         {
+            if (paramArray == null && propertyInfo.PropertyType.IsClass)
+            {
+                var attr = propertyInfo.GetCustomAttribute<ParameterInfoAttribute>();
+                if (attr != null && attr.IsSettings)
+                {
+                    if (sourceParam != null && targetParam != null)
+                        Tools.CopyProperties(targetParam, sourceParam);
+                    return;
+                }
+            }
             bool hasNestedParams = propertyInfo.GetCustomAttribute<NestedParametersAttribute>() != null;
             object sourceNestedParamsObj = null, targetNestedParamsObj = null;
             var iOptionsParam = sourceParam as IOptionsParameter;
