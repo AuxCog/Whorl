@@ -255,7 +255,7 @@ namespace Whorl
             DrawType = drawType;
             PointF center = pattern.Center;
             SegmentVerticesCenter = center;
-            var unitVertices = GetScaledVertices(center: PointF.Empty).ToArray();
+            var unitVertices = GetNormalizedVertices(center: PointF.Empty).ToArray();
             float scale = (float)pattern.ZVector.GetModulus();
             SetSegmentVertices(unitVertices.Select(v => 
                                new PointF(scale * v.X + center.X, scale * v.Y + center.Y)));
@@ -326,7 +326,7 @@ namespace Whorl
                 {
                     if (!HasCurveVertices && !VerticesAreForCurve && SegmentVertices != null)
                     {
-                        LineVertices = GetScaledVertices().ToList();
+                        LineVertices = GetNormalizedVertices().ToList();
                     }
                 }
                 zVector = ComputePathPoints();
@@ -334,12 +334,12 @@ namespace Whorl
             return zVector;
         }
 
-        public IEnumerable<PointF> GetScaledVertices()
+        public IEnumerable<PointF> GetNormalizedVertices()
         {
-            return GetScaledVertices(SegmentVerticesCenter);
+            return GetNormalizedVertices(SegmentVerticesCenter);
         }
 
-        private IEnumerable<PointF> GetScaledVertices(PointF center)
+        private IEnumerable<PointF> GetNormalizedVertices(PointF center)
         {
             float scale = (float)(1.0 / GetPolygonMaxModulus(center));
             return SegmentVertices.Select(p => new PointF(scale * (p.X - center.X), scale * (p.Y - center.Y)));

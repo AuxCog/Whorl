@@ -8179,7 +8179,7 @@ namespace Whorl
             PointF center = editedPathPattern.Center;
             //PointF vertexCenter = editedPolygonPathOutline.SegmentVerticesCenter;
             polygonVertexInfos.Add(new DrawnPoint() { IdText = "C", Location = center });
-            List<PointF> vertices = editedPathOutline.GetScaledVertices().ToList();
+            List<PointF> vertices = editedPathOutline.GetNormalizedVertices().ToList();
             PointF vertex1 = vertices[0];
             for (int i = 0; i < vertices.Count; i++)
             {

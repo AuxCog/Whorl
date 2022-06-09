@@ -3192,11 +3192,13 @@ namespace Whorl
 
         public IEnumerable<PointF> GetPolygonVertices(bool allowCurve = false)
         {
-            PathOutline outline = BasicOutlines.Select(otl => otl as PathOutline).FirstOrDefault(po => po != null && po.LineVertices != null);
+            PathOutline outline = BasicOutlines.Select(otl => otl as PathOutline).FirstOrDefault(
+                                  po => po != null && po.SegmentVertices != null
+                                  && (allowCurve || po.HasLineVertices));
             if (outline == null)
                 return new PointF[] { };
             else
-                return outline.LineVertices;
+                return outline.GetNormalizedVertices();
         }
 
         public IEnumerable<FillInfo> GetFillInfos()
