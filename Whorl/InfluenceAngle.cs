@@ -45,13 +45,14 @@ namespace Whorl
             int id = 0;
             foreach (DoublePoint point in points)
             {
-                ++id;
-                if (skippedIds.Contains(id))
+                if (skippedIds.Contains(++id))
                     continue;
                 PolarPoint polarPoint = point.ToPolar();
                 polarPoint.Angle = Tools.NormalizeAngle(polarPoint.Angle);
                 polarPoints.Add(polarPoint);
             }
+            if (polarPoints.Count == 0)
+                return;
             polarPoints = polarPoints.OrderBy(p => p.Angle).ToList();
             double targetY = 0;
             AngleInfo angleInfo = null;
