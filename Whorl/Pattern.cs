@@ -605,6 +605,7 @@ namespace Whorl
                     if (distancePattern == null)
                         throw new NullReferenceException("distancePattern == null");
                     OrigZVector = parent.ZVector;
+                    bool isParent = distancePattern == parent;
                     distancePattern = distancePattern.GetCopy();
                     distancePattern.ClearPixelRendering();
                     if (transform)
@@ -614,7 +615,8 @@ namespace Whorl
                     if (DistancePattern != null)
                         DistancePattern.Dispose();
                     DistancePattern = distancePattern;
-                    parent.ClearRenderingCache();
+                    if (!isParent)
+                        parent.ClearRenderingCache();
                 }
 
                 //private void TransformDistancePattern(Pattern parent, Pattern distancePattern,
@@ -1193,7 +1195,11 @@ namespace Whorl
                 if (distancePatternInfos.Count == 0)
                     count = 1;
                 else
+                {
                     count = distancePatternInfos.Count;
+                    if (Info.UsePatternOutline)
+                        count++;
+                }
                 return count;
             }
 
@@ -1216,10 +1222,35 @@ namespace Whorl
                 distPatternsBoundsInfos[index] = boundsInfo;
             }
 
-            private void InitDistancePatternSquares(Pattern parentPattern)
+            private void InitDistanceSquares(Pattern parentPattern, PointF[] patternPoints)
+            {
+                int count = GetDistancePathsCount();
+                if (Info.ComputeExternal)
+                    distPatternsBoundsInfos = new PatternBoundsInfo[count];
+                distanceSquaresArray = new List<DistanceSquare>[Info.SingleDistance ? 1 : count];
+                int startInd = 0;
+                if (distancePatternInfos.Count == 0 || (Info.UsePatternOutline && !Info.SingleDistance))
+                {
+                    var pointsList = new List<PointF[]>() { patternPoints };
+                    InitDistanceSquares(0, pointsList);
+                    if (Info.ComputeExternal)
+                        distPatternsBoundsInfos[0] = patternBoundsInfo;
+                    startInd = 1;
+                }
+                if (distancePatternInfos.Count > 0)
+                {
+                    InitDistancePatternSquares(parentPattern, patternPoints, startInd);
+                }
+            }
+
+            private void InitDistancePatternSquares(Pattern parentPattern, PointF[] patternPoints, int startInd)
             {
                 bool multiple = !Info.SingleDistance;
                 var pointsList = new List<PointF[]>();
+                if (Info.UsePatternOutline && Info.SingleDistance)
+                {
+                    pointsList.Add(patternPoints);
+                }
                 for (int i = 0; i < distancePatternInfos.Count; i++)
                 {
                     var distanceInfo = distancePatternInfos[i];
@@ -1248,7 +1279,7 @@ namespace Whorl
                             pointsList.Clear();
                         pointsList.Add(distPtn.CurvePoints);
                         if (multiple)
-                            InitDistanceSquares(i, pointsList);
+                            InitDistanceSquares(i + startInd, pointsList);
                         if (Info.ComputeExternal)
                         {
                             AddPatternBoundsInfo(distPtn, i);
@@ -1258,27 +1289,6 @@ namespace Whorl
                 if (!multiple)
                 {
                     InitDistanceSquares(0, pointsList);
-                }
-            }
-
-            private void InitDistanceSquares(Pattern parentPattern, PointF[] patternPoints)
-            {
-                int count = GetDistancePathsCount();
-                if (Info.ComputeExternal)
-                    distPatternsBoundsInfos = new PatternBoundsInfo[count];
-                distanceSquaresArray = new List<DistanceSquare>[Info.SingleDistance ? 1 : count];
-                //distancePatterns.Clear();
-                if (distancePatternInfos.Count == 0)
-                {
-                    //distancePatterns.Add(parentPattern);
-                    var pointsList = new List<PointF[]>() { patternPoints };
-                    InitDistanceSquares(0, pointsList);
-                    if (Info.ComputeExternal)
-                        distPatternsBoundsInfos[0] = patternBoundsInfo;
-                }
-                else
-                {
-                    InitDistancePatternSquares(parentPattern);
                 }
             }
 
@@ -1521,9 +1531,10 @@ namespace Whorl
                     if (isOutside)
                         distanceScale = -1.0;
                 }
-                if (index < distancePatternInfos.Count)
+                int distI = Info.UsePatternOutline ? index - 1 : index;
+                if (distI >= 0 && distI < distancePatternInfos.Count)
                 {
-                    distInfo = distancePatternInfos[index];
+                    distInfo = distancePatternInfos[distI];
                     settings = distInfo.DistancePatternSettings;
                     useFadeOut = settings.UseFadeOut;
                     useCenterSlope = settings.CenterSlope > 0;
@@ -1553,27 +1564,6 @@ namespace Whorl
                                                    out PathPointInfo? nearestP, Info.DistanceCount);
                     if (nearestP != null)
                         nearestPointInfo = nearestP.Value;
-                    //foreach (DistanceSquare distSquare in distanceSquares)
-                    //{
-                    //    distSquare.Distance = Tools.DistanceSquared(p, distSquare.Center);
-                    //}
-                    //int minDistI = -1;
-                    //foreach (DistanceSquare minSquare in distanceSquares.OrderBy(ds => ds.Distance)
-                    //         .Take(Info.DistanceCount))
-                    //{
-                    //    minDistI = -1;
-                    //    for (int i = 0; i < minSquare.Points.Length; i++)
-                    //    {
-                    //        double dist = Tools.DistanceSquared(minSquare.Points[i], p);
-                    //        if (dist < minDist)
-                    //        {
-                    //            minDist = dist;
-                    //            minDistI = i;
-                    //        }
-                    //    }
-                    //    if (minDistI != -1)
-                    //        nearestPoint = minSquare.Points[minDistI];
-                    //}
                     if (useFadeOut)
                     {
                         double startFade = settings.FadeStartRatio * distInfo.MaxModulus;
@@ -1680,7 +1670,12 @@ namespace Whorl
                 }
                 if (Info.DistancePatternCenters != null)
                 {
-                    for (int i = 0; i < Info.DistancePatternCenters.Length; i++)
+                    int startI = Info.UsePatternOutline ? 1 : 0;
+                    if (startI == 1 && Info.DistancePatternCenters.Length > 0)
+                    {
+                        Info.DistancePatternCenters[0] = Info.Center;
+                    }
+                    for (int i = startI; i < Info.DistancePatternCenters.Length; i++)
                     {
                         if (i == 0 && distancePatternInfos.Count == 0)
                         {
@@ -1688,7 +1683,7 @@ namespace Whorl
                         }
                         else
                         {
-                            PointF distCenter = distancePatternInfos[i].DistancePatternCenter;
+                            PointF distCenter = distancePatternInfos[i - startI].DistancePatternCenter;
                             if (Info.Normalize)
                             {
                                 distCenter.X -= ParentPattern.Center.X;
