@@ -12,6 +12,9 @@ namespace Whorl
         public double SmoothSlope { get; protected set; } = 7.0;
         public double AtanY { get; protected set; } = 1.0;
         public double Power { get; protected set; } = 1.0;
+        public double RecipCoeff { get; protected set; } = 0.1;
+        public bool SCurveIsMax { get; protected set; } = true;
+
 
         [ParameterInfo(IsParameter = false)]
         public double SinePhaseRadians { get; private set; }
@@ -82,6 +85,19 @@ namespace Whorl
             if (TakeAbsX)
                 x = Math.Abs(x);
             return YWeight * Math.Atan2(x, AtanY) + YOffset;
+        }
+
+        public double RecipFunc(double x)
+        {
+            x = Math.Abs(XWeight * x - XOffset);
+            x = RecipCoeff * ((x + 1.0) / (x + RecipCoeff) - 1.0);
+            return YWeight * Math.Pow(x, Power) + YOffset;
+        }
+
+        public double SCurve(double x)
+        {
+            x *= XWeight;
+            return YWeight * x * Tools.SCurveFactor(x, XOffset, SmoothSlope, SCurveIsMax) + YOffset;
         }
     }
 }
