@@ -8920,13 +8920,13 @@ namespace Whorl
                     MessageBox.Show("Please select some patterns.");
                     return;
                 }
-                Pattern pixelPattern = null;
-                if (Design.EditedPattern != null && Design.EditedPattern.HasPixelRendering)
+                Pattern pixelPattern = Design.EnabledPatterns.FirstOrDefault(ptn => ptn.HasPixelRendering);
+                if (pixelPattern != null)
                 {
-                    if (MessageBox.Show("Add patterns to current Pixel Rendering pattern?",
-                        "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    if (MessageBox.Show("Add patterns to existing Pixel Rendering pattern?",
+                        "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
-                        pixelPattern = Design.EditedPattern;
+                        pixelPattern = null;
                     }    
                 }
                 bool addPixelPattern = pixelPattern == null;
