@@ -282,19 +282,19 @@ namespace Whorl
 
         protected virtual bool MethodInfoIsValid(MethodInfo methodInfo)
         {
+            var parms = methodInfo.GetParameters();
+            if (parms.Length != ParamCount || parms.Any(p => !p.ParameterType.IsAssignableFrom(typeof(ParamType))))
+                return false;
+            if (!typeof(ParamType).IsAssignableFrom(methodInfo.ReturnType))
+                return false;
             if (MathFunctionType != null)
             {   
                 if (methodInfo.GetCustomAttribute<MathFunctionAttribute>(attr => attr.MathFunctionType == MathFunctionType) == null)
                     return false;
             }
-            if (!typeof(ParamType).IsAssignableFrom(methodInfo.ReturnType))
-                return false;
             if (methodInfo.GetCustomAttribute<ExcludeMethodAttribute>() != null)
                 return false;
-            if (methodInfo.IsSpecialName && methodInfo.GetCustomAttribute<MethodNameAttribute>() == null)
-                return false;
-            var parms = methodInfo.GetParameters();
-            return parms.Length == ParamCount && !parms.Any(p => !p.ParameterType.IsAssignableFrom(typeof(ParamType)));
+            return !methodInfo.IsSpecialName || methodInfo.GetCustomAttribute<MethodNameAttribute>() != null;
         }
 
         protected string GetMethodName(MethodInfo methodInfo)

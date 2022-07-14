@@ -31,6 +31,11 @@ namespace ParserEngine
             return 0;
         }
 
+        public static double One(double x)
+        {
+            return 1.0;
+        }
+
         [MathFunction(MathFunctionTypes.Trigonometric)]
         public static double Sin(double x)
         {
