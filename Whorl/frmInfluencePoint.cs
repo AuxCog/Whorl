@@ -68,6 +68,7 @@ namespace Whorl
                 txtOffset.Text = editedInfluencePointInfo.Offset.ToString("0.####");
                 txtPower.Text = editedInfluencePointInfo.Power.ToString("0.####");
                 txtFunctionOffset.Text = editedInfluencePointInfo.FunctionOffset.ToString("0.####");
+                txtCopies.Text = editedInfluencePointInfo.Copies.ToString();
                 EnableEllipseControls();
             }
             catch (Exception ex)
@@ -126,6 +127,10 @@ namespace Whorl
                 editedInfluencePointInfo.FunctionOffset = val;
             else
                 errMessages.Add("Function Offset must be a number.");
+            if (int.TryParse(txtCopies.Text, out int iVal))
+                editedInfluencePointInfo.Copies = iVal;
+            else
+                errMessages.Add("Copies must be an integer.");
             editedInfluencePointInfo.TransformFunctionName = (string)cboTransformFunction.SelectedItem;
             editedInfluencePointInfo.FilterKeys.Clear();
             editedInfluencePointInfo.FilterKeys.UnionWith(clbEnumKeys.CheckedItems.Cast<string>());

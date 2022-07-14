@@ -97,6 +97,21 @@ namespace Whorl
             }
         }
 
+        private int _copies = 1;
+        public int Copies
+        {
+            get => _copies;
+            set
+            {
+                _copies = Math.Max(1, value);
+                if (_copies > 1)
+                {
+                    copyRotationVector = Complex.CreateFromModulusAndArgument(1.0, 2.0 * Math.PI / _copies);
+                }
+            } 
+        }
+        private Complex copyRotationVector { get; set; }
+
         public HashSet<string> FilterKeys { get; } = new HashSet<string>();
 
         public Dictionary<string, KeyEnumParameters> KeyEnumParamsDict { get; } = new Dictionary<string, KeyEnumParameters>();
@@ -151,7 +166,8 @@ namespace Whorl
 
         public void CopyProperties(InfluencePointInfo source, Pattern pattern = null, bool copyKeyParams = true)
         {
-            Tools.CopyProperties(this, source, excludedPropertyNames: new string[] { nameof(ParentPattern), nameof(FilterKeys), nameof(KeyEnumParamsDict) });
+            Tools.CopyProperties(this, source, excludedPropertyNames: 
+                                 new string[] { nameof(ParentPattern), nameof(FilterKeys), nameof(KeyEnumParamsDict) });
             FilterKeys.Clear();
             FilterKeys.UnionWith(source.FilterKeys);
             if (copyKeyParams)
@@ -308,29 +324,39 @@ namespace Whorl
             if (factor == 0.0)
                 return 0.0;
             DoublePoint point = forRendering ? TransformedPoint : InfluencePoint;
-            double xDiff = patternPoint.X - point.X;
-            double yDiff = patternPoint.Y - point.Y;
-            if (ParentPattern != null)
+            Complex zPoint = new Complex(point.X, point.Y);
+            double val = 0.0;
+            int i = 0;
+            while (true)
             {
-                double scale = ParentPattern.InfluenceScaleFactor;
-                if (forRendering)
-                    scale *= ParentPattern.RenderingScaleFactor;
-                xDiff *= scale;
-                yDiff *= scale;
+                double xDiff = patternPoint.X - zPoint.Re;
+                double yDiff = patternPoint.Y - zPoint.Im;
+                if (ParentPattern != null)
+                {
+                    double scale = ParentPattern.InfluenceScaleFactor;
+                    if (forRendering)
+                        scale *= ParentPattern.RenderingScaleFactor;
+                    xDiff *= scale;
+                    yDiff *= scale;
+                }
+                double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
+                if (Power != 1.0)
+                    divisor = Math.Pow(divisor, Power);
+                double v = TransformFunc(1.0 / divisor + FunctionOffset);
+                if (EllipseStretch != 0)
+                {
+                    double deltaAngle = Tools.NormalizeAngle(Math.Abs(Math.Atan2(yDiff, xDiff) - ellipseRadians));
+                    if (deltaAngle > Math.PI)
+                        deltaAngle = 2 * Math.PI - deltaAngle;
+                    double weight = Math.Pow(1.0 - deltaAngle / Math.PI, EllipseStretch);
+                    v *= weight;
+                }
+                val += v;
+                if (++i >= Copies)
+                    break;
+                zPoint *= copyRotationVector;
             }
-            double divisor = Offset + DivFactor * (xDiff * xDiff + yDiff * yDiff);
-            if (Power != 1.0)
-                divisor = Math.Pow(divisor, Power);
-            double v = TransformFunc(1.0 / divisor + FunctionOffset);
-            if (EllipseStretch != 0)
-            {
-                double deltaAngle = Tools.NormalizeAngle(Math.Abs(Math.Atan2(yDiff, xDiff) - ellipseRadians));
-                if (deltaAngle > Math.PI)
-                    deltaAngle = 2 * Math.PI - deltaAngle;
-                double weight = Math.Pow(1.0 - deltaAngle / Math.PI, EllipseStretch);
-                v *= weight;
-            }
-            return factor * v;
+            return factor * val;
         }
 
         private PointF GetOrigLocation()

@@ -64,6 +64,8 @@ namespace Whorl
             this.label13 = new System.Windows.Forms.Label();
             this.txtEllipseAngle = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
+            this.txtCopies = new System.Windows.Forms.TextBox();
+            this.label15 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picGraph)).BeginInit();
             this.SuspendLayout();
             // 
@@ -373,11 +375,29 @@ namespace Whorl
             this.label14.TabIndex = 34;
             this.label14.Text = "Ellipse Angle:";
             // 
+            // txtCopies
+            // 
+            this.txtCopies.Location = new System.Drawing.Point(511, 77);
+            this.txtCopies.Name = "txtCopies";
+            this.txtCopies.Size = new System.Drawing.Size(58, 20);
+            this.txtCopies.TabIndex = 37;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(464, 82);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(42, 13);
+            this.label15.TabIndex = 36;
+            this.label15.Text = "Copies:";
+            // 
             // frmInfluencePoint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(581, 591);
+            this.Controls.Add(this.txtCopies);
+            this.Controls.Add(this.label15);
             this.Controls.Add(this.txtEllipseAngle);
             this.Controls.Add(this.label14);
             this.Controls.Add(this.txtEllipseStretch);
@@ -459,5 +479,7 @@ namespace Whorl
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.TextBox txtEllipseAngle;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.TextBox txtCopies;
+        private System.Windows.Forms.Label label15;
     }
 }
