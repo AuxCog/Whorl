@@ -26,10 +26,10 @@ namespace Whorl
         public TValue Value { get; }
         public string Text { get; }
 
-        public ParamOption(TValue value, string text)
+        public ParamOption(TValue value, string text = null)
         {
             Value = value;
-            Text = text;
+            Text = text ?? value.ToString();
         }
 
         public override string ToString()
@@ -172,13 +172,17 @@ namespace Whorl
         public EnumValuesParameter(TEnum? defaultValue = null, bool sortOptionsByText = false) : base(sortOptionsByText)
         {
             if (!typeof(TEnum).IsEnum)
-                throw new ArgumentException("TEnum must be an Enum type.");
-            Options = (from TEnum v in Enum.GetValues(typeof(TEnum)) select new ParamOption<TEnum>(v, v.ToString())).ToList();
+                throw new ArgumentException($"TEnum {typeof(TEnum).FullName} must be an Enum type.");
+            Options = (from TEnum v in Enum.GetValues(typeof(TEnum)) select new ParamOption<TEnum>(v)).ToList();
             DefaultOptionText = defaultValue?.ToString();
             FinishOptions();
         }
     }
 
+    /// <summary>
+    /// Normally T is type Complex.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class DerivFunc<T>
     {
         public Func<T,T> Fn { get; }
@@ -191,19 +195,18 @@ namespace Whorl
         }
     }
 
-    public abstract class BaseFuncParameter<FuncT, ParamType>: BaseOptionsParameter<FuncT> //, IFuncParameter
+    public abstract class BaseFuncParameter<FuncT, ParamType>: BaseOptionsParameter<FuncT>
     {
         public int ParamCount { get; }
         public FuncT Function { get; protected set; }
         public object[] Instances { get; }
+        public MathFunctionTypes? MathFunctionType { get; }
 
         protected override void SelectedOptionChanged()
         {
             base.SelectedOptionChanged();
             Function = SelectedOption.Value;
         }
-
-        public MathFunctionTypes? MathFunctionType { get; }
 
         public BaseFuncParameter(int paramCount, Type[] methodTypes, string defaultFunctionName, 
                                  MathFunctionTypes? mathFunctionType = null, object[] instances = null,
@@ -393,6 +396,10 @@ namespace Whorl
         }
     }
 
+    /// <summary>
+    /// Normally T is type Complex.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class DerivFuncParameter<T>: BaseFuncParameter<DerivFunc<T>, T>
     {
         public Func<T, T> Fn { get; private set; }
@@ -413,14 +420,16 @@ namespace Whorl
             if (methodType == null)
                 methodType = typeof(T);
             Options = new List<ParamOption<DerivFunc<T>>>();
+            Type[] paramTypes = { typeof(T) };
             foreach (MethodInfo methodInfo in GetValidMethods(methodType))
             {
                 var attr = methodInfo.GetCustomAttribute<DerivMethodNameAttribute>();
                 if (attr == null)
                     continue;
                 MethodInfo derivMethod = methodType.GetMethod(attr.DerivMethodName, 
-                                         BindingFlags.Public | BindingFlags.Static);
-                if (derivMethod == null)
+                                         BindingFlags.Public | BindingFlags.Static,
+                                         null, paramTypes, null);
+                if (derivMethod == null || derivMethod.ReturnType != typeof(T))
                     continue;
                 var fn = (Func<T, T>)Delegate.CreateDelegate(typeof(Func<T, T>), methodInfo);
                 var fnDeriv = (Func<T, T>)Delegate.CreateDelegate(typeof(Func<T, T>), derivMethod);
