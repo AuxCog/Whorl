@@ -652,13 +652,25 @@ namespace Whorl
             else
             {
                 //Save as jpeg with quality 100%:
-                var encoder = ImageCodecInfo.GetImageEncoders().First(
-                              c => c.FormatID == ImageFormat.Jpeg.Guid);
-                var encParams = new EncoderParameters() {
-                    Param = new EncoderParameter[] { new EncoderParameter(
-                        System.Drawing.Imaging.Encoder.Quality, 100L) } };
-                bitmap.Save(fileName, encoder, encParams);
+                SaveJpegImageFile(fileName, bitmap, quality: 100);
             }
+        }
+
+        public static void SaveJpegImageFile(string fileName, Bitmap bitmap, int quality = 100)
+        {
+            var encoder = ImageCodecInfo.GetImageEncoders().First(
+                          c => c.FormatID == ImageFormat.Jpeg.Guid);
+            var encParams = new EncoderParameters()
+            {
+                Param = new EncoderParameter[] { new EncoderParameter(
+                        System.Drawing.Imaging.Encoder.Quality, (long)quality) }
+            };
+            bitmap.Save(fileName, encoder, encParams);
+        }
+
+        public static void SaveThumbnailImage(string fileName, Bitmap bitmap)
+        {
+            SaveJpegImageFile(fileName, bitmap, WhorlSettings.Instance.DesignThumbnailJpgQuality);
         }
 
         public static string GetValidTextureFileName(string fileName)

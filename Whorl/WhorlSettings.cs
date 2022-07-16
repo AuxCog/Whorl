@@ -117,6 +117,14 @@ namespace Whorl
             set { SetProperty(ref _designThumbnailHeight, value); }
         }
 
+        private int _designThumbnailJpgQuality;
+        [InitialSettingValue("50")]
+        public int DesignThumbnailJpgQuality
+        {
+            get => _designThumbnailJpgQuality;
+            set => SetProperty(ref _designThumbnailJpgQuality, value);
+        }
+
         [ReadOnly]
         [InitialSettingValue("DesignThumbnails")]
         public String DesignThumbnailsFolder { get; private set; }

@@ -30,6 +30,7 @@
         {
             this.SettingsTabControl = new System.Windows.Forms.TabControl();
             this.GeneralTab = new System.Windows.Forms.TabPage();
+            this.chkNewPolygonVersion = new System.Windows.Forms.CheckBox();
             this.cboDraftSize = new System.Windows.Forms.ComboBox();
             this.label12 = new System.Windows.Forms.Label();
             this.chkOptimizeExpressions = new System.Windows.Forms.CheckBox();
@@ -68,7 +69,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.chkNewPolygonVersion = new System.Windows.Forms.CheckBox();
+            this.txtThumbnailQuality = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.SettingsTabControl.SuspendLayout();
             this.GeneralTab.SuspendLayout();
             this.AnimationsTab.SuspendLayout();
@@ -86,6 +88,8 @@
             // 
             // GeneralTab
             // 
+            this.GeneralTab.Controls.Add(this.txtThumbnailQuality);
+            this.GeneralTab.Controls.Add(this.label13);
             this.GeneralTab.Controls.Add(this.chkNewPolygonVersion);
             this.GeneralTab.Controls.Add(this.cboDraftSize);
             this.GeneralTab.Controls.Add(this.label12);
@@ -111,6 +115,16 @@
             this.GeneralTab.Text = "General";
             this.GeneralTab.UseVisualStyleBackColor = true;
             // 
+            // chkNewPolygonVersion
+            // 
+            this.chkNewPolygonVersion.AutoSize = true;
+            this.chkNewPolygonVersion.Location = new System.Drawing.Point(10, 179);
+            this.chkNewPolygonVersion.Name = "chkNewPolygonVersion";
+            this.chkNewPolygonVersion.Size = new System.Drawing.Size(149, 17);
+            this.chkNewPolygonVersion.TabIndex = 24;
+            this.chkNewPolygonVersion.Text = "Use New Polygon Version";
+            this.chkNewPolygonVersion.UseVisualStyleBackColor = true;
+            // 
             // cboDraftSize
             // 
             this.cboDraftSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -132,7 +146,7 @@
             // chkOptimizeExpressions
             // 
             this.chkOptimizeExpressions.AutoSize = true;
-            this.chkOptimizeExpressions.Location = new System.Drawing.Point(258, 130);
+            this.chkOptimizeExpressions.Location = new System.Drawing.Point(258, 149);
             this.chkOptimizeExpressions.Name = "chkOptimizeExpressions";
             this.chkOptimizeExpressions.Size = new System.Drawing.Size(125, 17);
             this.chkOptimizeExpressions.TabIndex = 21;
@@ -141,7 +155,7 @@
             // 
             // txtMaxLoopCount
             // 
-            this.txtMaxLoopCount.Location = new System.Drawing.Point(101, 128);
+            this.txtMaxLoopCount.Location = new System.Drawing.Point(101, 147);
             this.txtMaxLoopCount.Name = "txtMaxLoopCount";
             this.txtMaxLoopCount.Size = new System.Drawing.Size(96, 20);
             this.txtMaxLoopCount.TabIndex = 20;
@@ -150,7 +164,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(7, 131);
+            this.label11.Location = new System.Drawing.Point(7, 150);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(88, 13);
             this.label11.TabIndex = 19;
@@ -479,15 +493,22 @@
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // chkNewPolygonVersion
+            // txtThumbnailQuality
             // 
-            this.chkNewPolygonVersion.AutoSize = true;
-            this.chkNewPolygonVersion.Location = new System.Drawing.Point(10, 160);
-            this.chkNewPolygonVersion.Name = "chkNewPolygonVersion";
-            this.chkNewPolygonVersion.Size = new System.Drawing.Size(149, 17);
-            this.chkNewPolygonVersion.TabIndex = 24;
-            this.chkNewPolygonVersion.Text = "Use New Polygon Version";
-            this.chkNewPolygonVersion.UseVisualStyleBackColor = true;
+            this.txtThumbnailQuality.Location = new System.Drawing.Point(258, 123);
+            this.txtThumbnailQuality.Name = "txtThumbnailQuality";
+            this.txtThumbnailQuality.Size = new System.Drawing.Size(70, 20);
+            this.txtThumbnailQuality.TabIndex = 26;
+            this.txtThumbnailQuality.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(147, 126);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(105, 13);
+            this.label13.TabIndex = 25;
+            this.label13.Text = "Thumbnail Quality %:";
             // 
             // SettingsForm
             // 
@@ -551,5 +572,7 @@
         private System.Windows.Forms.ComboBox cboDraftSize;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.CheckBox chkNewPolygonVersion;
+        private System.Windows.Forms.TextBox txtThumbnailQuality;
+        private System.Windows.Forms.Label label13;
     }
 }

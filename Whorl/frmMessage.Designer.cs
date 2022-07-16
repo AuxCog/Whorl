@@ -206,14 +206,14 @@
             // saveFormulaToolStripMenuItem
             // 
             this.saveFormulaToolStripMenuItem.Name = "saveFormulaToolStripMenuItem";
-            this.saveFormulaToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.saveFormulaToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
             this.saveFormulaToolStripMenuItem.Text = "Save Formula";
             this.saveFormulaToolStripMenuItem.Click += new System.EventHandler(this.saveFormulaToolStripMenuItem_Click);
             // 
             // openFormulaToolStripMenuItem
             // 
             this.openFormulaToolStripMenuItem.Name = "openFormulaToolStripMenuItem";
-            this.openFormulaToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.openFormulaToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
             this.openFormulaToolStripMenuItem.Text = "Open Formula";
             this.openFormulaToolStripMenuItem.Click += new System.EventHandler(this.openFormulaToolStripMenuItem_Click);
             // 

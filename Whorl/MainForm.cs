@@ -2271,7 +2271,7 @@ namespace Whorl
             int height = WhorlSettings.Instance.DesignThumbnailHeight;
             Size newSize = new Size(currentBitmap.Width * height / currentBitmap.Height, height);
             var thumbnailBitmap = (Bitmap)BitmapTools.ScaleImage(currentBitmap, newSize);
-            Tools.SavePngOrJpegImageFile(thumbnailFileName, thumbnailBitmap);
+            Tools.SaveThumbnailImage(thumbnailFileName, thumbnailBitmap);
         }
 
         private void saveDesignToolStripMenuItem_Click(object sender, EventArgs e)
@@ -6950,7 +6950,7 @@ namespace Whorl
                     int height = WhorlSettings.Instance.DesignThumbnailHeight;
                     Size newSize = new Size(currentBitmap.Width * height / currentBitmap.Height, height);
                     var thumbnailBitmap = (Bitmap)BitmapTools.ScaleImage(currentBitmap, newSize);
-                    Tools.SavePngOrJpegImageFile(thumbnailFileName, thumbnailBitmap);
+                    Tools.SaveThumbnailImage(thumbnailFileName, thumbnailBitmap);
                     DateTime xmlCreationTime = File.GetCreationTime(xmlFileName);
                     File.SetCreationTime(thumbnailFileName, xmlCreationTime);
 
@@ -6970,6 +6970,48 @@ namespace Whorl
                 Tools.HandleException(ex);
             }
         }
+
+        /// <summary>
+        /// Do not use.  Caused virus to load.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        //private void resaveAllDesignThumbnailsToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        string filesFolder = WhorlSettings.Instance.FilesFolder;
+        //        string[] jpgFileNames = Directory.EnumerateFiles(filesFolder, "*.jpg", SearchOption.AllDirectories)
+        //                                .Where(f => Path.GetDirectoryName(f).EndsWith(@"\DesignThumbnails")).ToArray();
+        //        int errCount = 0;
+        //        toolStripProgressBar1.Maximum = jpgFileNames.Length;
+        //        toolStripProgressBar1.Value = 0;
+        //        foreach (string jpgFileName in jpgFileNames)
+        //        {
+        //            toolStripProgressBar1.Value++;
+        //            try
+        //            {
+        //                Bitmap bitmap;
+        //                using (var bitmapTemp = new Bitmap(jpgFileName))
+        //                {
+        //                    bitmap = new Bitmap(bitmapTemp);
+        //                }
+        //                Tools.SaveThumbnailImage(jpgFileName, bitmap);
+        //            }
+        //            catch
+        //            {
+        //                if (++errCount >= 50)
+        //                    break;
+        //            }
+        //        }
+        //        MessageBox.Show($"Read {jpgFileNames.Length} files; {errCount} Errors.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
 
         private void fixDesignsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -9491,5 +9533,6 @@ namespace Whorl
             }
 
         }
+
     }
 }

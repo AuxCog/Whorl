@@ -181,6 +181,7 @@
             this.colorGradientFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.blendImagesFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewImageModifierFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openPaddingTestFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewUserManualToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
@@ -285,7 +286,6 @@
             this.setCornerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelDrawOutlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.picDesign = new Whorl.CustomPicturebox();
-            this.openPaddingTestFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -1577,6 +1577,13 @@
             this.viewImageModifierFormToolStripMenuItem.Text = "Image Modifier Form";
             this.viewImageModifierFormToolStripMenuItem.Click += new System.EventHandler(this.viewImageModifierFormToolStripMenuItem_Click);
             // 
+            // openPaddingTestFormToolStripMenuItem
+            // 
+            this.openPaddingTestFormToolStripMenuItem.Name = "openPaddingTestFormToolStripMenuItem";
+            this.openPaddingTestFormToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.openPaddingTestFormToolStripMenuItem.Text = "Padding Test Form";
+            this.openPaddingTestFormToolStripMenuItem.Click += new System.EventHandler(this.openPaddingTestFormToolStripMenuItem_Click);
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -2430,13 +2437,6 @@
             this.picDesign.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseDown);
             this.picDesign.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseMove);
             this.picDesign.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picDesign_MouseUp);
-            // 
-            // openPaddingTestFormToolStripMenuItem
-            // 
-            this.openPaddingTestFormToolStripMenuItem.Name = "openPaddingTestFormToolStripMenuItem";
-            this.openPaddingTestFormToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.openPaddingTestFormToolStripMenuItem.Text = "Padding Test Form";
-            this.openPaddingTestFormToolStripMenuItem.Click += new System.EventHandler(this.openPaddingTestFormToolStripMenuItem_Click);
             // 
             // MainForm
             // 
