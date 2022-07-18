@@ -198,9 +198,14 @@ namespace Whorl
     public abstract class BaseFuncParameter<FuncT, ParamType>: BaseOptionsParameter<FuncT>
     {
         public int ParamCount { get; }
-        public FuncT Function { get; protected set; }
-        public object[] Instances { get; }
         public MathFunctionTypes? MathFunctionType { get; }
+        public FuncT Function { get; protected set; }
+
+        public BaseFuncParameter(int paramCount, MathFunctionTypes? mathFunctionType = null)
+        {
+            ParamCount = paramCount;
+            MathFunctionType = mathFunctionType;
+        }
 
         protected override void SelectedOptionChanged()
         {
@@ -208,12 +213,53 @@ namespace Whorl
             Function = SelectedOption.Value;
         }
 
-        public BaseFuncParameter(int paramCount, Type[] methodTypes, string defaultFunctionName, 
-                                 MathFunctionTypes? mathFunctionType = null, object[] instances = null,
-                                 bool addDefaultMethodTypes = true, bool addIdent = false)
+        protected IEnumerable<MethodInfo> GetValidMethods(Type methodType, bool forInstance = false)
         {
-            ParamCount = paramCount;
-            MathFunctionType = mathFunctionType;
+            BindingFlags bindingFlags;
+            if (forInstance)
+                bindingFlags = BindingFlags.Public | BindingFlags.Instance;
+            else
+                bindingFlags = BindingFlags.Public | BindingFlags.Static;
+            return methodType.GetMethods(bindingFlags).Where(mi => MethodInfoIsValid(mi));
+        }
+
+        protected virtual bool MethodInfoIsValid(MethodInfo methodInfo)
+        {
+            var parms = methodInfo.GetParameters();
+            if (parms.Length != ParamCount || parms.Any(p => !p.ParameterType.IsAssignableFrom(typeof(ParamType))))
+                return false;
+            if (!typeof(ParamType).IsAssignableFrom(methodInfo.ReturnType))
+                return false;
+            if (MathFunctionType != null)
+            {   
+                if (methodInfo.GetCustomAttribute<MathFunctionAttribute>(attr => attr.MathFunctionType == MathFunctionType) == null)
+                    return false;
+            }
+            if (methodInfo.GetCustomAttribute<ExcludeMethodAttribute>() != null)
+                return false;
+            return !methodInfo.IsSpecialName || methodInfo.GetCustomAttribute<MethodNameAttribute>() != null;
+        }
+
+        protected string GetMethodName(MethodInfo methodInfo)
+        {
+            var nameAttr = methodInfo.GetCustomAttribute<MethodNameAttribute>();
+            return nameAttr != null ? nameAttr.Name : methodInfo.Name;
+        }
+
+        protected static Type[] GetMethodTypesArray(Type type)
+        {
+            return type == null ? null : new Type[] { type };
+        }
+    }
+
+    public abstract class FuncParameter<FuncT, ParamType> : BaseFuncParameter<FuncT, ParamType>
+    {
+        public object[] Instances { get; }
+
+        public FuncParameter(int paramCount, Type[] methodTypes, string defaultFunctionName,
+                             MathFunctionTypes? mathFunctionType = null, object[] instances = null,
+                             bool addDefaultMethodTypes = true, bool addIdent = false): base(paramCount, mathFunctionType)
+        {
             var typesList = new List<Type>();
             if (instances != null)
             {
@@ -258,76 +304,45 @@ namespace Whorl
             FinishOptions();
         }
 
-        public BaseFuncParameter(int paramCount)
-        {
-            ParamCount = paramCount;
-        }
-
         public override object[] GetInstances()
         {
             return Instances;
         }
 
-        protected IEnumerable<MethodInfo> GetValidMethods(Type methodType, bool forInstance = false)
+        protected abstract FuncT GetFunction(MethodInfo methodInfo, object instance = null);
+
+    }
+
+    public class Func1Parameter<T>: FuncParameter<Func<T, T>, T>
+    {
+        public Func1Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, 
+                              object[] instances = null, bool addDefaultMethodTypes = true) 
+            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, 
+                   addDefaultMethodTypes, addIdent: typeof(T) == typeof(double))
         {
-            BindingFlags bindingFlags;
-            if (forInstance)
-                bindingFlags = BindingFlags.Public | BindingFlags.Instance;
-            else
-                bindingFlags = BindingFlags.Public | BindingFlags.Static;
-            return methodType.GetMethods(bindingFlags).Where(mi => MethodInfoIsValid(mi));
         }
 
-        protected virtual FuncT GetFunction(MethodInfo methodInfo, object instance = null)
+        protected override Func<T, T> GetFunction(MethodInfo methodInfo, object instance = null)
         {
-            return default(FuncT);
-        }
-
-        protected virtual bool MethodInfoIsValid(MethodInfo methodInfo)
-        {
-            var parms = methodInfo.GetParameters();
-            if (parms.Length != ParamCount || parms.Any(p => !p.ParameterType.IsAssignableFrom(typeof(ParamType))))
-                return false;
-            if (!typeof(ParamType).IsAssignableFrom(methodInfo.ReturnType))
-                return false;
-            if (MathFunctionType != null)
-            {   
-                if (methodInfo.GetCustomAttribute<MathFunctionAttribute>(attr => attr.MathFunctionType == MathFunctionType) == null)
-                    return false;
-            }
-            if (methodInfo.GetCustomAttribute<ExcludeMethodAttribute>() != null)
-                return false;
-            return !methodInfo.IsSpecialName || methodInfo.GetCustomAttribute<MethodNameAttribute>() != null;
-        }
-
-        protected string GetMethodName(MethodInfo methodInfo)
-        {
-            var nameAttr = methodInfo.GetCustomAttribute<MethodNameAttribute>();
-            return nameAttr != null ? nameAttr.Name : methodInfo.Name;
-        }
-
-        //private MethodInfo GetMethodInfo(string methodName)
-        //{
-        //    Type[] paramTypes = new Type[ParamCount];
-        //    for (int i = 0; i < paramTypes.Length; i++)
-        //        paramTypes[i] = typeof(ParamType);
-        //    foreach (Type type in MethodTypes)
-        //    {
-        //        MethodInfo methodInfo = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase, 
-        //                                               null, CallingConventions.Standard, paramTypes, null);
-        //        if (methodInfo != null)
-        //            return methodInfo;
-        //    }
-        //    throw new Exception($"Function {methodName} was not found.");
-        //}
-
-        protected static Type[] GetMethodTypesArray(Type type)
-        {
-            return type == null ? null : new Type[] { type };
+            return (Func<T, T>)Delegate.CreateDelegate(typeof(Func<T, T>), instance, methodInfo);
         }
     }
 
-    public class DoubleFuncParameter: Func1Parameter<double>, IRenderingValues
+    public class Func2Parameter<T> : FuncParameter<Func<T, T, T>, T>
+    {
+        public Func2Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, 
+                              object[] instances = null, bool addDefaultMethodTypes = true)
+            : base(paramCount: 2, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addDefaultMethodTypes)
+        {
+        }
+
+        protected override Func<T, T, T> GetFunction(MethodInfo methodInfo, object instance = null)
+        {
+            return (Func<T, T, T>)Delegate.CreateDelegate(typeof(Func<T, T, T>), instance, methodInfo);
+        }
+    }
+
+    public class DoubleFuncParameter : Func1Parameter<double>, IRenderingValues
     {
         public DoubleFuncLibrary FuncLibrary { get; }
         public RenderingValues RenderingValues
@@ -340,8 +355,8 @@ namespace Whorl
             }
         }
 
-        public DoubleFuncParameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
-                                   bool addDefaultMethodTypes = true)
+        public DoubleFuncParameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null,
+                                   object[] instances = null, bool addDefaultMethodTypes = true)
                                    : base(defaultFunctionName, methodType, mathFunctionType, instances, addDefaultMethodTypes)
         {
             if (instances != null)
@@ -364,35 +379,6 @@ namespace Whorl
             }
             if (!isSet)
                 base.SelectedOptionChanged();
-        }
-    }
-
-    public class Func1Parameter<T>: BaseFuncParameter<Func<T, T>, T>
-    {
-        public Func1Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
-                              bool addDefaultMethodTypes = true) 
-            : base(paramCount: 1, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, 
-                   addDefaultMethodTypes, addIdent: typeof(T) == typeof(double))
-        {
-        }
-
-        protected override Func<T, T> GetFunction(MethodInfo methodInfo, object instance = null)
-        {
-            return (Func<T, T>)Delegate.CreateDelegate(typeof(Func<T, T>), instance, methodInfo);
-        }
-    }
-
-    public class Func2Parameter<T> : BaseFuncParameter<Func<T, T, T>, T>
-    {
-        public Func2Parameter(string defaultFunctionName = null, Type methodType = null, MathFunctionTypes? mathFunctionType = null, object[] instances = null,
-                              bool addDefaultMethodTypes = true)
-            : base(paramCount: 2, GetMethodTypesArray(methodType), defaultFunctionName, mathFunctionType, instances, addDefaultMethodTypes)
-        {
-        }
-
-        protected override Func<T, T, T> GetFunction(MethodInfo methodInfo, object instance = null)
-        {
-            return (Func<T, T, T>)Delegate.CreateDelegate(typeof(Func<T, T, T>), instance, methodInfo);
         }
     }
 

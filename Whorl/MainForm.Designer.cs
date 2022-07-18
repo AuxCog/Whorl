@@ -149,6 +149,7 @@
             this.saveImagesAsJpegFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chooseCopyPasteObjectsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAllDesignThumbnailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resaveDesignThumbnailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setPatternsToHighResolutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timeRedrawsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.erasePictureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1254,6 +1255,7 @@
             this.saveImagesAsJpegFilesToolStripMenuItem,
             this.chooseCopyPasteObjectsToolStripMenuItem,
             this.saveAllDesignThumbnailsToolStripMenuItem,
+            this.resaveDesignThumbnailsToolStripMenuItem,
             this.setPatternsToHighResolutionToolStripMenuItem,
             this.timeRedrawsToolStripMenuItem,
             this.erasePictureToolStripMenuItem,
@@ -1307,6 +1309,14 @@
             this.saveAllDesignThumbnailsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.saveAllDesignThumbnailsToolStripMenuItem.Text = "Save all Design Thumbnails";
             this.saveAllDesignThumbnailsToolStripMenuItem.Click += new System.EventHandler(this.saveAllDesignThumbnailsToolStripMenuItem_Click);
+            // 
+            // resaveDesignThumbnailsToolStripMenuItem
+            // 
+            this.resaveDesignThumbnailsToolStripMenuItem.Enabled = false;
+            this.resaveDesignThumbnailsToolStripMenuItem.Name = "resaveDesignThumbnailsToolStripMenuItem";
+            this.resaveDesignThumbnailsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.resaveDesignThumbnailsToolStripMenuItem.Text = "Resave Design Thumbnails";
+            this.resaveDesignThumbnailsToolStripMenuItem.Click += new System.EventHandler(this.resaveAllDesignThumbnailsToolStripMenuItem_Click);
             // 
             // setPatternsToHighResolutionToolStripMenuItem
             // 
@@ -2729,6 +2739,7 @@
         private System.Windows.Forms.ToolStripMenuItem curvesUserDefinedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rotateSelectedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openPaddingTestFormToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resaveDesignThumbnailsToolStripMenuItem;
     }
 }
 
