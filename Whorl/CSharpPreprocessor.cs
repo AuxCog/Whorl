@@ -282,15 +282,15 @@ namespace Whorl
             public override void Complete()
             {
                 var args = new List<string>();
-                args.Add(TranslateToCSharp.GetCSharpString(ParameterName));
+                args.Add(TranslateToCSharp.GetCSharpString(ParameterName));  //functionName
                 HasNestedParameters = !string.IsNullOrEmpty(ParamsClassName);
                 if (HasNestedParameters)
                 {
                     args.Add($"new {ParamsClassName}()");
                     args.Add(TranslateToCSharp.GetCSharpString(ParamsClassName));
                 }
-                if (DefaultValue != null)
-                    args.Add(DefaultValue);
+                if (DefaultValue != null || !HasNestedParameters)
+                    args.Add(DefaultValue ?? "null");  //formula
                 Initializer = $"new {DecTypeName}({string.Join(", ", args)})";
             }
         }
