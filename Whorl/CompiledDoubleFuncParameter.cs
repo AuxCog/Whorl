@@ -34,16 +34,12 @@ using Whorl;
             get => _renderingValues;
             set
             {
-                _renderingValues = null;
-                if (classInstance != null)
+                if (value != null)
                 {
+                    _renderingValues = value;
                     var iRendering = classInstance as IRenderingValues;
                     if (iRendering != null)
-                    {
-                        _renderingValues = iRendering.RenderingValues = value;
-                    }
-                    else
-                        throw new Exception("Class instance doesn't implement IRenderingValues.");
+                        iRendering.RenderingValues = value;
                 }
             }
         }
@@ -152,6 +148,13 @@ using Whorl;
             var compiledInfo = new CSharpCompiledInfo(sharedCompiledInfo);
             var evalInstance = compiledInfo.CreateEvalInstance(forFormula: false);
             classInstance = evalInstance.ClassInstance;
+            if (classInstance != null)
+            {
+                var iRendering = classInstance as IRenderingValues;
+                if (iRendering == null)
+                    throw new Exception("Compiled class did not implement IRenderingValues.");
+                iRendering.RenderingValues = RenderingValues ?? new RenderingValues();
+            }
             if (ParamsObject != null) // || ParamsClassCodeFilePath != null)
             {
                 //object sourceParams = ParamsObject;
