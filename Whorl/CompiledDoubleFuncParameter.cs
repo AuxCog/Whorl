@@ -28,7 +28,7 @@ using Whorl;
         private object classInstance { get; set; }
         //private Type parametersClassType { get; set; }
 
-        private RenderingValues _renderingValues;
+        private RenderingValues _renderingValues = new RenderingValues();
         public RenderingValues RenderingValues
         {
             get => _renderingValues;
@@ -153,7 +153,7 @@ using Whorl;
                 var iRendering = classInstance as IRenderingValues;
                 if (iRendering == null)
                     throw new Exception("Compiled class did not implement IRenderingValues.");
-                iRendering.RenderingValues = RenderingValues ?? new RenderingValues();
+                iRendering.RenderingValues = RenderingValues;
             }
             if (ParamsObject != null) // || ParamsClassCodeFilePath != null)
             {
