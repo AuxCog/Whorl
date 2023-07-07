@@ -15,7 +15,8 @@ namespace Whorl
     {
         class CompilerSettings : ICompilerSettings
         {
-            private const string compilerDirectory = @"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin";
+            private const string compilerDirectory = @"c:\";
+            //private const string compilerDirectory = @"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin";
             private readonly CompilerLanguage _compilerLang;
             private readonly string _rootDirectory;
             private string _compilerPath => _compilerLang == CompilerLanguage.CSharp

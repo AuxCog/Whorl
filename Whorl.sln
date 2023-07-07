@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31702.278
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Whorl", "Whorl\Whorl.csproj", "{C599D5D0-D087-4945-80C2-3276836A3483}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParserEngine", "ParserEngine\ParserEngine.csproj", "{62386B99-9F7C-4D80-A171-8753DE6D1879}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "WhorlSetup", "WhorlSetup\WhorlSetup.vdproj", "{03DDCB43-011F-497F-8A88-C3C638AFAB47}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "WhorlSetup1", "WhorlSetup1\WhorlSetup1.vdproj", "{26F2BE8B-D740-46AE-BEF0-5890D222B8F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,8 +23,8 @@ Global
 		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62386B99-9F7C-4D80-A171-8753DE6D1879}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03DDCB43-011F-497F-8A88-C3C638AFAB47}.Debug|Any CPU.ActiveCfg = Debug
-		{03DDCB43-011F-497F-8A88-C3C638AFAB47}.Release|Any CPU.ActiveCfg = Release
+		{26F2BE8B-D740-46AE-BEF0-5890D222B8F0}.Debug|Any CPU.ActiveCfg = Debug
+		{26F2BE8B-D740-46AE-BEF0-5890D222B8F0}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

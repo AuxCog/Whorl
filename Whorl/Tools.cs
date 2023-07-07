@@ -967,7 +967,7 @@ namespace Whorl
             Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName);
             if (s == null)
             {
-                MessageBox.Show("Couldn't load resource: " + fileName, "Message");
+                throw new Exception($"Couldn't load resource: {fileName}");
             }
             else
             {
