@@ -16,6 +16,9 @@ using System.Drawing.Imaging;
 using ParserEngine;
 using static Whorl.Pattern.RenderingInfo;
 using System.Security.Cryptography;
+using System.Collections;
+using System.Security.AccessControl;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Whorl
 {
@@ -127,6 +130,11 @@ namespace Whorl
                     menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
                     moveDesignToFolderToolStripMenuItem.DropDownItems.Add(menuItem);
                     menuItem.Click += new System.EventHandler(this.moveDesignToFolderToolStripMenuItem_Click);
+
+                    menuItem = new ToolStripMenuItem(text: subfolder) { Tag = subfolder };
+                    MnuCustomFolderSlides.DropDownItems.Add(menuItem);
+                    menuItem.Click += new System.EventHandler(
+                        this.MnuCustomFolderSlides_Click);
                 }
             }
         }
@@ -224,21 +232,28 @@ namespace Whorl
         private ParameterDisplaysContainer parameterDisplaysContainer { get; }
         private ParameterDisplaysContainer.ParameterDisplays paramDisplays { get; }
         private CSharpParameterDisplay cSharpParamsDisplay { get; }
-     
+
         private InfluencePointInfo nearestInfluencePoint { get; set; }
         private DrawnPoint nearestPolygonVertex { get; set; }
 
         private void OnDistancePatternsCountChanged(object sender, EventArgs e)
         {
             var oRender = (Pattern.RenderingInfo)sender;
-            cSharpParamsDisplay.ParameterSourceInfo.DistancePatternsCount = 
+            cSharpParamsDisplay.ParameterSourceInfo.DistancePatternsCount =
                                    oRender.GetDistancePathsCount();
         }
 
         private bool UseDraftMode
         {
-            get { return chkDraftMode.Checked; }
+            get 
+            {
+                if (FolderSlides == null)
+                    return chkDraftMode.Checked;
+                else
+                    return false;
+            }
         }
+
         //public bool CancelRender { get; set; }
         //public VideoOps VideoOps { get; } = new VideoOps();
 
@@ -458,7 +473,7 @@ namespace Whorl
             selectPatternForm = new
                 SelectPatternForm(SelectPatternForm.TargetTypes.Pattern, PatternChoices);
             selectPatternForm.Design = Design;
-            ClipboardPatternsForm = 
+            ClipboardPatternsForm =
                 new SelectPatternForm(SelectPatternForm.TargetTypes.Pattern, ClipboardPatterns);
             SelectColorForm = new
                 SelectPatternForm(SelectPatternForm.TargetTypes.Color, PatternChoices);
@@ -549,9 +564,9 @@ namespace Whorl
                                 break;
                             case DialogResult.No:
                                 break;
-                                //choicesChanged = false;
-                                //newPatternChoices = savedPatternChoices;
-                                //break;
+                            //choicesChanged = false;
+                            //newPatternChoices = savedPatternChoices;
+                            //break;
                             case DialogResult.Cancel:
                                 e.Cancel = true;
                                 return;
@@ -938,7 +953,7 @@ namespace Whorl
             }
         }
 
-        private void ShowMenuItems(ToolStripItemCollection items, 
+        private void ShowMenuItems(ToolStripItemCollection items,
                                    bool haveNearbyPattern,
                                    bool haveDistancePattern,
                                    out bool setParentVisible)
@@ -1007,8 +1022,8 @@ namespace Whorl
         {
             polygonOutline = new PathOutline();
             polygonOutline.InitUserDefinedVertices(
-                           drawCurveToolStripMenuItem.Checked ? 
-                                PathOutline.DrawTypes.Curve : 
+                           drawCurveToolStripMenuItem.Checked ?
+                                PathOutline.DrawTypes.Curve :
                                 PathOutline.DrawTypes.Lines,
                            closeOutlineToolStripMenuItem.Checked);
             getPolygonCenter = false;
@@ -1433,7 +1448,7 @@ namespace Whorl
         private void EditParameters()
         {
             Pattern pattern = Design.EditedPattern;
-            FormulaSettings formulaSettings = editedKeyEnumParameters == null ? EditedFormulaSettings 
+            FormulaSettings formulaSettings = editedKeyEnumParameters == null ? EditedFormulaSettings
                                             : editedKeyEnumParameters.Parent.FormulaSettings;
             if (pattern == null || formulaSettings == null)
                 return;
@@ -1511,7 +1526,7 @@ namespace Whorl
                     {
                         if (points.Count == 2)
                             e.Graphics.DrawLines(Pens.Red, points.ToArray());
-                        else 
+                        else
                         {
                             if (polygonOutline.HasCurveVertices && points.Count >= 3)
                             {
@@ -1684,7 +1699,7 @@ namespace Whorl
                                         distancePattern.DrawSelectionOutline(e.Graphics);
                                         if (showIndexes)
                                         {
-                                            e.Graphics.DrawString((index++).ToString(), this.Font, 
+                                            e.Graphics.DrawString((index++).ToString(), this.Font,
                                                                   Brushes.Black, distancePattern.Center);
                                         }
                                         //Tools.DrawSquare(e.Graphics, Color.Red, info.DistancePatternCenter);
@@ -1920,7 +1935,7 @@ namespace Whorl
         {
             return 1F; // / GetQualitySizeRatio();
         }
-        
+
         private void RedrawPatternsAsync(bool computeRandom = false)
         {
             if (isRendering)
@@ -1933,7 +1948,7 @@ namespace Whorl
                 } while (isRendering);
             }
             Task.Run(() => RedrawPatterns(computeRandom: computeRandom))
-                            .ContinueWith(Tools.AsyncTaskFailed, 
+                            .ContinueWith(Tools.AsyncTaskFailed,
                                           TaskContinuationOptions.OnlyOnFaulted);
         }
 
@@ -2100,8 +2115,8 @@ namespace Whorl
 
         private string GetSaveDesignFileName(string currentFileName, string fileFolder = null)
         {
-            return Tools.GetSaveXmlFileName("Design xml file (*.xml)", 
-                         fileFolder ?? WhorlSettings.Instance.FilesFolder, 
+            return Tools.GetSaveXmlFileName("Design xml file (*.xml)",
+                         fileFolder ?? WhorlSettings.Instance.FilesFolder,
                          currentFileName, this);
         }
 
@@ -2257,7 +2272,7 @@ namespace Whorl
         private string GetThumbnailFileName(string xmlFileName)
         {
             string thumbnailsFolder = Path.Combine(
-                Path.GetDirectoryName(xmlFileName), 
+                Path.GetDirectoryName(xmlFileName),
                 WhorlSettings.Instance.DesignThumbnailsFolder);
             if (!Directory.Exists(thumbnailsFolder))
                 Directory.CreateDirectory(thumbnailsFolder);
@@ -2347,6 +2362,39 @@ namespace Whorl
             }
         }
 
+        private const string CacheSubFolder = "CachedImages";
+
+        private string GetCachedImageFileName(string designFileName)
+        {
+            string cacheFolder = Path.Combine(
+                Path.GetDirectoryName(designFileName), CacheSubFolder);
+            string cachedFileName = Path.Combine(cacheFolder,
+                Path.GetFileNameWithoutExtension(designFileName)) + ".jpg";
+            return cachedFileName;
+        }
+
+        private bool CachedImageIsValid(string designFileName, string cachedFileName)
+        {
+            if (!File.Exists(cachedFileName))
+                return false;
+            return File.GetLastWriteTime(cachedFileName) >=
+                   File.GetLastWriteTime(designFileName);
+        }
+
+        private void CheckCacheImage(string designFileName)
+        {
+            if (currentBitmap == null) return;
+            string cachedFileName = GetCachedImageFileName(designFileName);
+            string cacheFolder = Path.GetDirectoryName(cachedFileName);
+            if (!Directory.Exists(cacheFolder))
+            {
+                Directory.CreateDirectory(cacheFolder);
+            }
+            if (CachedImageIsValid(designFileName, cachedFileName))
+                return;
+            Tools.SavePngOrJpegImageFile(cachedFileName, currentBitmap);
+        }
+
         private void SetDesignStartupItems()
         {
             string startupItemNames = Design.StartupAnimationNames;
@@ -2391,7 +2439,7 @@ namespace Whorl
                 OpenFileDialog dlg = GetOpenDesignFileDialog();
                 if (ShowDialog(dlg) == DialogResult.OK)
                 {
-                   await OpenDesignFromXml(dlg.FileName);
+                    await OpenDesignFromXml(dlg.FileName);
                 }
             }
             catch (Exception ex)
@@ -2487,7 +2535,7 @@ namespace Whorl
 
         private async Task<string> OpenDesignFromImage(string imagesFolder = null, bool appendPatterns = false)
         {
-            if (!appendPatterns) 
+            if (!appendPatterns)
             {
                 if (!CheckSaveDesign())
                     return null;  //User cancelled.
@@ -2557,8 +2605,8 @@ namespace Whorl
             {
                 var menuItem = (ToolStripMenuItem)sender;
                 string folder = (string)menuItem.Tag;
-                string thumbnailsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder, 
-                    WhorlSettings.Instance.CustomDesignParentFolder, folder, 
+                string thumbnailsFolder = Path.Combine(WhorlSettings.Instance.FilesFolder,
+                    WhorlSettings.Instance.CustomDesignParentFolder, folder,
                     WhorlSettings.Instance.DesignThumbnailsFolder);
                 await OpenDesignFromImage(thumbnailsFolder);
             }
@@ -2607,6 +2655,7 @@ namespace Whorl
                 picDesign.EnablePaint = false;
                 InitDisplayDesign();
                 RedrawPatterns();
+                Design.IsDirty = false;
             }
             finally
             {
@@ -2860,7 +2909,7 @@ namespace Whorl
 
         private bool DisplayImprovisation(int index)
         {
-            bool retVal = (improvDesignsIndex >= 0 && 
+            bool retVal = (improvDesignsIndex >= 0 &&
                            improvDesignsIndex < improvDesigns.Count);
             if (retVal)
             {
@@ -2910,7 +2959,7 @@ namespace Whorl
             }
         }
 
-        private class SmoothAnimationPatternInfo: IDisposable
+        private class SmoothAnimationPatternInfo : IDisposable
         {
             public Pattern OrigPattern { get; private set; }
             public Pattern InterpolatedPattern { get; private set; }
@@ -3024,7 +3073,7 @@ namespace Whorl
             {
                 int smoothSteps = WhorlSettings.Instance.SmoothAnimationSteps;
                 bool smoothColors = colorsToolStripMenuItem.Checked ||
-                                    (improviseToolStripMenuItem.Checked && 
+                                    (improviseToolStripMenuItem.Checked &&
                                      WhorlSettings.Instance.ImproviseColors);
                 if (smoothAnimationStep == 0)
                 {
@@ -3173,7 +3222,7 @@ namespace Whorl
                         }
                     }
                 }
-                RedrawPatterns(renderStained: false, drawLayers: drawLayers, 
+                RedrawPatterns(renderStained: false, drawLayers: drawLayers,
                                overridePatterns: overridePatterns);
                 //if (VideoOps.IsRecording)
                 //{
@@ -3194,7 +3243,7 @@ namespace Whorl
                    && Design.DesignLayerList.DesignLayers.Any();
         }
 
-        private void InterpolatePattern(List<Pattern> animationPatterns, 
+        private void InterpolatePattern(List<Pattern> animationPatterns,
                                         int ptnInd, float factor, bool smoothColors,
                                         ref bool changed)
         {
@@ -3266,18 +3315,18 @@ namespace Whorl
                             PointF p = ribbon.RibbonPath[i];
                             Complex z = new Complex(p.X - picCenter.X, p.Y - picCenter.Y);
                             z = z * revolveRotationVector;
-                            ribbon.RibbonPath[i] = 
-                                new PointF(picCenter.X + (float)z.Re, 
+                            ribbon.RibbonPath[i] =
+                                new PointF(picCenter.X + (float)z.Re,
                                            picCenter.Y + (float)z.Im);
                         }
                     }
                     else
                     {
-                        Complex z = new Complex(pattern.Center.X - picCenter.X, 
+                        Complex z = new Complex(pattern.Center.X - picCenter.X,
                                                 pattern.Center.Y - picCenter.Y);
                         z = z * revolveRotationVector;
                         pattern.ZVector = pattern.ZVector * revolveRotationVector;
-                        pattern.Center = new PointF(picCenter.X + (float)z.Re, 
+                        pattern.Center = new PointF(picCenter.X + (float)z.Re,
                                                     picCenter.Y + (float)z.Im);
                     }
                 }
@@ -3308,7 +3357,7 @@ namespace Whorl
                 if (improviseToolStripMenuItem.Checked)
                 {
                     if (ImproviseOnProperties(pattern, patternInd))
-                        computeSeedPoints =  true;
+                        computeSeedPoints = true;
                 }
                 if (computeSeedPoints)
                 {
@@ -3321,11 +3370,11 @@ namespace Whorl
         {
             try
             {
-                if (slideShowToolStripMenuItem.Checked)
-                {
-                    ShowSlide();
-                    return;
-                }
+                //if (slideShowToolStripMenuItem.Checked)
+                //{
+                //    ShowSlide();
+                //    return;
+                //}
                 bool replaying = replayImprovisationsToolStripMenuItem.Checked;
                 if (replaying)
                     improvDesignsIndex++;
@@ -3403,7 +3452,7 @@ namespace Whorl
                 randomFactors[randomFactorInd] = factor;
             }
             randomFactorInd++;
-            newValue += (factor - 1D) / 
+            newValue += (factor - 1D) /
                         (WhorlSettings.Instance.ImprovDamping + newValue * newValue);
             return Math.Max(minValue, Math.Min(maxValue, newValue));
         }
@@ -3461,8 +3510,8 @@ namespace Whorl
         private static BasicOutlineTypes[] basicOutlineVals =
             (from BasicOutlineTypes v in
                  Enum.GetValues(typeof(BasicOutlineTypes))
-                 where v != BasicOutlineTypes.Custom &&
-                       v != BasicOutlineTypes.Path
+             where v != BasicOutlineTypes.Custom &&
+                   v != BasicOutlineTypes.Path
              select v).ToArray();
 
         private PatternImproviseConfig patternImprovConfig;
@@ -3534,7 +3583,7 @@ namespace Whorl
 
         private int GetRecomputeSteps()
         {
-            return (int)(WhorlSettings.Instance.RecomputeInterval 
+            return (int)(WhorlSettings.Instance.RecomputeInterval
                          * 1000.0 / AnimationTimer.Interval);
         }
 
@@ -3640,7 +3689,7 @@ namespace Whorl
             double ampVal = 0;
             if (changeFrequency)
             {
-                ampVal = 0.2 * 
+                ampVal = 0.2 *
                     pattern.BasicOutlines.Select(otl => otl.AmplitudeFactor).Average();
                 if (pattern.BasicOutlines.Where(
                     otl => otl.Frequency > 8D && otl.AmplitudeFactor > ampVal).Count() > 0)
@@ -3652,7 +3701,7 @@ namespace Whorl
             {
                 if (recomputeFacs && improvFlags.UsedImproviseOnOutlineType)
                 {
-                    if (outline.BasicOutlineType != BasicOutlineTypes.Custom 
+                    if (outline.BasicOutlineType != BasicOutlineTypes.Custom
                         && outline.BasicOutlineType != BasicOutlineTypes.Path)
                     {
                         //Change outline type:
@@ -3661,14 +3710,14 @@ namespace Whorl
                         outline.BasicOutlineType = basicOutlineVals[typeInd];
                     }
                 }
-                if (changeFrequency && (outline.AmplitudeFactor > ampVal 
+                if (changeFrequency && (outline.AmplitudeFactor > ampVal
                                         || outline.Frequency <= 8))
                 {
-                    outline.Frequency = AdjustValue(outline.Frequency, 
+                    outline.Frequency = AdjustValue(outline.Frequency,
                                         frequencyFactors[patternInd], 0.5, 50D);
                     if (outline.Frequency > 8D)
                     {
-                        outline.AmplitudeFactor *= 64D / (outline.Frequency 
+                        outline.AmplitudeFactor *= 64D / (outline.Frequency
                                                         * outline.Frequency);
                     }
                 }
@@ -3714,7 +3763,7 @@ namespace Whorl
                         ribbon.ComputeSeedPoints();
                 }
             }
-            bool computeSeedPoints = (improvFlags.UsedImproviseOnOutlineType 
+            bool computeSeedPoints = (improvFlags.UsedImproviseOnOutlineType
                                    || improvFlags.UsedImproviseParameters
                                    || improvFlags.UsedImprovisePetals
                                    || improvFlags.UsedImproviseShapes);
@@ -3763,17 +3812,17 @@ namespace Whorl
             {
                 if (parameter.Value == null || parameter.Locked)
                     continue;
-                ParameterImproviseConfig paramImprovConfig = 
+                ParameterImproviseConfig paramImprovConfig =
                     patternImprovConfig.ParameterConfigs.Find(
                         pc => pc.ParameterGuid == parameter.Guid);
                 if (paramImprovConfig == null || !paramImprovConfig.Enabled)
                     continue;
                 double value = (double)parameter.Value;
                 double minVal = (double)FirstNonNullDouble(
-                       paramImprovConfig.MinValue, parameter.ImprovMinValue, parameter.MinValue, 
+                       paramImprovConfig.MinValue, parameter.ImprovMinValue, parameter.MinValue,
                        Math.Min(value, -10D));
                 double maxVal = (double)FirstNonNullDouble(
-                       paramImprovConfig.MaxValue, parameter.ImprovMaxValue, parameter.MaxValue, 
+                       paramImprovConfig.MaxValue, parameter.ImprovMaxValue, parameter.MaxValue,
                        Math.Max(value, 10D));
                 //ParameterIncrement paramInc;
                 //if (!parameterIncrements.TryGetValue(parameter, out paramInc))
@@ -3790,7 +3839,7 @@ namespace Whorl
                 //else
                 //    paramInc.Step++;
                 //value += paramInc.Increment; //= GetRandomInRange(minVal, maxVal);
-                double newValue = 
+                double newValue =
                     ApplyRandomFactor(value, recomputeFacs, minVal, maxVal);
                 value += paramImprovConfig.ImprovStrength * (newValue - value);
                 value = Math.Round(value, paramImprovConfig.DecimalPlaces);
@@ -3842,11 +3891,11 @@ namespace Whorl
         private IEnumerable<Pattern.PatternInfo> GetPatternsSortedByDistance(PointF p1, bool includeRecursive = false)
         {
             return (from ptn in Design.GetAllPatternsInfo(includeRecursive)
-                    orderby Tools.DistanceSquared(p1, ptn.Center) ascending, 
+                    orderby Tools.DistanceSquared(p1, ptn.Center) ascending,
                     Design.IndexOfPattern(ptn.Pattern) descending select ptn).ToList();
         }
 
-        private Pattern.PatternInfo NearestPattern(PointF p1, double maxDistance = -1D, 
+        private Pattern.PatternInfo NearestPattern(PointF p1, double maxDistance = -1D,
                                        bool checkSelected = true, bool includeRecursive = false)
         {
             if (!Design.EnabledPatterns.Any())
@@ -3905,7 +3954,7 @@ namespace Whorl
                 Pattern.PatternInfo singlePattern = null;
                 if (select && nearbyPatterns.Count() > 1)
                 {
-                    if (MessageBox.Show("Select a pattern group?", "Message", 
+                    if (MessageBox.Show("Select a pattern group?", "Message",
                         MessageBoxButtons.YesNo) == DialogResult.No)
                     {
                         singlePattern = nearbyPatterns.First();
@@ -3925,7 +3974,7 @@ namespace Whorl
                 //if (Animating)
                 //    AnimationDrawDesign();
                 //else
-                    picDesign.Invalidate();
+                picDesign.Invalidate();
             }
             catch (Exception ex)
             {
@@ -3966,15 +4015,15 @@ namespace Whorl
                 if (limitSelectionCenterPattern == null)
                     sourcePatterns = Design.EnabledPatterns;
                 else
-                    sourcePatterns = Design.EnabledPatterns.Where(ptn => 
+                    sourcePatterns = Design.EnabledPatterns.Where(ptn =>
                         Tools.DistanceSquared(ptn.Center, limitSelectionCenterPattern.Center) <= 2500D);
                 //Get patterns sorted vertically, then horizontally, then by topmost (last) first:
                 List<Pattern> sortedPatterns = (from ptn in sourcePatterns
-                            where !keepSelectedPatterns.Contains(ptn)
-                            orderby Math.Round(ptn.Center.Y / 100F) ascending,
-                            ptn.Center.X ascending,
-                            Design.IndexOfPattern(ptn) descending
-                            select ptn).ToList();
+                                                where !keepSelectedPatterns.Contains(ptn)
+                                                orderby Math.Round(ptn.Center.Y / 100F) ascending,
+                                                ptn.Center.X ascending,
+                                                Design.IndexOfPattern(ptn) descending
+                                                select ptn).ToList();
                 if (sortedPatterns.Count == 0)
                     return;
                 Pattern selPattern = Design.SelectedPattern;
@@ -4278,7 +4327,7 @@ namespace Whorl
             return null;
         }
 
-        private Pattern.PatternInfo FindNearbyPattern<T>(IEnumerable<Pattern.PatternInfo> nearbyPatterns) where T: Pattern
+        private Pattern.PatternInfo FindNearbyPattern<T>(IEnumerable<Pattern.PatternInfo> nearbyPatterns) where T : Pattern
         {
             return nearbyPatterns.Where(ptn => ptn.Pattern is T)
                                  .OrderBy(ptn => ptn.Pattern.Selected ? 0 : 1)
@@ -4323,7 +4372,7 @@ namespace Whorl
             return selPatterns.Count() == 1 ? selPatterns.First() : null;
         }
 
-        private PatternList GetPatternOrGroup(Point p, string message, bool checkSingleSelected = false, 
+        private PatternList GetPatternOrGroup(Point p, string message, bool checkSingleSelected = false,
                                               bool includeRecursive = false)
         {
             PatternList patternGroup = new PatternList(Design);
@@ -4361,13 +4410,13 @@ namespace Whorl
                     nearbyPatterns = selPatterns;
                 }
             }
-            if (nearbyPatterns.Count() == 1 || 
+            if (nearbyPatterns.Count() == 1 ||
                 MessageBox.Show(message, "Message", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 patternGroup.AddPatterns(
                     nearbyPatterns.Select(ptn => ptn.Pattern).OrderBy(ptn => Design.IndexOfPattern(ptn)));
             }
-            else 
+            else
             {
                 var selPattern = NearestPattern(p1);
                 if (selPattern != null)
@@ -4386,7 +4435,7 @@ namespace Whorl
                     return;
                 //int editIndex = Design.EditedPattern == null ? -1 : 
                 //                patternGroup.PatternsList.IndexOf(Design.EditedPattern);
-                bool hasEditedPattern = Design.EditedPattern != null && 
+                bool hasEditedPattern = Design.EditedPattern != null &&
                                         patternGroup.PatternsList.Contains(Design.EditedPattern);
                 if (!EditPatternGroup(patternGroup))
                     return;  //User cancelled.
@@ -4402,11 +4451,11 @@ namespace Whorl
                     Design.ReplacePatterns(patternGroup.PatternsList, ptnsCopy.PatternsList);
                     if (patternForm.EditedTransform != null)
                     {
-                        var editedPattern = 
+                        var editedPattern =
                             patternForm.EditedTransform.ParentPattern.FindByKeyGuid(ptnsCopy.Patterns);
                         if (editedPattern != null)
                         {
-                            var transform = 
+                            var transform =
                                 patternForm.EditedTransform.FindByKeyGuid(editedPattern.Transforms);
                             if (transform != null)
                             {
@@ -4423,7 +4472,7 @@ namespace Whorl
                         var editedPattern = ptnsCopy.Patterns.FirstOrDefault();
                         if (editedPattern != null)
                         {
-                            var outline = 
+                            var outline =
                                 patternForm.EditedBasicOutline.FindByKeyGuid(editedPattern.BasicOutlines);
                             var pathOutline = outline as PathOutline;
                             if (pathOutline != null && pathOutline.VerticesSettings != null)
@@ -4445,7 +4494,7 @@ namespace Whorl
                                                 .FindByKeyGuid(editedPattern.BasicOutlines) as PathOutline;
                             if (parentOutline != null)
                             {
-                                PathOutlineTransform outlineTransform = 
+                                PathOutlineTransform outlineTransform =
                                     patternForm.EditedOutlineTransform.FindByKeyGuid(parentOutline.PathOutlineTransforms);
                                 if (outlineTransform != null)
                                 {
@@ -4506,7 +4555,7 @@ namespace Whorl
             try
             {
                 Pattern selPattern = Design.SelectedPattern;
-                PatternList patternGroup = GetPatternOrGroup(dragStart, 
+                PatternList patternGroup = GetPatternOrGroup(dragStart,
                             "Delete a pattern group?");
                 if (patternGroup != null)
                 {
@@ -4526,7 +4575,7 @@ namespace Whorl
 
         private void redrawPatternToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
                 if (redrawPatternToolStripMenuItem.Checked)
                 {
@@ -4637,7 +4686,7 @@ namespace Whorl
 
         private void setPatternAsDefaultToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
                 PatternList patternGroup = GetPatternOrGroup(dragStart, "Set a pattern group as default?");
                 if (patternGroup != null)
@@ -4696,7 +4745,7 @@ namespace Whorl
                     if (targetPatterns.Count != sourcePatterns.Count)
                     {
                         MessageBox.Show(
-                            "Pattern group does not have same number of patterns as default.", 
+                            "Pattern group does not have same number of patterns as default.",
                             "Message");
                         return;
                     }
@@ -5192,17 +5241,39 @@ namespace Whorl
 
         private void nextImprovToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NextOrPreviousImprov(1);
+            if (!Animating && FolderSlides != null)
+            {
+                if (IncrementSlideIndex == -1)
+                    IncrementSlideIndex = FolderSlideIndex;
+                if (IncrementSlideIndex < FolderSlides.Length - 1)
+                    IncrementSlideIndex++;
+                ShowDesignSlide(FolderSlides[IncrementSlideIndex]);
+            }
+            else
+            {
+                NextOrPreviousImprov(1);
+            }
         }
 
         private void previousImprovToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NextOrPreviousImprov(-1);
+            if (!Animating && FolderSlides != null)
+            {
+                if (IncrementSlideIndex == -1)
+                    IncrementSlideIndex = FolderSlideIndex;
+                if (IncrementSlideIndex > 0)
+                    IncrementSlideIndex--;
+                ShowDesignSlide(FolderSlides[IncrementSlideIndex]);
+            }
+            else
+            {
+                NextOrPreviousImprov(-1);
+            }
         }
 
         private void newDesignToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
                 if (!CheckSaveDesign())
                     return;  //User cancelled.
@@ -5237,7 +5308,7 @@ namespace Whorl
         {
             if (fileName == null)
                 fileName = this.designFileName;
-            this.Text = (Design != null && Design.IsDirty ? "*" : "") + 
+            this.Text = (Design != null && Design.IsDirty ? "*" : "") +
                         (string.IsNullOrEmpty(fileName) ? "New Design" :
                          Path.GetFileNameWithoutExtension(fileName)) + " - Whorl";
         }
@@ -5311,9 +5382,9 @@ namespace Whorl
 
         private void repeatPatternToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
-                PatternList patternGroup = GetPatternOrGroup(dragStart, 
+                PatternList patternGroup = GetPatternOrGroup(dragStart,
                     "Repeat a pattern group?");
                 if (patternGroup == null)
                     return;
@@ -5388,7 +5459,7 @@ namespace Whorl
                                     for (int j = 0; j < newRibbon.RibbonPath.Count; j++)
                                     {
                                         PointF p = newRibbon.RibbonPath[j];
-                                        Complex zRibbonVec =  zRibbonRotation * new Complex(p.X - picCenter.X, p.Y - picCenter.Y);
+                                        Complex zRibbonVec = zRibbonRotation * new Complex(p.X - picCenter.X, p.Y - picCenter.Y);
                                         newRibbon.RibbonPath[j] = new PointF(picCenter.X + (float)(zRibbonVec.Re), picCenter.Y + (float)zRibbonVec.Im);
                                     }
                                     zRibbonRotation *= zRotation;
@@ -5403,7 +5474,7 @@ namespace Whorl
                                 }
                                 else if (i > 0)    //First pattern already drawn.
                                 {
-                                    PatternList newPatternGroup = 
+                                    PatternList newPatternGroup =
                                         patternGroup.GetCopy(copyKeyGuid: false);
                                     patternZVector = patternZVector * zRotation;
                                     newPatternGroup.SetZVectors(patternZVector);
@@ -5618,7 +5689,7 @@ namespace Whorl
 
         private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
                 foreach (Pattern pattern in this.Design.EnabledPatterns)
                 {
@@ -5682,7 +5753,7 @@ namespace Whorl
                     if (File.Exists(patternChoicesFilePath))
                     {
                         PatternChoices = new PatternGroupList(Design);
-                        Tools.ReadFromXml(patternChoicesFilePath, PatternChoices, 
+                        Tools.ReadFromXml(patternChoicesFilePath, PatternChoices,
                                           "PatternChoices");
                         InitPatternChoiceSettings();
                     }
@@ -5695,7 +5766,7 @@ namespace Whorl
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-           try
+            try
             {
                 EditSettings();
             }
@@ -5843,75 +5914,225 @@ namespace Whorl
         //    }
         //}
 
-        string[] slideShowFileNames;
-        int slideShowFileIndex;
+        //string[] slideShowFileNames;
+        //int slideShowFileIndex;
 
-        private void ShowSlide()
+        private void ShowDesignSlide(string fileName)
+        {
+            WriteTitle(fileName);
+            this.Refresh();
+            string cachedImageFileName = GetCachedImageFileName(fileName);
+            if (CachedImageIsValid(fileName, cachedImageFileName))
+            {
+                OpenImageFile(cachedImageFileName);
+                return;
+            }
+            WhorlDesign designToShow = new WhorlDesign(OnDistancePatternsCountChanged);
+            try
+            {
+                designToShow.ReadDesignFromXmlFile(fileName);
+            }
+            catch
+            {
+                designToShow = null;
+            }
+            if (designToShow != null)
+            {
+                SetDesign(designToShow);
+                Design.ScaleDesignToFit(ContainerSize);
+                DisplayDesign();
+            }
+        }
+
+        //private void ShowSlide()
+        //{
+        //    try
+        //    {
+        //        if (slideShowFileIndex >= slideShowFileNames.Length)
+        //            slideShowFileIndex = 0;
+        //        string fileName = slideShowFileNames[slideShowFileIndex];
+        //        ShowDesignSlide(fileName);
+        //    }
+        //    finally
+        //    {
+        //        slideShowFileIndex++;
+        //    }
+        //}
+
+        private Timer FolderSlideTimer { get; set; }
+        private string SlidesFolder { get; set; }
+        
+        private string[] FolderSlides { get; set;  }
+        private int FolderSlideIndex { get; set; }
+        private List<int> ShuffleSlideIndexes { get; set; }
+        private bool SlideShowIsRunning { get; set; }
+
+        private void MnuCustomFolderSlides_Click(object sender, EventArgs e)
         {
             try
             {
-                if (slideShowFileIndex >= slideShowFileNames.Length)
-                    slideShowFileIndex = 0;
-                string fileName = slideShowFileNames[slideShowFileIndex];
-                WhorlDesign designToShow = new WhorlDesign(OnDistancePatternsCountChanged);
-                try
-                {
-                    designToShow.ReadDesignFromXmlFile(fileName);
-                }
-                catch
-                {
-                    designToShow = null;
-                }
-                if (designToShow != null)
-                {
-                    SetDesign(designToShow);
-                    WriteTitle(fileName);
-                    DisplayDesign();
-                }
+                var menuItem = (ToolStripMenuItem)sender;
+                string subFolder = (string)menuItem.Tag;
+                StartSlideShow(subFolder);
             }
             catch (Exception ex)
             {
                 Tools.HandleException(ex);
             }
-            finally
+        }
+
+        private void StartSlideShow(string subFolder)
+        {
+            SlidesFolder = subFolder;
+            string fileFolder;
+            if (subFolder == null)
             {
-                slideShowFileIndex++;
+                fileFolder = WhorlSettings.Instance.FilesFolder;
             }
+            else
+            {
+                fileFolder = Path.Combine(WhorlSettings.Instance.FilesFolder,
+                    WhorlSettings.Instance.CustomDesignParentFolder, subFolder);
+            }
+            FolderSlides = Directory.EnumerateFiles(fileFolder, "*.xml").ToArray();
+            if (FolderSlides.Length == 0)
+            {
+                FolderSlides = null;
+                return;
+            }
+            IncrementSlideIndex = -1;
+            SlideShowIsRunning = false;
+            StopAnimating();
+            if (shuffleSlidesToolStripMenuItem.Checked)
+            {
+                ShuffleSlideIndexes =
+                    Enumerable.Range(0, FolderSlides.Length).ToList();
+                FolderSlideIndex = GetRandomSlideIndex();
+            }
+            else
+            {
+                ShuffleSlideIndexes = null;
+                FolderSlideIndex = 0;
+            }
+            ShowDesignSlide(FolderSlides[FolderSlideIndex]);
+            if (FolderSlides.Length == 1)
+                return;
+            SlideShowIsRunning = true;
+            if (FolderSlideTimer != null)
+            {
+                FolderSlideTimer.Dispose();
+            }
+            FolderSlideTimer = new Timer();
+            FolderSlideTimer.Tick += FolderSlideTimer_Tick;
+            FolderSlideTimer.Interval = 1000 *
+                (int)WhorlSettings.Instance.ReplayIntervalSeconds;
+            FolderSlideTimer.Start();
+            endSlideShowToolStripMenuItem.Enabled = true;
+        }
+
+        private int GetRandomSlideIndex()
+        {
+            Random random = new Random();
+            if (ShuffleSlideIndexes.Count == 0)
+                ShuffleSlideIndexes =
+                    Enumerable.Range(0, FolderSlides.Length).ToList();
+            int i = random.Next(0, ShuffleSlideIndexes.Count);
+            int index = ShuffleSlideIndexes[i];
+            ShuffleSlideIndexes.RemoveAt(i);
+            return index;
+        }
+
+        private void endSlideShowToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (FolderSlideTimer != null)
+                {
+                    FolderSlideTimer.Stop();
+                    FolderSlideTimer.Dispose();
+                    FolderSlideTimer = null;
+                    endSlideShowToolStripMenuItem.Enabled = false;
+                }
+                SlideShowIsRunning = false;
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void FolderSlideTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (FolderSlideIndex < FolderSlides.Length)
+                {
+                    if (WhorlSettings.Instance.CacheDesignSlides)
+                    {
+                        CheckCacheImage(FolderSlides[FolderSlideIndex]);
+                    }
+                }
+                if (ShuffleSlideIndexes == null)
+                {
+                    FolderSlideIndex++;
+                    if (FolderSlideIndex >= FolderSlides.Length)
+                        FolderSlideIndex = 0;
+                }
+                else
+                {
+                    FolderSlideIndex = GetRandomSlideIndex();
+                }
+                ShowFolderSlide(null, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private void ShowFolderSlide(object sender, EventArgs e)
+        {
+            string fileName = FolderSlides[FolderSlideIndex];
+            FolderSlideTimer.Stop();
+            ShowDesignSlide(fileName);
+            FolderSlideTimer.Start();
+            WriteStatus(fileName);
         }
 
         private void slideShowToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                if (!slideShowToolStripMenuItem.Checked)
-                {
-                    AnimationTimer.Stop();
-                    this.resetDesignToolStripMenuItem.Enabled = true;
-                    slideShowFileNames = null;
-                    return;
-                }
-                if (slideShowFileNames == null)
-                {
-                    string sourceFolder = WhorlSettings.Instance.FilesFolder;
-                    if (Directory.Exists(sourceFolder))
-                        slideShowFileNames = Directory.GetFiles(sourceFolder, "*.xml");
-                    if (slideShowFileNames == null || slideShowFileNames.Length == 0)
-                    {
-                        slideShowToolStripMenuItem.Checked = false;
-                        return;
-                    }
-                    if (!string.IsNullOrEmpty(this.designFileName))
-                    {
-                        slideShowFileIndex = 
-                            1 + slideShowFileNames.ToList().IndexOf(designFileName);
-                    }
-                    else
-                        slideShowFileIndex = 0;
-                }
-                this.origDesign = Design;
-                AnimationTimer.Interval = 1500;
-                AnimationTimer.Start();
-                ShowSlide();
+                StartSlideShow(subFolder: null);
+                //if (!normalSlidesToolStripMenuItem.Checked)
+                //{
+                //    AnimationTimer.Stop();
+                //    this.resetDesignToolStripMenuItem.Enabled = true;
+                //    slideShowFileNames = null;
+                //    return;
+                //}
+                //if (slideShowFileNames == null)
+                //{
+                //    string sourceFolder = WhorlSettings.Instance.FilesFolder;
+                //    if (Directory.Exists(sourceFolder))
+                //        slideShowFileNames = Directory.GetFiles(sourceFolder, "*.xml");
+                //    if (slideShowFileNames == null || slideShowFileNames.Length == 0)
+                //    {
+                //        slideShowToolStripMenuItem.Checked = false;
+                //        return;
+                //    }
+                //    if (!string.IsNullOrEmpty(this.designFileName))
+                //    {
+                //        slideShowFileIndex = 
+                //            1 + slideShowFileNames.ToList().IndexOf(designFileName);
+                //    }
+                //    else
+                //        slideShowFileIndex = 0;
+                //}
+                //this.origDesign = Design;
+                //AnimationTimer.Interval = 1500;
+                //AnimationTimer.Start();
+                //ShowSlide();
             }
             catch (Exception ex)
             {
@@ -9537,5 +9758,68 @@ namespace Whorl
 
         }
 
+        private void deleteAllCachedImagesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (MessageBox.Show("Delete Cached Files?", "Confirm", 
+                    MessageBoxButtons.YesNo) != DialogResult.Yes)
+                {
+                    return;
+                }
+                string cacheFolder = Path.Combine(
+                    WhorlSettings.Instance.FilesFolder, CacheSubFolder);
+                if (Directory.Exists(cacheFolder))
+                {
+                    Directory.Delete(cacheFolder, true);
+                }
+                string customParent = Path.Combine(
+                    WhorlSettings.Instance.FilesFolder, 
+                    WhorlSettings.Instance.CustomDesignParentFolder);
+                string[] folders = Directory.EnumerateDirectories(customParent).ToArray();
+                foreach (string folder in folders)
+                {
+                    cacheFolder = Path.Combine(folder, CacheSubFolder);
+                    if (Directory.Exists(cacheFolder))
+                    {
+                        Directory.Delete(cacheFolder, true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.HandleException(ex);
+            }
+        }
+
+        private int IncrementSlideIndex { get; set; }
+
+        //private void nextSlideToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (IncrementSlideIndex < FolderSlides.Length - 1)
+        //            IncrementSlideIndex++;
+        //        ShowDesignSlide(FolderSlides[IncrementSlideIndex]);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
+
+        //private void previousSlideToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (IncrementSlideIndex > 0)
+        //            IncrementSlideIndex--;
+        //        ShowDesignSlide(FolderSlides[IncrementSlideIndex]);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Tools.HandleException(ex);
+        //    }
+        //}
     }
 }

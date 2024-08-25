@@ -127,7 +127,6 @@
             this.animateOnSelectedPatternsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopAnimatingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetDesignToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.slideShowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.backgroundColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cycleColorsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -148,6 +147,7 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveImagesAsJpegFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chooseCopyPasteObjectsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteAllCachedImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAllDesignThumbnailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resaveDesignThumbnailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setPatternsToHighResolutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -168,6 +168,11 @@
             this.fixDesignsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testStringPatternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.slideShowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.normalSlidesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MnuCustomFolderSlides = new System.Windows.Forms.ToolStripMenuItem();
+            this.endSlideShowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.shuffleSlidesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showSelectionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showRenderingPanelsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showInfluencePointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -944,8 +949,7 @@
             this.improvisationToolStripMenuItem,
             this.animateOnSelectedPatternsToolStripMenuItem,
             this.stopAnimatingToolStripMenuItem,
-            this.resetDesignToolStripMenuItem,
-            this.slideShowToolStripMenuItem});
+            this.resetDesignToolStripMenuItem});
             this.animateToolStripMenuItem.Name = "animateToolStripMenuItem";
             this.animateToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
             this.animateToolStripMenuItem.Text = "Animate";
@@ -1108,14 +1112,6 @@
             this.resetDesignToolStripMenuItem.Text = "Reset Design";
             this.resetDesignToolStripMenuItem.Click += new System.EventHandler(this.resetDesignToolStripMenuItem_Click);
             // 
-            // slideShowToolStripMenuItem
-            // 
-            this.slideShowToolStripMenuItem.CheckOnClick = true;
-            this.slideShowToolStripMenuItem.Name = "slideShowToolStripMenuItem";
-            this.slideShowToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
-            this.slideShowToolStripMenuItem.Text = "Slide Show";
-            this.slideShowToolStripMenuItem.Click += new System.EventHandler(this.slideShowToolStripMenuItem_Click);
-            // 
             // imageToolStripMenuItem
             // 
             this.imageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1254,6 +1250,7 @@
             this.settingsToolStripMenuItem,
             this.saveImagesAsJpegFilesToolStripMenuItem,
             this.chooseCopyPasteObjectsToolStripMenuItem,
+            this.deleteAllCachedImagesToolStripMenuItem,
             this.saveAllDesignThumbnailsToolStripMenuItem,
             this.resaveDesignThumbnailsToolStripMenuItem,
             this.setPatternsToHighResolutionToolStripMenuItem,
@@ -1302,6 +1299,13 @@
             this.chooseCopyPasteObjectsToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.chooseCopyPasteObjectsToolStripMenuItem.Text = "Choose Copy/Paste Objects";
             this.chooseCopyPasteObjectsToolStripMenuItem.Click += new System.EventHandler(this.chooseCopyPasteObjectsToolStripMenuItem_Click);
+            // 
+            // deleteAllCachedImagesToolStripMenuItem
+            // 
+            this.deleteAllCachedImagesToolStripMenuItem.Name = "deleteAllCachedImagesToolStripMenuItem";
+            this.deleteAllCachedImagesToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
+            this.deleteAllCachedImagesToolStripMenuItem.Text = "Delete All Cached Images";
+            this.deleteAllCachedImagesToolStripMenuItem.Click += new System.EventHandler(this.deleteAllCachedImagesToolStripMenuItem_Click);
             // 
             // saveAllDesignThumbnailsToolStripMenuItem
             // 
@@ -1453,6 +1457,7 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.slideShowToolStripMenuItem,
             this.showSelectionsToolStripMenuItem,
             this.showRenderingPanelsToolStripMenuItem,
             this.showInfluencePointsToolStripMenuItem,
@@ -1467,6 +1472,47 @@
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
+            // 
+            // slideShowToolStripMenuItem
+            // 
+            this.slideShowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.normalSlidesToolStripMenuItem,
+            this.MnuCustomFolderSlides,
+            this.endSlideShowToolStripMenuItem,
+            this.shuffleSlidesToolStripMenuItem});
+            this.slideShowToolStripMenuItem.Name = "slideShowToolStripMenuItem";
+            this.slideShowToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.slideShowToolStripMenuItem.Text = "Slide Show";
+            // 
+            // normalSlidesToolStripMenuItem
+            // 
+            this.normalSlidesToolStripMenuItem.CheckOnClick = true;
+            this.normalSlidesToolStripMenuItem.Name = "normalSlidesToolStripMenuItem";
+            this.normalSlidesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.normalSlidesToolStripMenuItem.Text = "Normal";
+            this.normalSlidesToolStripMenuItem.Click += new System.EventHandler(this.slideShowToolStripMenuItem_Click);
+            // 
+            // MnuCustomFolderSlides
+            // 
+            this.MnuCustomFolderSlides.Name = "MnuCustomFolderSlides";
+            this.MnuCustomFolderSlides.Size = new System.Drawing.Size(179, 22);
+            this.MnuCustomFolderSlides.Text = "Custom Folder";
+            // 
+            // endSlideShowToolStripMenuItem
+            // 
+            this.endSlideShowToolStripMenuItem.Enabled = false;
+            this.endSlideShowToolStripMenuItem.Name = "endSlideShowToolStripMenuItem";
+            this.endSlideShowToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F10;
+            this.endSlideShowToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.endSlideShowToolStripMenuItem.Text = "End Slide Show";
+            this.endSlideShowToolStripMenuItem.Click += new System.EventHandler(this.endSlideShowToolStripMenuItem_Click);
+            // 
+            // shuffleSlidesToolStripMenuItem
+            // 
+            this.shuffleSlidesToolStripMenuItem.CheckOnClick = true;
+            this.shuffleSlidesToolStripMenuItem.Name = "shuffleSlidesToolStripMenuItem";
+            this.shuffleSlidesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.shuffleSlidesToolStripMenuItem.Text = "Shuffle Slides";
             // 
             // showSelectionsToolStripMenuItem
             // 
@@ -2552,7 +2598,6 @@
         private System.Windows.Forms.ToolStripMenuItem keepNewRandomSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem revertToOriginalRandomSettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectRandomToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem slideShowToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveImagesAsJpegFilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem drawOutlineToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem drawLinesToolStripMenuItem;
@@ -2740,6 +2785,12 @@
         private System.Windows.Forms.ToolStripMenuItem rotateSelectedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openPaddingTestFormToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resaveDesignThumbnailsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem slideShowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem normalSlidesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem MnuCustomFolderSlides;
+        private System.Windows.Forms.ToolStripMenuItem endSlideShowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem shuffleSlidesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteAllCachedImagesToolStripMenuItem;
     }
 }
 

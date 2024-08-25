@@ -30,6 +30,8 @@
         {
             this.SettingsTabControl = new System.Windows.Forms.TabControl();
             this.GeneralTab = new System.Windows.Forms.TabPage();
+            this.txtThumbnailQuality = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.chkNewPolygonVersion = new System.Windows.Forms.CheckBox();
             this.cboDraftSize = new System.Windows.Forms.ComboBox();
             this.label12 = new System.Windows.Forms.Label();
@@ -48,6 +50,8 @@
             this.txtFilesFolder = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.AnimationsTab = new System.Windows.Forms.TabPage();
+            this.txtSlideInterval = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
             this.chkImproviseTextures = new System.Windows.Forms.CheckBox();
             this.txtImprovDamping = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
@@ -69,8 +73,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.txtThumbnailQuality = new System.Windows.Forms.TextBox();
-            this.label13 = new System.Windows.Forms.Label();
+            this.ChkCacheDesignSlides = new System.Windows.Forms.CheckBox();
             this.SettingsTabControl.SuspendLayout();
             this.GeneralTab.SuspendLayout();
             this.AnimationsTab.SuspendLayout();
@@ -88,6 +91,7 @@
             // 
             // GeneralTab
             // 
+            this.GeneralTab.Controls.Add(this.ChkCacheDesignSlides);
             this.GeneralTab.Controls.Add(this.txtThumbnailQuality);
             this.GeneralTab.Controls.Add(this.label13);
             this.GeneralTab.Controls.Add(this.chkNewPolygonVersion);
@@ -114,6 +118,23 @@
             this.GeneralTab.TabIndex = 0;
             this.GeneralTab.Text = "General";
             this.GeneralTab.UseVisualStyleBackColor = true;
+            // 
+            // txtThumbnailQuality
+            // 
+            this.txtThumbnailQuality.Location = new System.Drawing.Point(258, 123);
+            this.txtThumbnailQuality.Name = "txtThumbnailQuality";
+            this.txtThumbnailQuality.Size = new System.Drawing.Size(70, 20);
+            this.txtThumbnailQuality.TabIndex = 26;
+            this.txtThumbnailQuality.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(147, 126);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(105, 13);
+            this.label13.TabIndex = 25;
+            this.label13.Text = "Thumbnail Quality %:";
             // 
             // chkNewPolygonVersion
             // 
@@ -272,6 +293,8 @@
             // 
             // AnimationsTab
             // 
+            this.AnimationsTab.Controls.Add(this.txtSlideInterval);
+            this.AnimationsTab.Controls.Add(this.label14);
             this.AnimationsTab.Controls.Add(this.chkImproviseTextures);
             this.AnimationsTab.Controls.Add(this.txtImprovDamping);
             this.AnimationsTab.Controls.Add(this.label7);
@@ -298,6 +321,23 @@
             this.AnimationsTab.TabIndex = 1;
             this.AnimationsTab.Text = "Animations";
             this.AnimationsTab.UseVisualStyleBackColor = true;
+            // 
+            // txtSlideInterval
+            // 
+            this.txtSlideInterval.Location = new System.Drawing.Point(274, 18);
+            this.txtSlideInterval.Name = "txtSlideInterval";
+            this.txtSlideInterval.Size = new System.Drawing.Size(70, 20);
+            this.txtSlideInterval.TabIndex = 20;
+            this.txtSlideInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(186, 21);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(63, 13);
+            this.label14.TabIndex = 19;
+            this.label14.Text = "Slide Delay:";
             // 
             // chkImproviseTextures
             // 
@@ -493,22 +533,17 @@
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // txtThumbnailQuality
+            // ChkCacheDesignSlides
             // 
-            this.txtThumbnailQuality.Location = new System.Drawing.Point(258, 123);
-            this.txtThumbnailQuality.Name = "txtThumbnailQuality";
-            this.txtThumbnailQuality.Size = new System.Drawing.Size(70, 20);
-            this.txtThumbnailQuality.TabIndex = 26;
-            this.txtThumbnailQuality.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(147, 126);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(105, 13);
-            this.label13.TabIndex = 25;
-            this.label13.Text = "Thumbnail Quality %:";
+            this.ChkCacheDesignSlides.AutoSize = true;
+            this.ChkCacheDesignSlides.Checked = true;
+            this.ChkCacheDesignSlides.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ChkCacheDesignSlides.Location = new System.Drawing.Point(258, 179);
+            this.ChkCacheDesignSlides.Name = "ChkCacheDesignSlides";
+            this.ChkCacheDesignSlides.Size = new System.Drawing.Size(124, 17);
+            this.ChkCacheDesignSlides.TabIndex = 27;
+            this.ChkCacheDesignSlides.Text = "Cache Design Slides";
+            this.ChkCacheDesignSlides.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 
@@ -574,5 +609,8 @@
         private System.Windows.Forms.CheckBox chkNewPolygonVersion;
         private System.Windows.Forms.TextBox txtThumbnailQuality;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.TextBox txtSlideInterval;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.CheckBox ChkCacheDesignSlides;
     }
 }

@@ -24,6 +24,22 @@ namespace Whorl
         private string valueLabel { get; }
         private Func<string, string> validateFunc { get; }
         private TextBox TextBox { get; set; }
+        private ComboBox ComboBox { get; set; }
+
+        public void Initialize(string[] comboboxItems = null)
+        {
+            TextBox = null;
+            ComboBox = null;
+            if (comboboxItems != null)
+            {
+                ComboBox = new ComboBox { Width = 200 };
+                ComboBox.Items.AddRange(comboboxItems);
+            }
+            else
+            {
+                TextBox = new TextBox { Width = 100 };
+            }
+        }
 
         private void GetValueForm_Load(object sender, EventArgs e)
         {
@@ -33,7 +49,14 @@ namespace Whorl
                 label.Text = valueLabel;
                 layoutPanel.Controls.Add(label);
                 TextBox = new TextBox { Width = 100 };
-                layoutPanel.Controls.Add(TextBox);
+                if (TextBox != null)
+                {
+                    layoutPanel.Controls.Add(TextBox);
+                }
+                else
+                {
+                    layoutPanel.Controls.Add(ComboBox);
+                }
             }
             catch (Exception ex)
             {

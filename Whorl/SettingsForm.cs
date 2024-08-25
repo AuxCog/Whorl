@@ -30,6 +30,7 @@ namespace Whorl
             chkSaveDesignThumbnails.Checked = WhorlSettings.Instance.SaveDesignThumbnails;
             chkNewPolygonVersion.Checked = WhorlSettings.Instance.UseNewPolygonVersion;
             txtAnimationRate.Text = WhorlSettings.Instance.AnimationRate.ToString();
+            txtSlideInterval.Text = WhorlSettings.Instance.ReplayIntervalSeconds.ToString();
             txtSpinRate.Text = WhorlSettings.Instance.SpinRate.ToString();
             txtRevolveRate.Text = WhorlSettings.Instance.RevolveRate.ToString();
             txtImprovisationLevel.Text = (1000D * WhorlSettings.Instance.ImprovisationLevel).ToString();
@@ -44,6 +45,7 @@ namespace Whorl
             chkImproviseParameters.Checked = WhorlSettings.Instance.ImproviseParameters;
             txtMaxLoopCount.Text = WhorlSettings.Instance.MaxLoopCount.ToString();
             chkOptimizeExpressions.Checked = WhorlSettings.Instance.OptimizeExpressions;
+            ChkCacheDesignSlides.Checked = WhorlSettings.Instance.CacheDesignSlides;
             cboDraftSize.SelectedItem = WhorlSettings.Instance.DraftSize;
         }
 
@@ -103,6 +105,10 @@ namespace Whorl
                        minValue: 1, maxValue: 100);
                 if (iVal != null)
                     WhorlSettings.Instance.AnimationRate = iVal.Value;
+                dVal = Tools.ConvertNumericInput<double>(txtSlideInterval.Text, "Slide Delay", ref message,
+                       minValue: 1, maxValue: 120);
+                if (dVal != null)
+                    WhorlSettings.Instance.ReplayIntervalSeconds = dVal.Value;
                 dVal = Tools.ConvertNumericInput<double>(txtSpinRate.Text,  "Spin Rate", ref message,
                        minValue: -1000, maxValue: 1000);
                 if (dVal != null)
@@ -139,7 +145,7 @@ namespace Whorl
 
                     WhorlSettings.Instance.UseNewPolygonVersion = chkNewPolygonVersion.Checked;
                     WhorlSettings.Instance.OptimizeExpressions = chkOptimizeExpressions.Checked;
-
+                    WhorlSettings.Instance.CacheDesignSlides = ChkCacheDesignSlides.Checked;
                     WhorlSettings.Instance.Save();
 
                     this.DialogResult = DialogResult.OK;

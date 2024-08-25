@@ -257,6 +257,14 @@ namespace Whorl
             set { SetProperty(ref _optimizeExpressions, value); }
         }
 
+        private bool _cacheDesignSlides;
+        [InitialSettingValue("True")]
+        public Boolean CacheDesignSlides
+        {
+            get { return _cacheDesignSlides; }
+            set { SetProperty(ref _cacheDesignSlides, value); }
+        }
+
         [ReadOnly]
         [InitialSettingValue("PatternChoices.config")]
         public String PatternChoicesFileName { get; private set; }
